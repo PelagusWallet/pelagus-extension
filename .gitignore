@@ -1,0 +1,12 @@
+npm-debug.log
+yarn-error.log
+node_modules
+dist/
+size-plugin.json
+app/extension-scripts/api/playground/
+.env
+*.rest
+.DS_Store
+.vscode
+playwright-report
+test-results/

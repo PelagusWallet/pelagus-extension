@@ -1,0 +1,40 @@
+{
+  "name": "Taho",
+  "version": "0.38.1",
+  "description": "The community owned and operated Web3 wallet.",
+  "homepage_url": "https://taho.xyz",
+  "author": "https://taho.xyz",
+  "manifest_version": 2,
+  "content_security_policy": "object-src 'self'; script-src 'self';",
+  "web_accessible_resources": ["*.js", "*.json"],
+  "content_scripts": [
+    {
+      "matches": ["file://*/*", "http://localhost/*", "https://*/*"],
+      "js": ["provider-bridge.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "windows": "Alt+T",
+        "mac": "Alt+T",
+        "chromeos": "Alt+T",
+        "linux": "Alt+T"
+      }
+    }
+  },
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "browser_action": {
+    "default_title": "Taho",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["alarms", "storage", "unlimitedStorage", "activeTab"],
+  "background": {
+    "persistent": true,
+    "scripts": ["background.js", "background-ui.js"]
+  }
+}

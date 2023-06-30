@@ -7,6 +7,7 @@ import { AccountSigner, ReadOnlyAccountSigner } from "../../services/signing"
 import { HexString } from "../../types"
 import { selectKeyringsByAddresses } from "./keyringsSelectors"
 import { selectCurrentAccount } from "./uiSelectors"
+import { QUAI_CONTEXTS } from "../../constants"
 
 // FIXME: This has a duplicate in `accountSelectors.ts`, but importing causes a dependency cycle
 const getAllAddresses = createSelector(
@@ -50,12 +51,13 @@ export const selectAccountSignersByAddress = createSelector(
           }
 
           allAccountsSeen.add(address)
-
+          let shard = getShardFromAddress(address)
           return [
             address,
             {
               type: "keyring",
               keyringID: keyring.id,
+              shard: shard,
             },
           ]
         }
@@ -84,3 +86,16 @@ export const selectCurrentAccountSigner = createSelector(
   selectCurrentAccount,
   (signingAccounts, selectedAccount) => signingAccounts[selectedAccount.address]
 )
+
+export const getShardFromAddress = function(address: string): string {
+  let shardData = QUAI_CONTEXTS.filter((obj) => {
+    const num = Number(address.substring(0, 4))
+    const start = Number("0x" + obj.byte[0])
+    const end = Number("0x" + obj.byte[1])
+    return num >= start && num <= end
+  })
+  if (shardData.length === 0) {
+    throw new Error("Invalid address")
+}
+return shardData[0].shard
+}

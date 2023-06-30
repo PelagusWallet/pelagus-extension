@@ -20,6 +20,7 @@ import { normalizeEVMAddress, sameEVMAddress } from "../lib/utils"
 import { AccountSigner } from "../services/signing"
 import { TEST_NETWORK_BY_CHAIN_ID } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
+import { ChainService } from "../services"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to

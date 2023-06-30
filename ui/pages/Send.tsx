@@ -7,6 +7,7 @@ import React, {
 } from "react"
 import { useTranslation } from "react-i18next"
 import {
+  getAssetsState,
   selectCurrentAccount,
   selectCurrentAccountBalances,
   selectCurrentAccountNFTs,
@@ -148,7 +149,7 @@ export default function Send(): ReactElement {
 
     try {
       setIsSendingTransactionRequest(true)
-
+      getAssetsState
       await dispatch(
         transferAsset({
           fromAddressNetwork: currentAccount,
@@ -157,6 +158,7 @@ export default function Send(): ReactElement {
             network: currentAccount.network,
           },
           assetAmount,
+          accountSigner: currentAccountSigner,
         })
       )
     } finally {

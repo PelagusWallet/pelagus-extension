@@ -92,6 +92,7 @@ export type Events = {
   requestSignature: SignOperation<TransactionRequest>
   signatureRejected: never
   broadcastSignedTransaction: SignedTransaction
+  signedTransactionResult: SignedTransaction
 }
 
 export type GasOption = {

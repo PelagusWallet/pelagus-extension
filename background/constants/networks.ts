@@ -1,5 +1,9 @@
+import { indexOf } from "lodash"
 import { FeatureFlags, wrapIfEnabled } from "../features"
-import { EVMNetwork } from "../networks"
+import logger from "../lib/logger"
+import { CURRENT_QUAI_CHAIN_ID, EVMNetwork } from "../networks"
+import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
+import { JsonRpcProvider as QuaisJsonRpcProvider, WebSocketProvider as QuaisWebSocketProvider } from "@quais/providers"
 import {
   ARBITRUM_NOVA_ETH,
   ARBITRUM_ONE_ETH,
@@ -11,7 +15,9 @@ import {
   OPTIMISTIC_ETH,
   RBTC,
   ZK_SYNC_ETH,
+  QUAI,
 } from "./currencies"
+
 
 export const ETHEREUM: EVMNetwork = {
   name: "Ethereum",
@@ -93,6 +99,13 @@ export const ZK_SYNC: EVMNetwork = {
   family: "EVM",
 }
 
+export const QUAI_NETWORK: EVMNetwork = {
+  name: "QUAI Network",
+  baseAsset: QUAI,
+  chainID: CURRENT_QUAI_CHAIN_ID,
+  family: "EVM",
+}
+
 export const DEFAULT_NETWORKS = [
   ETHEREUM,
   POLYGON,
@@ -102,6 +115,7 @@ export const DEFAULT_NETWORKS = [
   ROOTSTOCK,
   AVALANCHE,
   BINANCE_SMART_CHAIN,
+  QUAI_NETWORK,
   ...wrapIfEnabled(FeatureFlags.SUPPORT_ARBITRUM_NOVA, ARBITRUM_NOVA),
 ]
 
@@ -118,17 +132,17 @@ export const DEFAULT_NETWORKS_BY_CHAIN_ID = new Set(
 export const FORK: EVMNetwork = {
   name: "Ethereum",
   baseAsset: ETH,
-  chainID: process.env.MAINNET_FORK_CHAIN_ID ?? "1337",
+  chainID: process.env.MAINNET_FORK_CHAIN_ID ?? "69",
   family: "EVM",
   coingeckoPlatformID: "ethereum",
 }
 
 export const EIP_1559_COMPLIANT_CHAIN_IDS = new Set(
-  [ETHEREUM, POLYGON, GOERLI, AVALANCHE].map((network) => network.chainID)
+  [ETHEREUM, POLYGON, GOERLI, AVALANCHE, QUAI_NETWORK].map((network) => network.chainID)
 )
 
 export const CHAINS_WITH_MEMPOOL = new Set(
-  [ETHEREUM, POLYGON, AVALANCHE, GOERLI, BINANCE_SMART_CHAIN].map(
+  [ETHEREUM, POLYGON, AVALANCHE, GOERLI, BINANCE_SMART_CHAIN, QUAI_NETWORK].map(
     (network) => network.chainID
   )
 )
@@ -145,6 +159,7 @@ export const NETWORK_BY_CHAIN_ID = {
   [GOERLI.chainID]: GOERLI,
   [FORK.chainID]: FORK,
   [ZK_SYNC.chainID]: ZK_SYNC,
+  [QUAI_NETWORK.chainID]: QUAI_NETWORK,
 }
 
 export const TEST_NETWORK_BY_CHAIN_ID = new Set(
@@ -177,37 +192,7 @@ export const ALCHEMY_SUPPORTED_CHAIN_IDS = new Set(
   )
 )
 
-export const CHAIN_ID_TO_RPC_URLS: {
-  [chainId: string]: Array<string> | undefined
-} = {
-  [ROOTSTOCK.chainID]: ["https://public-node.rsk.co"],
-  [POLYGON.chainID]: [
-    // This one sometimes returns 0 for eth_getBalance
-    "https://polygon-rpc.com",
-    "https://1rpc.io/matic",
-  ],
-  [OPTIMISM.chainID]: [
-    "https://rpc.ankr.com/optimism",
-    "https://1rpc.io/op",
-    "https://optimism-mainnet.public.blastapi.io",
-  ],
-  [ETHEREUM.chainID]: ["https://rpc.ankr.com/eth", "https://1rpc.io/eth"],
-  [ARBITRUM_ONE.chainID]: [
-    "https://rpc.ankr.com/arbitrum",
-    "https://1rpc.io/arb",
-  ],
-  [ARBITRUM_NOVA.chainID]: ["https://nova.arbitrum.io/rpc	"],
-  [GOERLI.chainID]: ["https://ethereum-goerli-rpc.allthatnode.com"],
-  [AVALANCHE.chainID]: [
-    "https://api.avax.network/ext/bc/C/rpc",
-    "https://1rpc.io/avax/c",
-    "https://rpc.ankr.com/avalanche",
-  ],
-  [BINANCE_SMART_CHAIN.chainID]: [
-    "https://rpc.ankr.com/bsc",
-    "https://bsc-dataseed.binance.org",
-  ],
-}
+
 
 // Taken from https://api.coingecko.com/api/v3/asset_platforms
 export const CHAIN_ID_TO_COINGECKO_PLATFORM_ID: {
@@ -273,3 +258,471 @@ export const CHAIN_ID_TO_OPENSEA_CHAIN = {
 export const NETWORKS_WITH_FEE_SETTINGS = new Set(
   [ETHEREUM, POLYGON, ARBITRUM_ONE, AVALANCHE].map((network) => network.chainID)
 )
+
+// Network class contains data about a default or custom network.
+export class Network {
+  name: string
+  chains: ChainData[]
+  isCustom: boolean
+  chainCode: number
+  chainID: number
+}
+
+export class ChainData {
+  name: string
+  shard: string
+  blockExplorerUrl: string
+  rpc: string
+}
+
+export const NETWORK_LIST = []
+
+export const NETWORK_TO_CHAIN_CODE = {
+  Colosseum: 994,
+  Garden: 994,
+  Local: 994
+}
+
+export const CHAIN_ID_TO_NETWORK = {
+  9000: "Colosseum",
+  12000: "Garden",
+  1337: "Local"
+}
+
+export const NETWORK_TO_CHAIN_ID = {
+  Colosseum: 9000,
+  Garden: 12000,
+  Local: 1337
+}
+
+export const DEFAULT_QUAI_TESNTET = {
+  name: "Colosseum",
+  chainCode: 994,
+  chainID: 9000,
+  isCustom: false,
+  chains: [
+    {
+      name: "Prime",
+      shard: "prime",
+      rpc: "https://rpc.prime.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://prime.colosseum.quaiscan.io"
+    },
+    {
+      name: "Cyprus",
+      shard: "cyprus",
+      rpc: "https://rpc.cyprus.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://cyprus.colosseum.quaiscan.io"
+    },
+    {
+      name: "Cyprus One",
+      shard: "cyprus-1",
+      rpc: "https://rpc.cyprus1.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://cyprus1.colosseum.quaiscan.io"
+    },
+    {
+      name: "Cyprus Two",
+      shard: "cyprus-2",
+      rpc: "https://rpc.cyprus2.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://cyprus2.colosseum.quaiscan.io"
+    },
+    {
+      name: "Cyprus Three",
+      shard: "cyprus-3",
+      rpc: "https://rpc.cyprus3.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://cyprus3.colosseum.quaiscan.io"
+    },
+    {
+      name: "Paxos",
+      shard: "paxos",
+      rpc: "https://rpc.paxos.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://paxos.colosseum.quaiscan.io"
+    },
+    {
+      name: "Paxos One",
+      shard: "paxos-1",
+      rpc: "https://rpc.paxos1.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://paxos1.colosseum.quaiscan.io"
+    },
+    {
+      name: "Paxos Two",
+      shard: "paxos-2",
+      rpc: "https://rpc.paxos2.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://paxos2.colosseum.quaiscan.io"
+    },
+    {
+      name: "Paxos Three",
+      shard: "paxos-3",
+      rpc: "https://rpc.paxos3.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://paxos3.colosseum.quaiscan.io"
+    },
+    {
+      name: "Hydra",
+      shard: "hydra",
+      rpc: "https://rpc.hydra.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://hyrda.colosseum.quaiscan.io"
+    },
+    {
+      name: "Hydra One",
+      shard: "hydra-1",
+      rpc: "https://rpc.hydra1.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://hydra1.colosseum.quaiscan.io"
+    },
+    {
+      name: "Hydra Two",
+      shard: "hydra-2",
+      rpc: "https://rpc.hydra2.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://hydra2.colosseum.quaiscan.io"
+    },
+    {
+      name: "Hydra Three",
+      shard: "hydra-3",
+      rpc: "https://rpc.hydra3.colosseum.quaiscan.io",
+      blockExplorerUrl: "https://hydra3.colosseum.quaiscan.io"
+    }
+  ]
+} as Network
+
+export const DEFAULT_QUAI_DEVNET = {
+  name: "Garden",
+  chainCode: 994,
+  chainID: 12000,
+  isCustom: false,
+  chains: [
+    {
+      name: "Prime",
+      shard: "prime",
+      rpc: "https://rpc.prime.garden.quaiscan.io",
+      blockExplorerUrl: "https://prime.garden.quaiscan.io"
+    },
+    {
+      name: "Cyprus",
+      shard: "cyprus",
+      rpc: "https://rpc.cyprus.garden.quaiscan.io",
+      blockExplorerUrl: "https://cyprus.garden.quaiscan.io"
+    },
+    {
+      name: "Cyprus One",
+      shard: "cyprus-1",
+      rpc: "https://rpc.cyprus1.garden.quaiscan.io",
+      blockExplorerUrl: "https://cyprus1.garden.quaiscan.io"
+    },
+    {
+      name: "Cyprus Two",
+      shard: "cyprus-2",
+      rpc: "https://rpc.cyprus2.garden.quaiscan.io",
+      blockExplorerUrl: "https://cyprus2.garden.quaiscan.io"
+    },
+    {
+      name: "Cyprus Three",
+      shard: "cyprus-3",
+      rpc: "https://rpc.cyprus3.garden.quaiscan.io",
+      blockExplorerUrl: "https://cyprus3.garden.quaiscan.io"
+    },
+    {
+      name: "Paxos",
+      shard: "paxos",
+      rpc: "https://rpc.paxos.garden.quaiscan.io",
+      blockExplorerUrl: "https://paxos.garden.quaiscan.io"
+    },
+    {
+      name: "Paxos One",
+      shard: "paxos-1",
+      rpc: "https://rpc.paxos1.garden.quaiscan.io",
+      blockExplorerUrl: "https://paxos1.garden.quaiscan.io"
+    },
+    {
+      name: "Paxos Two",
+      shard: "paxos-2",
+      rpc: "https://rpc.paxos2.garden.quaiscan.io",
+      blockExplorerUrl: "https://paxos2.garden.quaiscan.io"
+    },
+    {
+      name: "Paxos Three",
+      shard: "paxos-3",
+      rpc: "https://rpc.paxos3.garden.quaiscan.io",
+      blockExplorerUrl: "https://paxos3.garden.quaiscan.io"
+    },
+    {
+      name: "Hydra",
+      shard: "hydra",
+      rpc: "https://rpc.hydra.garden.quaiscan.io",
+      blockExplorerUrl: "https://hyrda.garden.quaiscan.io"
+    },
+    {
+      name: "Hydra One",
+      shard: "hydra-1",
+      rpc: "https://rpc.hydra1.garden.quaiscan.io",
+      blockExplorerUrl: "https://hydra1.garden.quaiscan.io"
+    },
+    {
+      name: "Hydra Two",
+      shard: "hydra-2",
+      rpc: "https://rpc.hydra2.garden.quaiscan.io",
+      blockExplorerUrl: "https://hydra2.garden.quaiscan.io"
+    },
+    {
+      name: "Hydra Three",
+      shard: "hydra-3",
+      rpc: "https://rpc.hydra3.garden.quaiscan.io",
+      blockExplorerUrl: "https://hydra3.garden.quaiscan.io"
+    }
+  ]
+} as Network
+
+export const DEFAULT_QUAI_LOCAL = {
+  name: "Local",
+  chainCode: 994,
+  chainID: 1337,
+  isCustom: false,
+  chains: [
+    {
+      name: "Prime",
+      shard: "prime",
+      rpc: "http://localhost:8546",
+      blockExplorerUrl: "https://dev.prime.quaiscan.io"
+    },
+    {
+      name: "Cyprus",
+      shard: "cyprus",
+      rpc: "http://localhost:8578",
+      blockExplorerUrl: "https://dev.cyprus.quaiscan.io"
+    },
+    {
+      name: "Cyprus One",
+      shard: "cyprus-1",
+      rpc: "http://localhost:8610",
+      blockExplorerUrl: "http://localhost:4002"
+    },
+    {
+      name: "Cyprus Two",
+      shard: "cyprus-2",
+      rpc: "http://localhost:8542",
+      blockExplorerUrl: "https://dev.cyprus2.quaiscan.io"
+    },
+    {
+      name: "Cyprus Three",
+      shard: "cyprus-3",
+      rpc: "http://localhost:8674",
+      blockExplorerUrl: "https://dev.cyprus3.quaiscan.io"
+    },
+    {
+      name: "Paxos",
+      shard: "paxos",
+      rpc: "http://localhost:8581",
+      blockExplorerUrl: "https://dev.paxos.quaiscan.io"
+    },
+    {
+      name: "Paxos One",
+      shard: "paxos-1",
+      rpc: "http://localhost:8512",
+      blockExplorerUrl: "https://dev.paxos1.quaiscan.io"
+    },
+    {
+      name: "Paxos Two",
+      shard: "paxos-2",
+      rpc: "http://localhost:8544",
+      blockExplorerUrl: "https://dev.paxos2.quaiscan.io"
+    },
+    {
+      name: "Paxos Three",
+      shard: "paxos-3",
+      rpc: "http://localhost:8576",
+      blockExplorerUrl: "https://dev.paxos3.quaiscan.io"
+    },
+    {
+      name: "Hydra",
+      shard: "hydra",
+      rpc: "http://localhost:8582",
+      blockExplorerUrl: "https://dev.hydra.quaiscan.io"
+    },
+    {
+      name: "Hydra One",
+      shard: "hydra-1",
+      rpc: "http://localhost:8614",
+      blockExplorerUrl: "https://dev.hydra1.quaiscan.io"
+    },
+    {
+      name: "Hydra Two",
+      shard: "hydra-2",
+      rpc: "http://localhost:8646",
+      blockExplorerUrl: "https://dev.hydra2.quaiscan.io"
+    },
+    {
+      name: "Hydra Three",
+      shard: "hydra-3",
+      rpc: "http://localhost:8678",
+      blockExplorerUrl: "https://dev.hydra3.quaiscan.io"
+    }
+  ]
+} as Network
+
+export const DEFAULT_QUAI_NETWORKS = [
+  DEFAULT_QUAI_TESNTET,
+  DEFAULT_QUAI_DEVNET,
+  DEFAULT_QUAI_LOCAL
+]
+
+export class QuaiContext {
+  name: string
+  shard: string
+  context: number
+  byte: string[]
+}
+
+export const QUAI_CONTEXTS = [
+  {
+    name: "Cyprus One",
+    shard: "cyprus-1",
+    context: 2,
+    byte: ["00", "1D"]
+  },
+  {
+    name: "Cyprus Two",
+    shard: "cyprus-2",
+    context: 2,
+    byte: ["1E", "3A"]
+  },
+  {
+    name: "Cyprus Three",
+    shard: "cyprus-3",
+    context: 2,
+    byte: ["3B", "57"]
+  },
+  {
+    name: "Paxos One",
+    shard: "paxos-1",
+    context: 2,
+    byte: ["58", "73"]
+  },
+  {
+    name: "Paxos Two",
+    shard: "paxos-2",
+    context: 2,
+    byte: ["74", "8F"]
+  },
+  {
+    name: "Paxos Three",
+    shard: "paxos-3",
+    context: 2,
+    byte: ["90", "AB"]
+  },
+  {
+    name: "Hydra One",
+    shard: "hydra-1",
+    context: 2,
+    byte: ["AC", "C7"]
+  },
+  {
+    name: "Hydra Two",
+    shard: "hydra-2",
+    context: 2,
+    byte: ["C8", "E3"]
+  },
+  {
+    name: "Hydra Three",
+    shard: "hydra-3",
+    context: 2,
+    byte: ["E4", "FF"]
+  }
+]
+
+export const CHAIN_ID_TO_RPC_URLS: {
+  [chainId: string]: Array<string> | undefined
+} = {
+  [ROOTSTOCK.chainID]: ["https://public-node.rsk.co"],
+  [POLYGON.chainID]: [
+    // This one sometimes returns 0 for eth_getBalance
+    "https://polygon-rpc.com",
+    "https://1rpc.io/matic",
+  ],
+  [OPTIMISM.chainID]: [
+    "https://rpc.ankr.com/optimism",
+    "https://1rpc.io/op",
+    "https://optimism-mainnet.public.blastapi.io",
+  ],
+  [ETHEREUM.chainID]: ["https://rpc.ankr.com/eth", "https://1rpc.io/eth"],
+  [ARBITRUM_ONE.chainID]: [
+    "https://rpc.ankr.com/arbitrum",
+    "https://1rpc.io/arb",
+  ],
+  [ARBITRUM_NOVA.chainID]: ["https://nova.arbitrum.io/rpc	"],
+  [GOERLI.chainID]: ["https://ethereum-goerli-rpc.allthatnode.com"],
+  [AVALANCHE.chainID]: [
+    "https://api.avax.network/ext/bc/C/rpc",
+    "https://1rpc.io/avax/c",
+    "https://rpc.ankr.com/avalanche",
+  ],
+  [BINANCE_SMART_CHAIN.chainID]: [
+    "https://rpc.ankr.com/bsc",
+    "https://bsc-dataseed.binance.org",
+  ],
+  // All default quai local chain rpcs
+  [QUAI_NETWORK.chainID]: [...DEFAULT_QUAI_LOCAL.chains.map((chain) => chain.rpc)],
+}
+
+export function getExplorerURLForShard(network: Network, shard: string) {
+  let chainData = network.chains.find(
+    (chain) => chain.shard === shard
+  ) as ChainData
+  if (chainData === undefined) {
+    return undefined
+  }
+  return chainData.blockExplorerUrl
+}
+
+export const getShardFromAddress = function(address: string): string {
+  let shardData = QUAI_CONTEXTS.filter((obj) => {
+    const num = Number(address.substring(0, 4))
+    const start = Number("0x" + obj.byte[0])
+    const end = Number("0x" + obj.byte[1])
+    return num >= start && num <= end
+  })
+  if (shardData.length === 0) {
+    throw new Error("Invalid address")
+}
+return shardData[0].shard
+}
+
+export function setProviderForShard(providers: SerialFallbackProvider): SerialFallbackProvider {
+  let shard = globalThis.main.SelectedShard
+  if (shard === undefined || shard == "") {
+    return providers
+  }
+  for (let provider of providers.providerCreators) {
+    if (provider.shard !== undefined && provider.shard == shard) {
+      let quaisProvider = provider.creator()
+      if (quaisProvider instanceof QuaisJsonRpcProvider || quaisProvider instanceof QuaisWebSocketProvider) {
+        providers.SetCurrentProvider(quaisProvider, indexOf(providers.providerCreators, provider))
+      } else {
+        logger.error("Provider is not a Quais provider")
+        console.log(providers.providerCreators)
+      }
+      return providers
+    } else if (provider.rpcUrl !== undefined && ShardFromRpcUrl(provider.rpcUrl) === shard) {
+      let quaisProvider = provider.creator()
+      if (quaisProvider instanceof QuaisJsonRpcProvider || quaisProvider instanceof QuaisWebSocketProvider) {
+        providers.SetCurrentProvider(quaisProvider, indexOf(providers.providerCreators, provider))
+      } else {
+        logger.error("Provider is not a Quais provider")
+        console.log(providers.providerCreators)
+      }
+      return providers
+    }
+  }
+  logger.error("No provider found for shard: " + shard)
+  console.log(providers.providerCreators)
+  return providers
+}
+
+export function ShardFromRpcUrl(url: string): string {
+  for (let network of DEFAULT_QUAI_NETWORKS) {
+    for (let chain of network.chains) {
+      if (chain.rpc === url) {
+        return chain.shard
+      } else if (new URL(chain.rpc).port === new URL(url).port) {
+        return chain.shard
+      }
+    }
+  }
+  throw new Error("Unknown shard for rpc url: " + url)
+}

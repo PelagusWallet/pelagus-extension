@@ -62,6 +62,7 @@ export default function RouteBasedContent(): JSX.Element {
           <p>{t("default.fact1")}</p>
           <p>{t("default.fact2")}</p>
           <p>{t("default.fact3")}</p>
+          <p>{t("default.fact4")}</p>
           <style jsx>
             {`
               .onboarding_facts {

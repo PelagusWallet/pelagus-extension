@@ -35,6 +35,8 @@ import {
   CHAINS_WITH_MEMPOOL,
   EIP_1559_COMPLIANT_CHAIN_IDS,
   SECOND,
+  setProviderForShard,
+  getShardFromAddress,
 } from "../../constants"
 import { FeatureFlags, isEnabled } from "../../features"
 import PreferenceService from "../preferences"
@@ -386,9 +388,8 @@ export default class ChainService extends BaseService<Events> {
    * provider exists.
    */
   providerForNetwork(network: EVMNetwork): SerialFallbackProvider | undefined {
-    return isEnabled(FeatureFlags.USE_MAINNET_FORK)
-      ? this.providers.evm[ETHEREUM.chainID]
-      : this.providers.evm[network.chainID]
+    setProviderForShard(this.providers.evm[network.chainID])
+    return this.providers.evm[network.chainID]
   }
 
   /**
@@ -883,7 +884,10 @@ export default class ChainService extends BaseService<Events> {
     network,
   }: AddressOnNetwork): Promise<AccountBalance> {
     const normalizedAddress = normalizeEVMAddress(address)
-
+    const prevShard = globalThis.main.SelectedShard
+    if (globalThis.main.SelectedShard != getShardFromAddress(address)) { // Ideally this never happens, but it might
+      globalThis.main.SetShard(getShardFromAddress(address))
+    }
     const balance = await this.providerForNetworkOrThrow(network).getBalance(
       normalizedAddress
     )
@@ -917,7 +921,7 @@ export default class ChainService extends BaseService<Events> {
 
       await this.db.addBalance(accountBalance)
     }
-
+    globalThis.main.SetShard(prevShard)
     return accountBalance
   }
 
@@ -1660,7 +1664,7 @@ export default class ChainService extends BaseService<Events> {
    *        ordering will be handled by the database.
    * @param dataSource Where the transaction was seen.
    */
-  private async saveTransaction(
+  public async saveTransaction(
     transaction: AnyEVMTransaction,
     dataSource: "local" | "alchemy"
   ): Promise<void> {
@@ -1769,6 +1773,10 @@ export default class ChainService extends BaseService<Events> {
         logger.error("Error getting block number", e)
       }
     }
+  }
+
+  public ProviderForNetwork(network: EVMNetwork): SerialFallbackProvider {
+    return this.providerForNetworkOrThrow(network)
   }
 
   /**

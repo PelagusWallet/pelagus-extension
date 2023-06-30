@@ -2821,6 +2821,348 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
+"@quais/abi@0.1.0", "@quais/abi@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/abi/-/abi-0.1.0.tgz#539e04e5c5af358f10542fba61b0adf334a31ebd"
+  integrity sha512-TQmQ4YJZ/xghKIWxzGKdoIhgsNo8oyZ3NG2H898UHJxq2fVPhDscmqJYyHmpKvv74ZUuDv6dzXmv4zBzy1p6Xw==
+  dependencies:
+    "@quais/address" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/constants" "^0.1.0"
+    "@quais/hash" "^0.1.0"
+    "@quais/keccak256" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+
+"@quais/abstract-provider@0.1.1", "@quais/abstract-provider@^0.1.0":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@quais/abstract-provider/-/abstract-provider-0.1.1.tgz#b8340e6b1267b812a283ad7b51957def8a48d401"
+  integrity sha512-H/vyTRfmUWTKbKzteR7PBpC8l9RBrLjHPr/n4p37zu1asbNrqPiLCasCHTemIAIkKAEHiLo9eKWBTi9xNHJzUw==
+  dependencies:
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/networks" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+    "@quais/web" "^0.1.0"
+
+"@quais/abstract-signer@0.1.0", "@quais/abstract-signer@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/abstract-signer/-/abstract-signer-0.1.0.tgz#94b7d8ddc6d1e31c570624d3c8fc3bfabf1a5825"
+  integrity sha512-nHlY6jzomIRlex5Pa1QpYwAEvxZaJtkVy0eFP7fi2tIx9E5hHR2CHqwzo4+VvxefppLKevNXxp2k/2hYm13QKg==
+  dependencies:
+    "@quais/abstract-provider" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+
+"@quais/address@0.1.2", "@quais/address@^0.1.0", "@quais/address@^0.1.1":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@quais/address/-/address-0.1.2.tgz#b06553de11321f6ad44ee680267bfeeee6384419"
+  integrity sha512-hHkFgt4ZYDbEZavSfIhWGshfzyTstLVACvll9dRs0qu/QSUcUJxv9h9p32WBJC1APy30zUottzBk7M08UwSUrA==
+  dependencies:
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/keccak256" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/rlp" "^0.1.0"
+
+"@quais/base64@0.1.0", "@quais/base64@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/base64/-/base64-0.1.0.tgz#527ee8ad0d13f50d17c848ab0ec4295b65fac986"
+  integrity sha512-UFCPvZrMxrx8UD/m+Nuo3X/Lybp87dRlUaiMw1agy2HkCcfBDkjVVJhVNSctxQxpH+mfb4nylGHybVwsA4CQhg==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+
+"@quais/basex@0.1.0", "@quais/basex@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/basex/-/basex-0.1.0.tgz#1722da725eeb12f69705e607e524ed765d155d77"
+  integrity sha512-gfju02i5+2c9VJIL0BOBaxvoHq/G8ceNzhiB5VQTI3h9RIjTKGTz5mf3myaFBMNfaHgollXow7AhP67KXnp9jw==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+
+"@quais/bignumber@0.1.0", "@quais/bignumber@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/bignumber/-/bignumber-0.1.0.tgz#24e14cc76117fb7290598dd521367fd18d381f54"
+  integrity sha512-GOf/4vvWAxDM4Ghkdx8W1SCSIiRnZyRhKG14DIWCStxc1KezbWCu6n6s8jdRbdWrzILjQUr+6lBqRDyBI6LC9w==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    bn.js "^5.2.1"
+
+"@quais/bytes@0.1.0", "@quais/bytes@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/bytes/-/bytes-0.1.0.tgz#e75a984f1d487ffcb31eeb80ac466e298ceea78f"
+  integrity sha512-mCmG06gzWAmoSqVC+2nijxXpA92D2k5Ds8jBSIfiViUVRvlqPufFOyBUCQkw5qrkoeSuNtVVASR5CN7bzY1Svw==
+  dependencies:
+    "@quais/logger" "^0.1.0"
+
+"@quais/constants@0.1.2", "@quais/constants@^0.1.0":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@quais/constants/-/constants-0.1.2.tgz#674a0a64c1e052653f2cd1a86468a9100a1cacec"
+  integrity sha512-x7tIQm37Si/mLQtATBLHZbLL0600TLhILN0JA+/ztDLcff89rgr6u/RtMFgugHlduYmyf9H/eKSAOyIldBTubg==
+  dependencies:
+    "@quais/bignumber" "^0.1.0"
+
+"@quais/contracts@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@quais/contracts/-/contracts-0.1.2.tgz#82b99567de80bda3b1b2a23bf5573c18c5301d9c"
+  integrity sha512-D0s1Xo82xfzB6sX1xje84tXDcfQJtK9cic9juHKql5w5cqnbAE2Tx5OCYba5dJB8N+oDVbu5/o9uVxpsKpYu6w==
+  dependencies:
+    "@quais/abi" "^0.1.0"
+    "@quais/abstract-provider" "^0.1.0"
+    "@quais/abstract-signer" "^0.1.0"
+    "@quais/address" "^0.1.1"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/constants" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+
+"@quais/hash@0.1.0", "@quais/hash@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/hash/-/hash-0.1.0.tgz#b663e762a58e9fff777965a01cca697674137460"
+  integrity sha512-8UNowkaWSlsxaR+VcEz5PSU8isQHXHHUHPaSJeGc5b9uBSYcyX87WFc1Ja+jaEv3QbiRVzM2C10VIIcCcB8hFA==
+  dependencies:
+    "@quais/abstract-signer" "^0.1.0"
+    "@quais/address" "^0.1.0"
+    "@quais/base64" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/keccak256" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+
+"@quais/hdnode@0.1.1", "@quais/hdnode@^0.1.0":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@quais/hdnode/-/hdnode-0.1.1.tgz#7d1b78db29686f3d016be9feb642cf6414253c86"
+  integrity sha512-kcFnXRk8NWB63hK0qyVjagd4pqfTcqN8Po6CPm5MhUvXSXqdFpYitSXRh6O2ZKgzqK62uO75110MAEpNFADJPA==
+  dependencies:
+    "@quais/abstract-signer" "^0.1.0"
+    "@quais/basex" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/pbkdf2" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/sha2" "^0.1.0"
+    "@quais/signing-key" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+    "@quais/wordlists" "^0.1.0"
+
+"@quais/json-wallets@0.1.0", "@quais/json-wallets@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/json-wallets/-/json-wallets-0.1.0.tgz#b454667bc90a117e9cb6fe6b496dcb2916ab49d5"
+  integrity sha512-kJeGxOKzMirZV0aaoKPaGe657zf84VeSoCukugAs7sULMcTKIxetYdXmrYagu2pk2pmfhUGmMKXLHa+7RMhu2w==
+  dependencies:
+    "@quais/abstract-signer" "^0.1.0"
+    "@quais/address" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/hdnode" "^0.1.0"
+    "@quais/keccak256" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/pbkdf2" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/random" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+    aes-js "3.0.0"
+    scrypt-js "3.0.1"
+
+"@quais/keccak256@0.1.0", "@quais/keccak256@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/keccak256/-/keccak256-0.1.0.tgz#67188d2cc970dabf92e6b43fb069b0cf9022439c"
+  integrity sha512-DVzHE+MuMLaX1pKlb1rNIe6ym9l7qkt345U+AZwefb9IiFTX/oNzdPEamO6nC/uo1nVxHrLtTOSSbJczrh3K+w==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    js-sha3 "0.8.0"
+
+"@quais/logger@0.1.0", "@quais/logger@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/logger/-/logger-0.1.0.tgz#5138d91db37af30f28b0a8b75129b07499f149c0"
+  integrity sha512-bHdg1lRjzEzghhTlkTN/2olzTuH9ju3dy43U/uYgk+TPXya7msfLkh/pZAReXEtN2Oe/nlP+0jZ9BvFwQPaPng==
+
+"@quais/networks@0.1.0", "@quais/networks@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/networks/-/networks-0.1.0.tgz#d5f47093834121f4f9f17a00f71fc4416262300b"
+  integrity sha512-CmK9BvxqLO5DSBKFPvljmi3jF4CxBDlfLK+Mm8hFTQ6CbzSP7L5u5Q0RpQSngxDm2zmPeGvgTmTaXnotyPIRSQ==
+  dependencies:
+    "@quais/logger" "^0.1.0"
+
+"@quais/pbkdf2@0.1.0", "@quais/pbkdf2@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/pbkdf2/-/pbkdf2-0.1.0.tgz#fed2acc76363ef7a62fd6b2a08a6dd06b2b7b183"
+  integrity sha512-/y9Wp6vfX/bM4iZWMrjDp7uCDAvddv0G7iYXXlfSAvgvB0YP8wXL1s+r2FIb1drHoRA18X/kWhRAieWnJ0r6zw==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/sha2" "^0.1.0"
+
+"@quais/properties@0.1.0", "@quais/properties@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/properties/-/properties-0.1.0.tgz#e31fae683e59c6b6e29aeb4b0010de0d055fea46"
+  integrity sha512-A1EA48h8X+L6KiBfjjQjWzpk3hjGAajnyPipn6w84pgZUMxrckdgskJ9mzTH6WZ7LhQU4rvrTcqLz7cn32TgQA==
+  dependencies:
+    "@quais/logger" "^0.1.0"
+
+"@quais/providers@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@quais/providers/-/providers-0.1.2.tgz#7906651f59aa5dbcef4569c8a75c2ba84d95019a"
+  integrity sha512-h+pDa+r51+Vtplz2XtDXC835r5AIymavD86V3771PcZenVZvx1B6mqjTBLidjaTK/u3/a5Bo6aPj7wBFLFtzKA==
+  dependencies:
+    "@quais/abstract-provider" "^0.1.0"
+    "@quais/abstract-signer" "^0.1.0"
+    "@quais/address" "^0.1.1"
+    "@quais/base64" "^0.1.0"
+    "@quais/basex" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/constants" "^0.1.0"
+    "@quais/hash" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/networks" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/random" "^0.1.0"
+    "@quais/rlp" "^0.1.0"
+    "@quais/sha2" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+    "@quais/web" "^0.1.0"
+    bech32 "1.1.4"
+    ws "7.4.6"
+
+"@quais/random@0.1.0", "@quais/random@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/random/-/random-0.1.0.tgz#b53fc10d76e86174656364b6a4244a3781ee236d"
+  integrity sha512-FVXDbM35uzekxz3gei1/q0hZUt+e+0pC5yYkq75FR1pvBe9MPOh1I0p9prPlYV7TVyMitG9RPobZkuHCOzRxtw==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+
+"@quais/rlp@0.1.0", "@quais/rlp@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/rlp/-/rlp-0.1.0.tgz#f1f07c8c08ba360613875234585c3f6bfb0fafec"
+  integrity sha512-5aqnfDRjNn5iclKix8gIGIGI7LNL0KMBqUIkkrNO+qXftP/Sn7CxLgfm/1782ZMl5suV8ylD4PjsEezLkfi9eg==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+
+"@quais/sha2@0.1.0", "@quais/sha2@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/sha2/-/sha2-0.1.0.tgz#16baf6ce04da20dfedec4be80cb304f5e7cb61f6"
+  integrity sha512-sMC5YyLwLIXwTvyf2VRszcfbsyFfo4FOCMcpCSQW5vgt4dVr8k8osB4IUu/IZK1zpj93ejudzeUrcMIlPhEGTw==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    hash.js "1.1.7"
+
+"@quais/signing-key@0.1.0", "@quais/signing-key@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/signing-key/-/signing-key-0.1.0.tgz#e3dd53ab96562005ff5f200c7f0e1cca6473c3b3"
+  integrity sha512-xxQsjf3cZSNHO1bNJzvjOnceUSQg5o9H8JOuLd+g7Px6uuRpBgVS+OxZRXt5rOGvmJ0Xznrv5M07kJHCJUnpPA==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    bn.js "^5.2.1"
+    elliptic "6.5.4"
+    hash.js "1.1.7"
+
+"@quais/solidity@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/solidity/-/solidity-0.1.0.tgz#5b9b81236afab089ef266e9870bdbd602b8cdc89"
+  integrity sha512-Q93DWKLY50Imd0gt3NG/4BdVrSlZbHwYXMOxkeknmfPvhNN2nX2X/T6dKnhbiOk1RHtQPkpd9EjcDVM4vfbX4g==
+  dependencies:
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/keccak256" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/sha2" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+
+"@quais/strings@0.1.0", "@quais/strings@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/strings/-/strings-0.1.0.tgz#c592a223deccbb033054a0d683169cbdc92fb2a6"
+  integrity sha512-xNYHkyc0LbnyUBxcHgEfcmGaABAJTGarmBOmudOxSj07hKEZi5g656OJWHj85zv5CiXFCytBSk7LXGf9bK0lAQ==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/constants" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+
+"@quais/transactions@0.1.2", "@quais/transactions@^0.1.0":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@quais/transactions/-/transactions-0.1.2.tgz#f03c728c6d494c995d00684516d20979d0362b8c"
+  integrity sha512-aCuvmpUZ/w+UvnLl8AN6ekBpNSxhQli1J4Jpmy3PL4JNzGw9Xmgc9sntCZVxYBFLDdB4HIUIF9loxRLXVbNr8Q==
+  dependencies:
+    "@quais/address" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/constants" "^0.1.0"
+    "@quais/keccak256" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/rlp" "^0.1.0"
+    "@quais/signing-key" "^0.1.0"
+
+"@quais/units@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/units/-/units-0.1.0.tgz#893b83a5a44a26954b7c810d93ba84213b158222"
+  integrity sha512-RTT2xNT/V0dfjrvXcihLEPUfGC5Q0hXlgt7ZDoHP9kaeqhylAZHZEf6yu78CJfmkUro4Leyia9McBvGa5qxHdw==
+  dependencies:
+    "@quais/bignumber" "^0.1.0"
+    "@quais/constants" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+
+"@quais/wallet@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/wallet/-/wallet-0.1.0.tgz#433deb519336c62984d38eeb3cf64ce9581978e9"
+  integrity sha512-ShlFDEjHWTSIZ75EpTfnY6HDexZ13o47FOVFfE99IcMQ2Kc6RNuQoV5GwUipG4FzmdNgCQYVKAmlKknEyotqMw==
+  dependencies:
+    "@quais/abstract-provider" "^0.1.0"
+    "@quais/abstract-signer" "^0.1.0"
+    "@quais/address" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/hash" "^0.1.0"
+    "@quais/hdnode" "^0.1.0"
+    "@quais/json-wallets" "^0.1.0"
+    "@quais/keccak256" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/random" "^0.1.0"
+    "@quais/signing-key" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+    "@quais/wordlists" "^0.1.0"
+
+"@quais/web@0.1.0", "@quais/web@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/web/-/web-0.1.0.tgz#189df608e971b1e067f0ba7f0ddbedd7d5e07f5b"
+  integrity sha512-F2t5VWQXeH649e5j0DRaTjACuWL+fmxiiicoS5Kud9djdOUdjdoGCNwp+nrA9QuO8PG2X6Ao1jDWex+UHUJjVA==
+  dependencies:
+    "@quais/base64" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+
+"@quais/wordlists@0.1.0", "@quais/wordlists@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@quais/wordlists/-/wordlists-0.1.0.tgz#37f700209f74a95622f08097b5c44b240870689e"
+  integrity sha512-7KZxxE3nL3V7kU7U0OhYPq/3e23Je4hTEgPLRVlV/ZYi2k6tA71EE6ASC7MxvtTk4uC77KlAMF5JSRgioYvIMA==
+  dependencies:
+    "@quais/bytes" "^0.1.0"
+    "@quais/hash" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+
 "@redux-devtools/app@^2.1.3":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@redux-devtools/app/-/app-2.1.4.tgz#e97aa5ab43ae80ce315e1505819bef9ac567b3ba"
@@ -3299,20 +3641,6 @@
   integrity sha512-XIB2XbzHTN6ieIjfIMV9hlVcfPU26s2vafYWQcZHWXHOxiaRZYEDKEwdl129Zyg50+foYV2jCgtrqSA6qNuNSA==
   dependencies:
     defer-to-connect "^1.0.1"
-
-"@tallyho/hd-keyring@0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@tallyho/hd-keyring/-/hd-keyring-0.4.0.tgz#0b78b5f60aa625862a8c54b136a3c934fe67d9df"
-  integrity sha512-IEJHyXAN3XSc3wUy6uEF6MiEpK3wjM63pMSS9uD/uG3c6zWpcGVJz7LxnIBSXo2KBiSXKY5Rr/nMud5PcrcddA==
-  dependencies:
-    "@ethersproject/abstract-provider" "5.6.1"
-    "@ethersproject/abstract-signer" "5.6.1"
-    "@ethersproject/bytes" "5.6.1"
-    "@ethersproject/hdnode" "5.6.1"
-    "@ethersproject/keccak256" "5.6.1"
-    "@ethersproject/strings" "5.6.1"
-    "@ethersproject/wallet" "5.6.1"
-    bip39 "3.0.4"
 
 "@testing-library/dom@^8.0.0":
   version "8.19.0"
@@ -8145,6 +8473,18 @@ hash.js@1.1.7, hash.js@^1.0.0, hash.js@^1.0.3, hash.js@^1.1.7:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
+"hd-keyring@file:../hd-keyring":
+  version "0.5.0"
+  dependencies:
+    "@ethersproject/abstract-provider" "5.6.1"
+    "@ethersproject/abstract-signer" "5.6.1"
+    "@ethersproject/bytes" "5.6.1"
+    "@ethersproject/hdnode" "5.6.1"
+    "@ethersproject/keccak256" "5.6.1"
+    "@ethersproject/strings" "5.6.1"
+    "@ethersproject/wallet" "5.6.1"
+    bip39 "3.0.4"
+
 hex-rgba@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/hex-rgba/-/hex-rgba-1.0.2.tgz#b7cfbd24c6c736277cf88dd6d41b672ea336574c"
@@ -11613,6 +11953,42 @@ qs@~6.5.2:
   version "6.5.2"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz#cb3ae806e8740444584ef154ce8ee98d403f3e36"
   integrity sha512-N5ZAX4/LxJmF+7wN74pUD6qAh9/wnvdQcjq9TZjevvXzSUo7bfmw91saqMjzGS2xq91/odN2dW/WOl7qQHNDGA==
+
+quais@0.1.11:
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/quais/-/quais-0.1.11.tgz#4f0ef01b227095aaf2066ac1cf1e6bce27a0b2f2"
+  integrity sha512-oCDV9PjCUzG9WO5p/14W5p57+6cC/g69eS7RsEl2gqb0qyWqN60hS/No0hVDWlZrQ9iV7gfitpHRwsUgnKjWWg==
+  dependencies:
+    "@quais/abi" "0.1.0"
+    "@quais/abstract-provider" "0.1.1"
+    "@quais/abstract-signer" "0.1.0"
+    "@quais/address" "0.1.2"
+    "@quais/base64" "0.1.0"
+    "@quais/basex" "0.1.0"
+    "@quais/bignumber" "0.1.0"
+    "@quais/bytes" "0.1.0"
+    "@quais/constants" "0.1.2"
+    "@quais/contracts" "0.1.2"
+    "@quais/hash" "0.1.0"
+    "@quais/hdnode" "0.1.1"
+    "@quais/json-wallets" "0.1.0"
+    "@quais/keccak256" "0.1.0"
+    "@quais/logger" "0.1.0"
+    "@quais/networks" "0.1.0"
+    "@quais/pbkdf2" "0.1.0"
+    "@quais/properties" "0.1.0"
+    "@quais/providers" "0.1.2"
+    "@quais/random" "0.1.0"
+    "@quais/rlp" "0.1.0"
+    "@quais/sha2" "0.1.0"
+    "@quais/signing-key" "0.1.0"
+    "@quais/solidity" "0.1.0"
+    "@quais/strings" "0.1.0"
+    "@quais/transactions" "0.1.2"
+    "@quais/units" "0.1.0"
+    "@quais/wallet" "0.1.0"
+    "@quais/web" "0.1.0"
+    "@quais/wordlists" "0.1.0"
 
 query-string@6.13.5:
   version "6.13.5"

@@ -1,6 +1,6 @@
-import { parse as parseRawTransaction } from "@ethersproject/transactions"
+import { parse as parseRawTransaction } from "@quais/transactions"
 
-import HDKeyring, { SerializedHDKeyring } from "@tallyho/hd-keyring"
+import HDKeyring, { SerializedHDKeyring } from "hd-keyring"
 
 import { arrayify } from "ethers/lib/utils"
 import { normalizeEVMAddress } from "../../lib/utils"
@@ -16,11 +16,12 @@ import { HexString, KeyringTypes, EIP712TypedData, UNIXTime } from "../../types"
 import { SignedTransaction, TransactionRequestWithNonce } from "../../networks"
 
 import BaseService from "../base"
-import { FORK, MINUTE } from "../../constants"
+import { FORK, MINUTE, QUAI_CONTEXTS } from "../../constants"
 import { ethersTransactionFromTransactionRequest } from "../chain/utils"
 import { FeatureFlags, isEnabled } from "../../features"
 import { AddressOnNetwork } from "../../accounts"
 import logger from "../../lib/logger"
+import { getShardFromAddress } from "../../redux-slices/selectors"
 
 export const MAX_KEYRING_IDLE_TIME = 60 * MINUTE
 export const MAX_OUTSIDE_IDLE_TIME = 60 * MINUTE
@@ -35,6 +36,7 @@ export type Keyring = {
 export type KeyringAccountSigner = {
   type: "keyring"
   keyringID: string
+  shard: string
 }
 
 export interface KeyringMetadata {
@@ -401,23 +403,37 @@ export default class KeyringService extends BaseService<Events> {
    * @param keyringAccountSigner - A KeyringAccountSigner representing the
    *        given keyring.
    */
-  async deriveAddress({ keyringID }: KeyringAccountSigner): Promise<HexString> {
+  async deriveAddress({ keyringID, shard }: KeyringAccountSigner): Promise<HexString> {
     this.requireUnlocked()
-
+    console.log("Deriving address for keyring", keyringID, "in shard", shard)
     // find the keyring using a linear search
     const keyring = this.#keyrings.find((kr) => kr.id === keyringID)
     if (!keyring) {
       throw new Error("Keyring not found.")
     }
 
-    const keyringAddresses = keyring.getAddressesSync()
-
-    // If There are any hidden addresses, show those first before adding new ones.
-    const newAddress =
-      keyringAddresses.find(
-        (address) => this.#hiddenAccounts[address] === true
-      ) ?? keyring.addAddressesSync(1)[0]
-
+    //const keyringAddresses = keyring.getAddressesSync()
+    let found = false
+    let newAddress = ''
+    while(!found) {
+      // If There are any hidden addresses, show those first before adding new ones. (Not being done anymore)
+      newAddress =
+        /*keyringAddresses.find(
+          (address) => this.#hiddenAccounts[address] === true
+        ) ??*/ keyring.addAddressesSync(1)[0]
+      const shardFromAddress = getShardFromAddress(newAddress)
+      if (shardFromAddress !== undefined) {
+        // Check if address is in correct shard
+        if (shardFromAddress === shard) {
+          found = true
+          break
+        }
+      }
+      this.#hiddenAccounts[newAddress] = true // may want to reconsider this
+    }
+    if (newAddress === undefined || newAddress === null || newAddress === '') {
+      throw new Error("Could not find address in given shard " + shard)
+    }
     this.#hiddenAccounts[newAddress] = false
 
     await this.persistKeyrings()
@@ -511,6 +527,11 @@ export default class KeyringService extends BaseService<Events> {
       gasLimit,
       maxFeePerGas,
       maxPriorityFeePerGas,
+      externalGasLimit,
+      externalGasPrice,
+      externalGasTip,
+      externalAccessList,
+      externalData,
       hash,
       from,
       nonce,
@@ -523,10 +544,7 @@ export default class KeyringService extends BaseService<Events> {
     } = tx
 
     if (
-      typeof maxPriorityFeePerGas === "undefined" ||
-      typeof maxFeePerGas === "undefined" ||
-      type !== 2
-    ) {
+      typeof maxPriorityFeePerGas === "undefined" || typeof maxFeePerGas === "undefined") {
       const signedTx = {
         hash,
         from,
@@ -550,6 +568,7 @@ export default class KeyringService extends BaseService<Events> {
       return signedTx
     }
 
+    
     // TODO move this to a helper function
     const signedTx: SignedTransaction = {
       hash,
@@ -558,7 +577,7 @@ export default class KeyringService extends BaseService<Events> {
       nonce,
       input: data,
       value: value.toBigInt(),
-      type,
+      type: type as 0 | 2 | 1 | 100 | null,
       gasPrice: null,
       maxFeePerGas: maxFeePerGas.toBigInt(),
       maxPriorityFeePerGas: maxPriorityFeePerGas.toBigInt(),
@@ -566,6 +585,10 @@ export default class KeyringService extends BaseService<Events> {
       r,
       s,
       v,
+      externalGasLimit: externalGasLimit?.toBigInt(),
+      externalGasPrice: externalGasPrice?.toBigInt(),
+      externalGasTip: externalGasTip?.toBigInt(),
+      //TODO: Add external data and access list
       blockHash: null,
       blockHeight: null,
       asset: network.baseAsset,

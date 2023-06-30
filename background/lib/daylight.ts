@@ -2,7 +2,7 @@ import { fetchJson } from "@ethersproject/web"
 import { ABILITY_TYPES, AbilityType } from "../abilities"
 import logger from "./logger"
 
-const DAYLIGHT_BASE_URL = "https://api.daylight.xyz/v1"
+const DAYLIGHT_BASE_URL = ""//"https://api.daylight.xyz/v1"
 const DEFAULT_RETRIES = 5 // # of times to retry fetching abilities with "pending" status
 
 type Community = {

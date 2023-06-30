@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { BigNumber } from "ethers"
-import { Block, FeeData } from "@ethersproject/abstract-provider"
+import { Block, FeeData } from "@quais/abstract-provider"
 import { makeEthersBlock, makeEthersFeeData } from "../../../tests/factories"
 import type SerialFallbackProvider from "../serial-fallback-provider"
 

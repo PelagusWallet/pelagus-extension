@@ -20,6 +20,7 @@ export default function SharedAccountItemSummary(props: Props): ReactElement {
     name,
     avatarURL,
     localizedTotalMainCurrencyAmount,
+    balance
   } = accountTotal
 
   return (
@@ -54,7 +55,7 @@ export default function SharedAccountItemSummary(props: Props): ReactElement {
             {typeof localizedTotalMainCurrencyAmount === "undefined" ? (
               <SharedLoadingSpinner size="small" />
             ) : (
-              <div className="balance">${localizedTotalMainCurrencyAmount}</div>
+              <div className="balance">{localizedTotalMainCurrencyAmount === "0.00" ? balance : "$"+localizedTotalMainCurrencyAmount}</div>
             )}
             {isSelected ? (
               <div className="connected_status">

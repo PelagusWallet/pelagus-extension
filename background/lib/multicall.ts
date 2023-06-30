@@ -11,11 +11,16 @@ export interface AggregateContractResponse {
 }
 
 export const MULTICALL_CONTRACT_ADDRESS =
-  "0xca11bde05977b3631167028862be2a173976ca11"
+  "0x15b6351eDEcd7142ac4c6fE54948b603D4566862" // TODO: Different for each network. Must be deployed on all shards!
 
 export const CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES = {
   "324": "0x47898B2C52C957663aE9AB46922dCec150a2272c", // zksync era
+  "1337": "0x15b6351eDEcd7142ac4c6fE54948b603D4566862", // cyprus1 local
 } as { [chainId: string]: string }
+
+export const SHARD_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES = { 
+  "cyprus-1": "0x15b6351eDEcd7142ac4c6fE54948b603D4566862",
+} as { [shardId: string]: string }
 
 export const MULTICALL_ABI = [
   // https://github.com/mds1/multicall

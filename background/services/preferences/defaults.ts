@@ -6,7 +6,7 @@ const defaultPreferences: Preferences = {
   tokenLists: {
     autoUpdate: false,
     urls: [
-      storageGatewayURL(
+      /*storageGatewayURL(
         "ipfs://bafybeigtlpxobme7utbketsaofgxqalgqzowhx24wlwwrtbzolgygmqorm"
       ).href, // the Taho community-curated list
       "https://gateway.ipfs.io/ipns/tokens.uniswap.org", // the Uniswap default list
@@ -19,7 +19,7 @@ const defaultPreferences: Preferences = {
       "https://static.optimism.io/optimism.tokenlist.json", // Optimism Default Tokens
       "https://bridge.arbitrum.io/token-list-42161.json", // Arbitrum Default tokens
       "https://raw.githubusercontent.com/traderjoe-xyz/joe-tokenlists/1722d8c47a728a64c8dca8ac160b32cf39c5e671/mc.tokenlist.json", // Trader Joe tokens
-      "https://tokens.pancakeswap.finance/pancakeswap-default.json", // PancakeSwap Default List
+      "https://tokens.pancakeswap.finance/pancakeswap-default.json", // PancakeSwap Default List*/
     ],
   },
   currency: USD,

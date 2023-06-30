@@ -6,15 +6,18 @@ import {
   Listener,
   WebSocketProvider,
 } from "@ethersproject/providers"
+import { JsonRpcProvider as QuaisJsonRpcProvider, WebSocketProvider as QuaisWebSocketProvider } from "@quais/providers"
 import { utils } from "ethers"
 import { getNetwork } from "@ethersproject/networks"
 import {
   SECOND,
   ALCHEMY_SUPPORTED_CHAIN_IDS,
   RPC_METHOD_PROVIDER_ROUTING,
+  ShardFromRpcUrl,
+  setProviderForShard,
 } from "../../constants"
 import logger from "../../lib/logger"
-import { AnyEVMTransaction } from "../../networks"
+import { AnyEVMTransaction, CURRENT_QUAI_CHAIN_ID } from "../../networks"
 import { AddressOnNetwork } from "../../accounts"
 import { transactionFromEthersTransaction } from "./utils"
 import {
@@ -134,13 +137,15 @@ function alchemyOrDefaultProvider(chainID: string, method: string): boolean {
  * Additionally, subscriptions are tracked and, if the current provider is a
  * WebSocket provider, they are restored on reconnect.
  */
-export default class SerialFallbackProvider extends JsonRpcProvider {
+export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   // Functions that will create and initialize a new provider, in priority
   // order.
-  private providerCreators: [
-    () => WebSocketProvider | JsonRpcProvider,
-    ...(() => JsonRpcProvider)[]
-  ]
+  public providerCreators: Array<{
+    type: "alchemy" | "generic" | "Quai"
+    shard?: string
+    rpcUrl?: string
+    creator: () => WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
+  }>
 
   // The currently-used provider, produced by the provider-creator at
   // currentProviderIndex.
@@ -161,6 +166,8 @@ export default class SerialFallbackProvider extends JsonRpcProvider {
       providerIndex: number
     }
   } = {}
+
+  public SetCurrentProvider: (provider: WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider, index: number) => void
 
   private alchemyProviderCreator:
     | (() => WebSocketProvider | JsonRpcProvider)
@@ -224,8 +231,10 @@ export default class SerialFallbackProvider extends JsonRpcProvider {
     // clashing with Ethers's own `network` stuff.
     private chainID: string,
     providerCreators: Array<{
-      type: "alchemy" | "generic"
-      creator: () => WebSocketProvider | JsonRpcProvider
+      type: "alchemy" | "generic" | "Quai"
+      shard?: string
+      rpcUrl?: string
+      creator: () => WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
     }>
   ) {
     const [firstProviderCreator, ...remainingProviderCreators] =
@@ -257,7 +266,14 @@ export default class SerialFallbackProvider extends JsonRpcProvider {
     }, CACHE_CLEANUP_INTERVAL)
 
     this.cachedChainId = utils.hexlify(Number(chainID))
-    this.providerCreators = [firstProviderCreator, ...remainingProviderCreators]
+    this.providerCreators = providerCreators
+    this.SetCurrentProvider = (provider: WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider, index: number) => {
+      this.currentProvider = provider
+      this.currentProviderIndex = index
+      this.reconnectProvider()
+    }
+
+    setProviderForShard(this)
   }
 
   /**
@@ -486,7 +502,7 @@ export default class SerialFallbackProvider extends JsonRpcProvider {
     messageId: symbol
   ): Promise<unknown> {
     this.disconnectCurrentProvider()
-    this.currentProviderIndex += 1
+    //this.currentProviderIndex += 1 // Other providers might be different Quai shards so don't try them
     // Try again with the next provider.
     await this.reconnectProvider()
     return this.routeRpcCall(messageId)
@@ -741,7 +757,7 @@ export default class SerialFallbackProvider extends JsonRpcProvider {
       "..."
     )
 
-    this.currentProvider = this.providerCreators[this.currentProviderIndex]()
+    this.currentProvider = this.providerCreators[this.currentProviderIndex].creator()
     await this.resubscribe(this.currentProvider)
 
     // TODO After a longer backoff, attempt to reset the current provider to 0.
@@ -818,7 +834,7 @@ export default class SerialFallbackProvider extends JsonRpcProvider {
       // If we are already connected to the primary provider - don't resubscribe
       return null
     }
-    const primaryProvider = this.providerCreators[0]()
+    const primaryProvider = this.providerCreators[0].creator()
     // We need to wait before attempting to resubscribe of the primaryProvider's
     // websocket connection will almost always still be in a CONNECTING state when
     // resubscribing.
@@ -941,7 +957,20 @@ export function makeSerialFallbackProvider(
       ]
     : []
 
-  const genericProviders = rpcUrls.map((rpcUrl) => ({
+  const genericProviders = chainID === CURRENT_QUAI_CHAIN_ID ? rpcUrls.map((rpcUrl) => ({
+    type: "Quai" as const,
+    creator: () => {
+      const url = new URL(rpcUrl)
+      if (/^wss?/.test(url.protocol)) {
+        return new QuaisWebSocketProvider(rpcUrl)
+      }
+
+      return new QuaisJsonRpcProvider(rpcUrl)
+    },
+    shard: ShardFromRpcUrl(rpcUrl),
+    rpcUrl: rpcUrl,
+  })) :
+  rpcUrls.map((rpcUrl) => ({
     type: "generic" as const,
     creator: () => {
       const url = new URL(rpcUrl)
@@ -951,6 +980,7 @@ export function makeSerialFallbackProvider(
 
       return new JsonRpcProvider(rpcUrl)
     },
+    rpcUrl: rpcUrl,
   }))
 
   return new SerialFallbackProvider(chainID, [

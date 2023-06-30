@@ -80,12 +80,14 @@ function WalletTypeHeader({
   walletNumber,
   path,
   accountSigner,
+  setShard,
 }: {
   accountType: AccountType
   onClickAddAddress?: () => void
   accountSigner: AccountSigner
   walletNumber?: number
   path?: string | null
+  setShard: (shard: string) => void
 }) {
   const { t } = useTranslation()
   const { title, icon } = walletTypeDetails[accountType]
@@ -117,6 +119,7 @@ function WalletTypeHeader({
   const history = useHistory()
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const [showEditMenu, setShowEditMenu] = useState(false)
+  const [showShardMenu, setShowShardMenu] = useState(false)
   return (
     <>
       {accountSigner.type !== "read-only" && (
@@ -141,6 +144,30 @@ function WalletTypeHeader({
           />
         </SharedSlideUpMenu>
       )}
+      <SharedSlideUpMenu
+          size="small"
+          isOpen={showShardMenu}
+          close={(e) => {
+            e.stopPropagation()
+            setShowShardMenu(false)
+          }}
+        >
+          <EditSectionForm
+            onSubmit={(shard) => {
+              if (shard && setShard && onClickAddAddress) {
+                setShard(shard)
+                onClickAddAddress()
+              }
+              setShowShardMenu(false)
+            }}
+            onCancel={() => setShowShardMenu(false)}
+            accountTypeIcon={walletTypeDetails[accountType].icon}
+            currentName={sectionTitle}
+            label="Choose Shard"
+            saveName="New Address"
+            typeNewName="Type shard e.g. cyprus-1"
+          />
+        </SharedSlideUpMenu>
       <header className="wallet_title">
         <h2 className="left">
           <div className="icon_wrap">
@@ -170,7 +197,7 @@ function WalletTypeHeader({
                 key: "addAddress",
                 onClick: () => {
                   if (areKeyringsUnlocked) {
-                    onClickAddAddress()
+                    setShowShardMenu(true)
                   } else {
                     history.push("/keyring/unlock")
                   }
@@ -256,6 +283,12 @@ export default function AccountsNotificationPanelAccounts({
   )
 
   const [pendingSelectedAddress, setPendingSelectedAddress] = useState("")
+  const shard = useRef("")
+
+  const handleSetShard = (newShard: string) => { // This is for updating user-selected shard for new address
+    shard.current = newShard
+  }
+
 
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
@@ -348,13 +381,18 @@ export default function AccountsNotificationPanelAccounts({
                       walletNumber={idx + 1}
                       path={accountTotalsBySignerId[0].path}
                       accountSigner={accountTotalsBySignerId[0].accountSigner}
+                      setShard={handleSetShard}
                       onClickAddAddress={
                         accountType === "imported" || accountType === "internal"
                           ? () => {
                               if (accountTotalsBySignerId[0].signerId) {
+                                console.log("onClickAddress " + shard.current)
+                                if (shard.current === "") {
+                                  throw new Error("shard is empty")
+                                }
                                 dispatch(
                                   deriveAddress(
-                                    accountTotalsBySignerId[0].signerId
+                                    {signerId: accountTotalsBySignerId[0].signerId, shard: shard.current }
                                   )
                                 )
                               }

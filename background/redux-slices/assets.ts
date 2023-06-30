@@ -1,5 +1,8 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit"
-import { ethers } from "ethers"
+import { BigNumber, ethers } from "ethers"
+import { JsonRpcProvider } from "@quais/providers"
+import { keccak256 } from "@quais/keccak256";
+import { UnsignedTransaction } from "@quais/transactions";
 import {
   AnyAsset,
   AnyAssetAmount,
@@ -15,14 +18,21 @@ import { findClosestAssetIndex } from "../lib/asset-similarity"
 import { createBackgroundAsyncThunk } from "./utils"
 import { isBuiltInNetworkBaseAsset, isSameAsset } from "./utils/asset-utils"
 import { getProvider } from "./utils/contract-utils"
-import { EVMNetwork, sameNetwork } from "../networks"
+import { CURRENT_QUAI_CHAIN_ID, EIP1559TransactionRequest, EVMNetwork, KnownTxTypes, SignedTransaction, TransactionRequestWithNonce, sameNetwork } from "../networks"
 import { ERC20_INTERFACE } from "../lib/erc20"
 import logger from "../lib/logger"
-import { FIAT_CURRENCIES_SYMBOL } from "../constants"
+import { CHAIN_ID_TO_RPC_URLS, FIAT_CURRENCIES_SYMBOL, QUAI, QUAI_NETWORK, getShardFromAddress } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { removeAssetReferences, updateAssetReferences } from "./accounts"
 import { NormalizedEVMAddress } from "../types"
 import type { RootState } from "."
+import { hexlify, stripZeros, toUtf8Bytes, accessListify, hexConcat, RLP } from "quais/lib/utils"
+import { emitter as transactionConstructionSliceEmitter } from "./transaction-construction"
+import { AccountSigner } from "../services/signing"
+
+
+var promise = new Promise<string>((resolve, reject) => {})
+
 
 export type AssetWithRecentPrices<T extends AnyAsset = AnyAsset> = T & {
   recentPrices: {
@@ -210,25 +220,40 @@ export const removeAssetData = createBackgroundAsyncThunk(
  */
 export const transferAsset = createBackgroundAsyncThunk(
   "assets/transferAsset",
-  async ({
-    fromAddressNetwork: { address: fromAddress, network: fromNetwork },
-    toAddressNetwork: { address: toAddress, network: toNetwork },
-    assetAmount,
-    gasLimit,
-    nonce,
-  }: {
+  async (transferDetails: {
     fromAddressNetwork: AddressOnNetwork
     toAddressNetwork: AddressOnNetwork
     assetAmount: AnyAssetAmount
     gasLimit?: bigint
     nonce?: number
+    accountSigner: AccountSigner
   }) => {
+    var { 
+      fromAddressNetwork: { address: fromAddress, network: fromNetwork },
+      toAddressNetwork: { address: toAddress, network: toNetwork },
+      assetAmount,
+      gasLimit,
+      nonce,
+      accountSigner,
+    } = transferDetails;
+
     if (!sameNetwork(fromNetwork, toNetwork)) {
       throw new Error("Only same-network transfers are supported for now.")
     }
 
+    if(fromNetwork.chainID == CURRENT_QUAI_CHAIN_ID) {
+      const provider = globalThis.main.chainService.providerForNetworkOrThrow(fromNetwork)
+      if (nonce == undefined) {
+        nonce = await provider.getTransactionCount(fromAddress)
+      }
+      let tx = genQuaiRawTransaction(fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID)
+      signData({transaction: tx, accountSigner: accountSigner})
+      return
+    }
+
     const provider = getProvider()
     const signer = provider.getSigner()
+    console.log(await signer.getAddress())
 
     if (isBuiltInNetworkBaseAsset(assetAmount.asset, fromNetwork)) {
       logger.debug(
@@ -270,6 +295,43 @@ export const transferAsset = createBackgroundAsyncThunk(
     }
   }
 )
+
+function genQuaiRawTransaction (fromAddress: string, toAddress: string, assetAmount: AnyAssetAmount, nonce: number, chainId: string): EIP1559TransactionRequest {
+   
+  let isExternal = false
+  let type = 0
+
+  if (getShardFromAddress(fromAddress) != getShardFromAddress(toAddress)) {
+    isExternal = true
+  }
+  
+    if (isExternal) { // is external this time    
+      type = 2
+    } else {
+      type = 0
+    }
+
+    const tx: EIP1559TransactionRequest = {
+      to: toAddress,
+      from: fromAddress,
+      value: assetAmount.amount,
+      nonce: nonce,
+      gasLimit: BigInt(42000),
+      maxFeePerGas: BigInt(2000000000),
+      maxPriorityFeePerGas: BigInt(1000000000),
+      type: type as KnownTxTypes,
+      chainID: chainId,
+      input: null,
+      network: QUAI_NETWORK,
+    }
+
+    if (isExternal) { // is external this time
+      tx.externalGasLimit = BigInt(100000)
+      tx.externalGasPrice = tx.maxFeePerGas * BigInt(2)
+      tx.externalGasTip = tx.maxPriorityFeePerGas * BigInt(2)
+    }
+    return tx
+}
 
 /**
  * Selects a particular asset price point given the asset symbol and the paired
@@ -394,3 +456,86 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
     }
   }
 )
+
+transactionConstructionSliceEmitter.on("signedTransactionResult", (tx) => { 
+  console.log("transaction signed", tx)
+  const provider = globalThis.main.chainService.providerForNetworkOrThrow(tx.network)
+  console.log(provider instanceof JsonRpcProvider)
+  provider.sendTransaction(serializeSigned(tx)).then(res => {
+    console.log(res)
+    globalThis.main.chainService.saveTransaction(tx, "local")
+    Promise.resolve(promise)
+  })
+  
+})
+
+const signData = async function (
+  {
+    transaction,
+    accountSigner,
+  }: {
+    transaction: EIP1559TransactionRequest
+    accountSigner: AccountSigner
+  },
+) {
+   transactionConstructionSliceEmitter.emit("requestSignature", {
+    request: transaction, 
+    accountSigner: accountSigner,
+    })
+}
+
+function serializeSigned(transaction: SignedTransaction): string {
+  // If there is an explicit gasPrice, make sure it matches the
+  // EIP-1559 fees; otherwise they may not understand what they
+  // think they are setting in terms of fee.
+  if (transaction.gasPrice != null) {
+      const gasPrice = BigNumber.from(transaction.gasPrice);
+      const maxFeePerGas = BigNumber.from(transaction.maxFeePerGas || 0);
+      if (!gasPrice.eq(maxFeePerGas)) {
+          logger.error("mismatch EIP-1559 gasPrice != maxFeePerGas", "tx", {
+              gasPrice, maxFeePerGas
+          });
+          throw new Error("mismatch EIP-1559 gasPrice != maxFeePerGas");
+      }
+  }
+
+  const fields: any = [
+      formatNumber(transaction.network.chainID || 0, "chainId"),
+      formatNumber(transaction.nonce || 0, "nonce"),
+      formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
+      formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
+      formatNumber(transaction.gasLimit || 0, "gasLimit"),
+      (transaction.to), // presuming it's valid as it's already signed
+      formatNumber(transaction.value || 0, "value"),
+      (transaction.input || "0x"),
+      (formatAccessList([]))
+  ];
+      if (transaction.type == 2) {
+        fields.push(formatNumber(transaction.externalGasLimit || 0, "externalGasLimit"))
+        fields.push(formatNumber(transaction.externalGasPrice || 0, "externalGasPrice"))
+        fields.push(formatNumber(transaction.externalGasTip || 0, "externalGasTip"))
+        fields.push(/*transaction.externalData ||*/ "0x")
+        fields.push(formatAccessList(/*transaction.externalAccessList ||*/ []))
+        fields.push(formatNumber(transaction.v, "recoveryParam"));
+        fields.push(stripZeros(transaction.r));
+        fields.push(stripZeros(transaction.s));
+        return hexConcat([ "0x02", RLP.encode(fields)]);
+      } else {
+        fields.push(formatNumber(transaction.v, "recoveryParam"));
+        fields.push(stripZeros(transaction.r));
+        fields.push(stripZeros(transaction.s));
+        return hexConcat([ "0x00", RLP.encode(fields)]);
+      }
+}
+
+function formatNumber(value: any, name: string): Uint8Array {
+  const result = stripZeros(BigNumber.from(value).toHexString());
+  if (result.length > 32) {
+      logger.error("invalid length for " + name, ("transaction:" + name), value);
+  }
+  return result;
+}
+
+function formatAccessList(value: any): Array<[ string, Array<string> ]> {
+  return accessListify(value).map((set) => [ set.address, set.storageKeys ]);
+}

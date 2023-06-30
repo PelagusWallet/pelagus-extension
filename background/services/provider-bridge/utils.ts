@@ -58,6 +58,7 @@ export function parsedRPCErrorResponse(error: { body: string }):
 }
 
 export function handleRPCErrorResponse(error: unknown): unknown {
+  console.log(error)
   let response
   if (typeof error === "object" && error !== null) {
     /**

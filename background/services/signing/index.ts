@@ -65,6 +65,7 @@ type AddressHandler = {
 }
 
 function getSigningErrorReason(err: unknown): SigningErrorReason {
+  console.log(err)
   if (err instanceof TransportStatusError) {
     const transportError = err as Error & { statusCode: number }
     switch (transportError.statusCode) {

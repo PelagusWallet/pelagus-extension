@@ -125,6 +125,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
 }
 interface Props {
   balance?: string
+  mainAssetBalance?: string
   initializationLoadingTimeExpired: boolean
 }
 
@@ -134,7 +135,7 @@ export default function WalletAccountBalanceControl(
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet",
   })
-  const { balance, initializationLoadingTimeExpired } = props
+  const { balance, mainAssetBalance, initializationLoadingTimeExpired } = props
   const [openReceiveMenu, setOpenReceiveMenu] = useState(false)
 
   // TODO When non-imported accounts are supported, generalize this.
@@ -166,7 +167,7 @@ export default function WalletAccountBalanceControl(
           <span className="balance_area">
             <span className="balance" data-testid="wallet_balance">
               <span className="dollar_sign">$</span>
-              {balance ?? 0}
+              {balance === "0" ? mainAssetBalance : balance ?? 0 /* fix this */}
             </span>
           </span>
         </SharedSkeletonLoader>

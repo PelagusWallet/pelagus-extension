@@ -28,11 +28,16 @@ export const initialState: KeyringsState = {
   keyringToVerify: null,
 }
 
+interface DeriveAddressData {
+  signerId: string
+  shard: string
+}
+
 export type Events = {
   createPassword: string
   lockKeyrings: never
   generateNewKeyring: string | undefined
-  deriveAddress: string
+  deriveAddress: DeriveAddressData
   importKeyring: ImportKeyring
 }
 
@@ -140,8 +145,9 @@ export const generateNewKeyring = createBackgroundAsyncThunk(
 
 export const deriveAddress = createBackgroundAsyncThunk(
   "keyrings/deriveAddress",
-  async (id: string) => {
-    await emitter.emit("deriveAddress", id)
+  async ({signerId: id, shard: shard}: DeriveAddressData) => {
+    console.log("Emitting derive address for signerId: " + id + " and shard: " + shard)
+    await emitter.emit("deriveAddress", {signerId: id, shard: shard})
   }
 )
 

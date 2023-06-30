@@ -95,6 +95,16 @@ export const BNB: NetworkBaseAsset & Required<CoinGeckoAsset> = {
   },
 }
 
+export const QUAI: NetworkBaseAsset & Required<CoinGeckoAsset> = {
+  ...BASE_ASSETS_BY_CUSTOM_NAME.QUAI,
+  coinType: coinTypesByAssetSymbol.QUAI,
+  metadata: {
+    coinGeckoID: "usdt",
+    tokenLists: [],
+    websiteURL: "https://qu.ai/",
+  },
+}
+
 export const BUILT_IN_NETWORK_BASE_ASSETS = [
   ETH,
   MATIC,
@@ -105,4 +115,5 @@ export const BUILT_IN_NETWORK_BASE_ASSETS = [
   GOERLI_ETH,
   AVAX,
   BNB,
+  QUAI,
 ]

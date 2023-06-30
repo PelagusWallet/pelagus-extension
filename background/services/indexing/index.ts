@@ -1,6 +1,6 @@
 import logger from "../../lib/logger"
 import { HexString } from "../../types"
-import { EVMNetwork, sameNetwork } from "../../networks"
+import { CURRENT_QUAI_CHAIN_ID, EVMNetwork, sameNetwork } from "../../networks"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import {
   AnyAsset,
@@ -25,6 +25,7 @@ import {
   POLYGON,
   SECOND,
   USD,
+  getShardFromAddress,
 } from "../../constants"
 import { getPrices, getTokenPrices, getPricePoint } from "../../lib/prices"
 
@@ -949,9 +950,15 @@ export default class IndexingService extends BaseService<Events> {
     await Promise.allSettled(
       accounts.map(async (addressOnNetwork) => {
         const { network } = addressOnNetwork
-
+        
+        let prevShard = globalThis.main.SelectedShard
+        if (network.chainID === CURRENT_QUAI_CHAIN_ID) {
+          let shard = getShardFromAddress(addressOnNetwork.address)
+          globalThis.main.SetShard(shard)
+        }
+        
         const provider = this.chainService.providerForNetworkOrThrow(network)
-
+       
         const loadBaseAccountBalance =
           this.chainService.getLatestBaseAccountBalance(addressOnNetwork)
 
@@ -971,7 +978,7 @@ export default class IndexingService extends BaseService<Events> {
           addressOnNetwork,
           assetsToCheck
         )
-
+        globalThis.main.SetShard(prevShard)
         return Promise.all([loadBaseAccountBalance, loadTokenBalances])
       })
     )

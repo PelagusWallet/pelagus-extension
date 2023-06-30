@@ -1,6 +1,5 @@
 import { Provider } from "@ethersproject/abstract-provider"
 import { fetchJson } from "@ethersproject/web"
-
 import logger from "./logger"
 import Blocknative, {
   BlocknativeNetworkIds,
@@ -9,9 +8,11 @@ import { BlockPrices, EVMNetwork } from "../networks"
 import {
   ARBITRUM_ONE,
   BINANCE_SMART_CHAIN,
+  CHAIN_ID_TO_RPC_URLS,
   EIP_1559_COMPLIANT_CHAIN_IDS,
   ETHEREUM,
   POLYGON,
+  QUAI_NETWORK,
 } from "../constants/networks"
 import { gweiToWei } from "./utils"
 
@@ -172,6 +173,8 @@ export default async function getBlockPrices(
     provider.getBlock("latest"),
     provider.getFeeData(),
   ])
+  console.log("currentBlock", currentBlock)
+  console.log("feeData", feeData)
 
   const baseFeePerGas = currentBlock?.baseFeePerGas?.toBigInt()
 

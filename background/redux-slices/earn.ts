@@ -303,7 +303,7 @@ export const initialState: EarnState = {
     deadline: undefined,
   },
   approvalTargetAllowances: [],
-  availableVaults: initialVaults,
+  availableVaults: [],
   isVaultDataStale: true,
   currentlyDepositing: false,
   currentlyApproving: false,
@@ -681,7 +681,7 @@ export const permitVaultDeposit = createBackgroundAsyncThunk(
     }
     const domain = {
       name: "ApprovalTarget",
-      chainId: isEnabled(FeatureFlags.USE_MAINNET_FORK) ? 1337 : chainID,
+      chainId: isEnabled(FeatureFlags.USE_MAINNET_FORK) ? 69 : chainID,
       version: "1",
       verifyingContract: APPROVAL_TARGET_CONTRACT_ADDRESS,
     }

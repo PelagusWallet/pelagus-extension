@@ -3,7 +3,7 @@ import {
   Block as EthersBlock,
   TransactionReceipt as EthersTransactionReceipt,
   TransactionRequest as EthersTransactionRequest,
-} from "@ethersproject/abstract-provider"
+} from "@quais/abstract-provider"
 import {
   Transaction as EthersTransaction,
   UnsignedTransaction,
@@ -95,6 +95,9 @@ export function ethersTransactionRequestFromEIP1559TransactionRequest(
     gasLimit: transaction.gasLimit,
     maxFeePerGas: transaction.maxFeePerGas,
     maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+    externalGasLimit: transaction.externalGasLimit ?? undefined,
+    externalGasPrice: transaction.externalGasPrice ?? undefined,
+    externalGasTip: transaction.externalGasTip ?? undefined,
   }
 }
 

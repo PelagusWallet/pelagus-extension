@@ -9,6 +9,7 @@ import { AccountSignerWithId } from "../signing"
 import { AccountSignerSettings } from "../ui"
 import { AccountState, addAddressNetwork } from "./accounts"
 import { createBackgroundAsyncThunk } from "./utils"
+import { getShardFromAddress } from "./selectors"
 
 export const defaultSettings = {
   hideDust: false,
@@ -133,6 +134,9 @@ const uiSlice = createSlice({
       immerState,
       { payload: addressNetwork }: { payload: AddressOnNetwork }
     ) => {
+      let shard = getShardFromAddress(addressNetwork.address)
+      globalThis.main.SetShard(shard)
+      // TODO: Potentially call getLatestBaseAccountBalance here
       immerState.selectedAccount = addressNetwork
     },
     initializationLoadingTimeHitLimit: (state) => ({
@@ -235,6 +239,9 @@ export const setNewDefaultWalletValue = createBackgroundAsyncThunk(
 export const setNewSelectedAccount = createBackgroundAsyncThunk(
   "ui/setNewCurrentAddressValue",
   async (addressNetwork: AddressOnNetwork, { dispatch }) => {
+    let shard = getShardFromAddress(addressNetwork.address)
+    globalThis.main.SetShard(shard)
+    globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await emitter.emit("newSelectedAccount", addressNetwork)
     // Once the default value has persisted, propagate to the store.
     dispatch(uiSlice.actions.setSelectedAccount(addressNetwork))

@@ -27,11 +27,12 @@ import {
   selectMainCurrencySymbol,
 } from "./uiSelectors"
 import {
+  convertToEth,
   normalizeEVMAddress,
   sameEVMAddress,
   truncateAddress,
 } from "../../lib/utils"
-import { selectAccountSignersByAddress } from "./signingSelectors"
+import { getShardFromAddress, selectAccountSignersByAddress } from "./signingSelectors"
 import {
   selectKeyringsByAddresses,
   selectSourcesByAddress,
@@ -322,6 +323,7 @@ export type AccountTotal = AddressOnNetwork & {
   name?: string
   avatarURL?: string
   localizedTotalMainCurrencyAmount?: string
+  balance?: string
 }
 
 /**
@@ -440,7 +442,11 @@ function getNetworkAccountTotalsByCategory(
           accountSigner,
         }
       }
-
+      let shard = getShardFromAddress(address)
+      let name = accountData.ens.name ?? accountData.defaultName
+      let balance = parseFloat(convertToEth(accountData.balances["QUAI"].assetAmount.amount)).toFixed(2)
+      name = name + " (" + shard + ")"
+  
       return {
         address,
         network,
@@ -449,13 +455,14 @@ function getNetworkAccountTotalsByCategory(
         signerId,
         path,
         accountSigner,
-        name: accountData.ens.name ?? accountData.defaultName,
+        name: name,
         avatarURL: accountData.ens.avatarURL ?? accountData.defaultAvatar,
         localizedTotalMainCurrencyAmount: formatCurrencyAmount(
           mainCurrencySymbol,
           getTotalBalance(accountData.balances, assets, mainCurrencySymbol),
           desiredDecimals.default
         ),
+        balance: balance.toString() + " " + "QUAI", // May want to change this in the future
       }
     })
     .reduce<CategorizedAccountTotals>(

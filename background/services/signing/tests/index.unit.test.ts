@@ -56,6 +56,7 @@ describe("Signing Service Unit", () => {
       await signingService.deriveAddress({
         type: "keyring",
         keyringID: "foo",
+        shard: "cyprus-1",
       })
 
       expect(deriveAddressStub.called).toBe(true)

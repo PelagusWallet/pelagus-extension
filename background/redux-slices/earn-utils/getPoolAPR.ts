@@ -12,7 +12,7 @@ import { fetchWithTimeout } from "../../utils/fetching"
 
 async function getYearnVaultAPY(yearnVaultAddress: HexString) {
   const yearnVaultsAPIData = await (
-    await fetchWithTimeout("https://api.yearn.finance/v1/chains/1/vaults/all")
+    await fetchWithTimeout("")//"https://api.yearn.finance/v1/chains/1/vaults/all")
   ).json()
   const yearnVaultAPY =
     yearnVaultsAPIData.find((yearnVault: { address: HexString }) =>

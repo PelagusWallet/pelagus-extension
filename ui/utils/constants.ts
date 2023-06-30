@@ -11,6 +11,7 @@ import {
 } from "@tallyho/tally-background/constants"
 import { NetworkFeeTypeChosen } from "@tallyho/tally-background/redux-slices/transaction-construction"
 import { i18n } from "../_locales/i18n"
+import { CURRENT_QUAI_CHAIN_ID } from "@tallyho/tally-background/networks"
 
 export const doggoTokenDecimalDigits = 18
 
@@ -33,6 +34,10 @@ export const blockExplorer = {
     title: "Arbiscan",
     url: "https://nova.arbiscan.io/",
   },
+  [CURRENT_QUAI_CHAIN_ID]: {
+    title: "Quai Blockscout",
+    url: "https://cyprus1.colosseum.quaiscan.io", // TODO: update this per shard
+  }
 }
 
 export const ESTIMATED_SPEED_IN_READABLE_FORMAT_RELATIVE_TO_CONFIDENCE_LEVEL: {

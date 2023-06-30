@@ -9,11 +9,17 @@ function EditSectionForm({
   onCancel,
   accountTypeIcon,
   currentName,
+  label,
+  saveName,
+  typeNewName,
 }: {
   onSubmit: (name: string) => void
   onCancel: () => void
   accountTypeIcon: string
   currentName: string
+  label?: string
+  saveName?: string
+  typeNewName?: string
 }): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "accounts.accountItem",
@@ -59,7 +65,7 @@ function EditSectionForm({
     >
       <div className="header">
         <AccountItemActionHeader
-          label={t("editName")}
+          label={label ?? t("editName")}
           icon="icons/s/edit.svg"
           color="#fff"
         />
@@ -76,7 +82,7 @@ function EditSectionForm({
         <div className="details" role="presentation">
           <SharedInput
             label=""
-            placeholder={t("typeNewName")}
+            placeholder={typeNewName ?? t("typeNewName")}
             errorMessage={error}
             autoFocus
             onChange={(value) => {
@@ -98,7 +104,7 @@ function EditSectionForm({
             {t("cancel")}
           </SharedButton>
           <SharedButton type="primaryGreen" size="medium" isFormSubmit>
-            {t("saveName")}
+            {saveName ?? t("saveName")}
           </SharedButton>
         </div>
       </form>

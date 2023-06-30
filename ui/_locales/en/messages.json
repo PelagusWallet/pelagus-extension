@@ -322,7 +322,8 @@
         "default": {
           "fact1": "Fully owned by the community",
           "fact2": "Accessible to everyone",
-          "fact3": "100% open source"
+          "fact3": "100% open source",
+          "fact4": "For Quai Network"
         }
       },
       "intro": {

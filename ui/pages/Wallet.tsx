@@ -70,6 +70,7 @@ export default function Wallet(): ReactElement {
       totalMainCurrencyValue: undefined,
     }
 
+
   const currentAccountActivities = useBackgroundSelector(
     selectCurrentAccountActivities
   )
@@ -120,6 +121,7 @@ export default function Wallet(): ReactElement {
         <div className="section">
           <WalletAccountBalanceControl
             balance={totalMainCurrencyValue}
+            mainAssetBalance={assetAmounts[0].decimalAmount.toFixed(3).toString()}
             initializationLoadingTimeExpired={initializationLoadingTimeExpired}
           />
         </div>

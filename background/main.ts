@@ -231,6 +231,10 @@ const reduxCache: Middleware = (store) => (next) => (action) => {
   return result
 }
 
+declare global {
+    var main: Main
+}
+
 // Declared out here so ReduxStoreType can be used in Main.store type
 // declaration.
 const initializeStore = (preloadedState = {}, main: Main) =>
@@ -290,6 +294,8 @@ export default class Main extends BaseService<never> {
    * pieces of canonical state.
    */
   store: ReduxStoreType
+
+  public SelectedShard: string
 
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
@@ -402,7 +408,7 @@ export default class Main extends BaseService<never> {
      * transactions, and network status. The promise will be resolved when the
      * service is initialized.
      */
-    private chainService: ChainService,
+    public chainService: ChainService,
     /**
      *
      */
@@ -518,6 +524,7 @@ export default class Main extends BaseService<never> {
     })
 
     this.initializeRedux()
+    globalThis.main = this
   }
 
   protected override async internalStartService(): Promise<void> {
@@ -597,6 +604,10 @@ export default class Main extends BaseService<never> {
     this.store.dispatch(clearApprovalInProgress())
 
     this.connectPopupMonitor()
+  }
+
+  public SetShard(shard: string): void {
+    this.SelectedShard = shard
   }
 
   async addAccount(addressNetwork: AddressOnNetwork): Promise<void> {
@@ -875,6 +886,9 @@ export default class Main extends BaseService<never> {
           const signedTransactionResult =
             await this.signingService.signTransaction(request, accountSigner)
           await this.store.dispatch(transactionSigned(signedTransactionResult))
+          transactionConstructionSliceEmitter.emit("signedTransactionResult", 
+            signedTransactionResult
+          )
           this.analyticsService.sendAnalyticsEvent(
             AnalyticsEvent.TRANSACTION_SIGNED,
             {
@@ -1174,10 +1188,12 @@ export default class Main extends BaseService<never> {
       await this.keyringService.lock()
     })
 
-    keyringSliceEmitter.on("deriveAddress", async (keyringID) => {
+    keyringSliceEmitter.on("deriveAddress", async (keyringData) => {
+      console.log("deriving address", keyringData)
       await this.signingService.deriveAddress({
         type: "keyring",
-        keyringID,
+        keyringID: keyringData.signerId,
+        shard: keyringData.shard,
       })
     })
 

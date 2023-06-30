@@ -10,6 +10,8 @@ import type {
   PartialTransactionRequestWithFrom,
 } from "./services/enrichment"
 
+export const CURRENT_QUAI_CHAIN_ID = "1337"
+
 /**
  * Each supported network family is generally incompatible with others from a
  * transaction, consensus, and/or wire format perspective.
@@ -118,6 +120,9 @@ export type EVMTransaction = {
   asset: NetworkBaseAsset
   network: EVMNetwork
   type: KnownTxTypes | null
+  externalGasLimit?: bigint
+  externalGasPrice?: bigint
+  externalGasTip?: bigint
 }
 
 /**
@@ -216,6 +221,9 @@ export type EIP1559TransactionRequest = Pick<
   | "maxPriorityFeePerGas"
   | "network"
 > & {
+  externalGasLimit?: bigint
+  externalGasPrice?: bigint
+  externalGasTip?: bigint
   gasLimit: bigint
   chainID: EIP1559Transaction["network"]["chainID"]
   nonce?: number

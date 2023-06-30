@@ -1,4 +1,4 @@
-import { normalizeHexAddress } from "@tallyho/hd-keyring"
+import { normalizeHexAddress } from "hd-keyring"
 import { AnyEVMTransaction, EVMNetwork } from "../../networks"
 import { SmartContractFungibleAsset } from "../../assets"
 

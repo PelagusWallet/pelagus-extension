@@ -8,6 +8,7 @@ import { AccountSignerSettings } from "../../ui"
 import { AccountSignerWithId } from "../../signing"
 import { AnalyticsPreferences } from "./types"
 import { NETWORK_BY_CHAIN_ID } from "../../constants"
+import { getShardFromAddress } from "../../redux-slices/selectors"
 
 type SignerRecordId = `${AccountSignerWithId["type"]}/${string}`
 
@@ -353,6 +354,9 @@ export class PreferenceDatabase extends Dexie {
   }
 
   async setSelectedAccount(addressNetwork: AddressOnNetwork): Promise<void> {
+    let shard = getShardFromAddress(addressNetwork.address)
+    globalThis.main.SetShard(shard)
+    globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await this.preferences
       .toCollection()
       .modify({ selectedAccount: addressNetwork })

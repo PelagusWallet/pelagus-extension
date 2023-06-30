@@ -1,4 +1,4 @@
-import { NetworkBaseAsset } from "../networks"
+import { CURRENT_QUAI_CHAIN_ID, NetworkBaseAsset } from "../networks"
 
 const ETH: NetworkBaseAsset = {
   chainID: "1",
@@ -94,6 +94,18 @@ const BNB: NetworkBaseAsset = {
   },
 }
 
+const QUAI: NetworkBaseAsset = {
+  chainID: CURRENT_QUAI_CHAIN_ID,
+  name: "Quai Network",
+  symbol: "QUAI",
+  decimals: 18,
+  metadata: {
+    coinGeckoID: "usdt",
+    tokenLists: [],
+    websiteURL: "https://qu.ai/",
+  },
+}
+
 const ZK_SYNC_ETH: NetworkBaseAsset = {
   ...ETH,
   chainID: "324",
@@ -110,6 +122,7 @@ export const BASE_ASSETS_BY_CUSTOM_NAME = {
   OPTIMISTIC_ETH,
   GOERLI_ETH,
   ZK_SYNC_ETH,
+  QUAI,
 }
 
 export const BASE_ASSETS = Object.values(BASE_ASSETS_BY_CUSTOM_NAME)

@@ -4,7 +4,7 @@ import {
   FeeData,
   TransactionReceipt,
   TransactionResponse,
-} from "@ethersproject/abstract-provider"
+} from "@quais/abstract-provider"
 import { DexieOptions } from "dexie"
 import { BigNumber } from "ethers"
 import { keccak256 } from "ethers/lib/utils"
@@ -369,6 +369,9 @@ export const makeEthersBlock = (overrides?: Partial<Block>): Block => {
       "0x2fe683d3a72693e9c338f430e9af68a3b69d449ab04f191d5eff9010c4e94da0",
     ],
     _difficulty: BigNumber.from(2),
+    stateRoot: "",
+    transactionsRoot: "",
+    receiptsRoot: "",
     ...overrides,
   }
 }
@@ -378,6 +381,7 @@ export const makeEthersFeeData = (overrides?: Partial<FeeData>): FeeData => {
     maxFeePerGas: BigNumber.from(123274909666),
     maxPriorityFeePerGas: BigNumber.from(2500000000),
     gasPrice: BigNumber.from(91426599419),
+    lastBaseFeePerGas: null,
     ...overrides,
   }
 }

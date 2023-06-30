@@ -1,5 +1,5 @@
 import { BigNumber, ethers, utils } from "ethers"
-import { normalizeHexAddress, toChecksumAddress } from "@tallyho/hd-keyring"
+import { normalizeHexAddress, toChecksumAddress } from "hd-keyring"
 import { NormalizedEVMAddress, UNIXTime } from "../../types"
 import { EVMNetwork } from "../../networks"
 import { ETHEREUM, GOERLI } from "../../constants"
@@ -112,7 +112,7 @@ export function convertToEth(value: string | number | bigint): string {
   if (value && value >= 1) {
     return utils.formatUnits(BigInt(value))
   }
-  return ""
+  return "0"
 }
 
 export function weiToGwei(value: string | number | bigint): string {

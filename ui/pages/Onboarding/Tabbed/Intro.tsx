@@ -66,9 +66,9 @@ export default function Intro(): ReactElement {
           }
 
           .illustration {
-            background: url("./images/doggo_intro.svg");
+            background: url("./images/pelagus_intro.png");
             background-size: cover;
-            width: 80px;
+            width: 100px;
             height: 80px;
             margin: 0 auto;
           }

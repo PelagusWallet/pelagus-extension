@@ -1,5 +1,5 @@
 import { BigNumber, ethers, utils } from "ethers"
-import { normalizeHexAddress, toChecksumAddress } from "hd-keyring"
+import { normalizeHexAddress, toChecksumAddress } from "@pelagus/hd-keyring"
 import { NormalizedEVMAddress, UNIXTime } from "../../types"
 import { EVMNetwork } from "../../networks"
 import { ETHEREUM, GOERLI } from "../../constants"

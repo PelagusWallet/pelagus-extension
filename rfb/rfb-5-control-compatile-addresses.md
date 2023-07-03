@@ -2,7 +2,7 @@
 
 ## Background
 
-The Taho wallet was built with the intent of supporting not only multiple
+The Pelagus wallet was built with the intent of supporting not only multiple
 networks, but multiple networks that might be of different types (e.g.,
 non-EVM). This was a core design strategy, but it's often the case that
 ongoing development can deprioritize certain thinking that maintains the
@@ -145,7 +145,7 @@ another network:
     private key, is represented differently on this network than on Ethereum.
 
 [^5]:
-    Note that Taho doesn't currently support adding an external wallet via
+    Note that Pelagus doesn't currently support adding an external wallet via
     WalletConnect, but a hypothetical feature that supports this would have to
     contend with the fact that such a connection is only guaranteed to work on
     a specific network.
@@ -236,11 +236,11 @@ parameter.
 #### Specific case: name resolution
 
 The initial motivation for control compatibility came from wanting to implement
-address book functionality in Taho, and from wanting to extend existing
-behind-the-scenes address book functionality (renaming an account added to Taho
+address book functionality in Pelagus, and from wanting to extend existing
+behind-the-scenes address book functionality (renaming an account added to Pelagus
 uses a vestigial address book implementation in the `PreferencesService`). When
 a user renamed an account on one network, switching networks would drop the
-name of the account, because Taho only considered a name to apply to a single
+name of the account, because Pelagus only considered a name to apply to a single
 network. Exploring this problem space led to the development of control
 compatibility as a concept.
 
@@ -265,8 +265,8 @@ the user warning feedback that the address is known (and allowing the name to
 be used) but not guaranteed to be controlled by the same person.
 
 Note that the generalized problem of displaying accounts that the user controls
-on one network but not another in the Taho UI is not solved, and is a separate
-issue for Taho's design team to tackle.
+on one network but not another in the Pelagus UI is not solved, and is a separate
+issue for Pelagus's design team to tackle.
 
 ## Related Links
 

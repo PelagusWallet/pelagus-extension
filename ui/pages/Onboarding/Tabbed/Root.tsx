@@ -95,9 +95,14 @@ function Navigation({
           .onboarding_branding {
             width: 100%;
             max-width: 300px;
+            margin: 0 auto 38px;
             padding-bottom: 44px;
             border-bottom: 1px solid var(--green-120);
-            margin: 0 auto 38px;
+          }
+
+          .onboarding_logo_branding {
+            width: 100%;
+            max-width: 300px;
           }
 
           .supported_chains_container {
@@ -117,7 +122,7 @@ function Navigation({
       </style>
       <div className={classNames("left_container", { hide: !isOnboarding })}>
         <div className="onboarding_branding">
-          <img src="./images/logo_onboarding.svg" alt="Onboarding logo" />
+          <img src="./images/logo_onboarding.png" alt="Onboarding logo" className="onboarding_logo_branding"/>
         </div>
         <div className="route_based_content">
           <RouteBasedContent />

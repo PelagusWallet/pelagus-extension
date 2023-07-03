@@ -1,28 +1,8 @@
-# Taho Extension
+# Pelagus Extension
 
-<img alt="The community owned & operated wallet."
-     src="./github_cover@2x.png"
-     width="630" />
-
-[Taho](https://blog.taho.xyz/a-community-owned-wallet-for-the-new-internet/)
+[Pelagus](https://pelaguswallet.io/)
 is a community owned and operated Web3 wallet, built as a
 [browser extension](https://browserext.github.io/browserext/).
-
-## Why not MetaMask?
-
-Today's Web3 landscape is dominated by a [single wallet](https://metamask.io/)
-and a [single infrastructure provider](https://infura.io/), both owned by a
-[single conglomerate](https://consensys.net/). These facts undermine the
-censorship resistance of Ethereum today... and they're also against Web3's
-spirit of community ownership.
-
-We can do better.
-
-Taho will be
-
-- Fairly launched ⚖️
-- Sustainably aligned with users 🤲
-- Wholly owned by the community 👪
 
 ## Quickstart
 
@@ -140,7 +120,7 @@ $ yarn start
 
 ### Commit signing
 
-Commits on the Taho repository are all required to be signed.
+Commits on the Pelagus repository are all required to be signed.
 No PR will be merged if it has unsigned commits. See the
 [GitHub documentation on commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
 to get it set up.
@@ -346,7 +326,7 @@ Firefox requires to upload source code if minifier is used and to be able to com
 
 ## Localization
 
-Taho currently only supports English as the default language. We distill english strings to [\_locales](https://github.com/tallycash/extension/blob/main/ui/_locales/en/messages.json) to prepare for localization.
+Pelagus currently only supports English as the default language. We distill english strings to [\_locales](https://github.com/tallycash/extension/blob/main/ui/_locales/en/messages.json) to prepare for localization.
 
 For other languages, we will use language code defined in [Support locales](https://developer.chrome.com/docs/webstore/i18n/#choosing-locales-to-support). We will use [weblate](https://hosted.weblate.org/projects/tallycash/extension/) for crowd translation, and will commit back to the github periodically after these translations are QA'ed.
 

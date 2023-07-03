@@ -7,8 +7,8 @@ export default function createSignClient(): Promise<SignClient> {
     relayUrl: "wss://relay.walletconnect.com",
     metadata: {
       // TODO: customize this metadata
-      name: "Taho Wallet",
-      description: "WalletConnect for Taho wallet",
+      name: "Pelagus Wallet",
+      description: "WalletConnect for Pelagus wallet",
       url: "https://walletconnect.com/",
       icons: ["https://avatars.githubusercontent.com/u/37784886"],
     },

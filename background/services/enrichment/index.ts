@@ -1,4 +1,4 @@
-import { normalizeHexAddress } from "hd-keyring"
+import { normalizeHexAddress } from "@pelagus/hd-keyring"
 import { AnyEVMTransaction, EVMNetwork } from "../../networks"
 import { SmartContractFungibleAsset } from "../../assets"
 

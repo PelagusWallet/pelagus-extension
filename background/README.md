@@ -1,7 +1,7 @@
-# Taho Background
+# Pelagus Background
 
-The Taho Background package can effectively be considered the background script for the
-Taho extension. It is designed to connect to external data providers including
+The Pelagus Background package can effectively be considered the background script for the
+Pelagus extension. It is designed to connect to external data providers including
 Ethereum nodes, as well as specific providers like Alchemy and Blocknative that
 may enable specific functionality beyond the standard node functions. It constructs
 a data model in the form of a [Redux](https://redux.js.org) store, which is
@@ -93,7 +93,7 @@ try to attribute networks (through variable and method naming) in the following 
 
 ## Public API
 
-The only public API of the Taho Background package is what is exported directly on
+The only public API of the Pelagus Background package is what is exported directly on
 [`index.ts`](./index.ts). No submodule API is considered public, and all such
 APIs are subject to arbitrary change without warning. Any API from a child
 module that is meant for public consumption is re-exported in `index.ts`.

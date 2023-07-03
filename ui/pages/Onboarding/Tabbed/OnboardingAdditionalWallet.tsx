@@ -14,8 +14,8 @@ export default function OnboardingAdditionalWallet(): JSX.Element {
         <img
           width="80"
           height="80"
-          alt="Taho Gold"
-          src="./images/doggo_gold.svg"
+          alt="Pelagus Gold"
+          src="./icon-128.png"
         />
         <div className="bottom_content">
           <h1 className="bottom_title">{t("titleExisting")}</h1>

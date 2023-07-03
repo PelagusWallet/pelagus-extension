@@ -43,7 +43,7 @@ test.describe("Onboarding", () => {
 
     await page.getByRole("button", { name: "Import account" }).click()
     await expect(
-      page.getByRole("heading", { name: "Welcome to Taho" })
+      page.getByRole("heading", { name: "Welcome to Pelagus" })
     ).toBeVisible()
 
     await walletPageHelper.setViewportSize()
@@ -135,7 +135,7 @@ test.describe("Onboarding", () => {
     await page.getByRole("button", { name: "Finalize" }).click()
 
     await expect(
-      page.getByRole("heading", { name: "Welcome to Taho" })
+      page.getByRole("heading", { name: "Welcome to Pelagus" })
     ).toBeVisible()
 
     await walletPageHelper.setViewportSize()

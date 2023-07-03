@@ -52,7 +52,7 @@ function DefaultConnectionPopover({ close }: PopoverProps): ReactElement {
 
         <div className="default-toggle">
           {t("toggleLabel")}
-          <DAppConnectionDefaultToggle alwaysForceSelection="taho" />
+          <DAppConnectionDefaultToggle alwaysForceSelection="pelagus" />
         </div>
       </section>
       <button
@@ -171,7 +171,7 @@ function DefaultConnectionPopover({ close }: PopoverProps): ReactElement {
 }
 
 /**
- * Component to show the toggle for using Taho as the default vs non-default
+ * Component to show the toggle for using Pelagus as the default vs non-default
  * wallet when the user tries to connect a dApp. This toggle can be used to
  * switch to a different wallet right in the connection flow.
  */

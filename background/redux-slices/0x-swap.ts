@@ -201,7 +201,7 @@ function build0xUrlFromSwapRequest(
 
   // Depending on whether the set amount is buy or sell, request the trade.
   // The /price endpoint is for RFQ-T indicative quotes, while /quote is for
-  // firm quotes, which the Taho UI calls "final" quotes that the user
+  // firm quotes, which the Pelagus UI calls "final" quotes that the user
   // intends to fill.
   const tradeField = "buyAmount" in amount ? "buyAmount" : "sellAmount"
 

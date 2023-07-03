@@ -121,7 +121,7 @@ export default function Wallet(): ReactElement {
         <div className="section">
           <WalletAccountBalanceControl
             balance={totalMainCurrencyValue}
-            mainAssetBalance={assetAmounts[0].decimalAmount.toFixed(3).toString()}
+            mainAssetBalance={assetAmounts[0].decimalAmount.toFixed(3).toString() ?? "0"}
             initializationLoadingTimeExpired={initializationLoadingTimeExpired}
           />
         </div>

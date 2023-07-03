@@ -143,7 +143,7 @@ export type LegacyEVMTransaction = EVMTransaction & {
  * limit used to limit the gas expenditure on a transaction. This is used to
  * request a signed transaction, and does not include signature fields.
  *
- * Nonce is permitted to be `undefined` as Taho internals can and often do
+ * Nonce is permitted to be `undefined` as Pelagus internals can and often do
  * populate the nonce immediately before a request is signed.
  *
  * On networks that roll up to ethereum - the rollup fee is directly proportional
@@ -207,7 +207,7 @@ export type EIP1559Transaction = EVMTransaction & {
  * limit the gas expenditure on a transaction. This is used to request a signed
  * transaction, and does not include signature fields.
  *
- * Nonce is permitted to be `undefined` as Taho internals can and often do
+ * Nonce is permitted to be `undefined` as Pelagus internals can and often do
  * populate the nonce immediately before a request is signed.
  */
 export type EIP1559TransactionRequest = Pick<

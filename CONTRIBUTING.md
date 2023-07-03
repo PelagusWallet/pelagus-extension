@@ -1,10 +1,10 @@
-# Taho Contribution Guide
+# Pelagus Contribution Guide
 
 👍🎉 First off, thanks for taking the time to contribute! 🎉👍 Contributions
 are welcome from anyone on the internet, and even the smallest of fixes are
 appreciated!
 
-The following is a set of guidelines for contributing to Taho and its
+The following is a set of guidelines for contributing to Pelagus and its
 packages. These are mostly guidelines, not rules. Use your best judgment, and
 feel free to propose changes to this document in a pull request. While the team
 works towards a first release, bigger contributions will be slow-rolled or
@@ -13,26 +13,26 @@ to them very soon! More below.
 
 ## Deciding What to Work On
 
-Taho is currently being built by a core team in collaboration with a community
-on the [Taho Community Discord server](https://chat.taho.xyz). **Discord is
+Pelagus is currently being built by a core team in collaboration with a community
+on the [Pelagus Community Discord server](https://chat.pelaguswallet.io). **Discord is
 the right place to start discussions on new features and bugs.** The community
 on Discord, led by a few designated folks will help to funnel these into
 well-organized GitHub issues for features and bugs, as well as organize folks
 to tackle any issues they’re interested in. For the time being, the core team
 will be charged with reviewing, critiquing, and ultimately merging new work.
 
-⭐️ Check out our ["good first issues" tag](https://github.com/tahowallet/extension/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) for existing bugs that are more approachable.
+⭐️ Check out our ["good first issues" tag](https://github.com/pelaguswallet/pelagus/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) for existing bugs that are more approachable.
 
 ## Use Feature Flags
 
-When developing a new feature, please put it behind a feature flag. Because this enables you to open PRs in smaller chunks rather than having the feature completely finished, this will help your contributions get merged faster. It'll also help everyone better QA the feature and time its release! Feature flags are set in [`.env.defaults`](https://github.com/tahowallet/extension/blob/main/.env.defaults) in tandem with [`features.ts`](https://github.com/tahowallet/extension/blob/main/background/features.ts)
+When developing a new feature, please put it behind a feature flag. Because this enables you to open PRs in smaller chunks rather than having the feature completely finished, this will help your contributions get merged faster. It'll also help everyone better QA the feature and time its release! Feature flags are set in [`.env.defaults`](https://github.com/pelaguswallet/pelagus/blob/main/.env.defaults) in tandem with [`features.ts`](https://github.com/pelaguswallet/pelagus/blob/main/background/features.ts)
 
 ## Getting Started
 
-1. Fork tahowallet/extension
+1. Fork pelaguswallet/extension
 2. Clone your fork
 3. Follow the [setup
-   instructions](https://github.com/tahowallet/extension#building-and-developing).
+   instructions](https://github.com/pelaguswallet/pelagus#building-and-developing).
 4. If you find an issue you would like to work on, post a comment indicating
    you’d like to pick it up. Otherwise, please file an issue indicating what
    you are intending to do—there could be a duplicate issue, or someone else
@@ -63,14 +63,14 @@ code base.
 
 ### Commit Signing
 
-Commits on the Taho repository are all required to be signed. No PR will be
+Commits on the Pelagus repository are all required to be signed. No PR will be
 merged if it has unsigned commits. See the [GitHub documentation on commit
 signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
 to get it set up.
 
 ### Continuous Integration
 
-Taho uses GitHub Actions for continuous integration. All Actions jobs
+Pelagus uses GitHub Actions for continuous integration. All Actions jobs
 (including tests, linting) must be green to merge a PR.
 
 ### Pre-commit

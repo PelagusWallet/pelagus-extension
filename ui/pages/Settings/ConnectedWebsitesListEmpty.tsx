@@ -6,7 +6,7 @@ export default function ConnectedWebsitesListEmpty(): React.ReactElement {
 
   return (
     <div className="container">
-      <img className="bowl_image" src="./images/empty_bowl@2x.png" alt="" />
+      <img className="bowl_image" src="./images/anchor_wheel.png" alt="" />
       <p>{t("connectedWebsitesSettings.emptyList")}</p>
       <style jsx>
         {`

@@ -325,12 +325,12 @@ export const signTokenDelegationData = createBackgroundAsyncThunk(
     const delegatee = claim.selectedDelegate?.address
 
     if (delegatee) {
-      const TahoTokenContract = await getContract(
+      const PelagusTokenContract = await getContract(
         DOGGO_TOKEN_ADDRESS,
         ERC2612_INTERFACE
       )
 
-      const nonce: BigNumber = await TahoTokenContract.nonces(address)
+      const nonce: BigNumber = await PelagusTokenContract.nonces(address)
       const nonceValue = Number(nonce)
 
       const timestamp = await getCurrentTimestamp()

@@ -7,7 +7,7 @@ export default function GlobalError(): ReactElement {
 
   return (
     <section className="standard_width">
-      <img className="bowl_image" src="./images/empty_bowl@2x.png" alt="" />
+      <img className="bowl_image" src="./images/anchor_wheel.png" alt="" />
       <h1 className="title">{t("title")}</h1>
       <p className="simple_text description">{t("desc")}</p>
       <SharedButton

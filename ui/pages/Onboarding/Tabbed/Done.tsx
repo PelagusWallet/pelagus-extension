@@ -89,7 +89,7 @@ export default function Done(): ReactElement {
             <img
               width="80"
               height="80"
-              alt="Taho Gold"
+              alt="Pelagus Gold"
               src="./icon-128.png"
               className="illustration"
             />
@@ -116,7 +116,7 @@ export default function Done(): ReactElement {
           <img
             width="80"
             height="80"
-            alt="Taho Gold"
+            alt="Pelagus Gold"
             src="./icon-128.png"
             className="illustration"
           />

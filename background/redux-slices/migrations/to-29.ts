@@ -1,5 +1,5 @@
 // This migration ensures the assets collection is cleared of duplicated
-// base assets https://github.com/tahowallet/extension/issues/3445
+// base assets https://github.com/pelaguswallet/pelagus/issues/3445
 
 export default (
   prevState: Record<string, unknown>

@@ -12,10 +12,10 @@ import SharedToggleButton from "../Shared/SharedToggleButton"
 type Props = {
   /**
    * Renders as a button instead of a toggle. In this mode, always set the
-   * specified value (true means always setting Taho as default, false means
-   * always setting Taho as non-default), even if that value is already set.
+   * specified value (true means always setting Pelagus as default, false means
+   * always setting Pelagus as non-default), even if that value is already set.
    */
-  alwaysForceSelection?: "taho" | "other"
+  alwaysForceSelection?: "pelagus" | "other"
 }
 
 export default function DAppConnectionDefaultToggle({
@@ -32,7 +32,7 @@ export default function DAppConnectionDefaultToggle({
     const finalValue =
       alwaysForceSelection === undefined
         ? defaultWalletValue
-        : alwaysForceSelection === "taho"
+        : alwaysForceSelection === "pelagus"
 
     dispatch(setNewDefaultWalletValue(finalValue))
   }
@@ -42,7 +42,7 @@ export default function DAppConnectionDefaultToggle({
   const defaultIsSelected =
     alwaysForceSelection === undefined
       ? isDefaultWallet
-      : alwaysForceSelection === "taho"
+      : alwaysForceSelection === "pelagus"
 
   // TODO Read this from background information.
   const hasDetectedOtherWallets = true
@@ -54,8 +54,8 @@ export default function DAppConnectionDefaultToggle({
           {alwaysForceSelection === undefined ? t("connectToWebsiteUsing") : ""}
           <SharedIcon
             width={20}
-            icon="taho-connect-icon.svg"
-            ariaLabel={t("setTahoAsDefault")}
+            icon="pelagus-connect-icon.svg"
+            ariaLabel={t("setPelagusAsDefault")}
             color={defaultIsSelected ? "var(--success)" : "var(--green-20)"}
             onClick={() => setDefaultWallet(true)}
           />

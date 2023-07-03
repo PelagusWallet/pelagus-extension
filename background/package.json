@@ -1,7 +1,7 @@
 {
   "name": "@tallyho/tally-background",
   "version": "0.0.1",
-  "description": "Taho, the community owned and operated Web3 wallet: api implementation.",
+  "description": "Pelagus, the community owned and operated Web3 wallet: api implementation.",
   "main": "index.ts",
   "repository": "git@github.com:thesis/tally-extension.git",
   "author": "Matt Luongo <matt@thesis.co>",
@@ -39,7 +39,7 @@
     "@ledgerhq/hw-transport": "^6.20.0",
     "@ledgerhq/hw-transport-webusb": "^6.20.0",
     "@redux-devtools/remote": "^0.7.4",
-    "hd-keyring": "file:/Users/jonathan/hd-keyring",
+    "hd-keyring": "file:/Users/alan/code/hd-keyring",
     "@tallyho/provider-bridge-shared": "0.0.1",
     "@tallyho/window-provider": "0.0.1",
     "@types/w3c-web-usb": "^1.0.5",

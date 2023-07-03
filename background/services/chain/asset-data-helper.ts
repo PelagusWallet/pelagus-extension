@@ -51,11 +51,13 @@ export default class AssetDataHelper {
       )
     }
 
-    const balances = await getTokenBalances(
+    /*const balances = await getTokenBalances(
       addressOnNetwork,
       [smartContractAddress],
       provider
     )
+
+    const balance = getBalance(provider, smartContractAddress, addressOnNetwork.address)
 
     if (balances.length < 1) {
       throw logger.buildError(
@@ -64,7 +66,15 @@ export default class AssetDataHelper {
       )
     }
 
-    return balances[0]
+    return balances[0]*/
+    const balance = await getBalance(provider, smartContractAddress, addressOnNetwork.address)
+    return {
+      amount: balance,
+      smartContract: {
+        contractAddress: smartContractAddress,
+        homeNetwork: addressOnNetwork.network,
+      }
+    }
   }
 
   async getTokenBalances(

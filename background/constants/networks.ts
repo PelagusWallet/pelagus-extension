@@ -476,18 +476,6 @@ export const DEFAULT_QUAI_LOCAL = {
   isCustom: false,
   chains: [
     {
-      name: "Prime",
-      shard: "prime",
-      rpc: "http://localhost:8546",
-      blockExplorerUrl: "https://dev.prime.quaiscan.io"
-    },
-    {
-      name: "Cyprus",
-      shard: "cyprus",
-      rpc: "http://localhost:8578",
-      blockExplorerUrl: "https://dev.cyprus.quaiscan.io"
-    },
-    {
       name: "Cyprus One",
       shard: "cyprus-1",
       rpc: "http://localhost:8610",
@@ -506,12 +494,6 @@ export const DEFAULT_QUAI_LOCAL = {
       blockExplorerUrl: "https://dev.cyprus3.quaiscan.io"
     },
     {
-      name: "Paxos",
-      shard: "paxos",
-      rpc: "http://localhost:8581",
-      blockExplorerUrl: "https://dev.paxos.quaiscan.io"
-    },
-    {
       name: "Paxos One",
       shard: "paxos-1",
       rpc: "http://localhost:8512",
@@ -528,12 +510,6 @@ export const DEFAULT_QUAI_LOCAL = {
       shard: "paxos-3",
       rpc: "http://localhost:8576",
       blockExplorerUrl: "https://dev.paxos3.quaiscan.io"
-    },
-    {
-      name: "Hydra",
-      shard: "hydra",
-      rpc: "http://localhost:8582",
-      blockExplorerUrl: "https://dev.hydra.quaiscan.io"
     },
     {
       name: "Hydra One",
@@ -724,5 +700,6 @@ export function ShardFromRpcUrl(url: string): string {
       }
     }
   }
-  throw new Error("Unknown shard for rpc url: " + url)
+  logger.error("Unknown shard for rpc url: " + url)
+  return ""
 }

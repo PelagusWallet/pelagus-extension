@@ -388,7 +388,13 @@ export default class ChainService extends BaseService<Events> {
    * provider exists.
    */
   providerForNetwork(network: EVMNetwork): SerialFallbackProvider | undefined {
-    setProviderForShard(this.providers.evm[network.chainID])
+    if (this.providers.evm[network.chainID] === undefined) {
+      this.initializeNetworks().then(() => {
+        setProviderForShard(this.providers.evm[network.chainID])
+      })
+    } else {
+      setProviderForShard(this.providers.evm[network.chainID])
+    }
     return this.providers.evm[network.chainID]
   }
 

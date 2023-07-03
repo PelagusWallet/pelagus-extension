@@ -3,6 +3,7 @@ import { BigNumber, ethers } from "ethers"
 import { JsonRpcProvider } from "@quais/providers"
 import { keccak256 } from "@quais/keccak256";
 import { UnsignedTransaction } from "@quais/transactions";
+import { quais } from "quais"
 import {
   AnyAsset,
   AnyAssetAmount,
@@ -242,11 +243,30 @@ export const transferAsset = createBackgroundAsyncThunk(
     }
 
     if(fromNetwork.chainID == CURRENT_QUAI_CHAIN_ID) {
+      let data = ""
       const provider = globalThis.main.chainService.providerForNetworkOrThrow(fromNetwork)
       if (nonce == undefined) {
         nonce = await provider.getTransactionCount(fromAddress)
       }
-      let tx = genQuaiRawTransaction(fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID)
+      if (isSmartContractFungibleAsset(assetAmount.asset)) {
+        logger.debug(
+          `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
+            `${fromAddress} to ${toAddress} as an ERC20 transfer.`
+        )
+        const token = new quais.Contract(
+          assetAmount.asset.contractAddress,
+          ERC20_INTERFACE,
+          provider
+        )
+        let transactionDetails = await token.populateTransaction.transfer(toAddress, assetAmount.amount)
+        toAddress = transactionDetails.to? transactionDetails.to : ""
+        data = transactionDetails.data? transactionDetails.data : ""
+        assetAmount = {
+          asset: assetAmount.asset,
+          amount: BigInt(0),
+        }
+      }
+      let tx = genQuaiRawTransaction(fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID, data)
       signData({transaction: tx, accountSigner: accountSigner})
       return
     }
@@ -296,7 +316,7 @@ export const transferAsset = createBackgroundAsyncThunk(
   }
 )
 
-function genQuaiRawTransaction (fromAddress: string, toAddress: string, assetAmount: AnyAssetAmount, nonce: number, chainId: string): EIP1559TransactionRequest {
+function genQuaiRawTransaction (fromAddress: string, toAddress: string, assetAmount: AnyAssetAmount, nonce: number, chainId: string, data: string): EIP1559TransactionRequest {
    
   let isExternal = false
   let type = 0
@@ -316,12 +336,12 @@ function genQuaiRawTransaction (fromAddress: string, toAddress: string, assetAmo
       from: fromAddress,
       value: assetAmount.amount,
       nonce: nonce,
-      gasLimit: BigInt(42000),
+      gasLimit: BigInt(200000),
       maxFeePerGas: BigInt(2000000000),
       maxPriorityFeePerGas: BigInt(1000000000),
       type: type as KnownTxTypes,
       chainID: chainId,
-      input: null,
+      input: data,
       network: QUAI_NETWORK,
     }
 
@@ -452,6 +472,7 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
       })
     } catch (error) {
       // FIXME: Rejected thunks return undefined instead of throwing
+      console.log(error)
       return null
     }
   }

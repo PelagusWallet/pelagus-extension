@@ -166,8 +166,8 @@ export default function WalletAccountBalanceControl(
           <div className="balance_label">{t("totalAccountBalance")}</div>
           <span className="balance_area">
             <span className="balance" data-testid="wallet_balance">
-              <span className="dollar_sign">$</span>
-              {balance === "0" ? mainAssetBalance : balance ?? 0 /* fix this */}
+              <span className="dollar_sign">Q</span>
+              {balance === "0" || balance === undefined ? mainAssetBalance : balance ?? 0 /* fix this */}
             </span>
           </span>
         </SharedSkeletonLoader>

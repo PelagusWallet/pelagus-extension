@@ -444,7 +444,10 @@ function getNetworkAccountTotalsByCategory(
       }
       let shard = getShardFromAddress(address)
       let name = accountData.ens.name ?? accountData.defaultName
-      let balance = parseFloat(convertToEth(accountData.balances["QUAI"].assetAmount.amount)).toFixed(2)
+      let balance = "0"
+      if (accountData.balances["QUAI"] !== undefined) {
+        balance = parseFloat(convertToEth(accountData.balances["QUAI"].assetAmount.amount)).toFixed(2)
+      }
       name = name + " (" + shard + ")"
   
       return {
@@ -462,7 +465,7 @@ function getNetworkAccountTotalsByCategory(
           getTotalBalance(accountData.balances, assets, mainCurrencySymbol),
           desiredDecimals.default
         ),
-        balance: balance.toString() + " " + "QUAI", // May want to change this in the future
+        balance: balance + " " + "QUAI", // May want to change this in the future
       }
     })
     .reduce<CategorizedAccountTotals>(

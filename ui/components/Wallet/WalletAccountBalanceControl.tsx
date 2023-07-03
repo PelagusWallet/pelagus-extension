@@ -73,8 +73,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
                 icon="icons/s/swap.svg"
                 ariaLabel={t("swap")}
                 iconColor={{
-                  color: "#3A6565",
-                  hoverColor: "#3A6565",
+                  color: "#3A4565",
+                  hoverColor: "#3A4565",
                 }}
                 disabled
               >

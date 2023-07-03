@@ -62,7 +62,7 @@ export default function ViewOnlyWallet(): ReactElement {
           width="80"
           height="80"
           alt="Taho Gold"
-          src="./images/doggo_readonly.svg"
+          src="./images/pelagus_readonly.png"
         />
         <div>
           <h1>{t("title")}</h1>

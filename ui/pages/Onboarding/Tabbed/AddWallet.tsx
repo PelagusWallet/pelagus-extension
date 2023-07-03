@@ -17,7 +17,7 @@ function OnboardingAddWallet(): ReactElement {
           width="80"
           height="80"
           alt="Taho Gold"
-          src="./images/doggo_gold.svg"
+          src="./icon-128.png"
         />
         <div className="bottom_content">
           <h1 className="bottom_title">{t("title")}</h1>

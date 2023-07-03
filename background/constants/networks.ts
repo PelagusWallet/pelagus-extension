@@ -100,7 +100,7 @@ export const ZK_SYNC: EVMNetwork = {
 }
 
 export const QUAI_NETWORK: EVMNetwork = {
-  name: "QUAI Network",
+  name: "Quai Network",
   baseAsset: QUAI,
   chainID: CURRENT_QUAI_CHAIN_ID,
   family: "EVM",

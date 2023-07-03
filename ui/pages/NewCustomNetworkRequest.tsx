@@ -215,7 +215,7 @@ export default function NewCustomNetworkRequest(): JSX.Element {
         }
 
         .tally_logo {
-          background: url("./images/doggo_gold.svg") center / 65px no-repeat;
+          background: url("./icon-128.png") center / 65px no-repeat;
           height: 56px;
           width: 56px;
           border-radius: 16px;

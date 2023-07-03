@@ -99,6 +99,8 @@ export function getNetworkIconName(network: EVMNetwork): string {
 }
 
 export const getNetworkIconSquared = (network: EVMNetwork): string => {
+  console.log("getNetworkIconSquared", network)
+  console.log("isBuiltInNetwork", isBuiltInNetwork(network), network)
   if (isBuiltInNetwork(network)) {
     const iconName = getNetworkIconName(network)
 

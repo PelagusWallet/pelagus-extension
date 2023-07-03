@@ -90,7 +90,7 @@ export default function Done(): ReactElement {
               width="80"
               height="80"
               alt="Taho Gold"
-              src="./images/doggo_gold.svg"
+              src="./icon-128.png"
               className="illustration"
             />
             <div>
@@ -117,7 +117,7 @@ export default function Done(): ReactElement {
             width="80"
             height="80"
             alt="Taho Gold"
-            src="./images/doggo_gold.svg"
+            src="./icon-128.png"
             className="illustration"
           />
           <div>

@@ -8484,6 +8484,7 @@ hash.js@1.1.7, hash.js@^1.0.0, hash.js@^1.0.3, hash.js@^1.1.7:
     "@ethersproject/strings" "5.6.1"
     "@ethersproject/wallet" "5.6.1"
     bip39 "3.0.4"
+    quais "0.1.11"
 
 hex-rgba@^1.0.2:
   version "1.0.2"

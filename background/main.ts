@@ -297,6 +297,8 @@ export default class Main extends BaseService<never> {
 
   public SelectedShard: string
 
+  balanceChecker: NodeJS.Timer
+
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
     const keyringService = KeyringService.create()
@@ -527,6 +529,52 @@ export default class Main extends BaseService<never> {
     globalThis.main = this
   }
 
+  async startBalanceChecker(): Promise<void> {
+    const interval = setInterval(async () => {
+      const selectedAccount = await this.store.getState().ui.selectedAccount
+      const currentAccountState = await this.store.getState().account.accountsData.evm[selectedAccount.network.chainID]?.[normalizeEVMAddress(selectedAccount.address)]
+      if (currentAccountState === undefined || currentAccountState === "loading") {
+        return
+      }
+      const balances = currentAccountState.balances
+      for (let assetSymbol in balances) {
+        const asset = balances[assetSymbol].assetAmount.asset
+        if (balances[assetSymbol].dataSource == "alchemy") {
+          continue
+        }
+        let newBalance = BigInt(0)
+        if (isSmartContractFungibleAsset(asset)) {
+          newBalance = (await this.chainService.assetData.getTokenBalance(selectedAccount, asset.contractAddress)).amount
+        } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
+          newBalance = (await this.chainService.getLatestBaseAccountBalance(selectedAccount)).assetAmount.amount
+        } else {
+          logger.error("Unknown asset type for balance checker, asset: " + asset.symbol)
+          return
+        }
+        console.log("Balance checker: " + asset.symbol + " " + newBalance)
+        await this.store.dispatch(
+          updateAccountBalance({
+            balances: [{
+              address: selectedAccount.address,
+              assetAmount: {
+                amount: newBalance,
+                asset: asset,
+              },
+              network: selectedAccount.network,
+              retrievedAt: Date.now(),
+              dataSource: "local",
+            }],
+            addressOnNetwork: {
+              address: selectedAccount.address,
+              network: selectedAccount.network,
+            }
+          })
+        )
+        }
+    }, 30000)
+    this.balanceChecker = interval
+  }
+
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService()
 
@@ -547,6 +595,7 @@ export default class Main extends BaseService<never> {
       this.nftsService.startService(),
       this.walletConnectService.startService(),
       this.abilitiesService.startService(),
+      this.startBalanceChecker(),
     ]
 
     await Promise.all(servicesToBeStarted)
@@ -570,6 +619,7 @@ export default class Main extends BaseService<never> {
       this.nftsService.stopService(),
       this.walletConnectService.stopService(),
       this.abilitiesService.stopService(),
+      clearInterval(this.balanceChecker),
     ]
 
     await Promise.all(servicesToBeStopped)

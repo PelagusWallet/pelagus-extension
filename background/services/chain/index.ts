@@ -388,7 +388,13 @@ export default class ChainService extends BaseService<Events> {
    * provider exists.
    */
   providerForNetwork(network: EVMNetwork): SerialFallbackProvider | undefined {
-    setProviderForShard(this.providers.evm[network.chainID])
+    if (this.providers.evm[network.chainID] === undefined) {
+      this.initializeNetworks().then(() => {
+        setProviderForShard(this.providers.evm[network.chainID])
+      })
+    } else {
+      setProviderForShard(this.providers.evm[network.chainID])
+    }
     return this.providers.evm[network.chainID]
   }
 
@@ -905,7 +911,7 @@ export default class ChainService extends BaseService<Events> {
         asset: await this.db.getBaseAssetForNetwork(network.chainID),
         amount: balance.toBigInt(),
       },
-      dataSource: "alchemy", // TODO do this properly (eg provider isn't Alchemy)
+      dataSource: "local", // TODO do this properly (eg provider isn't Alchemy)
       retrievedAt: Date.now(),
     }
 
@@ -1028,7 +1034,7 @@ export default class ChainService extends BaseService<Events> {
     }
 
     // TODO proper provider string
-    this.saveTransaction(newTransaction, "alchemy")
+    this.saveTransaction(newTransaction, "local")
     return newTransaction
   }
 
@@ -1206,7 +1212,7 @@ export default class ChainService extends BaseService<Events> {
             // Failure to broadcast needs to be registered.
             this.saveTransaction(
               { ...transaction, status: 0, error: error.toString() },
-              "alchemy"
+              "local"
             )
             // the reject here will release the nonce in the following catch
             return Promise.reject(error)
@@ -1378,7 +1384,7 @@ export default class ChainService extends BaseService<Events> {
             blockHash: null,
             blockHeight: null,
           },
-          "alchemy"
+          "local"
         )
 
         // Let's also release the nonce from our bookkeeping.
@@ -1610,7 +1616,7 @@ export default class ChainService extends BaseService<Events> {
       const transaction = transactionFromEthersTransaction(result, network)
 
       // TODO make this provider type specific
-      await this.saveTransaction(transaction, "alchemy")
+      await this.saveTransaction(transaction, "local")
 
       if (
         !("status" in transaction) && // if status field is present then it's not a pending tx anymore.
@@ -1848,7 +1854,7 @@ export default class ChainService extends BaseService<Events> {
           normalizedFromAddress
         ] = transaction.nonce
       }
-      await this.saveTransaction(transaction, "alchemy")
+      await this.saveTransaction(transaction, "local")
 
       // Wait for confirmation/receipt information.
       this.subscribeToTransactionConfirmation(network, transaction)
@@ -1872,7 +1878,7 @@ export default class ChainService extends BaseService<Events> {
     provider.once(transaction.hash, (confirmedReceipt: TransactionReceipt) => {
       this.saveTransaction(
         enrichTransactionWithReceipt(transaction, confirmedReceipt),
-        "alchemy"
+        "local"
       )
 
       this.removeTransactionHashFromQueue(network, transaction.hash)
@@ -1898,7 +1904,7 @@ export default class ChainService extends BaseService<Events> {
     if (receipt) {
       await this.saveTransaction(
         enrichTransactionWithReceipt(transaction, receipt),
-        "alchemy"
+        "local"
       )
     }
   }

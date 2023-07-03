@@ -302,18 +302,6 @@ export const DEFAULT_QUAI_TESNTET = {
   isCustom: false,
   chains: [
     {
-      name: "Prime",
-      shard: "prime",
-      rpc: "https://rpc.prime.colosseum.quaiscan.io",
-      blockExplorerUrl: "https://prime.colosseum.quaiscan.io"
-    },
-    {
-      name: "Cyprus",
-      shard: "cyprus",
-      rpc: "https://rpc.cyprus.colosseum.quaiscan.io",
-      blockExplorerUrl: "https://cyprus.colosseum.quaiscan.io"
-    },
-    {
       name: "Cyprus One",
       shard: "cyprus-1",
       rpc: "https://rpc.cyprus1.colosseum.quaiscan.io",
@@ -332,12 +320,6 @@ export const DEFAULT_QUAI_TESNTET = {
       blockExplorerUrl: "https://cyprus3.colosseum.quaiscan.io"
     },
     {
-      name: "Paxos",
-      shard: "paxos",
-      rpc: "https://rpc.paxos.colosseum.quaiscan.io",
-      blockExplorerUrl: "https://paxos.colosseum.quaiscan.io"
-    },
-    {
       name: "Paxos One",
       shard: "paxos-1",
       rpc: "https://rpc.paxos1.colosseum.quaiscan.io",
@@ -354,12 +336,6 @@ export const DEFAULT_QUAI_TESNTET = {
       shard: "paxos-3",
       rpc: "https://rpc.paxos3.colosseum.quaiscan.io",
       blockExplorerUrl: "https://paxos3.colosseum.quaiscan.io"
-    },
-    {
-      name: "Hydra",
-      shard: "hydra",
-      rpc: "https://rpc.hydra.colosseum.quaiscan.io",
-      blockExplorerUrl: "https://hyrda.colosseum.quaiscan.io"
     },
     {
       name: "Hydra One",
@@ -389,18 +365,6 @@ export const DEFAULT_QUAI_DEVNET = {
   isCustom: false,
   chains: [
     {
-      name: "Prime",
-      shard: "prime",
-      rpc: "https://rpc.prime.garden.quaiscan.io",
-      blockExplorerUrl: "https://prime.garden.quaiscan.io"
-    },
-    {
-      name: "Cyprus",
-      shard: "cyprus",
-      rpc: "https://rpc.cyprus.garden.quaiscan.io",
-      blockExplorerUrl: "https://cyprus.garden.quaiscan.io"
-    },
-    {
       name: "Cyprus One",
       shard: "cyprus-1",
       rpc: "https://rpc.cyprus1.garden.quaiscan.io",
@@ -419,12 +383,6 @@ export const DEFAULT_QUAI_DEVNET = {
       blockExplorerUrl: "https://cyprus3.garden.quaiscan.io"
     },
     {
-      name: "Paxos",
-      shard: "paxos",
-      rpc: "https://rpc.paxos.garden.quaiscan.io",
-      blockExplorerUrl: "https://paxos.garden.quaiscan.io"
-    },
-    {
       name: "Paxos One",
       shard: "paxos-1",
       rpc: "https://rpc.paxos1.garden.quaiscan.io",
@@ -441,12 +399,6 @@ export const DEFAULT_QUAI_DEVNET = {
       shard: "paxos-3",
       rpc: "https://rpc.paxos3.garden.quaiscan.io",
       blockExplorerUrl: "https://paxos3.garden.quaiscan.io"
-    },
-    {
-      name: "Hydra",
-      shard: "hydra",
-      rpc: "https://rpc.hydra.garden.quaiscan.io",
-      blockExplorerUrl: "https://hyrda.garden.quaiscan.io"
     },
     {
       name: "Hydra One",
@@ -476,18 +428,6 @@ export const DEFAULT_QUAI_LOCAL = {
   isCustom: false,
   chains: [
     {
-      name: "Prime",
-      shard: "prime",
-      rpc: "http://localhost:8546",
-      blockExplorerUrl: "https://dev.prime.quaiscan.io"
-    },
-    {
-      name: "Cyprus",
-      shard: "cyprus",
-      rpc: "http://localhost:8578",
-      blockExplorerUrl: "https://dev.cyprus.quaiscan.io"
-    },
-    {
       name: "Cyprus One",
       shard: "cyprus-1",
       rpc: "http://localhost:8610",
@@ -506,12 +446,6 @@ export const DEFAULT_QUAI_LOCAL = {
       blockExplorerUrl: "https://dev.cyprus3.quaiscan.io"
     },
     {
-      name: "Paxos",
-      shard: "paxos",
-      rpc: "http://localhost:8581",
-      blockExplorerUrl: "https://dev.paxos.quaiscan.io"
-    },
-    {
       name: "Paxos One",
       shard: "paxos-1",
       rpc: "http://localhost:8512",
@@ -528,12 +462,6 @@ export const DEFAULT_QUAI_LOCAL = {
       shard: "paxos-3",
       rpc: "http://localhost:8576",
       blockExplorerUrl: "https://dev.paxos3.quaiscan.io"
-    },
-    {
-      name: "Hydra",
-      shard: "hydra",
-      rpc: "http://localhost:8582",
-      blockExplorerUrl: "https://dev.hydra.quaiscan.io"
     },
     {
       name: "Hydra One",
@@ -724,5 +652,6 @@ export function ShardFromRpcUrl(url: string): string {
       }
     }
   }
-  throw new Error("Unknown shard for rpc url: " + url)
+  logger.error("Unknown shard for rpc url: " + url)
+  return ""
 }

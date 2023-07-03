@@ -9,6 +9,8 @@ import {
   importCustomToken,
 } from "@tallyho/tally-background/redux-slices/assets"
 import {
+  selectCurrentAccount,
+  selectCurrentAccountBalances,
   selectCurrentNetwork,
   userValueDustThreshold,
 } from "@tallyho/tally-background/redux-slices/selectors"
@@ -37,6 +39,7 @@ import TopMenuProtocolListItem from "../../components/TopMenu/TopMenuProtocolLis
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { useSetState } from "../../hooks/react-hooks"
 import { trimWithEllipsis } from "../../utils/textUtils"
+import { updateAccountBalance } from "@tallyho/tally-background/redux-slices/accounts"
 
 const HELPDESK_CUSTOM_TOKENS_LINK =
   "https://tahowallet.notion.site/Adding-Custom-Tokens-2facd9b82b5f4685a7d4766caeb05a4c"
@@ -96,6 +99,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
   const allNetworks = useBackgroundSelector(selectEVMNetworks)
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
+  const accountData = useBackgroundSelector(selectCurrentAccountBalances)
+  const selectedAccountAddress = useBackgroundSelector(selectCurrentAccount).address
 
   const networks = allNetworks.filter(
     (network) =>
@@ -150,6 +155,36 @@ export default function SettingsAddCustomAsset(): ReactElement {
         assetData: details,
         hasAssetDetailLoadError: details === null,
       })
+      if (details?.exists && accountData?.assetAmounts != undefined) {
+        let found = false
+        for (const asset of accountData.assetAmounts) {
+          if (asset.asset.symbol === details.asset.symbol) {
+            found = true
+          }
+        }
+        if(!found) {
+          await dispatch(
+            updateAccountBalance({
+              balances: [{
+                address: selectedAccountAddress,
+                assetAmount: {
+                  amount: details.amount,
+                  asset: details.asset,
+                },
+                network: currentNetwork,
+                retrievedAt: Date.now(),
+                dataSource: "local",
+              }],
+              addressOnNetwork: {
+                address: selectedAccountAddress,
+                network: currentNetwork,
+              }
+            })
+          )
+        }
+      
+
+      }
     }
   }
 

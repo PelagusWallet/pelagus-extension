@@ -556,7 +556,7 @@ export default class IndexingService extends BaseService<Events> {
               amount,
             },
             retrievedAt: Date.now(),
-            dataSource: "alchemy",
+            dataSource: "local",
           } as const
 
           return accountBalance

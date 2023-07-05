@@ -1702,8 +1702,11 @@ export default class ChainService extends BaseService<Events> {
       logger.error(`Error saving tx ${finalTransaction}`, error)
     }
     try {
-      const accounts = await this.getAccountsToTrack()
-
+      let accounts = await this.getAccountsToTrack()
+      if(accounts.length === 0) {
+        this.db.addAccountToTrack({address: finalTransaction.from, network: finalTransaction.network})
+        accounts = await this.getAccountsToTrack()
+      }
       const forAccounts = accounts
         .filter(
           ({ address }) =>

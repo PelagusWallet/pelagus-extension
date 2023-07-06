@@ -252,7 +252,7 @@ export default class ChainService extends BaseService<Events> {
     super({
       queuedTransactions: {
         schedule: {
-          delayInMinutes: 1,
+          delayInMinutes: 0.5,
           periodInMinutes: 1,
         },
         handler: () => {
@@ -261,7 +261,7 @@ export default class ChainService extends BaseService<Events> {
       },
       historicAssetTransfers: {
         schedule: {
-          periodInMinutes: 60,
+          periodInMinutes: 6,
         },
         handler: () => {
           this.handleHistoricAssetTransferAlarm()
@@ -270,7 +270,7 @@ export default class ChainService extends BaseService<Events> {
       },
       recentIncomingAssetTransfers: {
         schedule: {
-          periodInMinutes: 1.5,
+          periodInMinutes: 1,
         },
         handler: () => {
           this.handleRecentIncomingAssetTransferAlarm(true)
@@ -286,7 +286,7 @@ export default class ChainService extends BaseService<Events> {
       },
       recentAssetTransfers: {
         schedule: {
-          periodInMinutes: 15,
+          periodInMinutes: 1,
         },
         handler: () => {
           this.handleRecentAssetTransferAlarm(true)

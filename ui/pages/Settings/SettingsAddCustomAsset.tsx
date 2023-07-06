@@ -204,6 +204,24 @@ export default function SettingsAddCustomAsset(): ReactElement {
       await dispatch(setSnackbarMessage(t("snackbar.success")))
       setIsImportingToken(false)
       history.push("/")
+      await dispatch( // TODO: Only do this if necessary
+        updateAccountBalance({
+          balances: [{
+            address: selectedAccountAddress,
+            assetAmount: {
+              amount: assetData.amount,
+              asset: assetData.asset,
+            },
+            network: currentNetwork,
+            retrievedAt: Date.now(),
+            dataSource: "local",
+          }],
+          addressOnNetwork: {
+            address: selectedAccountAddress,
+            network: currentNetwork,
+          }
+        })
+      )
     } else {
       await dispatch(setSnackbarMessage(t("snackbar.failed")))
       setIsImportingToken(false)

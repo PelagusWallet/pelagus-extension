@@ -18,10 +18,6 @@ export const CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES = {
   "1337": "0x15b6351eDEcd7142ac4c6fE54948b603D4566862", // cyprus1 local
 } as { [chainId: string]: string }
 
-export const SHARD_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES = { 
-  "cyprus-1": "0x15b6351eDEcd7142ac4c6fE54948b603D4566862",
-} as { [shardId: string]: string }
-
 export const MULTICALL_ABI = [
   // https://github.com/mds1/multicall
   "function aggregate(tuple(address target, bytes callData)[] calls) payable returns (uint256 blockNumber, bytes[] returnData)",

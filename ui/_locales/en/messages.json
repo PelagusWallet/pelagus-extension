@@ -558,6 +558,7 @@
       "submit": "Add asset",
       "snackbar.success": "Asset added successfully",
       "snackbar.failed": "Failed to look up token details",
+      "snackbar.locked": "Wallet is locked",
       "footer.hint": "How to add a custom asset"
     },
     "customNetworksSettings": {

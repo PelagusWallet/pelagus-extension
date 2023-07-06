@@ -1,5 +1,5 @@
-import { BaseProvider, Provider } from "@ethersproject/providers"
-import { BigNumber, ethers } from "ethers"
+import { BaseProvider, Provider } from "@quais/providers"
+import { BigNumber, quais } from "quais"
 
 import {
   EventFragment,
@@ -8,7 +8,7 @@ import {
   TransactionDescription,
 } from "ethers/lib/utils"
 import { SmartContractAmount, SmartContractFungibleAsset } from "../assets"
-import { EVMLog, SmartContract } from "../networks"
+import { CURRENT_QUAI_CHAIN_ID, EVMLog, SmartContract } from "../networks"
 import { HexString } from "../types"
 import { AddressOnNetwork } from "../accounts"
 import {
@@ -18,6 +18,8 @@ import {
   MULTICALL_CONTRACT_ADDRESS,
 } from "./multicall"
 import logger from "./logger"
+import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
+import { ShardToMulticall } from "../constants"
 
 export const ERC20_FUNCTIONS = {
   allowance: FunctionFragment.from(
@@ -54,7 +56,7 @@ export const ERC20_ABI = Object.values<Fragment>(ERC20_FUNCTIONS).concat(
   Object.values(ERC20_EVENTS)
 )
 
-export const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_ABI)
+export const ERC20_INTERFACE = new quais.utils.Interface(ERC20_ABI)
 
 export const ERC2612_FUNCTIONS = {
   permit: FunctionFragment.from(
@@ -66,7 +68,7 @@ export const ERC2612_FUNCTIONS = {
 
 export const ERC2612_ABI = ERC20_ABI.concat(Object.values(ERC2612_FUNCTIONS))
 
-export const ERC2612_INTERFACE = new ethers.utils.Interface(ERC2612_ABI)
+export const ERC2612_INTERFACE = new quais.utils.Interface(ERC2612_ABI)
 
 /*
  * Get an account's balance from an ERC20-compliant contract.
@@ -76,7 +78,7 @@ export async function getBalance(
   tokenAddress: string,
   account: string
 ): Promise<bigint> {
-  const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
+  const token = new quais.Contract(tokenAddress, ERC20_ABI, provider)
 
   return BigInt((await token.balanceOf(account)).toString())
 }
@@ -89,7 +91,7 @@ export async function getMetadata(
   provider: BaseProvider,
   tokenSmartContract: SmartContract
 ): Promise<SmartContractFungibleAsset> {
-  const token = new ethers.Contract(
+  const token = new quais.Contract(
     tokenSmartContract.contractAddress,
     ERC20_ABI,
     provider
@@ -191,13 +193,16 @@ export function parseLogsForERC20Transfers(logs: EVMLog[]): ERC20TransferLog[] {
 export const getTokenBalances = async (
   { address, network }: AddressOnNetwork,
   tokenAddresses: HexString[],
-  provider: Provider
+  provider: SerialFallbackProvider
 ): Promise<SmartContractAmount[]> => {
-  const multicallAddress =
+  let multicallAddress =
     CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES[network.chainID] ||
     MULTICALL_CONTRACT_ADDRESS
+  if (network.chainID == CURRENT_QUAI_CHAIN_ID) {
+    multicallAddress = ShardToMulticall(globalThis.main.SelectedShard)
+  }
 
-  const contract = new ethers.Contract(
+  const contract = new quais.Contract(
     multicallAddress,
     MULTICALL_ABI,
     provider

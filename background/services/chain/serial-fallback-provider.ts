@@ -15,6 +15,7 @@ import {
   RPC_METHOD_PROVIDER_ROUTING,
   ShardFromRpcUrl,
   setProviderForShard,
+  ShardToMulticall,
 } from "../../constants"
 import logger from "../../lib/logger"
 import { AnyEVMTransaction, CURRENT_QUAI_CHAIN_ID } from "../../networks"
@@ -144,6 +145,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     type: "alchemy" | "generic" | "Quai"
     shard?: string
     rpcUrl?: string
+    multiCallAddress?: string
     creator: () => WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
   }>
 
@@ -234,6 +236,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       type: "alchemy" | "generic" | "Quai"
       shard?: string
       rpcUrl?: string
+      multiCallAddress?: string
       creator: () => WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
     }>
   ) {
@@ -969,6 +972,7 @@ export function makeSerialFallbackProvider(
     },
     shard: ShardFromRpcUrl(rpcUrl),
     rpcUrl: rpcUrl,
+    multicall: ShardToMulticall(ShardFromRpcUrl(rpcUrl))
   })) :
   rpcUrls.map((rpcUrl) => ({
     type: "generic" as const,

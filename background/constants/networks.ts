@@ -273,6 +273,7 @@ export class ChainData {
   shard: string
   blockExplorerUrl: string
   rpc: string
+  multicall: string
 }
 
 export const NETWORK_LIST = []
@@ -431,55 +432,64 @@ export const DEFAULT_QUAI_LOCAL = {
       name: "Cyprus One",
       shard: "cyprus-1",
       rpc: "http://localhost:8610",
-      blockExplorerUrl: "http://localhost:4002"
+      blockExplorerUrl: "http://localhost:4002",
+      multicall: "0x15b6351eDEcd7142ac4c6fE54948b603D4566862"
     },
     {
       name: "Cyprus Two",
       shard: "cyprus-2",
       rpc: "http://localhost:8542",
-      blockExplorerUrl: "https://dev.cyprus2.quaiscan.io"
+      blockExplorerUrl: "https://dev.cyprus2.quaiscan.io",
+      multicall: "0x2F3e12280232410e9454254E6152814ce677475B"
     },
     {
       name: "Cyprus Three",
       shard: "cyprus-3",
       rpc: "http://localhost:8674",
-      blockExplorerUrl: "https://dev.cyprus3.quaiscan.io"
+      blockExplorerUrl: "https://dev.cyprus3.quaiscan.io",
+      multicall: "0x3E4CE31D864BD3CC05E57F6f2a8967e6EF53039b"
     },
     {
       name: "Paxos One",
       shard: "paxos-1",
       rpc: "http://localhost:8512",
-      blockExplorerUrl: "https://dev.paxos1.quaiscan.io"
+      blockExplorerUrl: "https://dev.paxos1.quaiscan.io",
+      multicall: "0x729f4724eA02904086b8ce2889959d4aC96127ef"
     },
     {
       name: "Paxos Two",
       shard: "paxos-2",
       rpc: "http://localhost:8544",
-      blockExplorerUrl: "https://dev.paxos2.quaiscan.io"
+      blockExplorerUrl: "https://dev.paxos2.quaiscan.io",
+      multicall: "0x84FA6Abf2E7a743719f59E6EF82248cD1C53e621"
     },
     {
       name: "Paxos Three",
       shard: "paxos-3",
       rpc: "http://localhost:8576",
-      blockExplorerUrl: "https://dev.paxos3.quaiscan.io"
+      blockExplorerUrl: "https://dev.paxos3.quaiscan.io",
+      multicall: "0x9b05beAA009A7418EC6825452269E7Dfc82777Ce"
     },
     {
       name: "Hydra One",
       shard: "hydra-1",
       rpc: "http://localhost:8614",
-      blockExplorerUrl: "https://dev.hydra1.quaiscan.io"
+      blockExplorerUrl: "https://dev.hydra1.quaiscan.io",
+      multicall: "0xc256fc8DA480034E0339A6AC9c38913cC018A505"
     },
     {
       name: "Hydra Two",
       shard: "hydra-2",
       rpc: "http://localhost:8646",
-      blockExplorerUrl: "https://dev.hydra2.quaiscan.io"
+      blockExplorerUrl: "https://dev.hydra2.quaiscan.io",
+      multicall: "0xCb9fe98f7c8739B7272d27259747320096610569"
     },
     {
       name: "Hydra Three",
       shard: "hydra-3",
       rpc: "http://localhost:8678",
-      blockExplorerUrl: "https://dev.hydra3.quaiscan.io"
+      blockExplorerUrl: "https://dev.hydra3.quaiscan.io",
+      multicall: "0xFB17d5ea1a7e1132E2b12FA7B03cABcb144CDb9d"
     }
   ]
 } as Network
@@ -655,3 +665,15 @@ export function ShardFromRpcUrl(url: string): string {
   logger.error("Unknown shard for rpc url: " + url)
   return ""
 }
+
+export function ShardToMulticall(shard: string): string {
+  for (let chain of CURRENT_QUAI_NETWORK.chains) {
+    if (chain.shard === shard) {
+      return chain.multicall
+    }
+  }
+  logger.error("Unknown shard for rpc url: " + shard)
+  return ""
+}
+
+export const CURRENT_QUAI_NETWORK = DEFAULT_QUAI_LOCAL

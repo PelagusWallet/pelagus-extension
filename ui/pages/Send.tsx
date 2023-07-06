@@ -44,6 +44,7 @@ import SharedBackButton from "../components/Shared/SharedBackButton"
 import SharedButton from "../components/Shared/SharedButton"
 import {
   useAddressOrNameValidation,
+  useAreKeyringsUnlocked,
   useBackgroundDispatch,
   useBackgroundSelector,
 } from "../hooks"
@@ -58,6 +59,8 @@ export default function Send(): ReactElement {
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
   const currentAccount = useBackgroundSelector(selectCurrentAccount)
   const currentAccountSigner = useBackgroundSelector(selectCurrentAccountSigner)
+  const areKeyringsUnlocked = useAreKeyringsUnlocked(true)
+
 
   const [selectedAsset, setSelectedAsset] = useState<FungibleAsset>(
     location.state ?? currentAccount.network.baseAsset
@@ -143,6 +146,10 @@ export default function Send(): ReactElement {
   const assetAmount = assetAmountFromForm()
 
   const sendTransactionRequest = useCallback(async () => {
+    if(!areKeyringsUnlocked)  {
+      dispatch(setSnackbarMessage("Please unlock your wallet to send a transaction"))
+      return
+    }
     if (assetAmount === undefined || destinationAddress === undefined) {
       return
     }

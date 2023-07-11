@@ -7,7 +7,7 @@ import {
   RPCRequest,
 } from "@tallyho/provider-bridge-shared"
 import { hexlify, toUtf8Bytes, _TypedDataEncoder } from "ethers/lib/utils"
-import { normalizeHexAddress } from "hd-keyring"
+import { normalizeHexAddress } from "@pelagus/hd-keyring"
 
 import logger from "../../lib/logger"
 

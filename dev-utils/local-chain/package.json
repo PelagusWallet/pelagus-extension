@@ -1,6 +1,6 @@
 {
   "name": "local-chain",
-  "description": "Local chain setup to support Taho extension development.",
+  "description": "Local chain setup to support Pelagus extension development.",
   "license": "GPL-3.0",
   "private": true,
   "repository": "https://github.com/tallycash/extension",

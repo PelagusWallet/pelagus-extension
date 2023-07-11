@@ -373,7 +373,7 @@ export default class Main extends BaseService<never> {
         }
       } else {
         // Should be false if you don't want new users to see the modal
-        window.localStorage.setItem("modal_meet_taho", "false")
+        window.localStorage.setItem("modal_meet_pelagus", "false")
       }
     }
 

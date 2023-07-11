@@ -31,20 +31,19 @@ import SharedIcon from "../components/Shared/SharedIcon"
 import SharedTooltip from "../components/Shared/SharedTooltip"
 
 const NUMBER_OF_CLICKS_FOR_DEV_PANEL = 15
-const FAQ_URL =
-  "https://notion.taho.xyz/Tally-Ho-Knowledge-Base-4d95ed5439c64d6db3d3d27abf1fdae5"
+const FAQ_URL = "https://pelaguswallet.io"
 const FOOTER_ACTIONS = [
   {
     icon: "icons/m/discord",
-    linkTo: "https://chat.taho.xyz/",
+    linkTo: "https://discord.gg/pcaA5EapZk",
   },
   {
     icon: "twitter",
-    linkTo: "https://twitter.com/taho_xyz",
+    linkTo: "https://twitter.com/PelagusWallet",
   },
   {
     icon: "icons/m/github",
-    linkTo: "https://github.com/tallyhowallet/extension",
+    linkTo: "https://github.com/PelagusWallet/pelagus",
   },
 ]
 

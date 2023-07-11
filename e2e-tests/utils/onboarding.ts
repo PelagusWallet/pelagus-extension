@@ -67,10 +67,10 @@ export default class OnboardingHelper {
       await page.getByRole("button", { name: "Use existing wallet" }).click()
       await page.getByRole("button", { name: "Read-only address" }).click()
       await page.getByRole("textbox").fill(addressOrName)
-      await page.getByRole("button", { name: "Preview Taho" }).click()
+      await page.getByRole("button", { name: "Preview Pelagus" }).click()
 
       await expect(
-        page.getByRole("heading", { name: "Welcome to Taho" })
+        page.getByRole("heading", { name: "Welcome to Pelagus" })
       ).toBeVisible()
     })
   }
@@ -105,7 +105,7 @@ export default class OnboardingHelper {
 
       await page.getByRole("button", { name: "Import account" }).click()
       await expect(
-        page.getByRole("heading", { name: "Welcome to Taho" })
+        page.getByRole("heading", { name: "Welcome to Pelagus" })
       ).toBeVisible()
     })
   }
@@ -162,7 +162,7 @@ export default class OnboardingHelper {
     await page.getByRole("button", { name: "Finalize" }).click()
 
     await expect(
-      page.getByRole("heading", { name: "Welcome to Taho" })
+      page.getByRole("heading", { name: "Welcome to Pelagus" })
     ).toBeVisible()
   }
 }

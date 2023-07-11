@@ -146,7 +146,7 @@ export function Main(): ReactElement {
 
   return (
     <>
-      <GlobalModal id="meet_taho" />
+      <GlobalModal id="meet_pelagus" />
       <Router initialEntries={routeHistoryEntries}>
         <Route
           render={(routeProps) => {

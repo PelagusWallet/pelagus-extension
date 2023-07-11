@@ -155,7 +155,7 @@ export default function SetPassword(): JSX.Element {
           alt="Secure doggo"
           width="80"
           height="80"
-          src="./images/doggo_secure.svg"
+          src="./images/pelagus_chest.png"
         />
         <style jsx>
           {`
@@ -176,6 +176,7 @@ export default function SetPassword(): JSX.Element {
 
             img {
               margin: 0 auto;
+              border-radius: 25%;
             }
           `}
         </style>

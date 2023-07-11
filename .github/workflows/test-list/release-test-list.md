@@ -196,16 +196,14 @@ This release checklist should be performed before release is published.
 ### 🎭 Sign in with Ethereum
 
 - [ ] SIWE on [login.xyz](https://login.xyz/)
-- [ ] SIWE on [Taho Pledge](https://taho.xyz/web3pledge)
-
 ### 🐶 Default wallet
 
 1. Default wallet setting turned OFF
-   - [ ] connect with dapp without MM available using Taho
+   - [ ] connect with dapp without MM available using Pelagus
    - [ ] connect with dapp with MM available using MM
 2. Default wallet setting turnef ON
-   - [ ] connect with dapp without MM available using Taho
-   - [ ] connect with dapp with MM available using Taho
+   - [ ] connect with dapp without MM available using Pelagus
+   - [ ] connect with dapp with MM available using Pelagus
 
 ### ⚙️ Settings
 

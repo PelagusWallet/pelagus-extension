@@ -42,7 +42,7 @@ import { trimWithEllipsis } from "../../utils/textUtils"
 import { updateAccountBalance } from "@tallyho/tally-background/redux-slices/accounts"
 
 const HELPDESK_CUSTOM_TOKENS_LINK =
-  "https://tahowallet.notion.site/Adding-Custom-Tokens-2facd9b82b5f4685a7d4766caeb05a4c"
+  "https://pelaguswallet.notion.site/Adding-Custom-Tokens-2facd9b82b5f4685a7d4766caeb05a4c"
 const MAX_SYMBOL_LENGTH = 10
 
 const PlaceholderIcon = () => (

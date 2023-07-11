@@ -21,7 +21,7 @@
       "addAddress": "Add address",
       "readOnly": "Read-only",
       "import": "Import",
-      "internal": "Taho",
+      "internal": "Pelagus",
       "ledger": "Ledger",
       "category": {
         "readOnly": "Preview",
@@ -132,7 +132,7 @@
       "multipleLedgersDescriptor": "You can select as many as you want",
       "connectSelectedLedger": "Connect selected",
       "doneMessageOne": "Congratulations!",
-      "doneMessageTwo": "You can open Taho now.",
+      "doneMessageTwo": "You can open Pelagus now.",
       "onboardingSuccessful": "Selected accounts were successfully connected.",
       "closeTab": "Close tab"
     },
@@ -209,7 +209,7 @@
       "rollUp": "Roll-up",
       "estimatedGas": "Estimated Gas",
       "explainerOne": "The estimated gas cost for {{name}} transactions includes an {{name}} fee + an Ethereum roll-up fee (the fee to register transaction on Ethereum chain).",
-      "explainerTwo": "Taho stays in sync with the current {{name}} and Ethereum network fees to estimate the fee for a given transaction.",
+      "explainerTwo": "Pelagus stays in sync with the current {{name}} and Ethereum network fees to estimate the fee for a given transaction.",
       "explainerThree": "Only in rare cases will the actual fee you pay change by more than 25% from the estimate.",
       "learnMore": "Learn More"
     },
@@ -221,7 +221,7 @@
       "percentage": "percentage",
       "estimatedGas": "Estimated Gas",
       "explainerOne": "The estimated gas price for RSK transactions is calculated by adding 10% to the Minimum Gas Price obtained from the latest mined block.",
-      "explainerTwo": "Taho stays in sync with the current RSK and Ethereum network fees to estimate the fee for a given transaction.",
+      "explainerTwo": "Pelagus stays in sync with the current RSK and Ethereum network fees to estimate the fee for a given transaction.",
       "explainerThree": "Only in rare cases will the actual fee you pay change by more than 10% from the estimate.",
       "learnMore": "Learn More"
     },
@@ -304,20 +304,20 @@
   },
   "onboarding": {
     "tabbed": {
-      "walletShortcut": "Did you know that you can open Taho using a keyboard shortcut?",
+      "walletShortcut": "Did you know that you can open Pelagus using a keyboard shortcut?",
       "routeBasedContent": {
         "newSeed": {
-          "tip": "If you want an easy way to preview Taho, you can start by adding a read only account.",
+          "tip": "If you want an easy way to preview Pelagus, you can start by adding a read only account.",
           "action": "Add preview account"
         },
         "addWallet": {
-          "tip": "Several of Taho's most popular features were developed by our community."
+          "tip": "Several of Pelagus's most popular features were developed by our community."
         },
         "viewOnly": {
-          "tip": "A good way to take a peek at what Taho offers."
+          "tip": "A good way to take a peek at what Pelagus offers."
         },
         "importSeed": {
-          "tip": "Taho offers the possibility of adding multiple recovery phrases."
+          "tip": "Pelagus offers the possibility of adding multiple recovery phrases."
         },
         "default": {
           "fact1": "Fully owned by the community",
@@ -356,8 +356,8 @@
         },
         "viewOnly": {
           "title": "Read-only address",
-          "subtitle": "Add an Ethereum address or ENS name to view an existing wallet in Taho",
-          "submit": "Preview Taho",
+          "subtitle": "Add an Ethereum address or ENS name to view an existing wallet in Pelagus",
+          "submit": "Preview Pelagus",
           "tip": "You can upgrade a read-only wallet later."
         }
       },
@@ -388,15 +388,15 @@
         "tip": "If you didn’t write it down, you can <url>start with a new phrase.</url>"
       },
       "complete": {
-        "title": "Welcome to Taho",
-        "titleExisting": "Account added to Taho!",
-        "subtitle": "For faster access we recommend pinning Taho to your browser",
+        "title": "Welcome to Pelagus",
+        "titleExisting": "Account added to Pelagus!",
+        "subtitle": "For faster access we recommend pinning Pelagus to your browser",
         "animationAlt": "Pin the wallet"
       }
     },
     "setPassword": {
       "title": "First, let's secure<br /> your wallet",
-      "setAsDefault": "Set Taho as default wallet",
+      "setAsDefault": "Set Pelagus as default wallet",
       "submit": "Begin the hunt"
     },
     "steps": {
@@ -487,7 +487,7 @@
     "mainMenu": "Settings",
     "signing": "Signing",
     "hideSmallAssetBalance": "Hide asset balances under {{sign}}{{amount}}",
-    "setAsDefault": "Use Taho as default wallet",
+    "setAsDefault": "Use Pelagus as default wallet",
     "enableTestNetworks": "Show testnet networks",
     "showUnverifiedAssets": "Show unverified assets",
     "language": "Language",
@@ -573,7 +573,7 @@
         "typeCustom": "Custom network"
       },
       "chainList": {
-        "description": "<url></url> is the fastest, safest way to add a custom network. Just connect your wallet, search for the network you want to add, and click <strong>Add to Taho</strong>.",
+        "description": "<url></url> is the fastest, safest way to add a custom network. Just connect your wallet, search for the network you want to add, and click <strong>Add to Pelagus</strong>.",
         "addBtn": "Add chains with Chainlist"
       },
       "customRPC": {
@@ -592,7 +592,7 @@
     "balance": "Balance: {{amount}}"
   },
   "shared": {
-    "taho": "Taho",
+    "pelagus": "Pelagus",
     "metaMask": "MetaMask",
     "injected": "Injected",
     "cancelBtn": "Cancel",
@@ -681,7 +681,7 @@
     }
   },
   "addNewChain": {
-    "subtitle": "Wants to add a custom network to Taho",
+    "subtitle": "Wants to add a custom network to Pelagus",
     "name": "Name",
     "chainId": "Chain ID",
     "currency": "Currency",
@@ -689,7 +689,7 @@
     "explorer": "BlockExplorer",
     "submit": "Add network",
     "cancel": "Reject",
-    "warnAlreadyExistsHeader": "Network already added to Taho.",
+    "warnAlreadyExistsHeader": "Network already added to Pelagus.",
     "warnAlreadyExistsBody": "You can switch to it from Network dropdown"
   },
   "swap": {
@@ -707,7 +707,7 @@
     "rewards": {
       "header": "Swap rewards for community",
       "body": "This week, 240,000 DOGGO tokens will be equally shared as Swap Rewards.",
-      "tooltip": "Taho rewards its users that use swap every week. A council decides weekly prizes and who is eligible.",
+      "tooltip": "Pelagus rewards its users that use swap every week. A council decides weekly prizes and who is eligible.",
       "detailButton": "Details"
     },
     "error": {
@@ -719,11 +719,11 @@
   },
   "switchWallet": {
     "title": "Want to use another wallet instead?",
-    "tooltip": "You are seeing this because Taho is set as default wallet, you can change this option in the main menu.",
+    "tooltip": "You are seeing this because Pelagus is set as default wallet, you can change this option in the main menu.",
     "confirmSwitchWallet": "Yes, switch wallet",
-    "notDefaultWalletMessage": "Taho not Default",
-    "disableWalletExplainer": "We disabled Taho as the default wallet for you. You can always re-enable it from Menu ☰ at any time.",
-    "useTahoAsDefaultPrompt": "Use Taho as default wallet",
+    "notDefaultWalletMessage": "Pelagus not Default",
+    "disableWalletExplainer": "We disabled Pelagus as the default wallet for you. You can always re-enable it from Menu ☰ at any time.",
+    "usePelagusAsDefaultPrompt": "Use Pelagus as default wallet",
     "closeButton": "Close window"
   },
   "toggle": {
@@ -733,7 +733,7 @@
   "topMenu": {
     "showCurrentDappConnection": "Show current dApp connection",
     "connectToWebsiteUsing": "Connect to website using:",
-    "setTahoAsDefault": "Set Taho as default",
+    "setPelagusAsDefault": "Set Pelagus as default",
     "setOtherAsDefault": "Set MetaMask/other wallet as default",
     "rewardsProgram": "Rewards program",
     "copyAddressTooltip": "Copy address",
@@ -748,18 +748,18 @@
       "dappConnections": "Dapp connections",
       "guideline": {
         "title": "How to connect to dapps",
-        "step1": "Set Taho as default",
+        "step1": "Set Pelagus as default",
         "step2": "Click “connect to wallet” in a dapp",
         "step3": "Select one similar to these"
       },
-      "walletConnectInfo": "You can now connect to any dapp that supports Wallet Connect by selecting Taho from desktop tab. <url>Learn more</url>",
+      "walletConnectInfo": "You can now connect to any dapp that supports Wallet Connect by selecting Pelagus from desktop tab. <url>Learn more</url>",
       "walletConnectHint": "Check the desktop tab in the connection modal"
     }
   },
   "wallet": {
     "activities": {
       "defaultHistoricalActivityExplainer": "All your new transaction will show up here.",
-      "historicalActivityExplainer": "Taho will populate your historical activity over time; this may take an hour or more for accounts that have been active for a long time. For new accounts, new activity will show up here.",
+      "historicalActivityExplainer": "Pelagus will populate your historical activity over time; this may take an hour or more for accounts that have been active for a long time. For new accounts, new activity will show up here.",
       "endOfList": "You have reached the end of activity list.",
       "moreHistory": "For more history visit",
       "tokenApproved": "Token approval",
@@ -811,7 +811,7 @@
       "snackbar": "You can change this in Settings later",
       "isDefault": "is now your default wallet",
       "notDefault": "is not your default wallet",
-      "tooltip": "Setting Taho as your default wallet means that every time you connect to a dApp, Taho will open instead of MetaMask or other wallets."
+      "tooltip": "Setting Pelagus as your default wallet means that every time you connect to a dApp, Pelagus will open instead of MetaMask or other wallets."
     },
     "analyticsNotification": {
       "title": "Analytics are enabled",
@@ -843,15 +843,15 @@
   },
   "dAppConnect": {
     "switchWallet": {
-      "title": "Taho not Default",
-      "descFirstPart": "We disabled Taho as default wallet for you. You can always enable it back from Settings",
+      "title": "Pelagus not Default",
+      "descFirstPart": "We disabled Pelagus as default wallet for you. You can always enable it back from Settings",
       "descSecondPart": "at any time.",
-      "toggleTitle": "Use Taho as default wallet"
+      "toggleTitle": "Use Pelagus as default wallet"
     },
     "defaultConnectionPopover": {
-      "title": "Connecting with Taho",
-      "activeWallet": "Your active wallet is Taho.",
-      "activeWalletMeaning": "This means that you'll be connecting to websites with Taho even when selecting MetaMask.",
+      "title": "Connecting with Pelagus",
+      "activeWallet": "Your active wallet is Pelagus.",
+      "activeWalletMeaning": "This means that you'll be connecting to websites with Pelagus even when selecting MetaMask.",
       "metaMaskHeading": "Want to switch to MetaMask?",
       "toggleLabel": "Use the toggle at the top to connect with MetaMask or another wallet."
     }
@@ -932,10 +932,10 @@
     "submitBtn": "Refresh page"
   },
   "globalModal": {
-    "title": "Hello World. Meet Taho.",
-    "description1": "In 2021, Tally Ho came into the world on a fox hunt. We set our sights on educating the world about the dangers of centralized wallets, and our name was a playful nod to that.",
-    "description2": "But now, our sights are set on a bigger goal. It's time to update our identity.",
-    "description3": "Tally Ho is now Taho.",
+    "title": "Hello World. Meet Pelagus.",
+    "description1": "Pelagus is your starter kit to exploring Quai Network.",
+    "description2": "",
+    "description3": "",
     "button": "Read more"
   },
   "devPanel": {

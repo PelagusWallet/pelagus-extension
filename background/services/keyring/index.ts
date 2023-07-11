@@ -1,6 +1,6 @@
 import { parse as parseRawTransaction } from "@quais/transactions"
 
-import HDKeyring, { SerializedHDKeyring } from "hd-keyring"
+import HDKeyring, { SerializedHDKeyring } from "@pelagus/hd-keyring"
 
 import { arrayify } from "ethers/lib/utils"
 import { normalizeEVMAddress } from "../../lib/utils"

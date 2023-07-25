@@ -37,6 +37,7 @@ import {
   SECOND,
   setProviderForShard,
   getShardFromAddress,
+  QUAI_NETWORK,
 } from "../../constants"
 import { FeatureFlags, isEnabled } from "../../features"
 import PreferenceService from "../preferences"
@@ -390,6 +391,9 @@ export default class ChainService extends BaseService<Events> {
   providerForNetwork(network: EVMNetwork): SerialFallbackProvider | undefined {
     if (this.providers.evm[network.chainID] === undefined) {
       this.initializeNetworks().then(() => {
+        if (this.providers.evm[network.chainID] === undefined) {
+          console.error("Provider is undefined for network " + network.name)
+        } 
         setProviderForShard(this.providers.evm[network.chainID])
       })
     } else {
@@ -866,7 +870,7 @@ export default class ChainService extends BaseService<Events> {
     const chainIDs = await this.db.getChainIDsToTrack()
     if (chainIDs.size === 0) {
       // Default to tracking Ethereum so ENS resolution works during onboarding
-      return [ETHEREUM]
+      return [QUAI_NETWORK]
     }
 
     const networks = await Promise.all(

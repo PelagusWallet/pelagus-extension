@@ -100,7 +100,7 @@ const QUAI: NetworkBaseAsset = {
   symbol: "QUAI",
   decimals: 18,
   metadata: {
-    coinGeckoID: "usdt",
+    coinGeckoID: "",
     tokenLists: [],
     websiteURL: "https://qu.ai/",
   },

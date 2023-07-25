@@ -8,6 +8,7 @@ import {
   GOERLI,
   OPTIMISM,
   POLYGON,
+  QUAI_NETWORK,
 } from "../../../constants"
 import { sameNetwork } from "../../../networks"
 import { NameResolver } from "../name-resolver"
@@ -76,7 +77,7 @@ export default function ensResolverFor(
             }
 
       // Hard-coded to ETHEREUM to support ENS names on ETH L2's.
-      const provider = chainService.providerForNetwork(ETHEREUM)
+      const provider = chainService.providerForNetwork(QUAI_NETWORK)
 
       if (name === undefined || provider === undefined) {
         return undefined
@@ -101,7 +102,7 @@ export default function ensResolverFor(
     }: AddressOnNetwork): Promise<NameOnNetwork | undefined> {
       const name = await chainService
         // Hard-coded to ETHEREUM to support ENS names on ETH L2's.
-        .providerForNetwork(ETHEREUM)
+        .providerForNetwork(QUAI_NETWORK)
         ?.lookupAddress(address)
 
       if (name === undefined || name === null) {

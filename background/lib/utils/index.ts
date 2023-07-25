@@ -2,7 +2,7 @@ import { BigNumber, ethers, utils } from "ethers"
 import { normalizeHexAddress, toChecksumAddress } from "@pelagus/hd-keyring"
 import { NormalizedEVMAddress, UNIXTime } from "../../types"
 import { EVMNetwork } from "../../networks"
-import { ETHEREUM, GOERLI } from "../../constants"
+import { ETHEREUM, GOERLI, QUAI_NETWORK } from "../../constants"
 import { AddressOnNetwork } from "../../accounts"
 
 export function isValidChecksumAddress(
@@ -162,7 +162,7 @@ export function getEthereumNetwork(): EVMNetwork {
   }
 
   // Default to mainnet
-  return ETHEREUM
+  return QUAI_NETWORK
 }
 
 export function isProbablyEVMAddress(str: string): boolean {

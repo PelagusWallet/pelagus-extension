@@ -34,7 +34,7 @@ import {
 } from "../../utils/signing"
 import { getOrCreateDB, InternalEthereumProviderDatabase } from "./db"
 import { TALLY_INTERNAL_ORIGIN } from "./constants"
-import { ROOTSTOCK } from "../../constants"
+import { QUAI_NETWORK, ROOTSTOCK } from "../../constants"
 import {
   EnrichedEVMTransactionRequest,
   TransactionAnnotation,
@@ -384,14 +384,15 @@ export default class InternalEthereumProviderService extends BaseService<Events>
   async getCurrentOrDefaultNetworkForOrigin(
     origin: string
   ): Promise<EVMNetwork> {
-    const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
+    /*const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
     if (!currentNetwork) {
       // If this is a new dapp or the dapp has not implemented wallet_switchEthereumChain
       // use the default network.
       const defaultNetwork = await this.getCurrentInternalNetwork()
       return defaultNetwork
     }
-    return currentNetwork
+    return currentNetwork*/
+    return QUAI_NETWORK
   }
 
   async removePrefererencesForChain(chainId: string): Promise<void> {

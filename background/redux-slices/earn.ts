@@ -20,7 +20,7 @@ import {
 } from "./utils/contract-utils"
 import { AssetsState } from "./assets"
 import { enrichAssetAmountWithMainCurrencyValues } from "./utils/asset-utils"
-import { ETHEREUM } from "../constants"
+import { ETHEREUM, QUAI_NETWORK } from "../constants"
 import { EVMNetwork } from "../networks"
 import YEARN_VAULT_ABI from "../lib/yearnVault"
 import { getPoolAPR, getTokenPrice, tokenIcons } from "./earn-utils"
@@ -92,7 +92,7 @@ export type Events = {
 
 export const initialVaults: AvailableVault[] = [
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.AAVE,
     vaultAddress: "0xE1B460d1056FfC314E43eF8A95Bd76Aef2a5E903",
     yearnVault: "0xd9788f3931Ede4D5018184E198699dC6d66C1915",
@@ -112,7 +112,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.UNI,
     vaultAddress: "0x94bE1e2459e3E6b1750b9B3C1B04Ba97aaDaCdA7",
     yearnVault: "0xFBEB78a723b8087fD2ea7Ef1afEc93d35E8Bed42",
@@ -132,7 +132,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.crvCVXETH,
     vaultAddress: "0x18a28995816Ee6d26cEeA3c39454C5FFBFCB7C71",
     yearnVault: "0x1635b506a88fBF428465Ad65d00e8d6B6E5846C3",
@@ -152,7 +152,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons["YFIETH-f"],
     vaultAddress: "0x4852190BB1f092310ef616f1FC7B2E17998261bb",
     yearnVault: "0x790a60024bC3aea28385b60480f15a0771f26D09",
@@ -172,7 +172,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.SNX,
     vaultAddress: "0x1388B70e1b70E1cBa49A5435090625bd6ce2374A",
     yearnVault: "0xF29AE508698bDeF169B89834F76704C3B205aedf",
@@ -192,7 +192,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.SUSHI,
     vaultAddress: "0x7B0902F5286D9E3333588F3B550EfC3b9Eb4a9dD",
     yearnVault: "0x6d765CbE5bC922694afE112C140b8878b9FB0390",
@@ -212,7 +212,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.LOOKS,
     vaultAddress: "0x74B7382fA81Cee6C18f6D6694AdCA6861605a068",
     yearnVault: "0x5faF6a2D186448Dfa667c51CB3D695c7A6E52d8E",
@@ -232,7 +232,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.KEEP,
     vaultAddress: "0x77B59394639d1591632C6B6BA5E2b8afc1151bD0",
     yearnVault: "0xb09F2a67a731466182518fae980feAe96479d80b",
@@ -252,7 +252,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     icons: tokenIcons.crvTETH,
     vaultAddress: "0xAaa2096f5832e5d7D7e0d30eE2181929878207f4",
     yearnVault: "0xF6B9DFE6bc42ed2eaB44D6B829017f7B78B29f88",
@@ -272,7 +272,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-    network: ETHEREUM,
+  network: QUAI_NETWORK,
     icons: tokenIcons.DOGGOETH,
     vaultAddress: "0x041BE32B10eC4740387a42Bd82703798A9303753",
     yearnVault: "0x9A39f31DD5EDF5919A5C0c2433cE053fAD2E0336",

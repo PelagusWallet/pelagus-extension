@@ -1,6 +1,6 @@
 import { fetchJson } from "@ethersproject/web"
 import logger from "./logger"
-import { ETHEREUM } from "../constants"
+import { ETHEREUM, QUAI_NETWORK } from "../constants"
 import { NFT, NFTCollection, NFTsWithPagesResponse } from "../nfts"
 
 export const POAP_CONTRACT = "0x22C1f6050E56d2876009903609a2cC3fEf83B415" // POAP contract address https://etherscan.io/address/0x22C1f6050E56d2876009903609a2cC3fEf83B415
@@ -58,7 +58,7 @@ function poapNFTModelToNFT(original: PoapNFTModel, owner: string): NFT {
     collectionID: POAP_COLLECTION_ID,
     contract: POAP_CONTRACT, // contract address doesn't make sense for POAPs
     owner,
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     supply,
     isBadge: true,
     rarity: {}, // no rarity rankings for POAPs
@@ -108,7 +108,7 @@ export async function getPoapCollections(
     nftCount: undefined, // TODO: we don't know at this point how many POAPs this address has
     owner: address,
     hasBadges: true,
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
     floorPrice: undefined, // POAPs don't have floor prices
     thumbnailURL: "images/poap_logo.svg",
   }

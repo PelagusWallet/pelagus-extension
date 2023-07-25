@@ -107,16 +107,7 @@ export const QUAI_NETWORK: EVMNetwork = {
 }
 
 export const DEFAULT_NETWORKS = [
-  ETHEREUM,
-  POLYGON,
-  OPTIMISM,
-  GOERLI,
-  ARBITRUM_ONE,
-  ROOTSTOCK,
-  AVALANCHE,
-  BINANCE_SMART_CHAIN,
   QUAI_NETWORK,
-  ...wrapIfEnabled(FeatureFlags.SUPPORT_ARBITRUM_NOVA, ARBITRUM_NOVA),
 ]
 
 export function isBuiltInNetwork(network: EVMNetwork): boolean {
@@ -148,17 +139,6 @@ export const CHAINS_WITH_MEMPOOL = new Set(
 )
 
 export const NETWORK_BY_CHAIN_ID = {
-  [ETHEREUM.chainID]: ETHEREUM,
-  [POLYGON.chainID]: POLYGON,
-  [ROOTSTOCK.chainID]: ROOTSTOCK,
-  [ARBITRUM_ONE.chainID]: ARBITRUM_ONE,
-  [AVALANCHE.chainID]: AVALANCHE,
-  [ARBITRUM_NOVA.chainID]: ARBITRUM_NOVA,
-  [OPTIMISM.chainID]: OPTIMISM,
-  [BINANCE_SMART_CHAIN.chainID]: BINANCE_SMART_CHAIN,
-  [GOERLI.chainID]: GOERLI,
-  [FORK.chainID]: FORK,
-  [ZK_SYNC.chainID]: ZK_SYNC,
   [QUAI_NETWORK.chainID]: QUAI_NETWORK,
 }
 
@@ -166,7 +146,7 @@ export const TEST_NETWORK_BY_CHAIN_ID = new Set(
   [GOERLI].map((network) => network.chainID)
 )
 
-export const NETWORK_FOR_LEDGER_SIGNING = [ETHEREUM, POLYGON]
+export const NETWORK_FOR_LEDGER_SIGNING = []
 
 // Networks that are not added to this struct will
 // not have an in-wallet Swap page
@@ -296,7 +276,7 @@ export const NETWORK_TO_CHAIN_ID = {
   Local: 1337
 }
 
-export const DEFAULT_QUAI_TESNTET = {
+export const DEFAULT_QUAI_TESTNET = {
   name: "Colosseum",
   chainCode: 994,
   chainID: 9000,
@@ -433,7 +413,7 @@ export const DEFAULT_QUAI_LOCAL = {
       shard: "cyprus-1",
       rpc: "http://localhost:8610",
       blockExplorerUrl: "https://dev.cyprus1.quaiscan.io",
-      multicall: "0x15b6351eDEcd7142ac4c6fE54948b603D4566862"
+      multicall: "0x1aF3f0d55e6f399708a058333E81604F56f22835"//"0x15b6351eDEcd7142ac4c6fE54948b603D4566862"
     },
     {
       name: "Cyprus Two",
@@ -495,7 +475,7 @@ export const DEFAULT_QUAI_LOCAL = {
 } as Network
 
 export const DEFAULT_QUAI_NETWORKS = [
-  DEFAULT_QUAI_TESNTET,
+  DEFAULT_QUAI_TESTNET,
   DEFAULT_QUAI_DEVNET,
   DEFAULT_QUAI_LOCAL
 ]
@@ -626,6 +606,7 @@ export function setProviderForShard(providers: SerialFallbackProvider): SerialFa
   if (shard === undefined || shard == "") {
     return providers
   }
+  
   for (let provider of providers.providerCreators) {
     if (provider.shard !== undefined && provider.shard == shard) {
       let quaisProvider = provider.creator()

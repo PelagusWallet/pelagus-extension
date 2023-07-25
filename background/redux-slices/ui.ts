@@ -1,7 +1,7 @@
 import { createSlice, createSelector } from "@reduxjs/toolkit"
 import Emittery from "emittery"
 import { AddressOnNetwork } from "../accounts"
-import { ETHEREUM } from "../constants"
+import { ETHEREUM, QUAI_NETWORK } from "../constants"
 import { AnalyticsEvent, OneTimeAnalyticsEvent } from "../lib/posthog"
 import { EVMNetwork } from "../networks"
 import { AnalyticsPreferences } from "../services/preferences/types"
@@ -61,7 +61,7 @@ export const initialState: UIState = {
   showingActivityDetailID: null,
   selectedAccount: {
     address: "",
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
   },
   initializationLoadingTimeExpired: false,
   settings: defaultSettings,
@@ -284,6 +284,9 @@ export const userActivityEncountered = createBackgroundAsyncThunk(
 export const setSelectedNetwork = createBackgroundAsyncThunk(
   "ui/setSelectedNetwork",
   async (network: EVMNetwork, { getState, dispatch }) => {
+    if (network.name == "Ethereum") { // Ethereum is disabled
+      return
+    }
     const state = getState() as { ui: UIState; account: AccountState }
     const { ui, account } = state
     const currentlySelectedChainID = ui.selectedAccount.network.chainID

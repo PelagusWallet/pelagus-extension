@@ -11,6 +11,7 @@ import {
   GOERLI,
   OPTIMISM,
   POLYGON,
+  QUAI_NETWORK,
   ROOTSTOCK,
 } from "../constants"
 
@@ -128,14 +129,15 @@ const dappSlice = createSlice({
 
           // Support all networks regardless of which one initiated grant request
           const permissions = [
-            ETHEREUM,
+            /*ETHEREUM,
             ROOTSTOCK,
             POLYGON,
             OPTIMISM,
             AVALANCHE,
             BINANCE_SMART_CHAIN,
             GOERLI,
-            ARBITRUM_NOVA,
+            ARBITRUM_NOVA,*/
+            QUAI_NETWORK,
           ].map((network) => ({
             ...permission,
             chainID: network.chainID,

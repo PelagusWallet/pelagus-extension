@@ -1,4 +1,4 @@
-import { ETHEREUM, USD } from "../../constants"
+import { ETHEREUM, QUAI_NETWORK, USD } from "../../constants"
 import { storageGatewayURL } from "../../lib/storage-gateway"
 import { Preferences } from "./types"
 
@@ -26,7 +26,7 @@ const defaultPreferences: Preferences = {
   defaultWallet: false,
   selectedAccount: {
     address: "",
-    network: ETHEREUM,
+    network: QUAI_NETWORK,
   },
   accountSignersSettings: [],
   analytics: {

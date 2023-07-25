@@ -1,5 +1,5 @@
+import { QUAI_NETWORK } from "./networks"
 import { SmartContractFungibleAsset } from "../assets"
-import { ETHEREUM } from "./networks"
 import { WEBSITE_ORIGIN } from "./website"
 
 /**
@@ -12,7 +12,7 @@ export const DOGGO: SmartContractFungibleAsset = {
   symbol: "DOGGO",
   decimals: 18,
   contractAddress: "0xdce3d2c2186e3E92af121F477dE76cBED2fc979F",
-  homeNetwork: ETHEREUM,
+  homeNetwork: QUAI_NETWORK,
   metadata: {
     tokenLists: [],
     websiteURL: WEBSITE_ORIGIN,

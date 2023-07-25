@@ -4,7 +4,7 @@ import { Eligible } from "./types"
 import BaseService from "../base"
 import { getFileHashProspect, getClaimFromFileHash } from "./utils"
 import ChainService from "../chain"
-import { DOGGO, ETHEREUM } from "../../constants"
+import { DOGGO, ETHEREUM, QUAI_NETWORK } from "../../constants"
 import { sameNetwork } from "../../networks"
 import { ClaimWithFriends } from "./contracts"
 import IndexingService from "../indexing"
@@ -53,7 +53,7 @@ export default class DoggoService extends BaseService<Events> {
 
     const huntingGrounds = initialVaults
 
-    const ethereumProvider = this.chainService.providerForNetwork(ETHEREUM)
+    const ethereumProvider = this.chainService.providerForNetwork(QUAI_NETWORK)
     if (ethereumProvider === undefined) {
       logger.error(
         "No Ethereum provider available, not setting up DOGGO monitoring..."
@@ -73,7 +73,7 @@ export default class DoggoService extends BaseService<Events> {
       this.indexingService.addAssetToTrack({
         contractAddress: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         decimals: 18,
-        homeNetwork: ETHEREUM,
+        homeNetwork: QUAI_NETWORK,
         name: "Wrapped Ether",
         symbol: "WETH",
       })

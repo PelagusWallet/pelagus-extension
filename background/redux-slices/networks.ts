@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "."
-import { ETHEREUM } from "../constants"
+import { ETHEREUM, QUAI_CONTEXTS, QUAI_NETWORK } from "../constants"
 import { EIP1559Block, AnyEVMBlock, EVMNetwork } from "../networks"
 import { removeChainBalances } from "./accounts"
 import { selectCurrentNetwork } from "./selectors/uiSelectors"
@@ -88,7 +88,7 @@ export const removeCustomChain = createBackgroundAsyncThunk(
     const currentNetwork = selectCurrentNetwork(store)
 
     if (currentNetwork.chainID === chainID) {
-      await dispatch(setSelectedNetwork(ETHEREUM))
+      await dispatch(setSelectedNetwork(QUAI_NETWORK))
     }
     await dispatch(removeChainBalances(chainID))
 

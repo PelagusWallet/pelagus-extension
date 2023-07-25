@@ -19,7 +19,7 @@ import { findClosestAssetIndex } from "../lib/asset-similarity"
 import { createBackgroundAsyncThunk } from "./utils"
 import { isBuiltInNetworkBaseAsset, isSameAsset } from "./utils/asset-utils"
 import { getProvider } from "./utils/contract-utils"
-import { CURRENT_QUAI_CHAIN_ID, EIP1559TransactionRequest, EVMNetwork, KnownTxTypes, SignedTransaction, TransactionRequestWithNonce, sameNetwork } from "../networks"
+import { EIP1559TransactionRequest, EVMNetwork, KnownTxTypes, SignedTransaction, TransactionRequestWithNonce, sameNetwork } from "../networks"
 import { ERC20_INTERFACE } from "../lib/erc20"
 import logger from "../lib/logger"
 import { CHAIN_ID_TO_RPC_URLS, FIAT_CURRENCIES_SYMBOL, QUAI, QUAI_NETWORK, getShardFromAddress } from "../constants"
@@ -242,7 +242,7 @@ export const transferAsset = createBackgroundAsyncThunk(
       throw new Error("Only same-network transfers are supported for now.")
     }
 
-    if(fromNetwork.chainID == CURRENT_QUAI_CHAIN_ID) {
+    if(fromNetwork.isQuai) {
       let data = ""
       const provider = globalThis.main.chainService.providerForNetworkOrThrow(fromNetwork)
       if (nonce == undefined) {
@@ -266,7 +266,7 @@ export const transferAsset = createBackgroundAsyncThunk(
           amount: BigInt(0),
         }
       }
-      let tx = genQuaiRawTransaction(fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID, data)
+      let tx = genQuaiRawTransaction(fromNetwork, fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID, data)
       signData({transaction: tx, accountSigner: accountSigner})
       return
     }
@@ -316,7 +316,7 @@ export const transferAsset = createBackgroundAsyncThunk(
   }
 )
 
-function genQuaiRawTransaction (fromAddress: string, toAddress: string, assetAmount: AnyAssetAmount, nonce: number, chainId: string, data: string): EIP1559TransactionRequest {
+function genQuaiRawTransaction (network: EVMNetwork, fromAddress: string, toAddress: string, assetAmount: AnyAssetAmount, nonce: number, chainId: string, data: string): EIP1559TransactionRequest {
    
   let isExternal = false
   let type = 0
@@ -342,7 +342,7 @@ function genQuaiRawTransaction (fromAddress: string, toAddress: string, assetAmo
       type: type as KnownTxTypes,
       chainID: chainId,
       input: data,
-      network: QUAI_NETWORK,
+      network: network,
     }
 
     if (isExternal) { // is external this time

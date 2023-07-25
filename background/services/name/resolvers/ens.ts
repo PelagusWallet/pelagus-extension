@@ -76,7 +76,7 @@ export default function ensResolverFor(
               name: undefined,
             }
 
-      // Hard-coded to ETHEREUM to support ENS names on ETH L2's.
+      // Hard-coded to QUAI_NETWORK to support QNS names.
       const provider = chainService.providerForNetwork(QUAI_NETWORK)
 
       if (name === undefined || provider === undefined) {

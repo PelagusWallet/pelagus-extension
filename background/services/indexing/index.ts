@@ -1,6 +1,6 @@
 import logger from "../../lib/logger"
 import { HexString } from "../../types"
-import { CURRENT_QUAI_CHAIN_ID, EVMNetwork, sameNetwork } from "../../networks"
+import { EVMNetwork, sameNetwork } from "../../networks"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import {
   AnyAsset,
@@ -952,7 +952,7 @@ export default class IndexingService extends BaseService<Events> {
         const { network } = addressOnNetwork
         
         let prevShard = globalThis.main.SelectedShard
-        if (network.chainID === CURRENT_QUAI_CHAIN_ID) {
+        if (network.isQuai) {
           let shard = getShardFromAddress(addressOnNetwork.address)
           globalThis.main.SetShard(shard)
         }

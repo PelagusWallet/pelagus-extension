@@ -7,11 +7,12 @@ import {
   GOERLI,
   OPTIMISM,
   POLYGON,
+  QUAI_NETWORK,
+  QUAI_NETWORK_LOCAL,
   ROOTSTOCK,
 } from "@tallyho/tally-background/constants"
 import { NetworkFeeTypeChosen } from "@tallyho/tally-background/redux-slices/transaction-construction"
 import { i18n } from "../_locales/i18n"
-import { CURRENT_QUAI_CHAIN_ID } from "@tallyho/tally-background/networks"
 
 export const doggoTokenDecimalDigits = 18
 
@@ -34,7 +35,11 @@ export const blockExplorer = {
     title: "Arbiscan",
     url: "https://nova.arbiscan.io/",
   },
-  [CURRENT_QUAI_CHAIN_ID]: {
+  [QUAI_NETWORK.chainID]: {
+    title: "Quai Blockscout",
+    url: "https://cyprus1.colosseum.quaiscan.io", // TODO: update this per shard
+  },
+  [QUAI_NETWORK_LOCAL.chainID]: {
     title: "Quai Blockscout",
     url: "https://cyprus1.colosseum.quaiscan.io", // TODO: update this per shard
   }

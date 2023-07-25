@@ -99,7 +99,17 @@ export const QUAI: NetworkBaseAsset & Required<CoinGeckoAsset> = {
   ...BASE_ASSETS_BY_CUSTOM_NAME.QUAI,
   coinType: coinTypesByAssetSymbol.QUAI,
   metadata: {
-    coinGeckoID: "usdt",
+    coinGeckoID: "",
+    tokenLists: [],
+    websiteURL: "https://qu.ai/",
+  },
+}
+
+export const QUAI_LOCAL: NetworkBaseAsset & Required<CoinGeckoAsset> = {
+  ...BASE_ASSETS_BY_CUSTOM_NAME.QUAI_LOCAL,
+  coinType: coinTypesByAssetSymbol.QUAI,
+  metadata: {
+    coinGeckoID: "",
     tokenLists: [],
     websiteURL: "https://qu.ai/",
   },

@@ -8,7 +8,7 @@ import {
   TransactionDescription,
 } from "ethers/lib/utils"
 import { SmartContractAmount, SmartContractFungibleAsset } from "../assets"
-import { CURRENT_QUAI_CHAIN_ID, EVMLog, SmartContract } from "../networks"
+import { EVMLog, SmartContract } from "../networks"
 import { HexString } from "../types"
 import { AddressOnNetwork } from "../accounts"
 import {
@@ -198,8 +198,8 @@ export const getTokenBalances = async (
   let multicallAddress =
     CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES[network.chainID] ||
     MULTICALL_CONTRACT_ADDRESS
-  if (network.chainID == CURRENT_QUAI_CHAIN_ID) {
-    multicallAddress = ShardToMulticall(globalThis.main.SelectedShard)
+  if (network.isQuai) {
+    multicallAddress = ShardToMulticall(globalThis.main.SelectedShard, network)
   }
 
   const contract = new quais.Contract(

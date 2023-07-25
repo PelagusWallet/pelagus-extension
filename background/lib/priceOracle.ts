@@ -30,7 +30,7 @@ import {
 } from "./multicall"
 import { toFixedPoint } from "./fixed-point"
 import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
-import { CURRENT_QUAI_CHAIN_ID, EVMNetwork } from "../networks"
+import { EVMNetwork } from "../networks"
 
 // Oracle Documentation and Address references can be found
 // at https://docs.1inch.io/docs/spot-price-aggregator/introduction/
@@ -154,8 +154,8 @@ const getRatesForTokens = async (
   }[]
 > => {
   let multicallAddress = MULTICALL_CONTRACT_ADDRESS
-  if(network.chainID === CURRENT_QUAI_CHAIN_ID) {
-    multicallAddress = ShardToMulticall(globalThis.main.SelectedShard)
+  if(network.isQuai) {
+    multicallAddress = ShardToMulticall(globalThis.main.SelectedShard, network)
   }
   const multicall = new ethers.Contract(
     multicallAddress,

@@ -9,8 +9,7 @@ import type {
   EnrichedEVMTransactionSignatureRequest,
   PartialTransactionRequestWithFrom,
 } from "./services/enrichment"
-
-export const CURRENT_QUAI_CHAIN_ID = "1337"
+import { ChainData } from "./constants"
 
 /**
  * Each supported network family is generally incompatible with others from a
@@ -68,6 +67,8 @@ export type EVMNetwork = Network & {
    * Provided for custom networks
    */
   blockExplorerURL?: string
+  chains?: ChainData[]
+  isQuai?: boolean
 }
 
 /**

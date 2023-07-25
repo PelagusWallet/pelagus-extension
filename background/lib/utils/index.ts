@@ -2,7 +2,7 @@ import { BigNumber, ethers, utils } from "ethers"
 import { normalizeHexAddress, toChecksumAddress } from "@pelagus/hd-keyring"
 import { NormalizedEVMAddress, UNIXTime } from "../../types"
 import { EVMNetwork } from "../../networks"
-import { ETHEREUM, GOERLI, QUAI_NETWORK } from "../../constants"
+import { ETHEREUM, GOERLI, QUAI_NETWORK, QUAI_NETWORK_LOCAL } from "../../constants"
 import { AddressOnNetwork } from "../../accounts"
 
 export function isValidChecksumAddress(
@@ -157,8 +157,8 @@ export function decodeJSON(input: string): unknown {
 export function getEthereumNetwork(): EVMNetwork {
   const ethereumNetwork = process.env.ETHEREUM_NETWORK?.toUpperCase()
 
-  if (ethereumNetwork === "GOERLI") {
-    return GOERLI
+  if (ethereumNetwork === "LOCAL") {
+    return QUAI_NETWORK_LOCAL
   }
 
   // Default to mainnet

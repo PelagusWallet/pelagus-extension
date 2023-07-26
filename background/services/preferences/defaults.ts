@@ -1,5 +1,4 @@
-import { ETHEREUM, QUAI_NETWORK, USD } from "../../constants"
-import { storageGatewayURL } from "../../lib/storage-gateway"
+import { QUAI_NETWORK, USD } from "../../constants"
 import { Preferences } from "./types"
 
 const defaultPreferences: Preferences = {

@@ -4,15 +4,7 @@ import { PermissionRequest } from "@tallyho/provider-bridge-shared"
 import { createBackgroundAsyncThunk } from "./utils"
 import { keyPermissionsByChainIdAddressOrigin } from "../services/provider-bridge/utils"
 import {
-  ARBITRUM_NOVA,
-  AVALANCHE,
-  BINANCE_SMART_CHAIN,
-  ETHEREUM,
-  GOERLI,
-  OPTIMISM,
-  POLYGON,
   QUAI_NETWORK,
-  ROOTSTOCK,
 } from "../constants"
 
 export type DAppPermissionState = {
@@ -129,14 +121,6 @@ const dappSlice = createSlice({
 
           // Support all networks regardless of which one initiated grant request
           const permissions = [
-            /*ETHEREUM,
-            ROOTSTOCK,
-            POLYGON,
-            OPTIMISM,
-            AVALANCHE,
-            BINANCE_SMART_CHAIN,
-            GOERLI,
-            ARBITRUM_NOVA,*/
             QUAI_NETWORK,
           ].map((network) => ({
             ...permission,

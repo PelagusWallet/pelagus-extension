@@ -124,7 +124,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
   )
 }
 interface Props {
-  balance?: string
   mainAssetBalance?: string
   initializationLoadingTimeExpired: boolean
 }
@@ -135,7 +134,7 @@ export default function WalletAccountBalanceControl(
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet",
   })
-  const { balance, mainAssetBalance, initializationLoadingTimeExpired } = props
+  const { mainAssetBalance, initializationLoadingTimeExpired } = props
   const [openReceiveMenu, setOpenReceiveMenu] = useState(false)
 
   // TODO When non-imported accounts are supported, generalize this.
@@ -148,7 +147,7 @@ export default function WalletAccountBalanceControl(
   }, [])
 
   const shouldIndicateLoading =
-    !initializationLoadingTimeExpired && typeof balance === "undefined"
+    !initializationLoadingTimeExpired && typeof mainAssetBalance === "undefined"
 
   return (
     <>
@@ -166,8 +165,8 @@ export default function WalletAccountBalanceControl(
           <div className="balance_label">{t("totalAccountBalance")}</div>
           <span className="balance_area">
             <span className="balance" data-testid="wallet_balance">
+              {mainAssetBalance ?? 0}
               <span className="dollar_sign">Q</span>
-              {balance === "0" || balance === undefined ? mainAssetBalance : balance ?? 0 /* fix this */}
             </span>
           </span>
         </SharedSkeletonLoader>
@@ -240,8 +239,7 @@ export default function WalletAccountBalanceControl(
             font-weight: 500;
             line-height: 32px;
             text-align: center;
-            margin-right: 4px;
-            margin-left: -14px;
+            margin-left: 4px;
           }
           .save_seed_button_wrap {
             margin-top: 10px;

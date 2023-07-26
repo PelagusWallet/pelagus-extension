@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
 
 import { useTranslation } from "react-i18next"
-import { isUnverifiedAssetByUser } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+import { bigIntToDecimal, isUnverifiedAssetByUser } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
 import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
 import { NETWORKS_SUPPORTING_SWAPS } from "@tallyho/tally-background/constants"
 import {
@@ -80,7 +80,7 @@ export default function CommonAssetListItem(
           <div className="asset_left_content">
             <div className="asset_amount">
               <span className="bold_amount_count">
-                {assetAmount.localizedDecimalAmount}
+                {bigIntToDecimal(assetAmount.amount, assetAmount.asset.decimals, 4)}
               </span>
               <span title={assetAmount.asset.symbol}>
                 {trimWithEllipsis(assetAmount.asset.symbol, MAX_SYMBOL_LENGTH)}

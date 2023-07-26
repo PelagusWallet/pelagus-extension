@@ -2,7 +2,7 @@ import { BigNumber, ethers, utils } from "ethers"
 import { normalizeHexAddress, toChecksumAddress } from "@pelagus/hd-keyring"
 import { NormalizedEVMAddress, UNIXTime } from "../../types"
 import { EVMNetwork } from "../../networks"
-import { ETHEREUM, GOERLI, QUAI_NETWORK, QUAI_NETWORK_LOCAL } from "../../constants"
+import { QUAI_NETWORK, QUAI_NETWORK_LOCAL } from "../../constants"
 import { AddressOnNetwork } from "../../accounts"
 
 export function isValidChecksumAddress(

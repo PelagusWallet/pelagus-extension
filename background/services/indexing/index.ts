@@ -379,7 +379,7 @@ export default class IndexingService extends BaseService<Events> {
           )
 
           this.acceleratedTokenRefresh.assetLookups.push(...assetLookups)
-          this.acceleratedTokenRefresh.timeout ??= window.setTimeout(
+          this.acceleratedTokenRefresh.timeout ??= self.setTimeout(
             this.handleAcceleratedTokenRefresh.bind(this),
             ACCELERATED_TOKEN_REFRESH_TIMEOUT
           )

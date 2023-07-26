@@ -2,7 +2,7 @@ import {
   TransactionReceipt,
   TransactionResponse,
 } from "@ethersproject/providers"
-import { ethers, utils } from "ethers"
+import { BigNumber, ethers, utils } from "ethers"
 import { Logger, UnsignedTransaction } from "ethers/lib/utils"
 import logger from "../../lib/logger"
 import getBlockPrices from "../../lib/gas"
@@ -38,6 +38,7 @@ import {
   setProviderForShard,
   getShardFromAddress,
   QUAI_NETWORK,
+  getProviderForGivenShard,
 } from "../../constants"
 import { FeatureFlags, isEnabled } from "../../features"
 import PreferenceService from "../preferences"
@@ -895,12 +896,21 @@ export default class ChainService extends BaseService<Events> {
   }: AddressOnNetwork): Promise<AccountBalance> {
     const normalizedAddress = normalizeEVMAddress(address)
     const prevShard = globalThis.main.SelectedShard
-    if (globalThis.main.SelectedShard != getShardFromAddress(address)) { // Ideally this never happens, but it might
-      globalThis.main.SetShard(getShardFromAddress(address))
+    const addrShard = getShardFromAddress(address)
+    if (globalThis.main.SelectedShard !== addrShard) { // Ideally this never happens, but it might
+      globalThis.main.SetShard(addrShard)
     }
-    const balance = await this.providerForNetworkOrThrow(network).getBalance(
-      normalizedAddress
-    )
+    let balance = BigNumber.from(0)
+    const provider = getProviderForGivenShard(this.providers.evm[network.chainID], addrShard)
+    try {
+      balance = await provider.getBalance(
+        normalizedAddress
+      )
+    } catch (e) {
+      console.error("Error getting balance for address", address, e)
+      console.error("Global shard: " + globalThis.main.SelectedShard + " Address shard: " + addrShard + " Provider: " + provider.connection.url)
+    }
+    
 
     const trackedAccounts = await this.getAccountsToTrack()
     const allTrackedAddresses = new Set(

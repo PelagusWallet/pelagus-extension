@@ -1,6 +1,6 @@
 import { fetchJson } from "@ethersproject/web"
 import logger from "./logger"
-import { ETHEREUM, QUAI_NETWORK } from "../constants"
+import { QUAI_NETWORK } from "../constants"
 import { NFT, NFTCollection, NFTsWithPagesResponse } from "../nfts"
 
 export const POAP_CONTRACT = "0x22C1f6050E56d2876009903609a2cC3fEf83B415" // POAP contract address https://etherscan.io/address/0x22C1f6050E56d2876009903609a2cC3fEf83B415

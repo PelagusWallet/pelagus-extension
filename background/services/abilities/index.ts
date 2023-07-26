@@ -13,6 +13,7 @@ import { normalizeEVMAddress } from "../../lib/utils"
 import { Ability, AbilityRequirement } from "../../abilities"
 import LedgerService from "../ledger"
 import { HOUR } from "../../constants"
+import localStorageShim from "../../utils/local-storage-shim"
 
 const normalizeDaylightRequirements = (
   requirement: DaylightAbilityRequirement
@@ -192,7 +193,7 @@ export default class AbilitiesService extends BaseService<Events> {
   }
 
   async fetchAbilities(): Promise<void> {
-    localStorage.setItem(this.ABILITY_TIME_KEY, Date.now().toString())
+    await localStorageShim.setItem(this.ABILITY_TIME_KEY, Date.now().toString())
     const accountsToTrack = await this.chainService.getAccountsToTrack()
     const addresses = new Set(
       accountsToTrack.map((account) => normalizeEVMAddress(account.address))
@@ -206,7 +207,7 @@ export default class AbilitiesService extends BaseService<Events> {
   }
 
   async refreshAbilities(): Promise<void> {
-    const lastFetchTime = localStorage.getItem(this.ABILITY_TIME_KEY)
+    const lastFetchTime = await localStorageShim.getItem(this.ABILITY_TIME_KEY)
 
     if (lastFetchTime && Number(lastFetchTime) + HOUR > Date.now()) {
       return

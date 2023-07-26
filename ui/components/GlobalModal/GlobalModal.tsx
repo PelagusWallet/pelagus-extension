@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react"
+import React, { ReactElement, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { getLocalStorageItem, useLocalStorage } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
@@ -13,7 +13,7 @@ export default function GlobalModal({ id }: { id: string }): ReactElement {
 
   const [showModal, setShowModal] = useLocalStorage(
     `modal_${id}`,
-    getLocalStorageItem(`modal_${id}`, "true")
+    "true"
   )
 
   const handleClick = () => {

@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "."
-import { ETHEREUM, QUAI_CONTEXTS, QUAI_NETWORK } from "../constants"
+import { QUAI_NETWORK } from "../constants"
 import { EIP1559Block, AnyEVMBlock, EVMNetwork } from "../networks"
 import { removeChainBalances } from "./accounts"
 import { selectCurrentNetwork } from "./selectors/uiSelectors"

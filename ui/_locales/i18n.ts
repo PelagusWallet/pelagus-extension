@@ -6,11 +6,12 @@ import { getLocalStorageItem, setLocalStorageItem } from "../hooks"
 const LANGUAGE_KEY = "lang"
 const DEFAULT_LANGUAGE = "en"
 
+getLocalStorageItem(LANGUAGE_KEY, DEFAULT_LANGUAGE).then((lang) => {
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
     resources,
-    lng: getLocalStorageItem(LANGUAGE_KEY, DEFAULT_LANGUAGE),
+    lng: lang,
     fallbackLng: DEFAULT_LANGUAGE,
     debug: false,
     interpolation: {
@@ -20,12 +21,13 @@ i18n
       bindI18n: "languageChanged",
     },
   })
+})
 
 const getLanguage = (): string => i18n.language
 const setLanguage = (lang: string): void => {
   i18n
     .changeLanguage(lang)
-    .then(() => lang && setLocalStorageItem(LANGUAGE_KEY, lang))
+    .then(() => {lang && setLocalStorageItem(LANGUAGE_KEY, lang)})
 }
 
 declare module "react-i18next" {

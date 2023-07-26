@@ -19,7 +19,7 @@ import {
   selectShowUnverifiedAssets,
 } from "@tallyho/tally-background/redux-slices/ui"
 import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
-import { SwappableAsset } from "@tallyho/tally-background/assets"
+import { SwappableAsset, isFungibleAsset } from "@tallyho/tally-background/assets"
 import { useHistory } from "react-router-dom"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
@@ -34,6 +34,7 @@ import NFTListCurrentWallet from "../components/NFTs/NFTListCurrentWallet"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
+import { bigIntToDecimal } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
 
 export default function Wallet(): ReactElement {
   const { t } = useTranslation()
@@ -120,8 +121,12 @@ export default function Wallet(): ReactElement {
         <WalletAnalyticsNotificationBanner />
         <div className="section">
           <WalletAccountBalanceControl
-            balance={totalMainCurrencyValue}
-            mainAssetBalance={assetAmounts[0] != undefined ? (assetAmounts[0].decimalAmount.toFixed(3).toString() ?? "0") : "0"}
+            mainAssetBalance={assetAmounts[0] != undefined ? 
+              (isFungibleAsset(assetAmounts[0].asset) ? 
+              (bigIntToDecimal(assetAmounts[0].amount, assetAmounts[0].asset.decimals, 4) ?? "0") 
+              :
+              (assetAmounts[0].decimalAmount.toString() ?? "0"))
+              : "0"}
             initializationLoadingTimeExpired={initializationLoadingTimeExpired}
           />
         </div>

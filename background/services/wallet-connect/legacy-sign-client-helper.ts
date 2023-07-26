@@ -7,6 +7,7 @@ import {
   approveEIP155Request,
   rejectEIP155Request,
 } from "./eip155-request-utils"
+import localStorageShim from "../../utils/local-storage-shim"
 
 export type LegacyProposal = {
   id: number
@@ -33,15 +34,14 @@ function tempFeatureLog(message?: any, ...optionalParams: any[]): void {
 
 function deleteCachedLegacySession(): void {
   if (typeof window === "undefined") return
-  window.localStorage.removeItem("walletconnect")
+  localStorageShim.removeItem("walletconnect")
 }
 
-function getCachedLegacySession(): IWalletConnectSession | null {
+async function getCachedLegacySession(): Promise<IWalletConnectSession | null> {
   if (typeof window === "undefined") return null
 
-  const local = window.localStorage
-    ? window.localStorage.getItem("walletconnect")
-    : null
+  const local = await localStorageShim.getItem("walletconnect")
+
 
   let session = null
   if (local) {
@@ -50,18 +50,18 @@ function getCachedLegacySession(): IWalletConnectSession | null {
   return session
 }
 
-export function createLegacySignClient(
+export async function createLegacySignClient(
   uri?: string,
   sessionProposalListener?: SessionProposalListener,
   sessionRequestListener?: SessionRequestListener
-): void {
+): Promise<void> {
   // If URI is passed always create a new session,
   // otherwise fall back to cached session if client isn't already instantiated.
   if (uri) {
     deleteCachedLegacySession()
     legacySignClient = new LegacySignClient({ uri })
-  } else if (!legacySignClient && getCachedLegacySession()) {
-    const session = getCachedLegacySession()
+  } else if (!legacySignClient && await getCachedLegacySession()) {
+    const session = await getCachedLegacySession()
     if (session != null) {
       legacySignClient = new LegacySignClient({ session })
     }

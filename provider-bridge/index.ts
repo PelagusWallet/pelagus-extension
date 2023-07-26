@@ -78,8 +78,7 @@ export function injectTallyWindowProvider(): void {
     // this makes the script loading blocking which is good for us
     // bc we want to load before anybody has a chance to temper w/ the window obj
     scriptTag.setAttribute("async", "false")
-    scriptTag.textContent = INJECTED_WINDOW_PROVIDER_SOURCE
-
+    scriptTag.src = browser.runtime.getURL("window-provider.js")
     container.insertBefore(scriptTag, container.children[0])
   } catch (e) {
     throw new Error(

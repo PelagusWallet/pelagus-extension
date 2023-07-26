@@ -612,6 +612,7 @@ return shardData[0].shard
 export function setProviderForShard(providers: SerialFallbackProvider): SerialFallbackProvider {
   let shard = globalThis.main.SelectedShard
   if (shard === undefined || shard == "") {
+    console.error("Shard is undefined")
     return providers
   }
   
@@ -620,20 +621,50 @@ export function setProviderForShard(providers: SerialFallbackProvider): SerialFa
       let quaisProvider = provider.creator()
       if (quaisProvider instanceof QuaisJsonRpcProvider || quaisProvider instanceof QuaisWebSocketProvider) {
         providers.SetCurrentProvider(quaisProvider, indexOf(providers.providerCreators, provider))
+        return providers
       } else {
         logger.error("Provider is not a Quais provider")
         console.log(providers.providerCreators)
       }
-      return providers
     } else if (provider.rpcUrl !== undefined && ShardFromRpcUrl(provider.rpcUrl) === shard) {
       let quaisProvider = provider.creator()
       if (quaisProvider instanceof QuaisJsonRpcProvider || quaisProvider instanceof QuaisWebSocketProvider) {
         providers.SetCurrentProvider(quaisProvider, indexOf(providers.providerCreators, provider))
+        return providers
+      } else {
+        logger.error("Provider is not a Quais provider")
+        console.log(providers.providerCreators)
+      }  
+    }
+  }
+  logger.error("No provider found for shard: " + shard)
+  console.log(providers.providerCreators)
+  return providers
+}
+
+export function getProviderForGivenShard(providers: SerialFallbackProvider, shard: string): QuaisJsonRpcProvider | QuaisWebSocketProvider {
+  if (shard === undefined || shard == "") {
+    console.error("No shard given")
+    return providers
+  }
+  
+  for (let provider of providers.providerCreators) {
+    if (provider.shard !== undefined && provider.shard == shard) {
+      let quaisProvider = provider.creator()
+      if (quaisProvider instanceof QuaisJsonRpcProvider || quaisProvider instanceof QuaisWebSocketProvider) {
+        return quaisProvider
       } else {
         logger.error("Provider is not a Quais provider")
         console.log(providers.providerCreators)
       }
-      return providers
+    } else if (provider.rpcUrl !== undefined && ShardFromRpcUrl(provider.rpcUrl) === shard) {
+      let quaisProvider = provider.creator()
+      if (quaisProvider instanceof QuaisJsonRpcProvider || quaisProvider instanceof QuaisWebSocketProvider) {
+        return quaisProvider
+      } else {
+        logger.error("Provider is not a Quais provider")
+        console.log(providers.providerCreators)
+      }
     }
   }
   logger.error("No provider found for shard: " + shard)

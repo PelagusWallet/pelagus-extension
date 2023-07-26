@@ -21,7 +21,7 @@ export const internalProviderPort = {
   removeEventListener(toRemove: (message: any) => unknown): void {
     this.listeners = this.listeners.filter((listener) => listener !== toRemove)
   },
-  origin: window.location.origin,
+  origin: self.location.origin,
   postMessage(message: any): void {
     this.emitter.emit("message", message)
   },

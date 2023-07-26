@@ -188,6 +188,7 @@ import {
 } from "./lib/posthog"
 import { isBuiltInNetworkBaseAsset } from "./redux-slices/utils/asset-utils"
 import { getPricePoint, getTokenPrices } from "./lib/prices"
+import localStorageShim from "./utils/local-storage-shim"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -373,7 +374,7 @@ export default class Main extends BaseService<never> {
         }
       } else {
         // Should be false if you don't want new users to see the modal
-        window.localStorage.setItem("modal_meet_pelagus", "false")
+        localStorageShim.setItem("modal_meet_pelagus", "false")
       }
     }
 

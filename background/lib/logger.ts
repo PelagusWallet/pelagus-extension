@@ -3,13 +3,14 @@
 /* eslint-disable no-console */
 
 const HOUR = 1000 * 60 * 60
+import localStorageShim from "../utils/local-storage-shim"
 
 const store = {
-  get(key: string): string {
-    return window.localStorage.getItem(key) ?? ""
+  async get(key: string): Promise<string> {
+    return await localStorageShim.getItem(key) ?? ""
   },
-  set(key: string, value: string): void {
-    window.localStorage.setItem(key, value)
+  async set(key: string, value: string): Promise<void> {
+    return await localStorageShim.setItem(key, value)
   },
 }
 
@@ -250,35 +251,35 @@ class Logger {
       .join("\n    ")
 
     const logKey = `logs-${level}`
-    const existingLogs = this.store.get(logKey)
-
-    const fullPrefix = `[${isoDateString}] [${level.toUpperCase()}:${
-      this.contextId
-    }]`
-
-    // Note: we have to do everything from here to `storage.local.set`
-    // synchronously, i.e. no promises, otherwise we risk losing logs between
-    // background and content/UI scripts.
-    const purgedData = purgeSensitiveFailSafe(logData)
-    const updatedLogs =
-      `${existingLogs}${fullPrefix} ${logLabel}\n${purgedData}\n\n`
-        // Restrict each log level to hold the last 50k characters to avoid excess resource
-        // usage.
-        .slice(-50000)
-
-    this.store.set(logKey, updatedLogs)
+    this.store.get(logKey).then(async (existingLogs) => {
+      const fullPrefix = `[${isoDateString}] [${level.toUpperCase()}:${
+        this.contextId
+      }]`
+  
+      // Note: we have to do everything from here to `storage.local.set`
+      // synchronously, i.e. no promises, otherwise we risk losing logs between
+      // background and content/UI scripts.
+      const purgedData = purgeSensitiveFailSafe(logData)
+      const updatedLogs =
+        `${existingLogs}${fullPrefix} ${logLabel}\n${purgedData}\n\n`
+          // Restrict each log level to hold the last 50k characters to avoid excess resource
+          // usage.
+          .slice(-50000)
+  
+      await this.store.set(logKey, updatedLogs)
+    }) 
   }
 
-  serializeLogs(): string {
+  async serializeLogs(): Promise<string> {
     type StoredLogData = {
       -readonly [level in Exclude<LogLevel, LogLevel.off>]: string
     }
 
     const logs: StoredLogData = {
-      debug: this.store.get("logs-debug"),
-      info: this.store.get("logs-info"),
-      warn: this.store.get("logs-warn"),
-      error: this.store.get("logs-error"),
+      debug: await this.store.get("logs-debug"),
+      info: await this.store.get("logs-info"),
+      warn: await this.store.get("logs-warn"),
+      error: await this.store.get("logs-error"),
     }
 
     if (Object.values(logs).every((entry) => entry === "")) {

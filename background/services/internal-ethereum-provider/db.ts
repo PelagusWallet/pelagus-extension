@@ -1,5 +1,5 @@
 import Dexie from "dexie"
-import { ETHEREUM, QUAI_NETWORK } from "../../constants"
+import { QUAI_NETWORK } from "../../constants"
 import { EVMNetwork } from "../../networks"
 import { TALLY_INTERNAL_ORIGIN } from "./constants"
 

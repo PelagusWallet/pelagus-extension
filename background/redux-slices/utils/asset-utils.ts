@@ -416,3 +416,21 @@ export function isSameAsset(asset1?: AnyAsset, asset2?: AnyAsset): boolean {
 
   return asset1.symbol === asset2.symbol
 }
+
+
+export function bigIntToDecimal(bigIntValue: bigint, decimalPlaces = 18, precision = 3) {
+  if (bigIntValue == BigInt(0)) {
+    return "0.000";
+  }
+  // Convert BigInt to String
+  let bigIntStr = bigIntValue.toString();
+
+  // Calculate the index where we need to insert the decimal point
+  let decimalIndex = bigIntStr.length - decimalPlaces;
+  
+  // Insert the decimal point at the correct index
+  let result = bigIntStr.slice(0, decimalIndex) + "." + bigIntStr.slice(decimalIndex, decimalIndex + precision);
+
+  return parseFloat(result).toFixed(precision);
+}
+

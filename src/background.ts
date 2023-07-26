@@ -4,6 +4,7 @@ import {
   isEnabled,
   RuntimeFlag,
 } from "@tallyho/tally-background/features"
+import localStorageShim from "@tallyho/tally-background/utils/local-storage-shim"
 import { ONBOARDING_ROOT } from "@tallyho/tally-ui/pages/Onboarding/Tabbed/Routes"
 
 browser.runtime.onInstalled.addListener((obj) => {
@@ -20,7 +21,7 @@ browser.runtime.onInstalled.addListener((obj) => {
     !isEnabled(FeatureFlags.SWITCH_RUNTIME_FLAGS)
   ) {
     Object.keys(RuntimeFlag).forEach((flagName) =>
-      localStorage.removeItem(flagName)
+      localStorageShim.removeItem(flagName)
     )
   }
 })

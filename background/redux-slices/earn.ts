@@ -20,7 +20,7 @@ import {
 } from "./utils/contract-utils"
 import { AssetsState } from "./assets"
 import { enrichAssetAmountWithMainCurrencyValues } from "./utils/asset-utils"
-import { ETHEREUM, QUAI_NETWORK } from "../constants"
+import { QUAI_NETWORK } from "../constants"
 import { EVMNetwork } from "../networks"
 import YEARN_VAULT_ABI from "../lib/yearnVault"
 import { getPoolAPR, getTokenPrice, tokenIcons } from "./earn-utils"

@@ -18,7 +18,7 @@
     "notificationPanel": {
       "accountPanelName": "Accounts",
       "addWallet": "Add Wallet",
-      "addAddress": "Add address",
+      "addAddress": "Add Address",
       "readOnly": "Read-only",
       "import": "Import",
       "internal": "Pelagus",
@@ -792,7 +792,7 @@
     "totalAccountBalance": "Total account balance",
     "send": "Send",
     "swap": "Swap",
-    "swapDisabledOne": "Swaps aren't supported",
+    "swapDisabledOne": "Swaps coming soon",
     "swapDisabledTwo": "on this network",
     "receive": "Receive",
     "secureSeed": "First, secure your recovery seed",

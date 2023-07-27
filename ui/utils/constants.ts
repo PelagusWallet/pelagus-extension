@@ -37,11 +37,11 @@ export const blockExplorer = {
   },
   [QUAI_NETWORK.chainID]: {
     title: "Quai Blockscout",
-    url: "https://cyprus1.colosseum.quaiscan.io", // TODO: update this per shard
+    url: QUAI_NETWORK.chains != undefined ? QUAI_NETWORK.chains[0].blockExplorerUrl : "",
   },
   [QUAI_NETWORK_LOCAL.chainID]: {
     title: "Quai Blockscout",
-    url: "https://cyprus1.colosseum.quaiscan.io", // TODO: update this per shard
+    url: QUAI_NETWORK_LOCAL.chains != undefined ? QUAI_NETWORK_LOCAL.chains[0].blockExplorerUrl : "", // Do we want this to be colosseum explorer?
   }
 }
 

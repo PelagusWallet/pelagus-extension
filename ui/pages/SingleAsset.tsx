@@ -1,6 +1,7 @@
 import React, { ReactElement, useState } from "react"
 import { useLocation } from "react-router-dom"
 import {
+  selectCurrentAccount,
   selectCurrentAccountActivities,
   selectCurrentAccountBalances,
   selectCurrentAccountSigner,
@@ -15,6 +16,7 @@ import {
 import { ReadOnlyAccountSigner } from "@tallyho/tally-background/services/signing"
 import { useTranslation } from "react-i18next"
 import {
+  CurrentShardToExplorer,
   DEFAULT_NETWORKS_BY_CHAIN_ID,
   NETWORKS_SUPPORTING_SWAPS,
 } from "@tallyho/tally-background/constants"
@@ -48,6 +50,7 @@ export default function SingleAsset(): ReactElement {
 
   const currentAccountSigner = useBackgroundSelector(selectCurrentAccountSigner)
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
+  const account = useBackgroundSelector(selectCurrentAccount)
 
   const filteredActivities = useBackgroundSelector((state) =>
     (selectCurrentAccountActivities(state) ?? []).filter((activity) => {
@@ -154,7 +157,7 @@ export default function SingleAsset(): ReactElement {
                       href={
                         DEFAULT_NETWORKS_BY_CHAIN_ID.has(currentNetwork.chainID)
                           ? `${
-                              blockExplorer[currentNetwork.chainID].url
+                              currentNetwork.isQuai ? CurrentShardToExplorer(currentNetwork, account.address) : blockExplorer[currentNetwork.chainID].url
                             }/token/${contractAddress}`
                           : currentNetwork.blockExplorerURL
                       }

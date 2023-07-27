@@ -7,6 +7,7 @@ import {
 } from "@tallyho/tally-background/redux-slices/assets"
 import { truncateAddress } from "@tallyho/tally-background/lib/utils"
 import {
+  selectCurrentAccount,
   selectCurrentAccountActivities,
   selectCurrentNetwork,
 } from "@tallyho/tally-background/redux-slices/selectors"
@@ -46,6 +47,7 @@ export default function AssetWarning(props: AssetWarningProps): ReactElement {
   const { pathname } = useLocation()
 
   const network = useBackgroundSelector(selectCurrentNetwork)
+  const account = useBackgroundSelector(selectCurrentAccount)
 
   const isUnverified = isUnverifiedAssetByUser(asset)
 
@@ -56,7 +58,7 @@ export default function AssetWarning(props: AssetWarningProps): ReactElement {
 
   const discoveryTxHash = asset.metadata?.discoveryTxHash
 
-  const blockExplorerUrl = getBlockExplorerURL(network)
+  const blockExplorerUrl = getBlockExplorerURL(network, account.address)
 
   const handleVerifyAsset = async () => {
     const metadata = { ...asset.metadata, verified: true }

@@ -1,7 +1,7 @@
 {
   "name": "Pelagus",
-  "version": "0.38.1",
-  "description": "The community owned and operated Web3 wallet.",
+  "version": "0.1.0",
+  "description": "The community owned and operated Quai Web3 wallet.",
   "homepage_url": "https://pelaguswallet.io",
   "author": "https://pelaguswallet.io",
   "manifest_version": 3,

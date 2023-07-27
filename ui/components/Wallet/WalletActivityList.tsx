@@ -7,7 +7,7 @@ import {
 } from "@tallyho/tally-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@tallyho/tally-background/redux-slices/activities"
-import { ALCHEMY_SUPPORTED_CHAIN_IDS } from "@tallyho/tally-background/constants"
+import { ALCHEMY_SUPPORTED_CHAIN_IDS, CurrentShardToExplorer } from "@tallyho/tally-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import WalletActivityDetails from "./WalletActivityDetails"
@@ -30,13 +30,15 @@ export default function WalletActivityList({
     selectShowingActivityDetail
   )
 
+  const account = useBackgroundSelector(selectCurrentAccount)
+
   // Used to fix Tx Details Slide-up menu should close
   // when extension closes. (#618)
   const [instantlyHideActivityDetails, setInstantlyHideActivityDetails] =
     useState(true)
 
   const network = useBackgroundSelector(selectCurrentNetwork)
-  const blockExplorerInfo = blockExplorer[network.chainID]
+  const blockExplorerInfo = network.isQuai ? { title: blockExplorer[network.chainID].title, url: CurrentShardToExplorer(network, account.address) } : blockExplorer[network.chainID]
 
   useEffect(() => {
     setInstantlyHideActivityDetails(true)

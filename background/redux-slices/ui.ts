@@ -367,7 +367,7 @@ export const selectShowUnverifiedAssets = createSelector(
 
 export const selectCollectAnalytics = createSelector(
   selectSettings,
-  (settings) => settings?.collectAnalytics
+  (settings) => false//settings?.collectAnalytics // changed to only false
 )
 
 export const selectHideBanners = createSelector(

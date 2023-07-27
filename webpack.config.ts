@@ -117,8 +117,10 @@ const modeConfigs: {
             force: true,
             priority: 1,
             transform: (content, fileName) => {
+              // This is commented out because React-Devtools does not work with manifest v3
+              // TODO: Fix this
               // Inject devtools in every static HTML file
-              if (fileName.endsWith(".html")) {
+              /*if (fileName.endsWith(".html")) {
                 const port = process.env.REACT_DEVTOOLS_DEFAULT_PORT
 
                 return content
@@ -127,7 +129,7 @@ const modeConfigs: {
                     "<!-- INSERT_REACT_DEV_TOOLS_HERE -->",
                     `<script src="http://localhost:${port}"></script>`
                   )
-              }
+              }*/
 
               return content
             },

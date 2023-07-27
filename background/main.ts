@@ -126,7 +126,7 @@ import {
   setDeviceConnectionStatus,
   setUsbDeviceCount,
 } from "./redux-slices/ledger"
-import { OPTIMISM, USD } from "./constants"
+import { OPTIMISM, USD, getShardFromAddress } from "./constants"
 import { clearApprovalInProgress, clearSwapQuote } from "./redux-slices/0x-swap"
 import {
   AccountSigner,
@@ -657,8 +657,28 @@ export default class Main extends BaseService<never> {
     this.connectPopupMonitor()
   }
 
+  public GetShard(): string {
+    let selectedAddress = this.store.getState().ui.selectedAccount.address
+    if (selectedAddress === undefined || selectedAddress === "") {
+      console.error("No selected address")
+      return "cyprus-1" // Set default shard
+    }
+    return getShardFromAddress(selectedAddress)
+  }
+
   public SetShard(shard: string): void {
+    console.log("Shard set to " + shard)
     this.SelectedShard = shard
+  }
+
+  public SetCorrectShard(): void {
+    let selectedAddress = this.store.getState().ui.selectedAccount.address
+    if (selectedAddress === undefined || selectedAddress === "") {
+      console.error("No selected address")
+      this.SelectedShard = "cyprus-1" // Set default shard
+      return
+    }
+    this.SelectedShard = getShardFromAddress(selectedAddress)
   }
 
   async addAccount(addressNetwork: AddressOnNetwork): Promise<void> {

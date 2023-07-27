@@ -81,6 +81,8 @@ function WalletTypeHeader({
   path,
   accountSigner,
   setShard,
+  addAddressSelected,
+  setAddAddressSelected,
 }: {
   accountType: AccountType
   onClickAddAddress?: () => void
@@ -88,10 +90,23 @@ function WalletTypeHeader({
   walletNumber?: number
   path?: string | null
   setShard: (shard: string) => void
+  addAddressSelected: boolean
+  setAddAddressSelected: (selected: boolean) => void
 }) {
   const { t } = useTranslation()
   const { title, icon } = walletTypeDetails[accountType]
   const dispatch = useBackgroundDispatch()
+
+  useEffect(() => {
+    if(addAddressSelected) {
+      if (areKeyringsUnlocked) {
+        setShowShardMenu(true)
+      } else {
+        history.push("/keyring/unlock")
+        setAddAddressSelected(false)
+      }
+    }
+}, [addAddressSelected]);
 
   const settingsBySigner = useBackgroundSelector(
     (state) => state.ui.accountSignerSettings
@@ -150,6 +165,7 @@ function WalletTypeHeader({
           close={(e) => {
             e.stopPropagation()
             setShowShardMenu(false)
+            setAddAddressSelected(false)
           }}
         >
           <EditSectionForm
@@ -159,8 +175,9 @@ function WalletTypeHeader({
                 onClickAddAddress()
               }
               setShowShardMenu(false)
+              setAddAddressSelected(false)
             }}
-            onCancel={() => setShowShardMenu(false)}
+            onCancel={() => {setShowShardMenu(false); setAddAddressSelected(false)}}
             accountTypeIcon={walletTypeDetails[accountType].icon}
             currentName={sectionTitle}
             label="Choose Shard"
@@ -192,6 +209,15 @@ function WalletTypeHeader({
                 icon: "icons/s/edit.svg",
                 label: t("accounts.accountItem.editName"),
                 onClick: () => setShowEditMenu(true),
+              },
+              {
+                key: "addWallet",
+                icon: "icons/s/add.svg",
+                label: t("accounts.notificationPanel.addWallet"),
+                onClick: () => {
+                  window.open(ONBOARDING_ROOT)
+                  window.close()
+                },
               },
               onClickAddAddress && {
                 key: "addAddress",
@@ -286,9 +312,11 @@ export default function AccountsNotificationPanelAccounts({
   const shard = useRef("")
 
   const handleSetShard = (newShard: string) => { // This is for updating user-selected shard for new address
+    console.log(newShard)
     shard.current = newShard
   }
 
+  const [addAddressSelected, setAddAddressSelected] = useState(false)
 
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
@@ -399,6 +427,8 @@ export default function AccountsNotificationPanelAccounts({
                             }
                           : undefined
                       }
+                      addAddressSelected={addAddressSelected}
+                      setAddAddressSelected={setAddAddressSelected}
                     />
                     <ul>
                       {accountTotalsBySignerId.map((accountTotal) => {
@@ -466,17 +496,16 @@ export default function AccountsNotificationPanelAccounts({
         )
       })}
       <footer>
-        <SharedButton
+      <SharedButton
           type="tertiary"
           size="medium"
           iconSmall="add"
           iconPosition="left"
           onClick={() => {
-            window.open(ONBOARDING_ROOT)
-            window.close()
+            setAddAddressSelected(true)
           }}
         >
-          {t("accounts.notificationPanel.addWallet")}
+          {t("accounts.notificationPanel.addAddress")}
         </SharedButton>
       </footer>
       <style jsx>

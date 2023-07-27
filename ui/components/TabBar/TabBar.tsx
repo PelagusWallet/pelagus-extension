@@ -63,6 +63,7 @@ export default function TabBar(): ReactElement {
               onClick={() => history.push(path)}
               isActive={noActiveTab ? false : activeTab.path === path}
               showNotifications={hasNotifications(path)}
+              disabled={t(title) == "NFTs" || t(title) == "Portfolio" ? true : false}
             />
           )
         })}

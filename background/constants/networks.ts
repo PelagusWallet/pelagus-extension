@@ -613,6 +613,7 @@ export function setProviderForShard(providers: SerialFallbackProvider): SerialFa
   let shard = globalThis.main.SelectedShard
   if (shard === undefined || shard == "") {
     console.error("Shard is undefined")
+    globalThis.main.SetCorrectShard()
     return providers
   }
   
@@ -645,6 +646,7 @@ export function setProviderForShard(providers: SerialFallbackProvider): SerialFa
 export function getProviderForGivenShard(providers: SerialFallbackProvider, shard: string): QuaisJsonRpcProvider | QuaisWebSocketProvider {
   if (shard === undefined || shard == "") {
     console.error("No shard given")
+    globalThis.main.SetCorrectShard()
     return providers
   }
   
@@ -696,6 +698,30 @@ export function ShardToMulticall(shard: string, network: EVMNetwork): string {
       return chain.multicall
     }
   }
-  logger.error("Unknown shard for rpc url: " + shard)
+  logger.error("Unknown mutlicall for shard: " + shard)
+  return ""
+}
+
+export function CurrentShardToExplorer(network: EVMNetwork, address?: string): string {
+  let currentShard = "";
+  if (address !== undefined) {
+    currentShard = getShardFromAddress(address)
+  } else {
+    if (globalThis.main.SelectedShard === undefined || globalThis.main.SelectedShard === "") {
+      globalThis.main.SetCorrectShard()
+    }
+    currentShard = globalThis.main.SelectedShard
+  }
+  
+  if (network.chains === undefined) {
+    console.log("Network " + network.name + " has no chains")
+    return ""
+  }
+  for (let chain of network.chains) {
+    if (chain.shard === currentShard) {
+      return chain.blockExplorerUrl
+    }
+  }
+  logger.error("Unknown explorer for shard: " + currentShard)
   return ""
 }

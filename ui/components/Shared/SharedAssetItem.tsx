@@ -1,10 +1,12 @@
 import React, { ReactElement, useEffect, useState } from "react"
 import { AnyAsset, AnyAssetAmount } from "@tallyho/tally-background/assets"
 import { EVMNetwork } from "@tallyho/tally-background/networks"
-import { ROOTSTOCK } from "@tallyho/tally-background/constants"
+import { ROOTSTOCK, CurrentShardToExplorer } from "@tallyho/tally-background/constants"
 import SharedAssetIcon from "./SharedAssetIcon"
 import SharedIcon from "./SharedIcon"
 import { blockExplorer } from "../../utils/constants"
+import { useBackgroundSelector } from "../../hooks"
+import { selectCurrentAccount } from "@tallyho/tally-background/redux-slices/selectors"
 
 export type AnyAssetWithOptionalAmount<T extends AnyAsset> =
   | {
@@ -38,13 +40,15 @@ export default function SharedAssetItem<T extends AnyAsset>(
   const { onClick, assetAndAmount, currentNetwork } = props
   const { asset } = assetAndAmount
   const [contractLink, setContractLink] = useState("")
+  const account = useBackgroundSelector(selectCurrentAccount)
 
   function handleClick() {
     onClick?.(asset)
   }
 
   useEffect(() => {
-    const baseLink = blockExplorer[currentNetwork.chainID]?.url
+    const baseLink = currentNetwork.isQuai ? CurrentShardToExplorer(currentNetwork, account.address) : blockExplorer[currentNetwork.chainID]?.url
+
     if ("contractAddress" in asset && baseLink) {
       const contractBase =
         currentNetwork.chainID === ROOTSTOCK.chainID ? "address" : "token"

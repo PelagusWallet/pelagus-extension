@@ -1,5 +1,5 @@
 import React, { useCallback, ReactElement, useEffect, useState } from "react"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectCurrentAccount, selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
 import {
   ActivityDetail,
   Activity,
@@ -125,8 +125,8 @@ export default function WalletActivityDetails(
   const dispatch = useBackgroundDispatch()
   const [details, setDetails] = useState<ActivityDetail[]>([])
   const network = useBackgroundSelector(selectCurrentNetwork)
-
-  const blockExplorerUrl = getBlockExplorerURL(network)
+  const account = useBackgroundSelector(selectCurrentAccount)
+  const blockExplorerUrl = getBlockExplorerURL(network, account.address)
 
   const openExplorer = useCallback(() => {
     window

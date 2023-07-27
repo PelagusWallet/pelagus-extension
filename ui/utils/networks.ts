@@ -1,4 +1,5 @@
 import {
+  CurrentShardToExplorer,
   DEFAULT_NETWORKS_BY_CHAIN_ID,
   isBuiltInNetwork,
 } from "@tallyho/tally-background/constants"
@@ -119,9 +120,10 @@ export const getNetworkIcon = (network: EVMNetwork): string => {
 }
 
 export const getBlockExplorerURL = (
-  network: EVMNetwork
+  network: EVMNetwork,
+  address: string
 ): string | undefined => {
   return DEFAULT_NETWORKS_BY_CHAIN_ID.has(network.chainID)
-    ? blockExplorer[network.chainID].url
+    ? (network.isQuai ? CurrentShardToExplorer(network, address) : blockExplorer[network.chainID].url)
     : network.blockExplorerURL
 }

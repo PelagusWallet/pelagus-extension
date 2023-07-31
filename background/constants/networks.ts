@@ -597,6 +597,10 @@ export function getExplorerURLForShard(network: Network, shard: string) {
 }
 
 export const getShardFromAddress = function(address: string): string {
+  if (address === "") {
+    console.log("Address is empty or zero")
+    return "cyprus-1" // Technically zero address is in every shard, but we return a default instead
+  }
   let shardData = QUAI_CONTEXTS.filter((obj) => {
     const num = Number(address.substring(0, 4))
     const start = Number("0x" + obj.byte[0])

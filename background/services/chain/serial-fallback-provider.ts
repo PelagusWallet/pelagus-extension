@@ -15,9 +15,6 @@ import {
   RPC_METHOD_PROVIDER_ROUTING,
   ShardFromRpcUrl,
   setProviderForShard,
-  ShardToMulticall,
-  CHAIN_ID_TO_NETWORK,
-  NETWORK_TO_CHAIN_ID,
   NETWORK_BY_CHAIN_ID,
 } from "../../constants"
 import logger from "../../lib/logger"
@@ -28,9 +25,12 @@ import {
   ALCHEMY_KEY,
   transactionFromAlchemyWebsocketTransaction,
 } from "../../lib/alchemy"
+import { error } from "ajv/dist/vocabularies/applicator/dependencies"
 
 // Back off by this amount as a base, exponentiated by attempts and jittered.
 const BASE_BACKOFF_MS = 400
+// Max back off time in milliseconds
+const MAX_BACKOFF_MS = 10000
 // Retry 3 times before falling back to the next provider.
 const MAX_RETRIES_PER_PROVIDER = 3
 // Wait 10 seconds between primary provider reconnect attempts.
@@ -155,6 +155,9 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   // currentProviderIndex.
   private currentProvider: JsonRpcProvider
 
+  private backoffTime: number
+  private readyForReconnect: boolean
+
   private alchemyProvider: JsonRpcProvider | undefined
 
   /**
@@ -276,7 +279,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       this.currentProviderIndex = index
       this.reconnectProvider()
     }
-
+    this.backoffTime = BASE_BACKOFF_MS
+    this.readyForReconnect = true
     setProviderForShard(this)
   }
 
@@ -505,6 +509,10 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   private async attemptToSendMessageOnNewProvider(
     messageId: symbol
   ): Promise<unknown> {
+    // Check if backoff timer is ready
+    if (!this.readyForReconnect) {
+      return
+    }
     this.disconnectCurrentProvider()
     //this.currentProviderIndex += 1 // Other providers might be different Quai shards so don't try them
     // Try again with the next provider.
@@ -754,17 +762,39 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     if (this.currentProviderIndex >= this.providerCreators.length) {
       this.currentProviderIndex = 0
     }
-
     logger.debug(
       "Reconnecting provider at index",
       this.currentProviderIndex,
       "..."
     )
-
-    this.currentProvider = this.providerCreators[this.currentProviderIndex].creator()
-    await this.resubscribe(this.currentProvider)
-
-    // TODO After a longer backoff, attempt to reset the current provider to 0.
+    let err = false
+    try {
+      this.currentProvider = this.providerCreators[this.currentProviderIndex].creator()
+      await this.currentProvider._networkPromise
+      await this.resubscribe(this.currentProvider)
+    } catch (error) {
+        if (error instanceof Error) {
+          err = true // only reset backoff timer if there is no error
+          if (error.message.includes("could not detect network")) {
+            logger.error(
+              "Could not detect network; trying again in",
+              this.backoffTime,
+              "ms. URL:",
+              this.currentProvider.connection.url
+            )
+            this.readyForReconnect = false
+            setTimeout(() => this.readyForReconnect = true, this.backoffTime)
+            this.backoffTime = Math.min(this.backoffTime * 2, MAX_BACKOFF_MS)
+          }
+        }
+    } finally {
+      if(!err && this.backoffTime != BASE_BACKOFF_MS) {
+        this.backoffTime = BASE_BACKOFF_MS
+      }
+        
+      }
+    
+    
   }
 
   /**

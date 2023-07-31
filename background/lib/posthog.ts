@@ -26,7 +26,7 @@ export const isOneTimeAnalyticsEvent = (
   return Object.values<string>(OneTimeAnalyticsEvent).includes(eventName)
 }
 
-const POSTHOG_PROJECT_ID = "11112"
+const POSTHOG_PROJECT_ID = "0"
 
 const PERSON_ENDPOINT = `https://app.posthog.com/api/projects/${POSTHOG_PROJECT_ID}/persons`
 
@@ -38,7 +38,7 @@ export const POSTHOG_URL =
 export const USE_ANALYTICS_SOURCE = process.env.USE_ANALYTICS_SOURCE
 
 export function shouldSendPosthogEvents(): boolean {
-  return !!process.env.POSTHOG_API_KEY
+  return false
 }
 
 export function createPosthogPayload(
@@ -66,7 +66,7 @@ export function createPosthogPayload(
       $lib: USE_ANALYTICS_SOURCE,
       // properties[$current_url] is a convention used by posthog
       // Let's store the URL so we can differentiate between the sources later on.
-      $current_url: window.location.href,
+      $current_url: self.location.href,
       // Let's also send in anything that we might send with the event. Eg time
       ...payload,
     },

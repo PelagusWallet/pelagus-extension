@@ -64,8 +64,6 @@ export default class AnalyticsService extends BaseService<Events> {
         isEnabled,
         hasDefaultOnBeenTurnedOn,
       })
-
-      await this.emitter.emit("enableDefaultOn", undefined)
     }
 
     if (isEnabled) {

@@ -19,7 +19,7 @@ import {
   getTokenBalances,
 } from "../../lib/erc20"
 import { FeatureFlags, isEnabled } from "../../features"
-import { DOGGO, FORK } from "../../constants"
+import { DOGGO, FORK, getShardFromAddress } from "../../constants"
 
 interface ProviderManager {
   providerForNetwork(network: EVMNetwork): SerialFallbackProvider | undefined
@@ -40,6 +40,8 @@ export default class AssetDataHelper {
     addressOnNetwork: AddressOnNetwork,
     smartContractAddress: HexString
   ): Promise<SmartContractAmount> {
+    let prevShard = globalThis.main.GetShard()
+    globalThis.main.SetShard(getShardFromAddress(smartContractAddress))
     const provider = this.providerTracker.providerForNetwork(
       addressOnNetwork.network
     )
@@ -52,6 +54,7 @@ export default class AssetDataHelper {
     }
 
     const balance = await getBalance(provider, smartContractAddress, addressOnNetwork.address)
+    globalThis.main.SetShard(prevShard)
     return {
       amount: balance,
       smartContract: {

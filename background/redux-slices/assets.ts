@@ -22,7 +22,7 @@ import { getProvider } from "./utils/contract-utils"
 import { EIP1559TransactionRequest, EVMNetwork, KnownTxTypes, SignedTransaction, TransactionRequestWithNonce, sameNetwork } from "../networks"
 import { ERC20_INTERFACE } from "../lib/erc20"
 import logger from "../lib/logger"
-import { CHAIN_ID_TO_RPC_URLS, FIAT_CURRENCIES_SYMBOL, QUAI, QUAI_NETWORK, getShardFromAddress } from "../constants"
+import { CHAIN_ID_TO_RPC_URLS, FIAT_CURRENCIES_SYMBOL, NUM_REGIONS_IN_PRIME, NUM_ZONES_IN_REGION, QUAI, QUAI_NETWORK, getShardFromAddress } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { removeAssetReferences, updateAssetReferences } from "./accounts"
 import { NormalizedEVMAddress } from "../types"
@@ -258,13 +258,30 @@ export const transferAsset = createBackgroundAsyncThunk(
           ERC20_INTERFACE,
           provider
         )
-        let transactionDetails = await token.populateTransaction.transfer(toAddress, assetAmount.amount)
-        toAddress = transactionDetails.to? transactionDetails.to : ""
-        data = transactionDetails.data? transactionDetails.data : ""
-        assetAmount = {
-          asset: assetAmount.asset,
-          amount: BigInt(0),
+        let fromShard = getShardFromAddress(fromAddress)
+        let toShard = getShardFromAddress(toAddress)
+        if(fromShard != toShard) { // ERC20x cross-chain transfer
+          let minerTip = BigInt(1000000000) * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
+          let baseFee = BigInt(2000000000) * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
+          let gasLimit = BigInt(100000)
+          let amount = (baseFee + minerTip) * gasLimit
+          let transactionDetails = await token.populateTransaction.crossChainTransfer(toAddress, assetAmount.amount, gasLimit, minerTip, baseFee)
+          toAddress = transactionDetails.to? transactionDetails.to : ""
+          data = transactionDetails.data? transactionDetails.data : ""
+          assetAmount = {
+            asset: QUAI,
+            amount: amount,
+          }
+        } else {
+          let transactionDetails = await token.populateTransaction.transfer(toAddress, assetAmount.amount)
+          toAddress = transactionDetails.to? transactionDetails.to : ""
+          data = transactionDetails.data? transactionDetails.data : ""
+          assetAmount = {
+            asset: QUAI,
+            amount: BigInt(0),
+          }
         }
+        
       }
       let tx = genQuaiRawTransaction(fromNetwork, fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID, data)
       signData({transaction: tx, accountSigner: accountSigner})
@@ -320,8 +337,10 @@ function genQuaiRawTransaction (network: EVMNetwork, fromAddress: string, toAddr
    
   let isExternal = false
   let type = 0
+  let fromShard = getShardFromAddress(fromAddress)
+  let toShard = getShardFromAddress(toAddress)
 
-  if (getShardFromAddress(fromAddress) != getShardFromAddress(toAddress)) {
+  if (fromShard != toShard) {
     isExternal = true
   }
   
@@ -347,8 +366,8 @@ function genQuaiRawTransaction (network: EVMNetwork, fromAddress: string, toAddr
 
     if (isExternal) { // is external this time
       tx.externalGasLimit = BigInt(100000)
-      tx.externalGasPrice = tx.maxFeePerGas * BigInt(2)
-      tx.externalGasTip = tx.maxPriorityFeePerGas * BigInt(2)
+      tx.externalGasPrice = tx.maxFeePerGas * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
+      tx.externalGasTip = tx.maxPriorityFeePerGas * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
     }
     return tx
 }
@@ -559,4 +578,21 @@ function formatNumber(value: any, name: string): Uint8Array {
 
 function formatAccessList(value: any): Array<[ string, Array<string> ]> {
   return accessListify(value).map((set) => [ set.address, set.storageKeys ]);
+}
+
+// Emitted ETXs must include some multiple of BaseFee as miner tip, to
+// encourage processing at the destination.
+export function calcEtxFeeMultiplier(fromShard: string, toShard: string) {
+	let multiplier = NUM_ZONES_IN_REGION
+  if(fromShard == undefined || toShard == undefined || fromShard == toShard) {
+    console.error("invalid shards in calcEtxFeeMultiplier: " + fromShard + " " + toShard)
+    return 0 // will cause an error
+  }
+	if (fromShard.includes("cyprus") && toShard.includes("cyprus") || fromShard.includes("paxos") && toShard.includes("paxos") || fromShard.includes("hydra") && toShard.includes("hydra")) {
+    // same region
+		multiplier = NUM_ZONES_IN_REGION
+	} else {
+    multiplier = NUM_ZONES_IN_REGION * NUM_REGIONS_IN_PRIME
+  }
+	return multiplier
 }

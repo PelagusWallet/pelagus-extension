@@ -11,6 +11,7 @@ import { EVMNetwork } from "../../networks"
 export const selectEVMNetworks = createSelector(
   (state: RootState) => state.networks.evmNetworks,
   (evmNetworks): EVMNetwork[] => {
+    if(!evmNetworks) return []
     return Object.values(evmNetworks)
   }
 )

@@ -19,7 +19,7 @@ import {
 } from "./multicall"
 import logger from "./logger"
 import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
-import { ShardToMulticall } from "../constants"
+import { ShardToMulticall, getShardFromAddress } from "../constants"
 
 export const ERC20_FUNCTIONS = {
   allowance: FunctionFragment.from(
@@ -40,6 +40,9 @@ export const ERC20_FUNCTIONS = {
   ),
   transferFrom: FunctionFragment.from(
     "transferFrom(address from, address to, uint amount) returns (bool)"
+  ),
+  crossChainTransfer: FunctionFragment.from(
+    "crossChainTransfer(address to, uint256 amount, uint256 gasLimit, uint256 minerTip, uint256 baseFee)"
   ),
 }
 
@@ -215,7 +218,7 @@ export const getTokenBalances = async (
   const response = (await contract.callStatic.tryBlockAndAggregate(
     // false === don't require all calls to succeed
     false,
-    tokenAddresses.map((tokenAddress) => [tokenAddress, balanceOfCallData])
+    tokenAddresses.map((tokenAddress) => getShardFromAddress(address) == getShardFromAddress(tokenAddress) ? [tokenAddress, balanceOfCallData] : [])
   )) as AggregateContractResponse
 
   return response.returnData.flatMap((data, i) => {

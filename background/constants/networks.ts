@@ -236,7 +236,7 @@ export const DEFAULT_QUAI_LOCAL = {
       shard: "cyprus-1",
       rpc: "http://localhost:8610",
       blockExplorerUrl: "https://dev.cyprus1.quaiscan.io",
-      multicall: "0x1aF3f0d55e6f399708a058333E81604F56f22835"
+      multicall: "0x15b6351eDEcd7142ac4c6fE54948b603D4566862"
     },
     {
       name: "Cyprus Two",
@@ -469,6 +469,9 @@ export class ChainData {
 }
 
 export const NETWORK_LIST = []
+
+export const NUM_ZONES_IN_REGION = 3
+export const NUM_REGIONS_IN_PRIME = 3
 
 export const NETWORK_TO_CHAIN_CODE = {
   Colosseum: 994,

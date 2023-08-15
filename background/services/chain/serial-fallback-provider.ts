@@ -155,8 +155,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   // currentProviderIndex.
   private currentProvider: JsonRpcProvider
 
-  private backoffTime: number
-  private readyForReconnect: boolean
+  private backoffUrlsToTime: Map<string, number>
+  private urlsReadyForReconnect: Map<string, boolean>
 
   private alchemyProvider: JsonRpcProvider | undefined
 
@@ -279,8 +279,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       this.currentProviderIndex = index
       this.reconnectProvider()
     }
-    this.backoffTime = BASE_BACKOFF_MS
-    this.readyForReconnect = true
+    this.backoffUrlsToTime = new Map()
+    this.urlsReadyForReconnect = new Map()
     setProviderForShard(this)
   }
 
@@ -398,13 +398,12 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
         }
       }
 
-      logger.debug(
+      console.error(
         "Skipping fallback for unidentified error",
         error,
-        "for provider",
-        this.currentProvider
+        error instanceof Error ? error.stack : ""
       )
-
+      console.trace()
       delete this.messagesToSend[messageId]
       throw error
     }
@@ -510,7 +509,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     messageId: symbol
   ): Promise<unknown> {
     // Check if backoff timer is ready
-    if (!this.readyForReconnect) {
+    if (this.urlsReadyForReconnect.has(this.currentProvider.connection.url) && this.urlsReadyForReconnect.get(this.currentProvider.connection.url) == false) {
       return
     }
     this.disconnectCurrentProvider()
@@ -776,20 +775,23 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
         if (error instanceof Error) {
           err = true // only reset backoff timer if there is no error
           if (error.message.includes("could not detect network")) {
+            
+            let prevBackoffTime = this.backoffUrlsToTime.get(this.currentProvider.connection.url)??BASE_BACKOFF_MS
+            let newBackoffTime = Math.min(prevBackoffTime * 2, MAX_BACKOFF_MS)
+            this.backoffUrlsToTime.set(this.currentProvider.connection.url, newBackoffTime)
+            this.urlsReadyForReconnect.set(this.currentProvider.connection.url, false)
+            setTimeout(() => this.urlsReadyForReconnect.set(this.currentProvider.connection.url, true), newBackoffTime)
             logger.error(
               "Could not detect network; trying again in",
-              this.backoffTime,
+              newBackoffTime,
               "ms. URL:",
               this.currentProvider.connection.url
             )
-            this.readyForReconnect = false
-            setTimeout(() => this.readyForReconnect = true, this.backoffTime)
-            this.backoffTime = Math.min(this.backoffTime * 2, MAX_BACKOFF_MS)
           }
         }
     } finally {
-      if(!err && this.backoffTime != BASE_BACKOFF_MS) {
-        this.backoffTime = BASE_BACKOFF_MS
+      if(!err && this.backoffUrlsToTime.has(this.currentProvider.connection.url) && this.backoffUrlsToTime.get(this.currentProvider.connection.url) !== BASE_BACKOFF_MS) {
+        this.backoffUrlsToTime.set(this.currentProvider.connection.url, BASE_BACKOFF_MS)
       }
         
       }
@@ -864,6 +866,10 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   }
 
   private async attemptToReconnectToPrimaryProvider(): Promise<unknown> {
+    // Check if backoff timer is ready
+    if (this.urlsReadyForReconnect.has(this.currentProvider.connection.url) && this.urlsReadyForReconnect.get(this.currentProvider.connection.url) == false) {
+      return
+    }
     if (this.currentProviderIndex === 0) {
       // If we are already connected to the primary provider - don't resubscribe
       return null

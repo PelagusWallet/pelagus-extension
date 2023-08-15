@@ -1,4 +1,5 @@
 import { AddressOnNetwork } from "../../accounts"
+import { getShardFromAddress } from "../../constants"
 
 import ChainService from "../chain"
 import NameService from "../name"
@@ -15,8 +16,11 @@ export async function resolveAddressAnnotation(
 ): Promise<AddressOnNetworkAnnotation> {
   const { address, network } = addressOnNetwork
   const provider = chainService.providerForNetworkOrThrow(network)
-  const [codeHex, balance, nameRecord] = await Promise.all([
-    provider.getCode(address),
+  let prevShard = globalThis.main.GetShard()
+  globalThis.main.SetShard(getShardFromAddress(address))
+  const codeHex = await provider.getCode(address)
+  globalThis.main.SetShard(prevShard)
+  const [balance, nameRecord] = await Promise.all([
     chainService.getLatestBaseAccountBalance(addressOnNetwork),
     nameService.lookUpName(addressOnNetwork),
   ])

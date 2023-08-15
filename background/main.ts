@@ -545,13 +545,19 @@ export default class Main extends BaseService<never> {
         }
         let newBalance = BigInt(0)
         if (isSmartContractFungibleAsset(asset)) {
+          if(getShardFromAddress(asset.contractAddress) !== getShardFromAddress(selectedAccount.address)) {
+            // skip if the asset is not on the same shard as the account
+            continue
+          }
           newBalance = (await this.chainService.assetData.getTokenBalance(selectedAccount, asset.contractAddress)).amount
         } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
           newBalance = (await this.chainService.getLatestBaseAccountBalance(selectedAccount)).assetAmount.amount
         } else {
           logger.error("Unknown asset type for balance checker, asset: " + asset.symbol)
-          return
+          continue
         }
+        isSmartContractFungibleAsset(asset) ? console.log("Balance checker: " + asset.symbol + " " + newBalance + " " + asset.contractAddress)
+        :
         console.log("Balance checker: " + asset.symbol + " " + newBalance)
         await this.store.dispatch(
           updateAccountBalance({
@@ -572,7 +578,7 @@ export default class Main extends BaseService<never> {
           })
         )
         }
-    }, 30000)
+    }, 10000)
     this.balanceChecker = interval
   }
 

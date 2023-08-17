@@ -425,6 +425,11 @@ export function bigIntToDecimal(bigIntValue: bigint, decimalPlaces = 18, precisi
   // Convert BigInt to String
   let bigIntStr = bigIntValue.toString();
 
+  // Ensure that bigIntStr is at least decimalPlaces long by padding with leading zeros if necessary
+  while (bigIntStr.length < decimalPlaces) {
+    bigIntStr = "0" + bigIntStr;
+  }
+
   // Calculate the index where we need to insert the decimal point
   let decimalIndex = bigIntStr.length - decimalPlaces;
   

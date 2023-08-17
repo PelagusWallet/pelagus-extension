@@ -30,7 +30,7 @@
 //   }
 // };
 
-window.LiveReloadOptions = { host: "localhost" }
+/*window.LiveReloadOptions = { host: "localhost" }
 ;(function e(t, n, r) {
   function s(o, u) {
     if (!n[o]) {
@@ -1612,3 +1612,4 @@ window.LiveReloadOptions = { host: "localhost" }
   {},
   [8]
 )
+*/

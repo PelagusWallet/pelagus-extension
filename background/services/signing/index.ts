@@ -185,7 +185,7 @@ export default class SigningService extends BaseService<Events> {
     // Refresh connected Ledger info indiscriminately. No real harm vs doing it
     // only under certain circumstances, might even be more performant than
     // testing whether the Ledger can sign for the requested `from` address.
-    await this.ledgerService.refreshConnectedLedger()
+    // There is no longer ledger support.
   }
 
   async signTransaction(

@@ -99,6 +99,8 @@ export const ZK_SYNC: EVMNetwork = {
   family: "EVM",
 }
 
+export const VALID_SHARDS: Array<string> = ["cyprus-1", "cyprus-2", "cyprus-3", "paxos-1", "paxos-2", "paxos-3", "hydra-1", "hydra-2", "hydra-3"]
+
 export const DEFAULT_QUAI_TESTNET = {
   name: "Colosseum",
   chainCode: 994,

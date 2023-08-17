@@ -32,9 +32,6 @@ import { emitter as transactionConstructionSliceEmitter } from "./transaction-co
 import { AccountSigner } from "../services/signing"
 
 
-var promise = new Promise<string>((resolve, reject) => {})
-
-
 export type AssetWithRecentPrices<T extends AnyAsset = AnyAsset> = T & {
   recentPrices: {
     [assetSymbol: string]: PricePoint
@@ -504,7 +501,6 @@ transactionConstructionSliceEmitter.on("signedTransactionResult", (tx) => {
   provider.sendTransaction(serializeSigned(tx)).then(res => {
     console.log(res)
     globalThis.main.chainService.saveTransaction(tx, "local")
-    Promise.resolve(promise)
   })
   
 })

@@ -641,11 +641,8 @@ export default class Main extends BaseService<never> {
     this.connectProviderBridgeService()
     this.connectPreferenceService()
     this.connectEnrichmentService()
-    this.connectDoggoService()
     this.connectTelemetryService()
-    this.connectLedgerService()
     this.connectSigningService()
-    this.connectAnalyticsService()
     this.connectWalletConnectService()
     this.connectAbilitiesService()
     this.connectNFTsService()
@@ -1977,8 +1974,19 @@ export default class Main extends BaseService<never> {
       addressOnNetwork,
       cachedAsset
     )
-
-    const priceData = await getTokenPrices([contractAddress], USD, network)
+    let priceData: any
+    try {
+      priceData = await getTokenPrices([contractAddress], USD, network)
+    } catch (error) {
+      return {
+        ...assetData,
+        balance: Number.parseFloat(
+          utils.formatUnits(assetData.amount, assetData.asset.decimals)
+        ),
+        mainCurrencyAmount: undefined,
+        exists: !!cachedAsset,
+      }
+    }
 
     const convertedAssetAmount =
       contractAddress in priceData

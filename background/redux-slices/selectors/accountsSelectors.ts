@@ -20,6 +20,8 @@ import {
   AnyAssetAmount,
   assetAmountToDesiredDecimals,
   convertAssetAmountViaPricePoint,
+  isFungibleAsset,
+  isSmartContractFungibleAsset,
 } from "../../assets"
 import {
   selectCurrentAccount,
@@ -298,7 +300,24 @@ export const selectCurrentAccountBalances = createSelector(
       hideDust,
       showUnverifiedAssets
     )
-
+    
+      for (let i = 0; i < allAssetAmounts.length; i++) {
+        let isInCombined = false
+        let firstAsset = allAssetAmounts[i].asset
+        if (isSmartContractFungibleAsset(firstAsset)) {
+          for(let j = 0; j < combinedAssetAmounts.length; j++) {
+            let secondAsset = combinedAssetAmounts[j].asset
+            if (isSmartContractFungibleAsset(secondAsset)) {
+              if(firstAsset.contractAddress === secondAsset.contractAddress && firstAsset.symbol === secondAsset.symbol) {
+                isInCombined = true
+              }
+            }
+          }
+          if(!isInCombined && getShardFromAddress(firstAsset.contractAddress) == getShardFromAddress(currentAccount.address)) {
+            combinedAssetAmounts.push(allAssetAmounts[i])
+          }
+        }
+      }
     return {
       allAssetAmounts,
       assetAmounts: combinedAssetAmounts,

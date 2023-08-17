@@ -757,6 +757,9 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
    * has been somehow set out of range, resets it to 0.
    */
   private async reconnectProvider() {
+    if (this.urlsReadyForReconnect.has(this.currentProvider.connection.url) && this.urlsReadyForReconnect.get(this.currentProvider.connection.url) == false) {
+      return
+    }
     this.disconnectCurrentProvider()
     if (this.currentProviderIndex >= this.providerCreators.length) {
       this.currentProviderIndex = 0
@@ -874,7 +877,34 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       // If we are already connected to the primary provider - don't resubscribe
       return null
     }
-    const primaryProvider = this.providerCreators[0].creator()
+    let err = false
+    let primaryProvider: JsonRpcProvider
+    try {
+    primaryProvider = this.providerCreators[0].creator()
+    await this.currentProvider._networkPromise
+  } catch (error) {
+      if (error instanceof Error) {
+        err = true // only reset backoff timer if there is no error
+        if (error.message.includes("could not detect network")) {
+          
+          let prevBackoffTime = this.backoffUrlsToTime.get(this.currentProvider.connection.url)??BASE_BACKOFF_MS
+          let newBackoffTime = Math.min(prevBackoffTime * 2, MAX_BACKOFF_MS)
+          this.backoffUrlsToTime.set(this.currentProvider.connection.url, newBackoffTime)
+          this.urlsReadyForReconnect.set(this.currentProvider.connection.url, false)
+          setTimeout(() => this.urlsReadyForReconnect.set(this.currentProvider.connection.url, true), newBackoffTime)
+          logger.error(
+            "Could not detect network; trying again in",
+            newBackoffTime,
+            "ms. URL:",
+            this.currentProvider.connection.url
+          )
+        }
+      }
+    } finally {
+      if(!err && this.backoffUrlsToTime.has(this.currentProvider.connection.url) && this.backoffUrlsToTime.get(this.currentProvider.connection.url) !== BASE_BACKOFF_MS) {
+        this.backoffUrlsToTime.set(this.currentProvider.connection.url, BASE_BACKOFF_MS)
+      }
+    }
     // We need to wait before attempting to resubscribe of the primaryProvider's
     // websocket connection will almost always still be in a CONNECTING state when
     // resubscribing.

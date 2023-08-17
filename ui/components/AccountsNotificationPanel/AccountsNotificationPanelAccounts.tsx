@@ -11,7 +11,7 @@ import {
   updateSignerTitle,
 } from "@tallyho/tally-background/redux-slices/ui"
 import { deriveAddress } from "@tallyho/tally-background/redux-slices/keyrings"
-import { ROOTSTOCK } from "@tallyho/tally-background/constants"
+import { ROOTSTOCK, VALID_SHARDS } from "@tallyho/tally-background/constants"
 import {
   AccountTotal,
   selectCurrentNetworkAccountTotalsByCategory,
@@ -417,6 +417,10 @@ export default function AccountsNotificationPanelAccounts({
                                 console.log("onClickAddress " + shard.current)
                                 if (shard.current === "") {
                                   throw new Error("shard is empty")
+                                } else if (!VALID_SHARDS.includes(shard.current)) {
+                                  dispatch(setSnackbarMessage("Invalid shard"))
+                                  throw new Error("shard is invalid")
+                                  return
                                 }
                                 dispatch(
                                   deriveAddress(

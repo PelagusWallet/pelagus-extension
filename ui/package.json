@@ -1,6 +1,6 @@
 {
   "name": "@tallyho/tally-ui",
-  "version": "0.0.1",
+  "version": "0.1.0-pre.0",
   "description": "Pelagus, the community owned and operated Web3 wallet: UI package.",
   "main": "index.ts",
   "repository": "git@github.com:thesis/tally-extension.git",
@@ -30,8 +30,8 @@
     "@ethersproject/web": "^5.5.1",
     "@ledgerhq/devices": "^6.20.0",
     "@reduxjs/toolkit": "^1.6.0",
-    "@tallyho/provider-bridge-shared": "0.0.1",
-    "@tallyho/tally-background": "0.0.1",
+    "@tallyho/provider-bridge-shared": "0.1.0-pre.0",
+    "@tallyho/tally-background": "0.1.0-pre.0",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "12.1.5",
     "@testing-library/user-event": "14.4.3",

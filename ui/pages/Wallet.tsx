@@ -3,23 +3,23 @@ import {
   selectCurrentAccountActivities,
   selectCurrentAccountBalances,
   selectCurrentNetwork,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { checkAlreadyClaimed } from "@tallyho/tally-background/redux-slices/claim"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { checkAlreadyClaimed } from "@pelagus/pelagus-background/redux-slices/claim"
 
 import {
   FeatureFlags,
   isDisabled,
   isEnabled,
-} from "@tallyho/tally-background/features"
+} from "@pelagus/pelagus-background/features"
 import classNames from "classnames"
 import { useTranslation } from "react-i18next"
-import { NETWORKS_SUPPORTING_NFTS } from "@tallyho/tally-background/nfts"
+import { NETWORKS_SUPPORTING_NFTS } from "@pelagus/pelagus-background/nfts"
 import {
   selectShowAnalyticsNotification,
   selectShowUnverifiedAssets,
-} from "@tallyho/tally-background/redux-slices/ui"
-import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
-import { SwappableAsset, isFungibleAsset } from "@tallyho/tally-background/assets"
+} from "@pelagus/pelagus-background/redux-slices/ui"
+import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { SwappableAsset, isFungibleAsset } from "@pelagus/pelagus-background/assets"
 import { useHistory } from "react-router-dom"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
@@ -34,7 +34,7 @@ import NFTListCurrentWallet from "../components/NFTs/NFTListCurrentWallet"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
-import { bigIntToDecimal } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+import { bigIntToDecimal } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 
 export default function Wallet(): ReactElement {
   const { t } = useTranslation()

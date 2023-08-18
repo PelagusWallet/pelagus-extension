@@ -1,10 +1,10 @@
 import React, { ReactElement, useState } from "react"
-import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
+import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useTranslation } from "react-i18next"
 import {
   SmartContractFungibleAsset,
   SwappableAsset,
-} from "@tallyho/tally-background/assets"
+} from "@pelagus/pelagus-background/assets"
 import WalletAssetListItem from "./WalletAssetListItem"
 import AssetWarningWrapper from "./UnverifiedAsset/AssetWarningWrapper"
 

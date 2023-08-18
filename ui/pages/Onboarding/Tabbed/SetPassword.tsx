@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react"
 import {
   createPassword,
   unlockKeyrings,
-} from "@tallyho/tally-background/redux-slices/keyrings"
+} from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { Redirect, useHistory, useLocation } from "react-router-dom"
 import { Trans, useTranslation } from "react-i18next"
-import { selectKeyringStatus } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   useBackgroundDispatch,
   useAreKeyringsUnlocked,

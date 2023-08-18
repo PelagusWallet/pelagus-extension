@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react"
-import { NETWORK_BY_CHAIN_ID } from "@tallyho/tally-background/constants"
+import { NETWORK_BY_CHAIN_ID } from "@pelagus/pelagus-background/constants"
 import {
   NFTCollectionCached,
   fetchNFTsFromCollection,
   NFTCached,
-} from "@tallyho/tally-background/redux-slices/nfts"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
 import { useBackgroundDispatch } from "../../hooks"
 import { blockExplorer } from "../../utils/constants"
 import SharedAccordion from "../Shared/SharedAccordion"

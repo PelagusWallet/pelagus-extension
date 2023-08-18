@@ -1,4 +1,4 @@
-import { AccountTotalList } from "@tallyho/tally-background/redux-slices/selectors"
+import { AccountTotalList } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import SharedIcon from "../Shared/SharedIcon"

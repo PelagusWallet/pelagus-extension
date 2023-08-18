@@ -1,5 +1,5 @@
 import React from "react"
-import { initialState } from "@tallyho/tally-background/redux-slices/keyrings"
+import { initialState } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import SharedCurrentAccountInformation from "../SharedCurrentAccountInformation"
 import { renderWithProviders } from "../../../tests/test-utils"
 

@@ -2,8 +2,8 @@ import React, { ReactElement, useState } from "react"
 import {
   NFTCached,
   NFTCollectionCached,
-} from "@tallyho/tally-background/redux-slices/nfts"
-import { NETWORK_BY_CHAIN_ID } from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
+import { NETWORK_BY_CHAIN_ID } from "@pelagus/pelagus-background/constants"
 import NFTImage from "./NFTImage"
 import NFTHover from "./NFTHover"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"

@@ -4,7 +4,7 @@ import {
   selectFilteredNFTsCount,
   selectFilteredNFTCollectionsCount,
   selectFilteredNFTBadgesCount,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useBackgroundSelector, useTotalNFTsFloorPrice } from "../../hooks"
 import SharedTooltip from "../Shared/SharedTooltip"
 

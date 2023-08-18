@@ -1,4 +1,4 @@
-import { getAllAddresses } from "@tallyho/tally-background/redux-slices/selectors"
+import { getAllAddresses } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 // eslint-disable-next-line import/no-extraneous-dependencies

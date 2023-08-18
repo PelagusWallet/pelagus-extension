@@ -12,15 +12,15 @@ import {
   selectHideBanners,
   selectShowUnverifiedAssets,
   toggleShowUnverifiedAssets,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
-import { selectMainCurrencySign } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectMainCurrencySign } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   FeatureFlags,
   isEnabled,
   wrapIfDisabled,
   wrapIfEnabled,
-} from "@tallyho/tally-background/features"
+} from "@pelagus/pelagus-background/features"
 import SharedToggleButton from "../components/Shared/SharedToggleButton"
 import SharedSelect from "../components/Shared/SharedSelect"
 import { getLanguageIndex, getAvalableLanguages } from "../_locales"

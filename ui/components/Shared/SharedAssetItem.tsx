@@ -1,12 +1,12 @@
 import React, { ReactElement, useEffect, useState } from "react"
-import { AnyAsset, AnyAssetAmount } from "@tallyho/tally-background/assets"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
-import { ROOTSTOCK, CurrentShardToExplorer } from "@tallyho/tally-background/constants"
+import { AnyAsset, AnyAssetAmount } from "@pelagus/pelagus-background/assets"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import { ROOTSTOCK, CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import SharedAssetIcon from "./SharedAssetIcon"
 import SharedIcon from "./SharedIcon"
 import { blockExplorer } from "../../utils/constants"
 import { useBackgroundSelector } from "../../hooks"
-import { selectCurrentAccount } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 export type AnyAssetWithOptionalAmount<T extends AnyAsset> =
   | {

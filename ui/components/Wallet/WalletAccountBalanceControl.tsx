@@ -3,10 +3,10 @@ import { useTranslation } from "react-i18next"
 import {
   selectCurrentAccountSigner,
   selectCurrentNetwork,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { ReadOnlyAccountSigner } from "@tallyho/tally-background/services/signing"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useHistory } from "react-router-dom"
-import { NETWORKS_SUPPORTING_SWAPS } from "@tallyho/tally-background/constants"
+import { NETWORKS_SUPPORTING_SWAPS } from "@pelagus/pelagus-background/constants"
 import { useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"

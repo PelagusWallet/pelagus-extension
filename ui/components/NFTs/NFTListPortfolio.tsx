@@ -4,7 +4,7 @@ import {
   selectFilteredNFTBadgesCount,
   selectFilteredNFTCollections,
   selectFilteredNFTCollectionsCount,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { useBackgroundSelector } from "../../hooks"

@@ -1,4 +1,4 @@
-import { truncateAddress } from "@tallyho/tally-background/lib/utils"
+import { truncateAddress } from "@pelagus/pelagus-background/lib/utils"
 import React, { ReactElement } from "react"
 import SharedButton from "../Shared/SharedButton"
 

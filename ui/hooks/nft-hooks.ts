@@ -3,27 +3,27 @@ import {
   getAssetsState,
   selectFilteredTotalFloorPrice,
   selectMainCurrencySymbol,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   enrichAssetAmountWithMainCurrencyValues,
   formatCurrencyAmount,
-} from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import {
   BUILT_IN_NETWORK_BASE_ASSETS,
   ETH,
   USD,
-} from "@tallyho/tally-background/constants"
-import { selectAssetPricePoint } from "@tallyho/tally-background/redux-slices/assets"
+} from "@pelagus/pelagus-background/constants"
+import { selectAssetPricePoint } from "@pelagus/pelagus-background/redux-slices/assets"
 import {
   cleanCachedNFTs,
   refetchCollections,
-} from "@tallyho/tally-background/redux-slices/nfts"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
 import { useEffect } from "react"
 import {
   assetAmountToDesiredDecimals,
   convertAssetAmountViaPricePoint,
   flipPricePoint,
-} from "@tallyho/tally-background/assets"
+} from "@pelagus/pelagus-background/assets"
 import { useBackgroundDispatch, useBackgroundSelector } from "./redux-hooks"
 
 export const useTotalNFTsFloorPrice = (): {

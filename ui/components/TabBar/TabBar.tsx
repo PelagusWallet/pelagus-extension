@@ -4,9 +4,9 @@ import { matchPath, useHistory, useLocation } from "react-router-dom"
 import {
   selectCurrentNetwork,
   selectOpenAbilityCount,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { NETWORKS_SUPPORTING_SWAPS } from "@tallyho/tally-background/constants/networks"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { NETWORKS_SUPPORTING_SWAPS } from "@pelagus/pelagus-background/constants/networks"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { useTranslation } from "react-i18next"
 import TabBarIconButton from "./TabBarIconButton"
 import tabs, { defaultTab, TabInfo } from "../../utils/tabs"

@@ -1,13 +1,13 @@
 import React, { ReactElement, useCallback, useEffect, useState } from "react"
-import { setShowingActivityDetail } from "@tallyho/tally-background/redux-slices/ui"
+import { setShowingActivityDetail } from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   selectCurrentAccount,
   selectCurrentNetwork,
   selectShowingActivityDetail,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
-import { Activity } from "@tallyho/tally-background/redux-slices/activities"
-import { ALCHEMY_SUPPORTED_CHAIN_IDS, CurrentShardToExplorer } from "@tallyho/tally-background/constants"
+import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
+import { ALCHEMY_SUPPORTED_CHAIN_IDS, CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import WalletActivityDetails from "./WalletActivityDetails"

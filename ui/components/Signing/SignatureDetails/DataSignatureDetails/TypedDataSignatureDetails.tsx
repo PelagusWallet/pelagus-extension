@@ -1,5 +1,5 @@
-import { isProbablyEVMAddress } from "@tallyho/tally-background/lib/utils"
-import { EnrichedSignTypedDataRequest } from "@tallyho/tally-background/services/enrichment"
+import { isProbablyEVMAddress } from "@pelagus/pelagus-background/lib/utils"
+import { EnrichedSignTypedDataRequest } from "@pelagus/pelagus-background/services/enrichment"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { capitalize } from "../../../../utils/textUtils"

@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import userEvent from "@testing-library/user-event"
-import { ETHEREUM } from "@tallyho/tally-background/constants"
-import { FungibleAsset } from "@tallyho/tally-background/assets"
-import { hardcodedMainCurrencySign } from "@tallyho/tally-background/redux-slices/utils/constants"
+import { ETHEREUM } from "@pelagus/pelagus-background/constants"
+import { FungibleAsset } from "@pelagus/pelagus-background/assets"
+import { hardcodedMainCurrencySign } from "@pelagus/pelagus-background/redux-slices/utils/constants"
 import SharedAssetInput from "../SharedAssetInput"
 import { renderWithProviders } from "../../../tests/test-utils"
 

@@ -2,24 +2,24 @@ import React, { ReactElement } from "react"
 import {
   isEnrichedEVMTransactionRequest,
   TransactionRequest,
-} from "@tallyho/tally-background/networks"
+} from "@pelagus/pelagus-background/networks"
 import {
   rejectDataSignature,
   signData,
   SignOperation,
   SignOperationType,
   signTypedData,
-} from "@tallyho/tally-background/redux-slices/signing"
+} from "@pelagus/pelagus-background/redux-slices/signing"
 import {
   rejectTransactionSignature,
   signTransaction,
-} from "@tallyho/tally-background/redux-slices/transaction-construction"
+} from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import {
   MessageSigningRequest,
   SignTypedDataRequest,
-} from "@tallyho/tally-background/utils/signing"
-import { AccountSigner } from "@tallyho/tally-background/services/signing"
-import { AddressOnNetwork } from "@tallyho/tally-background/accounts"
+} from "@pelagus/pelagus-background/utils/signing"
+import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
+import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
 import { AnyAction } from "redux"
 import TransactionSignatureDetails from "./TransactionSignatureDetails"
 import MessageDataSignatureDetails from "./DataSignatureDetails/MessageDataSignatureDetails"

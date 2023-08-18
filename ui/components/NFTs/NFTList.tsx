@@ -1,8 +1,8 @@
 import {
   NFTCollectionCached,
   NFTWithCollection,
-} from "@tallyho/tally-background/redux-slices/nfts"
-import { selectIsReloadingNFTs } from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
+import { selectIsReloadingNFTs } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useBackgroundSelector } from "../../hooks"
 import SharedLoadingDoggo from "../Shared/SharedLoadingDoggo"

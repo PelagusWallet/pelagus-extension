@@ -2,7 +2,7 @@ import React, { ReactElement } from "react"
 import {
   Referrer,
   selectClaimSelections,
-} from "@tallyho/tally-background/redux-slices/claim"
+} from "@pelagus/pelagus-background/redux-slices/claim"
 import SharedButton from "../Shared/SharedButton"
 import AmountBanner from "./ClaimAmountBanner"
 import ClaimDelegateChoiceProfile from "./ClaimDelegateChoiceProfile"

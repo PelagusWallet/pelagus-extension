@@ -6,13 +6,13 @@ import {
   POLYGON,
   BINANCE_SMART_CHAIN,
   ROOTSTOCK,
-} from "@tallyho/tally-background/constants"
-import { AccountTotalList } from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/constants"
+import { AccountTotalList } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { shuffle } from "lodash"
-import { selectEVMNetworks } from "@tallyho/tally-background/redux-slices/selectors/networks"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+import { selectEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { useBackgroundSelector } from "../../hooks"
 
 const NETWORK_DEFAULT_COLORS = {

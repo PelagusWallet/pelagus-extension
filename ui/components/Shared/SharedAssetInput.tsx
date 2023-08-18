@@ -6,18 +6,18 @@ import React, {
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
-import { AnyAsset, Asset } from "@tallyho/tally-background/assets"
-import { normalizeEVMAddress } from "@tallyho/tally-background/lib/utils"
+import { AnyAsset, Asset } from "@pelagus/pelagus-background/assets"
+import { normalizeEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import {
   convertFixedPointNumber,
   fixedPointNumberToString,
   parseToFixedPointNumber,
-} from "@tallyho/tally-background/lib/fixed-point"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+} from "@pelagus/pelagus-background/lib/fixed-point"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import {
   NFTCached,
   NFTCollectionCached,
-} from "@tallyho/tally-background/redux-slices/nfts"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
 import classNames from "classnames"
 import SharedButton from "./SharedButton"
 import SharedSlideUpMenu from "./SharedSlideUpMenu"

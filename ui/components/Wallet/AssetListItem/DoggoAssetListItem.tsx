@@ -1,6 +1,6 @@
 import React, { ReactElement, useState } from "react"
 import { Link } from "react-router-dom"
-import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
+import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 import classNames from "classnames"
 import SharedAssetIcon from "../../Shared/SharedAssetIcon"

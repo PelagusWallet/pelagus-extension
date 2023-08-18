@@ -1,7 +1,7 @@
 import {
   isProbablyEVMAddress,
   truncateAddress,
-} from "@tallyho/tally-background/lib/utils"
+} from "@pelagus/pelagus-background/lib/utils"
 import React, { ReactElement } from "react"
 import SharedToggleButton from "./SharedToggleButton"
 

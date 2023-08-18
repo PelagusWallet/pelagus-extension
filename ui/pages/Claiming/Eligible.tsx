@@ -1,10 +1,10 @@
 import React, { ReactElement, useState } from "react"
-import { selectAccountAndTimestampedActivities } from "@tallyho/tally-background/redux-slices/selectors/accountsSelectors"
-import { fromFixedPointNumber } from "@tallyho/tally-background/lib/fixed-point"
+import { selectAccountAndTimestampedActivities } from "@pelagus/pelagus-background/redux-slices/selectors/accountsSelectors"
+import { fromFixedPointNumber } from "@pelagus/pelagus-background/lib/fixed-point"
 import {
   setClaimStep,
   selectClaimSelections,
-} from "@tallyho/tally-background/redux-slices/claim"
+} from "@pelagus/pelagus-background/redux-slices/claim"
 import { Redirect, useHistory } from "react-router-dom"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import ClaimIntro from "../../components/Claim/ClaimIntro"

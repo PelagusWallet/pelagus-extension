@@ -1,7 +1,7 @@
 import {
   AbilityType,
   ABILITY_TYPE_COLOR,
-} from "@tallyho/tally-background/abilities"
+} from "@pelagus/pelagus-background/abilities"
 import React, { ReactElement } from "react"
 import { capitalize } from "../../utils/textUtils"
 

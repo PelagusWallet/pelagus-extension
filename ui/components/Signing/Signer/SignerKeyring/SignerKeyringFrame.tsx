@@ -1,4 +1,4 @@
-import { SignOperationType } from "@tallyho/tally-background/redux-slices/signing"
+import { SignOperationType } from "@pelagus/pelagus-background/redux-slices/signing"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SignerFrameProps } from ".."

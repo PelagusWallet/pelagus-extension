@@ -4,36 +4,36 @@ import {
   approveTransfer,
   fetchSwapQuote,
   executeSwap,
-} from "@tallyho/tally-background/redux-slices/0x-swap"
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+} from "@pelagus/pelagus-background/redux-slices/0x-swap"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import {
   selectCurrentAccountBalances,
   selectCurrentAccountSigner,
   selectCurrentNetwork,
   selectMainCurrencySign,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   isSmartContractFungibleAsset,
   SwappableAsset,
-} from "@tallyho/tally-background/assets"
-import logger from "@tallyho/tally-background/lib/logger"
+} from "@pelagus/pelagus-background/assets"
+import logger from "@pelagus/pelagus-background/lib/logger"
 import { Redirect, useLocation } from "react-router-dom"
-import { normalizeEVMAddress } from "@tallyho/tally-background/lib/utils"
-import { selectDefaultNetworkFeeSettings } from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
-import { selectSlippageTolerance } from "@tallyho/tally-background/redux-slices/ui"
-import { ReadOnlyAccountSigner } from "@tallyho/tally-background/services/signing"
+import { normalizeEVMAddress } from "@pelagus/pelagus-background/lib/utils"
+import { selectDefaultNetworkFeeSettings } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
+import { selectSlippageTolerance } from "@pelagus/pelagus-background/redux-slices/ui"
+import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import {
   NETWORKS_SUPPORTING_SWAPS,
   SECOND,
-} from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/constants"
 
-import { AsyncThunkFulfillmentType } from "@tallyho/tally-background/redux-slices/utils"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import {
   selectLatestQuoteRequest,
   selectSwapBuyAssets,
   selectInProgressApprovalContract,
-} from "@tallyho/tally-background/redux-slices/selectors/0xSwapSelectors"
-import { isSameAsset } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+} from "@pelagus/pelagus-background/redux-slices/selectors/0xSwapSelectors"
+import { isSameAsset } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import SharedAssetInput from "../components/Shared/SharedAssetInput"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedActivityHeader from "../components/Shared/SharedActivityHeader"

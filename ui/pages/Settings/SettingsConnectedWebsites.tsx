@@ -1,6 +1,6 @@
 import React, { ReactElement, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { selectAllowedPages } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectAllowedPages } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedPageHeader from "../../components/Shared/SharedPageHeader"
 import ConnectedWebsitesListItem from "./ConnectedWebsitesListItem"
 import { useBackgroundSelector } from "../../hooks"

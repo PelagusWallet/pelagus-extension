@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { selectHasInsufficientFunds } from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
-import { selectAdditionalSigningStatus } from "@tallyho/tally-background/redux-slices/signing"
+import { selectHasInsufficientFunds } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
+import { selectAdditionalSigningStatus } from "@pelagus/pelagus-background/redux-slices/signing"
 import { useBackgroundSelector } from "../../../hooks"
 import TransactionButton from "./TransactionButton"
 

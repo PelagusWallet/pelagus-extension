@@ -2,38 +2,38 @@ import React, { ReactElement } from "react"
 import {
   truncateDecimalAmount,
   weiToGwei,
-} from "@tallyho/tally-background/lib/utils"
-import { NetworkFeeSettings } from "@tallyho/tally-background/redux-slices/transaction-construction"
+} from "@pelagus/pelagus-background/lib/utils"
+import { NetworkFeeSettings } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import {
   heuristicDesiredDecimalsForUnitPrice,
   enrichAssetAmountWithMainCurrencyValues,
-} from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import {
   selectDefaultNetworkFeeSettings,
   selectEstimatedFeesPerGas,
   selectTransactionData,
   selectTransactionMainCurrencyPricePoint,
-} from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   ARBITRUM_ONE,
   BINANCE_SMART_CHAIN,
   isBuiltInNetwork,
   OPTIMISM,
   ROOTSTOCK,
-} from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/constants"
 import {
   EVMNetwork,
   isEIP1559EnrichedTransactionRequest,
   isEIP1559TransactionRequest,
-} from "@tallyho/tally-background/networks"
+} from "@pelagus/pelagus-background/networks"
 import { useTranslation } from "react-i18next"
 import {
   PricePoint,
   unitPricePointForPricePoint,
   assetAmountToDesiredDecimals,
-} from "@tallyho/tally-background/assets"
-import type { EnrichedEVMTransactionRequest } from "@tallyho/tally-background/services/enrichment"
+} from "@pelagus/pelagus-background/assets"
+import type { EnrichedEVMTransactionRequest } from "@pelagus/pelagus-background/services/enrichment"
 import { useBackgroundSelector } from "../../hooks"
 
 const getFeeDollarValue = (

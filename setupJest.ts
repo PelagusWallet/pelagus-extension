@@ -1,6 +1,6 @@
 import * as util from "util"
 import Dexie from "dexie"
-import logger, { LogLevel } from "@tallyho/tally-background/lib/logger"
+import logger, { LogLevel } from "@pelagus/pelagus-background/lib/logger"
 
 const IS_CI = process.env.CI === "true"
 

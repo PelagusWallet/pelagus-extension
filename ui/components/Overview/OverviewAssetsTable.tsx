@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
+import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import SharedLoadingSpinner from "../Shared/SharedLoadingSpinner"
 

@@ -1,12 +1,12 @@
 import React, { ReactElement } from "react"
-import { AccountTotal } from "@tallyho/tally-background/redux-slices/selectors"
+import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
 import { useTranslation } from "react-i18next"
 import {
   FeatureFlags,
   isDisabled,
   isEnabled,
-} from "@tallyho/tally-background/features"
+} from "@pelagus/pelagus-background/features"
 import SharedButton from "../../components/Shared/SharedButton"
 import SharedAccountItemSummary from "../../components/Shared/SharedAccountItemSummary"
 import RequestingDAppBlock from "./RequestingDApp"

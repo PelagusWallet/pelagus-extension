@@ -1,4 +1,4 @@
-import { WEBSITE_ORIGIN } from "@tallyho/tally-background/constants/website"
+import { WEBSITE_ORIGIN } from "@pelagus/pelagus-background/constants/website"
 import React, { ReactElement } from "react"
 import SharedBanner from "../../components/Shared/SharedBanner"
 import SharedButton from "../../components/Shared/SharedButton"

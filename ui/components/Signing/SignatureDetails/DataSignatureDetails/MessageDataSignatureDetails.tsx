@@ -1,5 +1,5 @@
-import { assertUnreachable } from "@tallyho/tally-background/lib/utils/type-guards"
-import { MessageSigningRequest } from "@tallyho/tally-background/utils/signing"
+import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
+import { MessageSigningRequest } from "@pelagus/pelagus-background/utils/signing"
 import React, { ReactElement } from "react"
 import EIP191Info from "../../../SignData/EIP191Info"
 import EIP4361Info from "../../../SignData/EIP4361Info"

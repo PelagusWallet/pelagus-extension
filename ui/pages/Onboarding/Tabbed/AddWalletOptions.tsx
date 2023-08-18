@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { isLedgerSupported } from "@tallyho/tally-background/services/ledger"
+import { isLedgerSupported } from "@pelagus/pelagus-background/services/ledger"
 import OnboardingRoutes from "./Routes"
 import { intersperseWith } from "../../../utils/lists"
 import SharedButton from "../../../components/Shared/SharedButton"

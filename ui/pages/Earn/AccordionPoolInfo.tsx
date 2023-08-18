@@ -1,4 +1,4 @@
-import { AvailableVault } from "@tallyho/tally-background/redux-slices/earn"
+import { AvailableVault } from "@pelagus/pelagus-background/redux-slices/earn"
 import React, { ReactElement } from "react"
 import SharedAssetIcon from "../../components/Shared/SharedAssetIcon"
 import SharedButton from "../../components/Shared/SharedButton"

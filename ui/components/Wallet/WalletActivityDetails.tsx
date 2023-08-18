@@ -1,10 +1,10 @@
 import React, { useCallback, ReactElement, useEffect, useState } from "react"
-import { selectCurrentAccount, selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectCurrentAccount, selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   ActivityDetail,
   Activity,
   fetchSelectedActivityDetails,
-} from "@tallyho/tally-background/redux-slices/activities"
+} from "@pelagus/pelagus-background/redux-slices/activities"
 import SharedAddress from "../Shared/SharedAddress"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"

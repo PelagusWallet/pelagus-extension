@@ -1,12 +1,12 @@
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
-import { selectKeyringStatus } from "@tallyho/tally-background/redux-slices/selectors"
-import { AccountSigner } from "@tallyho/tally-background/services/signing"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
+import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useEffect } from "react"
 import { useHistory } from "react-router-dom"
 
-import { assertUnreachable } from "@tallyho/tally-background/lib/utils/type-guards"
-import { DisplayDetails } from "@tallyho/tally-background/services/ledger"
-import { HexString } from "@tallyho/tally-background/types"
+import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
+import { DisplayDetails } from "@pelagus/pelagus-background/services/ledger"
+import { HexString } from "@pelagus/pelagus-background/types"
 import { useBackgroundSelector } from "./redux-hooks"
 
 /**

@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
-import { selectCurrentAccountSigner } from "@tallyho/tally-background/redux-slices/selectors"
-import { selectSigningData } from "@tallyho/tally-background/redux-slices/signing"
+import { selectCurrentAccountSigner } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectSigningData } from "@pelagus/pelagus-background/redux-slices/signing"
 import { useBackgroundSelector } from "../hooks"
 import Signing from "../components/Signing"
 

@@ -1,11 +1,11 @@
-import { browser, startMain } from "@tallyho/tally-background"
+import { browser, startMain } from "@pelagus/pelagus-background"
 import {
   FeatureFlags,
   isEnabled,
   RuntimeFlag,
-} from "@tallyho/tally-background/features"
-import localStorageShim from "@tallyho/tally-background/utils/local-storage-shim"
-import { ONBOARDING_ROOT } from "@tallyho/tally-ui/pages/Onboarding/Tabbed/Routes"
+} from "@pelagus/pelagus-background/features"
+import localStorageShim from "@pelagus/pelagus-background/utils/local-storage-shim"
+import { ONBOARDING_ROOT } from "@pelagus/pelagus-ui/pages/Onboarding/Tabbed/Routes"
 
 browser.runtime.onInstalled.addListener((obj) => {
   if (obj.reason === "install") {

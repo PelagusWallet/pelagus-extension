@@ -1,4 +1,4 @@
-import { ARBITRUM_ONE } from "@tallyho/tally-background/constants"
+import { ARBITRUM_ONE } from "@pelagus/pelagus-background/constants"
 import { useEffect, useState } from "react"
 import { i18n } from "../../../_locales/i18n"
 

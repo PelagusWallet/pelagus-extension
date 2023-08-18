@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
-import { selectTransactionData } from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
-import { ROOTSTOCK } from "@tallyho/tally-background/constants"
+import { selectTransactionData } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
+import { ROOTSTOCK } from "@pelagus/pelagus-background/constants"
 import { useTranslation } from "react-i18next"
 import { useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"

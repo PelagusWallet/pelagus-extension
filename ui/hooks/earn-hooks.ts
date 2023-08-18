@@ -4,7 +4,7 @@ import {
   selectAvailableVaults,
   selectIsVaultDataStale,
   updateVaults,
-} from "@tallyho/tally-background/redux-slices/earn"
+} from "@pelagus/pelagus-background/redux-slices/earn"
 import { useCallback, useEffect, useState } from "react"
 import { useBackgroundSelector, useBackgroundDispatch } from "./redux-hooks"
 

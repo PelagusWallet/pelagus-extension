@@ -2,14 +2,14 @@ import React, { ReactElement, useCallback, useEffect, useState } from "react"
 import {
   selectCurrentPendingPermission,
   selectCurrentAccountTotal,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   denyOrRevokePermission,
   grantPermission,
-} from "@tallyho/tally-background/redux-slices/dapp"
+} from "@pelagus/pelagus-background/redux-slices/dapp"
 
 import { Redirect } from "react-router-dom"
-import { FeatureFlags, isDisabled } from "@tallyho/tally-background/features"
+import { FeatureFlags, isDisabled } from "@pelagus/pelagus-background/features"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
 import DAppConnectPage from "./DAppConnect/DAppConnectPage"
 import SwitchWalletPage from "./DAppConnect/SwitchWalletPage"

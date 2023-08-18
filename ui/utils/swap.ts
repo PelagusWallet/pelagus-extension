@@ -1,26 +1,26 @@
 import {
   isSmartContractFungibleAsset,
   SwappableAsset,
-} from "@tallyho/tally-background/assets"
-import { EIP_1559_COMPLIANT_CHAIN_IDS } from "@tallyho/tally-background/constants"
-import { fixedPointNumberToString } from "@tallyho/tally-background/lib/fixed-point"
-import logger from "@tallyho/tally-background/lib/logger"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
-import { fetchSwapPrice } from "@tallyho/tally-background/redux-slices/0x-swap"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
-import { NetworkFeeSettings } from "@tallyho/tally-background/redux-slices/transaction-construction"
-import { AsyncThunkFulfillmentType } from "@tallyho/tally-background/redux-slices/utils"
+} from "@pelagus/pelagus-background/assets"
+import { EIP_1559_COMPLIANT_CHAIN_IDS } from "@pelagus/pelagus-background/constants"
+import { fixedPointNumberToString } from "@pelagus/pelagus-background/lib/fixed-point"
+import logger from "@pelagus/pelagus-background/lib/logger"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import { fetchSwapPrice } from "@pelagus/pelagus-background/redux-slices/0x-swap"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { NetworkFeeSettings } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import {
   PriceDetails,
   SwapQuoteRequest,
-} from "@tallyho/tally-background/redux-slices/utils/0x-swap-utils"
+} from "@pelagus/pelagus-background/redux-slices/utils/0x-swap-utils"
 import { debounce, DebouncedFunc } from "lodash"
 import { useState, useRef, useCallback } from "react"
-import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
+import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 import {
   canBeUsedForTransaction,
   isSameAsset,
-} from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
 import { useValueRef, useIsMounted, useSetState } from "../hooks/react-hooks"
 

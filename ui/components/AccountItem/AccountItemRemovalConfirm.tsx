@@ -1,16 +1,16 @@
-import { removeAccount } from "@tallyho/tally-background/redux-slices/accounts"
+import { removeAccount } from "@pelagus/pelagus-background/redux-slices/accounts"
 import {
   AccountTotal,
   getAllAddresses,
   selectAccountSignersByAddress,
   selectKeyringByAddress,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement } from "react"
-import { setNewSelectedAccount } from "@tallyho/tally-background/redux-slices/ui"
+import { setNewSelectedAccount } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
-import { sameEVMAddress } from "@tallyho/tally-background/lib/utils"
+import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
-import { selectLedgerDeviceByAddresses } from "@tallyho/tally-background/redux-slices/selectors/ledgerSelectors"
+import { selectLedgerDeviceByAddresses } from "@pelagus/pelagus-background/redux-slices/selectors/ledgerSelectors"
 
 import SharedButton from "../Shared/SharedButton"
 import SharedAccountItemSummary from "../Shared/SharedAccountItemSummary"

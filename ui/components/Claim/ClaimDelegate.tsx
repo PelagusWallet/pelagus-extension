@@ -3,7 +3,7 @@ import {
   chooseDelegate,
   Delegate,
   selectClaimSelections,
-} from "@tallyho/tally-background/redux-slices/claim"
+} from "@pelagus/pelagus-background/redux-slices/claim"
 import { isAddress } from "@ethersproject/address"
 
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"

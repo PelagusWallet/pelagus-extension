@@ -1,4 +1,4 @@
-import localStorageShim from "@tallyho/tally-background/utils/local-storage-shim"
+import localStorageShim from "@pelagus/pelagus-background/utils/local-storage-shim"
 import {
   RefObject,
   useEffect,

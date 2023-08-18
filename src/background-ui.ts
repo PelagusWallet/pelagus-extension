@@ -1,5 +1,5 @@
 // TODO This is meant to do UI notifications, but is incomplete.
-/* import { browser, newProxyStore } from "@tallyho/tally-background"
+/* import { browser, newProxyStore } from "@pelagus/pelagus-background"
 
 newProxyStore().then((backgroundStore) => {
   // undefined if no account has been resolved, string array with the latest

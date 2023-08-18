@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react"
 import { useDispatch } from "react-redux"
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
-import { EnrichedEVMTransactionRequest } from "@tallyho/tally-background/services/enrichment"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { EnrichedEVMTransactionRequest } from "@pelagus/pelagus-background/services/enrichment"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../../../Shared/SharedButton"
 

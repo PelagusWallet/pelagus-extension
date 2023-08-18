@@ -1,4 +1,4 @@
-import { selectFilteredAbilities } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectFilteredAbilities } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../components/Shared/SharedButton"

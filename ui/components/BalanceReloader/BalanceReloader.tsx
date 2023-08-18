@@ -1,7 +1,7 @@
 import React, { ReactElement, useState } from "react"
 import classNames from "classnames"
 import { useDispatch } from "react-redux"
-import { refreshBackgroundPage } from "@tallyho/tally-background/redux-slices/ui"
+import { refreshBackgroundPage } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useLocalStorage } from "../../hooks"
 
 export default function BalanceReloader(): ReactElement {

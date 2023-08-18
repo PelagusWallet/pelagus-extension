@@ -277,9 +277,9 @@ webpack.config.js # Webpack build for extension
 
 src/ # extension source files
   background.js # entry file for the background extension script; should be
-                # minimal and call in to @tallyho/tally-wallet
+                # minimal and call in to @pelagus/pelagus-wallet
   ui.js         # entry file for the frontend UI; should be minimal and bind
-                # the functionality in @tallyho/tally-ui
+                # the functionality in @pelagus/pelagus-ui
 
 dist/ # output directory for builds
   brave/   # browser-specific
@@ -301,10 +301,10 @@ manifest/         # extension manifest data
   manifest.dev.json         # manifest adjustments for dev environment
   manifest.firefox.dev.json # manifest adjustments for Firefox in dev
 
-background/ # @tallyho/tally-background package with trusted wallet core
+background/ # @pelagus/pelagus-background package with trusted wallet core
   package.json
 
-ui/ # @tallyho/tally-ui package
+ui/ # @pelagus/pelagus-ui package
   package.json
 ```
 

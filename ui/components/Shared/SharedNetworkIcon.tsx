@@ -1,4 +1,4 @@
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import React, { ReactElement, useState, useEffect } from "react"
 import {
   getNetworkIcon,

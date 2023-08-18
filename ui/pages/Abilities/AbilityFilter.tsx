@@ -1,4 +1,4 @@
-import { ABILITY_TYPES } from "@tallyho/tally-background/abilities"
+import { ABILITY_TYPES } from "@pelagus/pelagus-background/abilities"
 import {
   State,
   updateState,
@@ -6,14 +6,14 @@ import {
   deleteType,
   addAccount,
   deleteAccount,
-} from "@tallyho/tally-background/redux-slices/abilities"
-import { AccountType } from "@tallyho/tally-background/redux-slices/accounts"
+} from "@pelagus/pelagus-background/redux-slices/abilities"
+import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
 import {
   selectAbilityFilterAccounts,
   selectAbilityFilterState,
   selectAbilityFilterTypes,
   selectAccountTotals,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import SharedIcon from "../../components/Shared/SharedIcon"

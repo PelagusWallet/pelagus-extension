@@ -1,5 +1,5 @@
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
-import { denyOrRevokePermission } from "@tallyho/tally-background/redux-slices/dapp"
+import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch } from "../../hooks"

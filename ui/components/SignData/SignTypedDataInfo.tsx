@@ -2,8 +2,8 @@ import React, { ReactElement } from "react"
 import {
   isProbablyEVMAddress,
   truncateAddress,
-} from "@tallyho/tally-background/lib/utils"
-import { EnrichedSignTypedDataRequest } from "@tallyho/tally-background/services/enrichment"
+} from "@pelagus/pelagus-background/lib/utils"
+import { EnrichedSignTypedDataRequest } from "@pelagus/pelagus-background/services/enrichment"
 import { useTranslation } from "react-i18next"
 import { capitalize } from "../../utils/textUtils"
 

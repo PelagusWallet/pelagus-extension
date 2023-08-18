@@ -1,7 +1,7 @@
 import {
   selectShowAnalyticsNotification,
   setShowAnalyticsNotification,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"

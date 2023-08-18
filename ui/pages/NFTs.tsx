@@ -2,7 +2,7 @@ import React, { ReactElement, useRef, useState } from "react"
 import {
   selectAllNFTBadgesCount,
   selectAllNFTsCount,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
 import NFTsHeader from "../components/NFTs/NFTsHeader"
 import { useBackgroundSelector, useNFTsReload } from "../hooks"

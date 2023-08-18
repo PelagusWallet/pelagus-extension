@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react"
-import { lockKeyrings } from "@tallyho/tally-background/redux-slices/keyrings"
+import { lockKeyrings } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { useHistory } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch, useAreKeyringsUnlocked } from "../../hooks"

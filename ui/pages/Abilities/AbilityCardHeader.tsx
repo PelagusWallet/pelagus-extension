@@ -2,8 +2,8 @@ import React, { ReactElement } from "react"
 import {
   AccountTotalList,
   selectAccountTotalsForOverview,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { Ability } from "@tallyho/tally-background/abilities"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { Ability } from "@pelagus/pelagus-background/abilities"
 import AbilityLabel from "./AbilityLabel"
 import { useBackgroundSelector } from "../../hooks"
 

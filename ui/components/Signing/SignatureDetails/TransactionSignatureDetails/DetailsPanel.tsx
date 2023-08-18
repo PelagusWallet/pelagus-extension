@@ -3,18 +3,18 @@ import React, { ReactElement, useEffect, useState } from "react"
 import {
   selectEstimatedFeesPerGas,
   selectTransactionData,
-} from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
-import { updateTransactionData } from "@tallyho/tally-background/redux-slices/transaction-construction"
+} from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
+import { updateTransactionData } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import type {
   EnrichedEIP1559TransactionRequest,
   EnrichedEVMTransactionRequest,
   EnrichedLegacyTransactionRequest,
-} from "@tallyho/tally-background/services/enrichment"
+} from "@pelagus/pelagus-background/services/enrichment"
 import { useTranslation } from "react-i18next"
 import {
   BINANCE_SMART_CHAIN,
   EIP_1559_COMPLIANT_CHAIN_IDS,
-} from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/constants"
 import classNames from "classnames"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSlideUpMenu from "../../../Shared/SharedSlideUpMenu"

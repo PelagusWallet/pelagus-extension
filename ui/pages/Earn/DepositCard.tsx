@@ -1,11 +1,11 @@
 import React, { ReactElement } from "react"
 import { Link } from "react-router-dom"
-import { fromFixedPointNumber } from "@tallyho/tally-background/lib/fixed-point"
+import { fromFixedPointNumber } from "@pelagus/pelagus-background/lib/fixed-point"
 import {
   APRData,
   AvailableVault,
-} from "@tallyho/tally-background/redux-slices/earn"
-import { DOGGO } from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/redux-slices/earn"
+import { DOGGO } from "@pelagus/pelagus-background/constants"
 import SharedAssetIcon from "../../components/Shared/SharedAssetIcon"
 import SharedSkeletonLoader from "../../components/Shared/SharedSkeletonLoader"
 

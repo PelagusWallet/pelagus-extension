@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useBackgroundSelector } from "../../hooks"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
 

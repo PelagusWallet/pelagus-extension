@@ -1,4 +1,4 @@
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { I18nKey } from "../_locales/i18n"
 
 export type TabInfo = {

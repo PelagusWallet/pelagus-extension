@@ -7,7 +7,7 @@ import {
   selectFilteredNFTBadgesCount,
   selectFilteredNFTCollectionsCount,
   selectFilteredNFTsCount,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 
 import SharedLoadingSpinner from "../Shared/SharedLoadingSpinner"
 import { HeaderContainer, EmptyHeader } from "./NFTsHeaderBase"

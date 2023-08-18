@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 
-import { AccountTotal } from "@tallyho/tally-background/redux-slices/selectors"
+import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 import { useTranslation } from "react-i18next"
 import SharedLoadingSpinner from "./SharedLoadingSpinner"

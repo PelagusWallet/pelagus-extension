@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useState } from "react"
-import { createPassword } from "@tallyho/tally-background/redux-slices/keyrings"
+import { createPassword } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { useHistory } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch, useAreKeyringsUnlocked } from "../../hooks"

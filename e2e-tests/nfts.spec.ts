@@ -1,4 +1,4 @@
-import { wait } from "@tallyho/tally-background/lib/utils"
+import { wait } from "@pelagus/pelagus-background/lib/utils"
 import { test, expect } from "./utils"
 
 test.describe("NFTs", () => {

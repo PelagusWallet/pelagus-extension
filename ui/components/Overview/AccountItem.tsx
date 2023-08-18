@@ -1,5 +1,5 @@
-import { selectMainCurrencySymbol } from "@tallyho/tally-background/redux-slices/selectors"
-import { formatCurrencyAmount } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+import { selectMainCurrencySymbol } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { formatCurrencyAmount } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import React, { ReactElement } from "react"
 import { useBackgroundSelector } from "../../hooks"
 import SharedAddress from "../Shared/SharedAddress"

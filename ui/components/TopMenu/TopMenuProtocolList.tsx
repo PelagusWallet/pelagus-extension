@@ -10,11 +10,11 @@ import {
   OPTIMISM,
   POLYGON,
   ROOTSTOCK,
-} from "@tallyho/tally-background/constants"
-import { EVMNetwork, sameNetwork } from "@tallyho/tally-background/networks"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
-import { selectShowTestNetworks } from "@tallyho/tally-background/redux-slices/ui"
-import { selectProductionEVMNetworks } from "@tallyho/tally-background/redux-slices/selectors/networks"
+} from "@pelagus/pelagus-background/constants"
+import { EVMNetwork, sameNetwork } from "@pelagus/pelagus-background/networks"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectShowTestNetworks } from "@pelagus/pelagus-background/redux-slices/ui"
+import { selectProductionEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
 import { useTranslation } from "react-i18next"
 import { useBackgroundSelector } from "../../hooks"
 import TopMenuProtocolListItem from "./TopMenuProtocolListItem"

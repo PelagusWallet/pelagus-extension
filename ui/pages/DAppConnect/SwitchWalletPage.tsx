@@ -1,4 +1,4 @@
-import { setNewDefaultWalletValue } from "@tallyho/tally-background/redux-slices/ui"
+import { setNewDefaultWalletValue } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"

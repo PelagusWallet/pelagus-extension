@@ -4,19 +4,19 @@ import classNames from "classnames"
 import {
   selectCurrentAccount,
   selectCurrentAccountSigner,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   selectClaimed,
   selectClaimError,
   selectCurrentlyClaiming,
   selectEligibility,
   selectEligibilityLoading,
-} from "@tallyho/tally-background/redux-slices/claim"
+} from "@pelagus/pelagus-background/redux-slices/claim"
 
 import {
   AccountSigner,
   ReadOnlyAccountSigner,
-} from "@tallyho/tally-background/services/signing"
+} from "@pelagus/pelagus-background/services/signing"
 import { useBackgroundSelector, useLocalStorage } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedIcon from "../Shared/SharedIcon"

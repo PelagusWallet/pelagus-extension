@@ -1,18 +1,18 @@
 import { formatUnits } from "@ethersproject/units"
-import { AnyAssetAmount, FungibleAsset } from "@tallyho/tally-background/assets"
+import { AnyAssetAmount, FungibleAsset } from "@pelagus/pelagus-background/assets"
 import {
   AssetDecimalAmount,
   enrichAssetAmountWithMainCurrencyValues,
-} from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { truncateDecimalAmount } from "@tallyho/tally-background/lib/utils"
+import { truncateDecimalAmount } from "@pelagus/pelagus-background/lib/utils"
 import {
   getAssetsState,
   selectMainCurrencySign,
   selectMainCurrencySymbol,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { selectAssetPricePoint } from "@tallyho/tally-background/redux-slices/assets"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectAssetPricePoint } from "@pelagus/pelagus-background/redux-slices/assets"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import { useBackgroundSelector } from "../../hooks"
 import PriceDetails from "../Shared/PriceDetails"

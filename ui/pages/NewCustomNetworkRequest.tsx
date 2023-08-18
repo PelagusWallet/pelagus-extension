@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react"
 import {
   addNetworkUserResponse,
   getAddNetworkRequestDetails,
-} from "@tallyho/tally-background/redux-slices/ui"
-import { AddChainRequestData } from "@tallyho/tally-background/services/provider-bridge"
+} from "@pelagus/pelagus-background/redux-slices/ui"
+import { AddChainRequestData } from "@pelagus/pelagus-background/services/provider-bridge"
 import { useTranslation } from "react-i18next"
-import { selectEVMNetworks } from "@tallyho/tally-background/redux-slices/selectors/networks"
+import { selectEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"

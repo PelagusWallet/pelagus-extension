@@ -1,5 +1,5 @@
 import React from "react"
-import { MessageSigningRequest } from "@tallyho/tally-background/utils/signing"
+import { MessageSigningRequest } from "@pelagus/pelagus-background/utils/signing"
 import { useTranslation } from "react-i18next"
 
 const EIP191Info: React.FC<{

@@ -1,4 +1,4 @@
-import { selectKeyringStatus } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement, useEffect, useState } from "react"
 import { AnyAction } from "redux"
 import { useHistory } from "react-router-dom"

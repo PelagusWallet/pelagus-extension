@@ -1,4 +1,4 @@
-import { HexString } from "@tallyho/tally-background/types"
+import { HexString } from "@pelagus/pelagus-background/types"
 import React, { ReactElement, useEffect, useState } from "react"
 import { useDelayContentChange } from "../../hooks"
 import { useAddressOrNameValidation } from "../../hooks/validation-hooks"

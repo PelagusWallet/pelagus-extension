@@ -2,9 +2,9 @@ import {
   CHAIN_ID_TO_OPENSEA_CHAIN,
   ETHEREUM,
   POLYGON,
-} from "@tallyho/tally-background/constants"
-import { POAP_CONTRACT } from "@tallyho/tally-background/lib/poap"
-import { NFTCached } from "@tallyho/tally-background/redux-slices/nfts"
+} from "@pelagus/pelagus-background/constants"
+import { POAP_CONTRACT } from "@pelagus/pelagus-background/lib/poap"
+import { NFTCached } from "@pelagus/pelagus-background/redux-slices/nfts"
 import React, { ReactElement } from "react"
 import SharedTooltip from "../Shared/SharedTooltip"
 

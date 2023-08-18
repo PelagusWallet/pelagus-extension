@@ -1,9 +1,9 @@
 import {
   Referrer,
   resetReferrer,
-} from "@tallyho/tally-background/redux-slices/claim"
-import { selectMainCurrencySymbol } from "@tallyho/tally-background/redux-slices/selectors"
-import { formatCurrencyAmount } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+} from "@pelagus/pelagus-background/redux-slices/claim"
+import { selectMainCurrencySymbol } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { formatCurrencyAmount } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import React, { ReactElement } from "react"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import ClaimAmountBanner from "./ClaimAmountBanner"

@@ -1,4 +1,4 @@
-import { initialState } from "@tallyho/tally-background/redux-slices/keyrings"
+import { initialState } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import userEvent from "@testing-library/user-event"
 import { createMemoryHistory } from "history"
 import React from "react"

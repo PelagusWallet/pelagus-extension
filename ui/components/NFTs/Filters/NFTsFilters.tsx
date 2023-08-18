@@ -4,8 +4,8 @@ import {
   updateAccountFilter,
   updateCollectionFilter,
   updateSortType,
-} from "@tallyho/tally-background/redux-slices/nfts"
-import { selectEnrichedNFTFilters } from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
+import { selectEnrichedNFTFilters } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, {
   ReactElement,
   useCallback,

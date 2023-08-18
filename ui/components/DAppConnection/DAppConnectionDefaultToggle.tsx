@@ -3,7 +3,7 @@ import React, { ReactElement } from "react"
 import {
   selectDefaultWallet,
   setNewDefaultWalletValue,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedIcon from "../Shared/SharedIcon"

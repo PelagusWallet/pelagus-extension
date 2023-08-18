@@ -3,7 +3,7 @@ import {
   selectCurrentAccount,
   selectCurrentAccountBalances,
   selectCurrentNetwork,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   ApprovalTargetAllowance,
   approveApprovalTarget,
@@ -21,11 +21,11 @@ import {
   updateVaults,
   vaultDeposit,
   vaultWithdraw,
-} from "@tallyho/tally-background/redux-slices/earn"
+} from "@pelagus/pelagus-background/redux-slices/earn"
 
-import { fromFixedPointNumber } from "@tallyho/tally-background/lib/fixed-point"
-import { DOGGO } from "@tallyho/tally-background/constants"
-import { HexString } from "@tallyho/tally-background/types"
+import { fromFixedPointNumber } from "@pelagus/pelagus-background/lib/fixed-point"
+import { DOGGO } from "@pelagus/pelagus-background/constants"
+import { HexString } from "@pelagus/pelagus-background/types"
 
 import { useHistory, useLocation } from "react-router-dom"
 import BackButton from "../components/Shared/SharedBackButton"

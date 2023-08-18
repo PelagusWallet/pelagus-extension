@@ -1,5 +1,5 @@
 import { CombinedState, configureStore, EnhancedStore } from "@reduxjs/toolkit"
-import rootReducer, { RootState } from "@tallyho/tally-background/redux-slices"
+import rootReducer, { RootState } from "@pelagus/pelagus-background/redux-slices"
 
 export const initializeStoreForTest = (
   preloadedState = {}

@@ -1,5 +1,5 @@
-import { OneTimeAnalyticsEvent } from "@tallyho/tally-background/lib/posthog"
-import { sendEvent } from "@tallyho/tally-background/redux-slices/ui"
+import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
+import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
 import React, { ReactElement, useMemo, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"

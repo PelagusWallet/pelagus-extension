@@ -6,25 +6,25 @@ import {
   selectCurrentAccountBalances,
   selectCurrentAccountSigner,
   selectCurrentNetwork,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { sameEVMAddress } from "@tallyho/tally-background/lib/utils"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import {
   AnyAsset,
   isSmartContractFungibleAsset,
   SmartContractFungibleAsset,
-} from "@tallyho/tally-background/assets"
-import { ReadOnlyAccountSigner } from "@tallyho/tally-background/services/signing"
+} from "@pelagus/pelagus-background/assets"
+import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useTranslation } from "react-i18next"
 import {
   CurrentShardToExplorer,
   DEFAULT_NETWORKS_BY_CHAIN_ID,
   NETWORKS_SUPPORTING_SWAPS,
-} from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/constants"
 import {
   isUntrustedAsset,
   isUnverifiedAssetByUser,
-} from "@tallyho/tally-background/redux-slices/utils/asset-utils"
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { useBackgroundSelector } from "../hooks"
 import SharedAssetIcon from "../components/Shared/SharedAssetIcon"
 import SharedButton from "../components/Shared/SharedButton"

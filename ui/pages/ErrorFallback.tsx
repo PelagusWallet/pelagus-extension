@@ -1,4 +1,4 @@
-import logger from "@tallyho/tally-background/lib/logger"
+import logger from "@pelagus/pelagus-background/lib/logger"
 import React, { ReactElement } from "react"
 import { FallbackProps } from "react-error-boundary"
 import { useTranslation } from "react-i18next"

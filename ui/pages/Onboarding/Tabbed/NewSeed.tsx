@@ -1,7 +1,7 @@
 import {
   generateNewKeyring,
   importKeyring,
-} from "@tallyho/tally-background/redux-slices/keyrings"
+} from "@pelagus/pelagus-background/redux-slices/keyrings"
 import React, { ReactElement } from "react"
 import {
   Redirect,
@@ -10,7 +10,7 @@ import {
   useHistory,
   useRouteMatch,
 } from "react-router-dom"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import OnboardingStepsIndicator from "../../../components/Onboarding/OnboardingStepsIndicator"
 import {
   useAreKeyringsUnlocked,

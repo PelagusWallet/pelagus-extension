@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react"
-import { WEBSITE_ORIGIN } from "@tallyho/tally-background/constants/website"
+import { WEBSITE_ORIGIN } from "@pelagus/pelagus-background/constants/website"
 import { useTranslation } from "react-i18next"
 import SharedTooltip from "../Shared/SharedTooltip"
 

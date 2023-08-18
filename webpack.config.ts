@@ -81,7 +81,7 @@ const baseConfig: Configuration = {
     new CopyPlugin({
       patterns: [
         {
-          from: "node_modules/@tallyho/tally-ui/public/",
+          from: "node_modules/@pelagus/pelagus-ui/public/",
         },
       ],
       // FIXME Forced cast below due to an incompatibility between the webpack
@@ -113,7 +113,7 @@ const modeConfigs: {
       new CopyPlugin({
         patterns: [
           {
-            from: "node_modules/@tallyho/tally-ui/public/",
+            from: "node_modules/@pelagus/pelagus-ui/public/",
             force: true,
             priority: 1,
             transform: (content, fileName) => {

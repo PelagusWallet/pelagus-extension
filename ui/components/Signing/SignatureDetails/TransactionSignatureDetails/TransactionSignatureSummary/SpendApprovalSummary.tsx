@@ -1,22 +1,22 @@
 import {
   ERC20_FUNCTIONS,
   ERC20_INTERFACE,
-} from "@tallyho/tally-background/lib/erc20"
+} from "@pelagus/pelagus-background/lib/erc20"
 import {
   convertFixedPointNumber,
   fixedPointNumberToString,
   parseToFixedPointNumber,
-} from "@tallyho/tally-background/lib/fixed-point"
-import { isMaxUint256 } from "@tallyho/tally-background/lib/utils"
-import { updateTransactionData } from "@tallyho/tally-background/redux-slices/transaction-construction"
-import { AssetApproval } from "@tallyho/tally-background/services/enrichment"
+} from "@pelagus/pelagus-background/lib/fixed-point"
+import { isMaxUint256 } from "@pelagus/pelagus-background/lib/utils"
+import { updateTransactionData } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
+import { AssetApproval } from "@pelagus/pelagus-background/services/enrichment"
 import { ethers } from "ethers"
 import { hexlify } from "ethers/lib/utils"
 import React, { ReactElement, useEffect, useState } from "react"
 import { useDispatch } from "react-redux"
 import classNames from "classnames"
 import { Trans, useTranslation } from "react-i18next"
-import { updateAdditionalSigningStatus } from "@tallyho/tally-background/redux-slices/signing"
+import { updateAdditionalSigningStatus } from "@pelagus/pelagus-background/redux-slices/signing"
 import SharedAssetIcon from "../../../../Shared/SharedAssetIcon"
 import SharedButton from "../../../../Shared/SharedButton"
 import SharedInput from "../../../../Shared/SharedInput"

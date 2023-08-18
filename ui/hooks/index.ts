@@ -1,7 +1,7 @@
 import { isAllowedQueryParamPage } from "@tallyho/provider-bridge-shared"
 
 import { useState, useEffect, ReactElement, ReactNode } from "react"
-import { getAllAddresses } from "@tallyho/tally-background/redux-slices/selectors/accountsSelectors"
+import { getAllAddresses } from "@pelagus/pelagus-background/redux-slices/selectors/accountsSelectors"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
 import { useBackgroundSelector } from "./redux-hooks"
 

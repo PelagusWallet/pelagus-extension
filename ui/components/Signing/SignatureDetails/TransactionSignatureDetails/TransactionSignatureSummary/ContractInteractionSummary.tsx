@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { ContractInteraction } from "@tallyho/tally-background/services/enrichment"
+import { ContractInteraction } from "@pelagus/pelagus-background/services/enrichment"
 import TransactionSignatureSummaryBody from "./TransactionSignatureSummaryBody"
 import { TransactionSignatureSummaryProps } from "./TransactionSignatureSummaryProps"
 import SharedAddress from "../../../../Shared/SharedAddress"

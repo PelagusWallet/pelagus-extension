@@ -1,15 +1,15 @@
-import { BlockEstimate } from "@tallyho/tally-background/networks"
-import { selectTransactionMainCurrencyPricePoint } from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
+import { BlockEstimate } from "@pelagus/pelagus-background/networks"
+import { selectTransactionMainCurrencyPricePoint } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
 import {
   EstimatedFeesPerGas,
   NetworkFeeSettings,
   NetworkFeeTypeChosen,
-} from "@tallyho/tally-background/redux-slices/transaction-construction"
+} from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import React, { ReactElement, useCallback, useEffect, useState } from "react"
-import { weiToGwei } from "@tallyho/tally-background/lib/utils"
-import { ETH } from "@tallyho/tally-background/constants"
-import { PricePoint } from "@tallyho/tally-background/assets"
-import { enrichAssetAmountWithMainCurrencyValues } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+import { weiToGwei } from "@pelagus/pelagus-background/lib/utils"
+import { ETH } from "@pelagus/pelagus-background/constants"
+import { PricePoint } from "@pelagus/pelagus-background/assets"
+import { enrichAssetAmountWithMainCurrencyValues } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { SharedTypedInput } from "../Shared/SharedInput"
 import { useBackgroundSelector } from "../../hooks"
 import { capitalize } from "../../utils/textUtils"

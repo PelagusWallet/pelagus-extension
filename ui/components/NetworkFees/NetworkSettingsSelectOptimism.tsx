@@ -1,10 +1,10 @@
 import React, { ReactElement } from "react"
-import { selectTransactionData } from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
+import { selectTransactionData } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
 import {
   ARBITRUM_ONE,
   NETWORK_BY_CHAIN_ID,
   OPTIMISM,
-} from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/constants"
 import { useTranslation } from "react-i18next"
 import { useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"

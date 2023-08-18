@@ -1,12 +1,12 @@
 import React, { ReactElement, useCallback, useEffect, useState } from "react"
-import { importKeyring } from "@tallyho/tally-background/redux-slices/keyrings"
+import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { Redirect, useHistory } from "react-router-dom"
 import { isValidMnemonic } from "@ethersproject/hdnode"
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { useTranslation } from "react-i18next"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
-import { sendEvent } from "@tallyho/tally-background/redux-slices/ui"
-import { OneTimeAnalyticsEvent } from "@tallyho/tally-background/lib/posthog"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
+import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
 import SharedButton from "../../../components/Shared/SharedButton"
 import OnboardingDerivationPathSelect, {
   DefaultPathIndex,

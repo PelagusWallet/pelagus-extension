@@ -1,9 +1,9 @@
-import { SECOND } from "@tallyho/tally-background/constants"
+import { SECOND } from "@pelagus/pelagus-background/constants"
 import {
   selectDefaultWallet,
   setNewDefaultWalletValue,
   setSnackbarMessage,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
 import React, {
   ReactElement,

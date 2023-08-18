@@ -1,7 +1,7 @@
 import {
   EnrichedEVMTransactionRequest,
   TransactionAnnotation,
-} from "@tallyho/tally-background/services/enrichment"
+} from "@pelagus/pelagus-background/services/enrichment"
 
 export type TransactionSignatureSummaryProps<
   T extends TransactionAnnotation | undefined =

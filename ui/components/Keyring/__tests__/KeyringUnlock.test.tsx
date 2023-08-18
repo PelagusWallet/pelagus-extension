@@ -1,6 +1,6 @@
 import React from "react"
 import userEvent from "@testing-library/user-event"
-import { initialState } from "@tallyho/tally-background/redux-slices/keyrings"
+import { initialState } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { renderWithProviders } from "../../../tests/test-utils"
 import KeyringUnlock from "../KeyringUnlock"
 

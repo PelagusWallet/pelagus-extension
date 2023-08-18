@@ -2,8 +2,8 @@ import {
   CurrentShardToExplorer,
   DEFAULT_NETWORKS_BY_CHAIN_ID,
   isBuiltInNetwork,
-} from "@tallyho/tally-background/constants"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+} from "@pelagus/pelagus-background/constants"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { blockExplorer } from "./constants"
 
 // From chainlist.org

@@ -1,5 +1,5 @@
 import React from "react"
-import { NFT } from "@tallyho/tally-background/nfts"
+import { NFT } from "@pelagus/pelagus-background/nfts"
 import SharedIcon from "../Shared/SharedIcon"
 import SharedImageWithFallback from "../Shared/SharedImageWithFallback"
 

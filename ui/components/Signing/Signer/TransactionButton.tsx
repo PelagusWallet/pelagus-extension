@@ -2,8 +2,8 @@ import React, { ReactElement, useEffect, useRef, useState } from "react"
 import {
   selectSigningData,
   selectTypedData,
-} from "@tallyho/tally-background/redux-slices/signing"
-import { selectIsTransactionLoaded } from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
+} from "@pelagus/pelagus-background/redux-slices/signing"
+import { selectIsTransactionLoaded } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
 import { useBackgroundSelector, useDebounce } from "../../../hooks"
 import SharedButton, {
   Props as SharedButtonProps,

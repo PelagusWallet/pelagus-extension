@@ -4,11 +4,11 @@ import {
   fetchBalance,
   importLedgerAccounts,
   LedgerDeviceState,
-} from "@tallyho/tally-background/redux-slices/ledger"
+} from "@pelagus/pelagus-background/redux-slices/ledger"
 import classNames from "classnames"
 import React, { ReactElement, useEffect, useState } from "react"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedButton from "../../../../components/Shared/SharedButton"

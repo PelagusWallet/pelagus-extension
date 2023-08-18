@@ -4,17 +4,17 @@ import {
   EstimatedFeesPerGas,
   NetworkFeeSettings,
   setFeeType,
-} from "@tallyho/tally-background/redux-slices/transaction-construction"
+} from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import {
   selectDefaultNetworkFeeSettings,
   selectTransactionData,
-} from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
 import {
   ARBITRUM_ONE,
   BINANCE_SMART_CHAIN,
   OPTIMISM,
   ROOTSTOCK,
-} from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import NetworkSettingsSelect from "./NetworkSettingsSelect"
 import NetworkSettingsOptimism from "./NetworkSettingsSelectOptimism"

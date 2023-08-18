@@ -1,4 +1,4 @@
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../../../../components/Shared/SharedButton"

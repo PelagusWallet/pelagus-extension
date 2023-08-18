@@ -1,4 +1,4 @@
-import { fetchWithTimeout } from "@tallyho/tally-background/utils/fetching"
+import { fetchWithTimeout } from "@pelagus/pelagus-background/utils/fetching"
 import { useEffect, useState } from "react"
 
 enum CampaignStatus {

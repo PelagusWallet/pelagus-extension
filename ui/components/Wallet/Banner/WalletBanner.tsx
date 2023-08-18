@@ -1,5 +1,5 @@
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
-import { selectHideBanners } from "@tallyho/tally-background/redux-slices/ui"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectHideBanners } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
 import React, { ReactElement, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"

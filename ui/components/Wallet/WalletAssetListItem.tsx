@@ -1,10 +1,10 @@
 import React, { ReactElement } from "react"
-import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
+import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 import {
   SmartContractFungibleAsset,
   SwappableAsset,
-} from "@tallyho/tally-background/assets"
+} from "@pelagus/pelagus-background/assets"
 
 import DoggoAssetListItem from "./AssetListItem/DoggoAssetListItem"
 import CommonAssetListItem from "./AssetListItem/CommonAssetListItem"

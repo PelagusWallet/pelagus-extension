@@ -1,8 +1,8 @@
-import { toggleHideDescription } from "@tallyho/tally-background/redux-slices/abilities"
+import { toggleHideDescription } from "@pelagus/pelagus-background/redux-slices/abilities"
 import {
   selectDescriptionHidden,
   selectOpenAbilityCount,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import classNames from "classnames"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"

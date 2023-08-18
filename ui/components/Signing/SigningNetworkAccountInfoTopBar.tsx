@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react"
-import { AccountTotal } from "@tallyho/tally-background/redux-slices/selectors"
+import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import SharedCurrentAccountInformation from "../Shared/SharedCurrentAccountInformation"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"

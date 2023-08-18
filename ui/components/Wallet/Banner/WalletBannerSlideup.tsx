@@ -1,7 +1,7 @@
 import {
   setSnackbarMessage,
   toggleHideBanners,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch } from "../../../hooks"

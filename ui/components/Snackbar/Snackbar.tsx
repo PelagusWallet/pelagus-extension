@@ -10,7 +10,7 @@ import classNames from "classnames"
 import {
   selectSnackbarMessage,
   clearSnackbarMessage,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   useBackgroundSelector,
   useDelayContentChange,

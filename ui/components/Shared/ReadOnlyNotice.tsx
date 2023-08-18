@@ -1,5 +1,5 @@
-import { selectCurrentAccountSigner } from "@tallyho/tally-background/redux-slices/selectors"
-import { ReadOnlyAccountSigner } from "@tallyho/tally-background/services/signing"
+import { selectCurrentAccountSigner } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import classNames from "classnames"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"

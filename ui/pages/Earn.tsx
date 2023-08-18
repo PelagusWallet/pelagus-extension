@@ -1,11 +1,11 @@
 import {
   clearInput,
   selectIsVaultDataStale,
-} from "@tallyho/tally-background/redux-slices/earn"
-import { formatCurrencyAmount } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
-import { selectMainCurrencySymbol } from "@tallyho/tally-background/redux-slices/selectors"
-import { DOGGO, EarnStages } from "@tallyho/tally-background/constants"
-import { fromFixedPointNumber } from "@tallyho/tally-background/lib/fixed-point"
+} from "@pelagus/pelagus-background/redux-slices/earn"
+import { formatCurrencyAmount } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
+import { selectMainCurrencySymbol } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { DOGGO, EarnStages } from "@pelagus/pelagus-background/constants"
+import { fromFixedPointNumber } from "@pelagus/pelagus-background/lib/fixed-point"
 
 import React, { ReactElement, useEffect, useState } from "react"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"

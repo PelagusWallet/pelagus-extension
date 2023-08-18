@@ -1,4 +1,4 @@
-import { assertUnreachable } from "@tallyho/tally-background/lib/utils/type-guards"
+import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
 import React, { ReactElement } from "react"
 import { SigningLedgerState } from "../../../../../hooks"
 import LedgerActivateBlindSigning from "./ActivateBlindSigning"

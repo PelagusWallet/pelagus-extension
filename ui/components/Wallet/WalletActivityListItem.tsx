@@ -3,9 +3,9 @@ import dayjs from "dayjs"
 import {
   sameEVMAddress,
   truncateAddress,
-} from "@tallyho/tally-background/lib/utils"
+} from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
-import { Activity } from "@tallyho/tally-background/redux-slices/activities"
+import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import SharedActivityIcon from "../Shared/SharedActivityIcon"
 import useActivityViewDetails from "../../hooks/activity-hooks"

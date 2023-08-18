@@ -1,17 +1,17 @@
 import React, { ReactElement } from "react"
 import { Link } from "react-router-dom"
-import { CompleteAssetAmount } from "@tallyho/tally-background/redux-slices/accounts"
+import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 import { useTranslation } from "react-i18next"
-import { bigIntToDecimal, isUnverifiedAssetByUser } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
-import { selectCurrentNetwork } from "@tallyho/tally-background/redux-slices/selectors"
-import { NETWORKS_SUPPORTING_SWAPS } from "@tallyho/tally-background/constants"
+import { bigIntToDecimal, isUnverifiedAssetByUser } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { NETWORKS_SUPPORTING_SWAPS } from "@pelagus/pelagus-background/constants"
 import {
   isSmartContractFungibleAsset,
   SmartContractFungibleAsset,
   SwappableAsset,
-} from "@tallyho/tally-background/assets"
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+} from "@pelagus/pelagus-background/assets"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import SharedLoadingSpinner from "../../Shared/SharedLoadingSpinner"
 import SharedAssetIcon from "../../Shared/SharedAssetIcon"
 import styles from "./styles"

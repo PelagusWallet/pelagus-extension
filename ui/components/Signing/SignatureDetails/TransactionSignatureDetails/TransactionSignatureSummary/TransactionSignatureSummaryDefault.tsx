@@ -1,10 +1,10 @@
-import { unitPricePointForPricePoint } from "@tallyho/tally-background/assets"
-import { selectAssetPricePoint } from "@tallyho/tally-background/redux-slices/assets"
-import { selectMainCurrencySymbol } from "@tallyho/tally-background/redux-slices/selectors"
+import { unitPricePointForPricePoint } from "@pelagus/pelagus-background/assets"
+import { selectAssetPricePoint } from "@pelagus/pelagus-background/redux-slices/assets"
+import { selectMainCurrencySymbol } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   enrichAssetAmountWithDecimalValues,
   heuristicDesiredDecimalsForUnitPrice,
-} from "@tallyho/tally-background/redux-slices/utils/asset-utils"
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { TransactionSignatureSummaryProps } from "./TransactionSignatureSummaryProps"

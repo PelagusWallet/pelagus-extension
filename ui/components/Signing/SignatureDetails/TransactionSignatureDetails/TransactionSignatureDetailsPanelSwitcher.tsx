@@ -1,4 +1,4 @@
-import { EnrichedEVMTransactionRequest } from "@tallyho/tally-background/services/enrichment"
+import { EnrichedEVMTransactionRequest } from "@pelagus/pelagus-background/services/enrichment"
 import React, { ReactElement } from "react"
 import { useSwitchablePanels } from "../../../../hooks"
 import DetailsPanel from "./DetailsPanel"

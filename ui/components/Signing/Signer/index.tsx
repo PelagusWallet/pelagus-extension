@@ -1,5 +1,5 @@
-import { SignOperationType } from "@tallyho/tally-background/redux-slices/signing"
-import { AccountSigner } from "@tallyho/tally-background/services/signing"
+import { SignOperationType } from "@pelagus/pelagus-background/redux-slices/signing"
+import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { ReactElement } from "react"
 import { ResolvedSignatureDetails } from "../SignatureDetails"
 

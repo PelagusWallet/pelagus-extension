@@ -1,5 +1,5 @@
 import React from "react"
-import { EIP4361Data } from "@tallyho/tally-background/utils/signing"
+import { EIP4361Data } from "@pelagus/pelagus-background/utils/signing"
 import { useTranslation } from "react-i18next"
 import SignDataInfo from "./SignDataInfo"
 

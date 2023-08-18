@@ -1,11 +1,11 @@
-import { HexString } from "@tallyho/tally-background/types"
+import { HexString } from "@pelagus/pelagus-background/types"
 import {
   Activity,
   INFINITE_VALUE,
-} from "@tallyho/tally-background/redux-slices/activities"
-import { sameEVMAddress } from "@tallyho/tally-background/lib/utils"
+} from "@pelagus/pelagus-background/redux-slices/activities"
+import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
-import { TransactionAnnotation } from "@tallyho/tally-background/services/enrichment"
+import { TransactionAnnotation } from "@pelagus/pelagus-background/services/enrichment"
 
 function isReceiveActivity(
   activity: Activity,

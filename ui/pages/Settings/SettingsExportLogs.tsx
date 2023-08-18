@@ -1,7 +1,7 @@
 import React, { ReactElement, useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import dayjs from "dayjs"
-import { serializeLogs } from "@tallyho/tally-background/lib/logger"
+import { serializeLogs } from "@pelagus/pelagus-background/lib/logger"
 import SharedButton from "../../components/Shared/SharedButton"
 import SharedPageHeader from "../../components/Shared/SharedPageHeader"
 

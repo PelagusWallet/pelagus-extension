@@ -1,10 +1,10 @@
-import { NETWORK_BY_CHAIN_ID } from "@tallyho/tally-background/constants"
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+import { NETWORK_BY_CHAIN_ID } from "@pelagus/pelagus-background/constants"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import {
   refetchNFTsFromCollection,
   NFTWithCollection,
-} from "@tallyho/tally-background/redux-slices/nfts"
-import { getAccountNameOnChain } from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
+import { getAccountNameOnChain } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement, useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import {

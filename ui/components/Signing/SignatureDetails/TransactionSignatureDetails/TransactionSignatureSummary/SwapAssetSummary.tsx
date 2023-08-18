@@ -1,4 +1,4 @@
-import { AssetSwap } from "@tallyho/tally-background/services/enrichment"
+import { AssetSwap } from "@pelagus/pelagus-background/services/enrichment"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { TransactionSignatureSummaryProps } from "./TransactionSignatureSummaryProps"

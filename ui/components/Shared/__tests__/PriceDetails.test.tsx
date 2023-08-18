@@ -1,5 +1,5 @@
 import React from "react"
-import { hardcodedMainCurrencySign } from "@tallyho/tally-background/redux-slices/utils/constants"
+import { hardcodedMainCurrencySign } from "@pelagus/pelagus-background/redux-slices/utils/constants"
 import { render } from "@testing-library/react"
 import PriceDetails from "../PriceDetails"
 

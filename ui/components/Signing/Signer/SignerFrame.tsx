@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
-import { SignOperationType } from "@tallyho/tally-background/redux-slices/signing"
-import { assertUnreachable } from "@tallyho/tally-background/lib/utils/type-guards"
+import { SignOperationType } from "@pelagus/pelagus-background/redux-slices/signing"
+import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
 import SignerKeyringFrame from "./SignerKeyring/SignerKeyringFrame"
 import SignerLedgerFrame from "./SignerLedger/SignerLedgerFrame"
 import SignerReadOnlyFrame from "./SignerReadOnly/SignerReadOnlyFrame"

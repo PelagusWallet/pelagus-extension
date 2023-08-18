@@ -1,5 +1,5 @@
-import { AccountTotal } from "@tallyho/tally-background/redux-slices/selectors"
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
+import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch } from "../../hooks"

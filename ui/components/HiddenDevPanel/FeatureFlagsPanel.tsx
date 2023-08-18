@@ -3,7 +3,7 @@ import {
   isEnabled,
   RuntimeFlag,
   RuntimeFlagType,
-} from "@tallyho/tally-background/features"
+} from "@pelagus/pelagus-background/features"
 import React, { ReactElement, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { setLocalStorageItem } from "../../hooks"

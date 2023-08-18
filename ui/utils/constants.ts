@@ -10,8 +10,8 @@ import {
   QUAI_NETWORK,
   QUAI_NETWORK_LOCAL,
   ROOTSTOCK,
-} from "@tallyho/tally-background/constants"
-import { NetworkFeeTypeChosen } from "@tallyho/tally-background/redux-slices/transaction-construction"
+} from "@pelagus/pelagus-background/constants"
+import { NetworkFeeTypeChosen } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { i18n } from "../_locales/i18n"
 
 export const doggoTokenDecimalDigits = 18

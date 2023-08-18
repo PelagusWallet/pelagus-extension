@@ -1,8 +1,8 @@
 import {
   attachPopupUIToRootElement,
   attachUIToRootElement,
-} from "@tallyho/tally-ui"
-import GlobalError from "@tallyho/tally-ui/components/GlobalError/GlobalError"
+} from "@pelagus/pelagus-ui"
+import GlobalError from "@pelagus/pelagus-ui/components/GlobalError/GlobalError"
 
 // Prevents from the green screen. The solution checks if the first top-level element is rendered.
 // If this does not happen then reload the UI thread.  To prevent an infinity loop

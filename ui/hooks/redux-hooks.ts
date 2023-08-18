@@ -1,5 +1,5 @@
-import { BackgroundDispatch, RootState } from "@tallyho/tally-background"
-import { noopAction } from "@tallyho/tally-background/redux-slices/utils"
+import { BackgroundDispatch, RootState } from "@pelagus/pelagus-background"
+import { noopAction } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useEffect, useState } from "react"
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux"
 

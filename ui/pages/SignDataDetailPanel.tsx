@@ -1,5 +1,5 @@
-import { selectTypedData } from "@tallyho/tally-background/redux-slices/signing"
-import { EnrichedSignTypedDataRequest } from "@tallyho/tally-background/services/enrichment"
+import { selectTypedData } from "@pelagus/pelagus-background/redux-slices/signing"
+import { EnrichedSignTypedDataRequest } from "@pelagus/pelagus-background/services/enrichment"
 import classNames from "classnames"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"

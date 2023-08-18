@@ -1,3 +1,3 @@
-import { attachTabUIToRootElement } from "@tallyho/tally-ui"
+import { attachTabUIToRootElement } from "@pelagus/pelagus-ui"
 
 attachTabUIToRootElement()

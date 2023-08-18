@@ -1,6 +1,6 @@
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
-import { denyOrRevokePermission } from "@tallyho/tally-background/redux-slices/dapp"
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
+import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import SharedIcon from "../../components/Shared/SharedIcon"

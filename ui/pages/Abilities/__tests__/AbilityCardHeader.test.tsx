@@ -1,5 +1,5 @@
-import { ETHEREUM } from "@tallyho/tally-background/constants"
-import { createAccountData } from "@tallyho/tally-background/tests/factories"
+import { ETHEREUM } from "@pelagus/pelagus-background/constants"
+import { createAccountData } from "@pelagus/pelagus-background/tests/factories"
 import React from "react"
 import {
   createAbility,

@@ -1,4 +1,4 @@
-import { Filter } from "@tallyho/tally-background/redux-slices/nfts"
+import { Filter } from "@pelagus/pelagus-background/redux-slices/nfts"
 import React from "react"
 import SharedSkeletonLoader from "../../Shared/SharedSkeletonLoader"
 import SharedToggleItem from "../../Shared/SharedToggleItem"

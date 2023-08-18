@@ -5,8 +5,8 @@ import {
   getTotalBalanceForOverview,
   selectAccountAndTimestampedActivities,
   selectAccountTotalsForOverview,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { selectInitializationTimeExpired } from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectInitializationTimeExpired } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useBackgroundSelector } from "../hooks"
 import OverviewAssetsTable from "../components/Overview/OverviewAssetsTable"
 import BalanceHeader from "../components/Overview/BalanceHeader"

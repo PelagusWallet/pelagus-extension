@@ -1,22 +1,22 @@
 import React, { ReactElement } from "react"
-import { SmartContractFungibleAsset } from "@tallyho/tally-background/assets"
+import { SmartContractFungibleAsset } from "@pelagus/pelagus-background/assets"
 import { useTranslation } from "react-i18next"
 import {
   hideAsset,
   updateAssetMetadata,
-} from "@tallyho/tally-background/redux-slices/assets"
-import { truncateAddress } from "@tallyho/tally-background/lib/utils"
+} from "@pelagus/pelagus-background/redux-slices/assets"
+import { truncateAddress } from "@pelagus/pelagus-background/lib/utils"
 import {
   selectCurrentAccount,
   selectCurrentAccountActivities,
   selectCurrentNetwork,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import classNames from "classnames"
-import { isUnverifiedAssetByUser } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+import { isUnverifiedAssetByUser } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { useHistory, useLocation } from "react-router-dom"
-import { Activity } from "@tallyho/tally-background/redux-slices/activities"
+import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
 import SharedButton from "../../Shared/SharedButton"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import SharedSlideUpMenuPanel from "../../Shared/SharedSlideUpMenuPanel"

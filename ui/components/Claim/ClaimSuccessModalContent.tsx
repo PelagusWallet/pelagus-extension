@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
-import { selectCurrentAccount } from "@tallyho/tally-background/redux-slices/selectors"
-import { WEBSITE_ORIGIN } from "@tallyho/tally-background/constants/website"
+import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { WEBSITE_ORIGIN } from "@pelagus/pelagus-background/constants/website"
 import SharedButton from "../Shared/SharedButton"
 import SharedIcon from "../Shared/SharedIcon"
 import SharedTwitterButton from "../Shared/SharedTwitterButton"

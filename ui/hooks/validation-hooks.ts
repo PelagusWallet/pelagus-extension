@@ -1,14 +1,14 @@
-import { AddressOnNetwork } from "@tallyho/tally-background/accounts"
-import { ROOTSTOCK } from "@tallyho/tally-background/constants"
+import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
+import { ROOTSTOCK } from "@pelagus/pelagus-background/constants"
 import {
   isProbablyEVMAddress,
   normalizeEVMAddress,
   isValidChecksumAddress,
   isMixedCaseAddress,
-} from "@tallyho/tally-background/lib/utils"
-import { resolveNameOnNetwork } from "@tallyho/tally-background/redux-slices/accounts"
-import { selectCurrentAccount } from "@tallyho/tally-background/redux-slices/selectors"
-import { HexString } from "@tallyho/tally-background/types"
+} from "@pelagus/pelagus-background/lib/utils"
+import { resolveNameOnNetwork } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { HexString } from "@pelagus/pelagus-background/types"
 import { useRef, useState, useCallback } from "react"
 import { useBackgroundDispatch, useBackgroundSelector } from "./redux-hooks"
 

@@ -1,6 +1,6 @@
 import React, { ReactElement, useMemo } from "react"
 import classNames from "classnames"
-import { assertUnreachable } from "@tallyho/tally-background/lib/utils/type-guards"
+import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
 
 type SharedLoadingSpinnerProps = {
   size: "small" | "medium"

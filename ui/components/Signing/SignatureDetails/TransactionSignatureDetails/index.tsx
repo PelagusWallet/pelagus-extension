@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react"
-import { EnrichedEVMTransactionRequest } from "@tallyho/tally-background/services/enrichment"
+import { EnrichedEVMTransactionRequest } from "@pelagus/pelagus-background/services/enrichment"
 import TransactionSignatureDetailsPanelSwitcher from "./TransactionSignatureDetailsPanelSwitcher"
 import TransactionSignatureDetailsPanelCombined from "./TransactionSignatureDetailsPanelCombined"
 import TransactionSignatureSummary from "./TransactionSignatureSummary"

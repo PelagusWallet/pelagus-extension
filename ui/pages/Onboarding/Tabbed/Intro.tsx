@@ -1,5 +1,5 @@
-import { OneTimeAnalyticsEvent } from "@tallyho/tally-background/lib/posthog"
-import { sendEvent } from "@tallyho/tally-background/redux-slices/ui"
+import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
+import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../../../components/Shared/SharedButton"

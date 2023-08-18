@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import classNames from "classnames"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
 
 type Props = {

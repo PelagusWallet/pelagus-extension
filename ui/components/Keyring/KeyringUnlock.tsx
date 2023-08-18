@@ -1,9 +1,9 @@
 import React, { ReactElement, useEffect, useState } from "react"
 import { useHistory } from "react-router-dom"
-import { unlockKeyrings } from "@tallyho/tally-background/redux-slices/keyrings"
-import { rejectTransactionSignature } from "@tallyho/tally-background/redux-slices/transaction-construction"
+import { unlockKeyrings } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { rejectTransactionSignature } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { useTranslation } from "react-i18next"
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   useBackgroundDispatch,
   useAreKeyringsUnlocked,

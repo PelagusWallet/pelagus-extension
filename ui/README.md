@@ -4,9 +4,9 @@
 
 Welcome to the frontend portion of the Pelagus browser extension. This is the
 React portion of the codebase which handles UI related states, and communicates
-with the background script API `@tallyho/tally-background`. The intent is for
+with the background script API `@pelagus/pelagus-background`. The intent is for
 all communication with outside APIs to strictly happen within
-`@tallyho/tally-background`, not here. This frontend only contains what's
+`@pelagus/pelagus-background`, not here. This frontend only contains what's
 needed to provide the visual goodness!
 
 ## Prerequisites ✍️

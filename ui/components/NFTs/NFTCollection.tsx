@@ -5,9 +5,9 @@ import {
   NFTCached,
   NFTCollectionCached,
   NFTWithCollection,
-} from "@tallyho/tally-background/redux-slices/nfts"
+} from "@pelagus/pelagus-background/redux-slices/nfts"
 import classNames from "classnames"
-import { NETWORK_BY_CHAIN_ID } from "@tallyho/tally-background/constants"
+import { NETWORK_BY_CHAIN_ID } from "@pelagus/pelagus-background/constants"
 import NFTItem from "./NFTItem"
 import { useBackgroundDispatch, useIntersectionObserver } from "../../hooks"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"

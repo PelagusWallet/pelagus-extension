@@ -1,15 +1,15 @@
 import React, { ReactElement, useState, useEffect, useCallback } from "react"
-import { browser } from "@tallyho/tally-background"
+import { browser } from "@pelagus/pelagus-background"
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
-import { selectAllowedPages } from "@tallyho/tally-background/redux-slices/selectors"
+import { selectAllowedPages } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   FeatureFlags,
   isDisabled,
   isEnabled,
-} from "@tallyho/tally-background/features"
-import { denyOrRevokePermission } from "@tallyho/tally-background/redux-slices/dapp"
+} from "@pelagus/pelagus-background/features"
+import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
 import { useTranslation } from "react-i18next"
-import { setSelectedNetwork } from "@tallyho/tally-background/redux-slices/ui"
+import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProtocolSwitcher from "./TopMenuProtocolSwitcher"
 import TopMenuProfileButton from "./TopMenuProfileButton"
 

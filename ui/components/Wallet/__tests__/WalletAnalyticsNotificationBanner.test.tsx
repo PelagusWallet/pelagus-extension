@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event"
 import {
   defaultSettings,
   initialState,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 
 import WalletAnalyticsNotificationBanner from "../WalletAnalyticsNotificationBanner"
 import { renderWithProviders } from "../../../tests/test-utils"

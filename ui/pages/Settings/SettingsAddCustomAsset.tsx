@@ -1,27 +1,27 @@
-import { TEST_NETWORK_BY_CHAIN_ID } from "@tallyho/tally-background/constants"
+import { TEST_NETWORK_BY_CHAIN_ID } from "@pelagus/pelagus-background/constants"
 import {
   isProbablyEVMAddress,
   normalizeEVMAddress,
-} from "@tallyho/tally-background/lib/utils"
-import { EVMNetwork } from "@tallyho/tally-background/networks"
+} from "@pelagus/pelagus-background/lib/utils"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import {
   checkTokenContractDetails,
   importCustomToken,
-} from "@tallyho/tally-background/redux-slices/assets"
+} from "@pelagus/pelagus-background/redux-slices/assets"
 import {
   selectCurrentAccount,
   selectCurrentAccountBalances,
   selectCurrentNetwork,
   userValueDustThreshold,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { selectEVMNetworks } from "@tallyho/tally-background/redux-slices/selectors/networks"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
 import {
   selectHideDust,
   selectShowTestNetworks,
   setSnackbarMessage,
-} from "@tallyho/tally-background/redux-slices/ui"
-import { AsyncThunkFulfillmentType } from "@tallyho/tally-background/redux-slices/utils"
-import { HexString } from "@tallyho/tally-background/types"
+} from "@pelagus/pelagus-background/redux-slices/ui"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import { HexString } from "@pelagus/pelagus-background/types"
 import React, { FormEventHandler, ReactElement, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
@@ -39,7 +39,7 @@ import TopMenuProtocolListItem from "../../components/TopMenu/TopMenuProtocolLis
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { useSetState } from "../../hooks/react-hooks"
 import { trimWithEllipsis } from "../../utils/textUtils"
-import { updateAccountBalance } from "@tallyho/tally-background/redux-slices/accounts"
+import { updateAccountBalance } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 const HELPDESK_CUSTOM_TOKENS_LINK =
   "https://pelaguswallet.notion.site/Adding-Custom-Tokens-2facd9b82b5f4685a7d4766caeb05a4c"

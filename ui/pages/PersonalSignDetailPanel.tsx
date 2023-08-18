@@ -1,4 +1,4 @@
-import { selectSigningData } from "@tallyho/tally-background/redux-slices/signing"
+import { selectSigningData } from "@pelagus/pelagus-background/redux-slices/signing"
 import React from "react"
 import { EIP191Info, EIP4361Info } from "../components/SignData"
 import { useBackgroundSelector } from "../hooks"

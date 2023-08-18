@@ -1,13 +1,13 @@
 import React, { ReactElement, useEffect, useState } from "react"
-import { Ability } from "@tallyho/tally-background/abilities"
+import { Ability } from "@pelagus/pelagus-background/abilities"
 import {
   removeAbility,
   reportAndRemoveAbility,
-} from "@tallyho/tally-background/redux-slices/abilities"
+} from "@pelagus/pelagus-background/redux-slices/abilities"
 import { useTranslation } from "react-i18next"
 
 import classNames from "classnames"
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useBackgroundDispatch } from "../../hooks"
 import SharedButton from "../../components/Shared/SharedButton"
 import { i18n } from "../../_locales/i18n"

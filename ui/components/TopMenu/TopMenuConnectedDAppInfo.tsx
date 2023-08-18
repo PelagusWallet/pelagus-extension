@@ -1,4 +1,4 @@
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import classNames from "classnames"
 import React, { ReactElement, useCallback, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"

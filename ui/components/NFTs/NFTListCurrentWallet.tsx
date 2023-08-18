@@ -3,7 +3,7 @@ import {
   selectCurrentAccountNFTs,
   selectCurrentAccountNFTsCount,
   selectIsReloadingNFTs,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import NFTList from "./NFTList"
 import { useBackgroundSelector, useNFTsReload } from "../../hooks"
 import NFTsExploreBanner from "./NFTsExploreBanner"

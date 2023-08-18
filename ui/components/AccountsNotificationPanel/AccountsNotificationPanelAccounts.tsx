@@ -9,26 +9,26 @@ import {
   setNewSelectedAccount,
   setSnackbarMessage,
   updateSignerTitle,
-} from "@tallyho/tally-background/redux-slices/ui"
-import { deriveAddress } from "@tallyho/tally-background/redux-slices/keyrings"
-import { ROOTSTOCK, VALID_SHARDS } from "@tallyho/tally-background/constants"
+} from "@pelagus/pelagus-background/redux-slices/ui"
+import { deriveAddress } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { ROOTSTOCK, VALID_SHARDS } from "@pelagus/pelagus-background/constants"
 import {
   AccountTotal,
   selectCurrentNetworkAccountTotalsByCategory,
   selectCurrentAccount,
   selectCurrentNetwork,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useHistory } from "react-router-dom"
-import { AccountType } from "@tallyho/tally-background/redux-slices/accounts"
+import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
 import {
   normalizeEVMAddress,
   sameEVMAddress,
-} from "@tallyho/tally-background/lib/utils"
-import { clearSignature } from "@tallyho/tally-background/redux-slices/earn"
-import { resetClaimFlow } from "@tallyho/tally-background/redux-slices/claim"
+} from "@pelagus/pelagus-background/lib/utils"
+import { clearSignature } from "@pelagus/pelagus-background/redux-slices/earn"
+import { resetClaimFlow } from "@pelagus/pelagus-background/redux-slices/claim"
 import { useTranslation } from "react-i18next"
-import { AccountSigner } from "@tallyho/tally-background/services/signing"
-import { isSameAccountSignerWithId } from "@tallyho/tally-background/utils/signing"
+import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
+import { isSameAccountSignerWithId } from "@pelagus/pelagus-background/utils/signing"
 import SharedButton from "../Shared/SharedButton"
 import {
   useBackgroundDispatch,

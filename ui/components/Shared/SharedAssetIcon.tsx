@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react"
-import { storageGatewayURL } from "@tallyho/tally-background/lib/storage-gateway"
+import { storageGatewayURL } from "@pelagus/pelagus-background/lib/storage-gateway"
 import classNames from "classnames"
 
 type Props = {

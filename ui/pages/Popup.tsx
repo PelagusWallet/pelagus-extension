@@ -5,22 +5,22 @@ import { ErrorBoundary } from "react-error-boundary"
 import {
   setRouteHistoryEntries,
   userActivityEncountered,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 
 import { Store } from "webext-redux"
 import { Provider } from "react-redux"
 import { TransitionGroup, CSSTransition } from "react-transition-group"
 import { isAllowedQueryParamPage } from "@tallyho/provider-bridge-shared"
 import { runtime } from "webextension-polyfill"
-import { FeatureFlags, isEnabled } from "@tallyho/tally-background/features"
-import { popupMonitorPortName } from "@tallyho/tally-background/main"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
+import { popupMonitorPortName } from "@pelagus/pelagus-background/main"
 import {
   getAddressCount,
   selectCurrentAccountSigner,
   selectCurrentAddressNetwork,
   selectKeyringStatus,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { selectIsTransactionPendingSignature } from "@tallyho/tally-background/redux-slices/selectors/transactionConstructionSelectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectIsTransactionPendingSignature } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
 import { Location } from "history"
 import {
   useIsDappPopup,

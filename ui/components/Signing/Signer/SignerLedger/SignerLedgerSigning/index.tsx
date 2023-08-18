@@ -1,14 +1,14 @@
 import {
   fixedPointNumberToString,
   multiplyFixedPointNumbers,
-} from "@tallyho/tally-background/lib/fixed-point"
+} from "@pelagus/pelagus-background/lib/fixed-point"
 import {
   EIP1559TransactionRequest,
   LegacyEVMTransactionRequest,
-} from "@tallyho/tally-background/networks"
-import { SignOperationType } from "@tallyho/tally-background/redux-slices/signing"
-import { DisplayDetails } from "@tallyho/tally-background/services/ledger"
-import { EIP712TypedData } from "@tallyho/tally-background/types"
+} from "@pelagus/pelagus-background/networks"
+import { SignOperationType } from "@pelagus/pelagus-background/redux-slices/signing"
+import { DisplayDetails } from "@pelagus/pelagus-background/services/ledger"
+import { EIP712TypedData } from "@pelagus/pelagus-background/types"
 import { ethers } from "ethers"
 import { _TypedDataEncoder } from "ethers/lib/utils"
 import React, { ReactElement } from "react"

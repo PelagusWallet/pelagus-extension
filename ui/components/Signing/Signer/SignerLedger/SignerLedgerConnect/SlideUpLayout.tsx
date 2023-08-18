@@ -1,4 +1,4 @@
-import { connectLedger } from "@tallyho/tally-background/redux-slices/ledger"
+import { connectLedger } from "@pelagus/pelagus-background/redux-slices/ledger"
 import React, { ReactElement, ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch } from "../../../../../hooks"

@@ -1,9 +1,9 @@
-import { WEBSITE_ORIGIN } from "@tallyho/tally-background/constants/website"
+import { WEBSITE_ORIGIN } from "@pelagus/pelagus-background/constants/website"
 import {
   deleteAnalyticsData,
   selectCollectAnalytics,
   updateAnalyticsPreferences,
-} from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useDispatch, useSelector } from "react-redux"

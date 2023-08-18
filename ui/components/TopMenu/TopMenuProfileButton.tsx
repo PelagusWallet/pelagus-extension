@@ -1,9 +1,9 @@
-import { AccountType } from "@tallyho/tally-background/redux-slices/accounts"
+import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
 import {
   selectCurrentAccount,
   selectCurrentAccountTotal,
-} from "@tallyho/tally-background/redux-slices/selectors"
-import { setSnackbarMessage } from "@tallyho/tally-background/redux-slices/ui"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"

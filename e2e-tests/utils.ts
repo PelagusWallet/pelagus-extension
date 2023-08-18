@@ -1,6 +1,6 @@
 /* eslint-disable no-empty-pattern */
 import { test as base, chromium, Page } from "@playwright/test"
-import { FeatureFlagType, isEnabled } from "@tallyho/tally-background/features"
+import { FeatureFlagType, isEnabled } from "@pelagus/pelagus-background/features"
 import path from "path"
 import WalletPageHelper from "./utils/walletPageHelper"
 

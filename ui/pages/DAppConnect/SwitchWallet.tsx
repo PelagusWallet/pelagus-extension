@@ -1,4 +1,4 @@
-import { selectDefaultWallet } from "@tallyho/tally-background/redux-slices/ui"
+import { selectDefaultWallet } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../../components/Shared/SharedButton"

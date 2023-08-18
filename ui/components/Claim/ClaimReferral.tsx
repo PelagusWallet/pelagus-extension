@@ -3,11 +3,11 @@ import {
   chooseSelectedForBonus,
   selectClaimSelections,
   DAO,
-} from "@tallyho/tally-background/redux-slices/claim"
-import { formatCurrencyAmount } from "@tallyho/tally-background/redux-slices/utils/asset-utils"
-import { selectMainCurrencySymbol } from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/claim"
+import { formatCurrencyAmount } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
+import { selectMainCurrencySymbol } from "@pelagus/pelagus-background/redux-slices/selectors"
 import classNames from "classnames"
-import { HexString } from "@tallyho/tally-background/types"
+import { HexString } from "@pelagus/pelagus-background/types"
 import ClaimAmountBanner from "./ClaimAmountBanner"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedAddressInput from "../Shared/SharedAddressInput"

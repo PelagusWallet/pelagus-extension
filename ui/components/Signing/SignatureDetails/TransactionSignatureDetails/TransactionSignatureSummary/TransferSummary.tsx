@@ -1,17 +1,17 @@
-import { selectAssetPricePoint } from "@tallyho/tally-background/redux-slices/assets"
+import { selectAssetPricePoint } from "@pelagus/pelagus-background/redux-slices/assets"
 import {
   getAssetsState,
   selectMainCurrencySymbol,
-} from "@tallyho/tally-background/redux-slices/selectors"
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   AssetDecimalAmount,
   enrichAssetAmountWithMainCurrencyValues,
-} from "@tallyho/tally-background/redux-slices/utils/asset-utils"
-import { AssetTransfer } from "@tallyho/tally-background/services/enrichment"
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
+import { AssetTransfer } from "@pelagus/pelagus-background/services/enrichment"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { AnyAssetAmount } from "@tallyho/tally-background/assets"
-import { HexString } from "@tallyho/tally-background/types"
+import { AnyAssetAmount } from "@pelagus/pelagus-background/assets"
+import { HexString } from "@pelagus/pelagus-background/types"
 import SigningDataTransactionSummaryBody from "./TransactionSignatureSummaryBody"
 import { TransactionSignatureSummaryProps } from "./TransactionSignatureSummaryProps"
 import { useBackgroundSelector } from "../../../../../hooks"

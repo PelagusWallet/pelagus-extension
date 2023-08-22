@@ -11,7 +11,7 @@
   "web_accessible_resources": [
     {
       "resources": ["window-provider.js"],
-      "matches": ["https://*/*"]
+      "matches": ["<all_urls>"]
     }
   ],
   "content_scripts": [

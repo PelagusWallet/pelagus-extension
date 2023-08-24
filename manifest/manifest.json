@@ -39,7 +39,7 @@
     "default_title": "Pelagus",
     "default_popup": "popup.html"
   },
-  "permissions": ["alarms", "storage", "unlimitedStorage", "activeTab", "runtime"],
+  "permissions": ["alarms", "storage", "unlimitedStorage", "activeTab"],
   "background": {
     "service_worker": "background.js"
   }

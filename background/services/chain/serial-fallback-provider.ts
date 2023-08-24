@@ -25,7 +25,6 @@ import {
   ALCHEMY_KEY,
   transactionFromAlchemyWebsocketTransaction,
 } from "../../lib/alchemy"
-import { error } from "ajv/dist/vocabularies/applicator/dependencies"
 
 // Back off by this amount as a base, exponentiated by attempts and jittered.
 const BASE_BACKOFF_MS = 400
@@ -1031,11 +1030,18 @@ export function makeSerialFallbackProvider(
     type: "Quai" as const,
     creator: () => {
       const url = new URL(rpcUrl)
-      if (/^wss?/.test(url.protocol)) {
-        return new QuaisWebSocketProvider(rpcUrl)
+      if(globalThis.main.UrlToProvider.has(rpcUrl)){
+        return globalThis.main.UrlToProvider.get(rpcUrl) as WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
+      } else {
+        console.log("Provider not found in map, creating new provider...")
       }
-
-      return new QuaisJsonRpcProvider(rpcUrl)
+      let provider: WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
+      if (/^wss?/.test(url.protocol)) {
+        provider = new QuaisWebSocketProvider(rpcUrl)
+      }
+      provider = new QuaisJsonRpcProvider(rpcUrl)
+      globalThis.main.UrlToProvider.set(rpcUrl, provider)
+      return provider
     },
     shard: ShardFromRpcUrl(rpcUrl),
     rpcUrl: rpcUrl,

@@ -39,6 +39,7 @@ export type Events = {
   generateNewKeyring: string | undefined
   deriveAddress: DeriveAddressData
   importKeyring: ImportKeyring
+  exportPrivKey: string
 }
 
 export const emitter = new Emittery<Events>()
@@ -169,5 +170,12 @@ export const createPassword = createBackgroundAsyncThunk(
   "keyrings/createPassword",
   async (password: string) => {
     await emitter.emit("createPassword", password)
+  }
+)
+
+export const exportPrivKey = createBackgroundAsyncThunk(
+  "keyrings/exportPrivKey",
+  async (address: string) => {
+    return { key: await main.exportPrivKey(address) }
   }
 )

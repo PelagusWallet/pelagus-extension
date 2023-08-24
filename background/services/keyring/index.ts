@@ -358,6 +358,13 @@ export default class KeyringService extends BaseService<Events> {
     return newKeyring.id
   }
 
+  async exportPrivKey(address: string): Promise<string> {
+    this.requireUnlocked()
+    let keyring = await this.#findKeyring(address)
+    const privKey = keyring.exportPrivateKey(address, "I solemnly swear that I am treating this private key material with great care.")
+    return privKey??"Not found"
+  }
+
   /**
    * Return the source of a given address' keyring if it exists.  If an
    * address does not have a keyring associated with it - returns null.

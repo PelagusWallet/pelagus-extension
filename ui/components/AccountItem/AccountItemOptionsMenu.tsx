@@ -2,11 +2,14 @@ import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors
 import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useBackgroundDispatch } from "../../hooks"
+import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import AccountItemEditName from "./AccountItemEditName"
 import AccountItemRemovalConfirm from "./AccountItemRemovalConfirm"
+import { useHistory } from "react-router-dom"
+import { exportPrivKey } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import AccountitemOptionLabel from "./AccountItemOptionLabel"
 
 type AccountItemOptionsMenuProps = {
   accountTotal: AccountTotal
@@ -19,15 +22,24 @@ export default function AccountItemOptionsMenu({
     keyPrefix: "accounts.accountItem",
   })
   const dispatch = useBackgroundDispatch()
+  const history = useHistory()
+  const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const { address, network } = accountTotal
   const [showAddressRemoveConfirm, setShowAddressRemoveConfirm] =
     useState(false)
+  const [key, setKey] = useState("")
+  const [showExportPrivateKey, setShowExportPrivateKey] = useState(false)
   const [showEditName, setShowEditName] = useState(false)
 
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
     dispatch(setSnackbarMessage("Address copied to clipboard"))
   }, [address, dispatch])
+
+  const copyKey = useCallback(() => {
+    navigator.clipboard.writeText(key)
+    dispatch(setSnackbarMessage("Key copied to clipboard"))
+  }, [key, dispatch])
 
   return (
     <div className="options_menu_wrap">
@@ -60,7 +72,7 @@ export default function AccountItemOptionsMenu({
           e?.stopPropagation()
           setShowAddressRemoveConfirm(false)
         }}
-      >
+      > 
         <div
           role="presentation"
           onClick={(e) => e.stopPropagation()}
@@ -72,6 +84,36 @@ export default function AccountItemOptionsMenu({
           />
         </div>
       </SharedSlideUpMenu>
+      <SharedSlideUpMenu
+        size="custom"
+        customSize="336px"
+        isOpen={showExportPrivateKey}
+        close={(e) => {
+          e?.stopPropagation()
+          setKey("")
+          setShowExportPrivateKey(false)
+        }}
+      >
+        <li className="account_container">
+        <div className="item-summary standard_width">
+        <div title="Private Key" className="address_name">Private Key</div>
+        {key}
+        </div>
+        </li>
+        <button
+          type="button"
+          onClick={() => copyKey()}
+          style={{ marginLeft: "5%"}}
+        >
+          <AccountitemOptionLabel
+                          icon={"icons/s/copy.svg"}
+                          label={"Copy Key"}
+                          hoverable
+                          color={"var(--green-40)"}
+                          hoverColor={"var(--green-20)"}
+                        />
+        </button>
+    </SharedSlideUpMenu>
       <SharedDropdown
         toggler={(toggle) => (
           <button
@@ -109,6 +151,21 @@ export default function AccountItemOptionsMenu({
             color: "var(--error)",
             hoverColor: "var(--error-80)",
           },
+          {
+            key: "export",
+            icon: "icons/s/add.svg",
+            label: t("exportAccount"),
+            onClick: () => {
+              if (areKeyringsUnlocked) {
+                dispatch(exportPrivKey(address)).then(({key}) => {
+                  setKey(key)
+                  setShowExportPrivateKey(true)
+                })
+              } else {
+                history.push("/keyring/unlock")
+              }
+            },
+          }
         ]}
       />
 
@@ -126,6 +183,37 @@ export default function AccountItemOptionsMenu({
           }
           .icon_settings:hover {
             background-color: var(--green-40);
+          }
+          .address_name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            overflow: auto;
+            text-overflow: ellipsis;
+          }
+          .item-summary {
+            display: flex;
+            justify-content: flex-start;
+            flex-direction: column;
+            align-items: flex-start;
+            margin: 0 auto;
+            min-width: 0; // Allow collapsing if account name is too long.
+            overflow: auto;
+          }
+          li {
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            flex-direction: column;
+            margin: 0 auto;
+            width: 336px;
+            height: 52px;
+          }
+          .account_container {
+            margin-top: -10px;
+            background-color: var(--hunter-green);
+            padding: 5px;
+            border-radius: 16px;
           }
         `}
       </style>

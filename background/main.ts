@@ -189,6 +189,8 @@ import {
 import { isBuiltInNetworkBaseAsset } from "./redux-slices/utils/asset-utils"
 import { getPricePoint, getTokenPrices } from "./lib/prices"
 import localStorageShim from "./utils/local-storage-shim"
+import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers"
+import { JsonRpcProvider as QuaisJsonRpcProvider, WebSocketProvider as QuaisWebSocketProvider } from "@quais/providers"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -297,6 +299,8 @@ export default class Main extends BaseService<never> {
   store: ReduxStoreType
 
   public SelectedShard: string
+
+  public UrlToProvider: Map<string, JsonRpcProvider | WebSocketProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider>
 
   balanceChecker: NodeJS.Timer
 
@@ -527,6 +531,7 @@ export default class Main extends BaseService<never> {
     })
 
     this.initializeRedux()
+    this.UrlToProvider = new Map()
     globalThis.main = this
   }
 
@@ -1770,6 +1775,10 @@ export default class Main extends BaseService<never> {
 
   async unlockKeyrings(password: string): Promise<boolean> {
     return this.keyringService.unlock(password)
+  }
+
+  async exportPrivKey(address: string): Promise<string> {
+    return this.keyringService.exportPrivKey(address)
   }
 
   async getActivityDetails(txHash: string): Promise<ActivityDetail[]> {

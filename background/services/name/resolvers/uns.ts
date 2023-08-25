@@ -206,6 +206,7 @@ export default function unsResolver(): NameResolver<"UNS"> {
       address,
       network,
     }: AddressOnNetwork): Promise<NameOnNetwork | undefined> {
+      return undefined
       // Get all the records associated with the particular ETH address
       const data = (await reverseLookupAddress(address))?.data
       // Since for a given address you can have multiple UNS records, we just pick the first one

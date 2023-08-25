@@ -84,6 +84,7 @@ export default function rnsResolver(): NameResolver<"RNS"> {
       address,
       network,
     }: AddressOnNetwork): Promise<NameOnNetwork | undefined> {
+      return undefined
       const reverseRecordHash = utils.namehash(
         `${stripHexPrefix(address)}.addr.reverse`
       )

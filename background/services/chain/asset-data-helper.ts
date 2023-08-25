@@ -68,9 +68,12 @@ export default class AssetDataHelper {
     addressOnNetwork: AddressOnNetwork,
     smartContractAddresses?: HexString[]
   ): Promise<SmartContractAmount[]> {
+    let prevShard = globalThis.main.GetShard()
+    globalThis.main.SetShard(getShardFromAddress(addressOnNetwork.address))
     const provider = this.providerTracker.providerForNetwork(
       addressOnNetwork.network
     )
+    globalThis.main.SetShard(prevShard)
     if (typeof provider === "undefined") {
       return []
     }

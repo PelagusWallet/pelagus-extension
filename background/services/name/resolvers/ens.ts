@@ -100,6 +100,7 @@ export default function ensResolverFor(
       address,
       network,
     }: AddressOnNetwork): Promise<NameOnNetwork | undefined> {
+      return undefined
       const name = await chainService
         // Hard-coded to ETHEREUM to support ENS names on ETH L2's.
         .providerForNetwork(QUAI_NETWORK)
@@ -109,10 +110,10 @@ export default function ensResolverFor(
         return undefined
       }
 
-      return {
+      /*return {
         name,
         network,
-      }
+      }*/
     },
   }
 }

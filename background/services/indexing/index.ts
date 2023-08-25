@@ -55,7 +55,7 @@ import {
 const FAST_TOKEN_REFRESH_BLOCK_RANGE = 10
 // The number of ms to coalesce tokens whose balances are known to have changed
 // before balance-checking them.
-const ACCELERATED_TOKEN_REFRESH_TIMEOUT = 300
+const ACCELERATED_TOKEN_REFRESH_TIMEOUT = 3000
 
 interface Events extends ServiceLifecycleEvents {
   accountsWithBalances: {
@@ -517,7 +517,7 @@ export default class IndexingService extends BaseService<Events> {
 
     const balances = await this.chainService.assetData.getTokenBalances(
       addressNetwork,
-      smartContractAssets?.map(({ contractAddress }) => contractAddress)
+      smartContractAssets?.map(({ contractAddress }) => getShardFromAddress(contractAddress) == getShardFromAddress(addressNetwork.address) ? contractAddress : "")
     )
 
     const listedAssetByAddress = (smartContractAssets ?? []).reduce<{

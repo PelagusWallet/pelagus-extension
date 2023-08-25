@@ -965,9 +965,9 @@ export default class Main extends BaseService<never> {
           const signedTransactionResult =
             await this.signingService.signTransaction(request, accountSigner)
           await this.store.dispatch(transactionSigned(signedTransactionResult))
-          transactionConstructionSliceEmitter.emit("signedTransactionResult", 
+          setTimeout(() => transactionConstructionSliceEmitter.emit("signedTransactionResult", 
             signedTransactionResult
-          )
+          ), 1000) // could check broadcastOnSign here and broadcast if false but this is a hacky solution (could result in tx broadcasted twice)
           this.analyticsService.sendAnalyticsEvent(
             AnalyticsEvent.TRANSACTION_SIGNED,
             {

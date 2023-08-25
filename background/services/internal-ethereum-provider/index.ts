@@ -1,5 +1,5 @@
-import { TransactionRequest as EthersTransactionRequest } from "@ethersproject/abstract-provider"
-import { serialize as serializeEthersTransaction } from "@ethersproject/transactions"
+import { TransactionRequest as EthersTransactionRequest } from "@quais/abstract-provider"
+import { serialize as serializeEthersTransaction } from "@quais/transactions"
 
 import {
   EIP1193Error,
@@ -384,15 +384,15 @@ export default class InternalEthereumProviderService extends BaseService<Events>
   async getCurrentOrDefaultNetworkForOrigin(
     origin: string
   ): Promise<EVMNetwork> {
-    /*const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
+    const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
     if (!currentNetwork) {
       // If this is a new dapp or the dapp has not implemented wallet_switchEthereumChain
       // use the default network.
       const defaultNetwork = await this.getCurrentInternalNetwork()
       return defaultNetwork
     }
-    return currentNetwork*/
-    return QUAI_NETWORK
+    return currentNetwork
+    //return QUAI_NETWORK
   }
 
   async removePrefererencesForChain(chainId: string): Promise<void> {
@@ -415,9 +415,11 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       throw new Error("Transactions must have a from address for signing.")
     }
 
-    const currentNetwork = await this.getCurrentOrDefaultNetworkForOrigin(
+    /*let currentNetwork = await this.getCurrentOrDefaultNetworkForOrigin(
       origin
-    )
+    )*/
+    const currentNetwork = globalThis.main.store.getState().ui.selectedAccount.network
+
 
     const isRootstock = currentNetwork.chainID === ROOTSTOCK.chainID
 

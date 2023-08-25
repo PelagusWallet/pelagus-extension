@@ -1,9 +1,9 @@
 import {
   TransactionReceipt,
   TransactionResponse,
-} from "@ethersproject/providers"
-import { BigNumber, ethers, utils } from "ethers"
-import { Logger, UnsignedTransaction } from "ethers/lib/utils"
+} from "@quais/providers"
+import { BigNumber, quais, utils } from "quais"
+import { Logger, UnsignedTransaction } from "quais/lib/utils"
 import logger from "../../lib/logger"
 import getBlockPrices from "../../lib/gas"
 import { HexString, NormalizedEVMAddress, UNIXTime } from "../../types"
@@ -97,9 +97,9 @@ const NETWORK_POLLING_TIMEOUT = MINUTE * 2.05
 // mempool) reasons.
 const TRANSACTION_CHECK_LIFETIME_MS = 10 * HOUR
 
-const GAS_POLLS_PER_PERIOD = 4 // 4 times per minute
+const GAS_POLLS_PER_PERIOD = 1 // 1 time per 5 minutes
 
-const GAS_POLLING_PERIOD = 1 // 1 minute
+const GAS_POLLING_PERIOD = 5 // 5 minutes
 
 // Maximum number of transactions with priority.
 // Transactions that will be retrieved before others for one account.
@@ -254,7 +254,7 @@ export default class ChainService extends BaseService<Events> {
     super({
       queuedTransactions: {
         schedule: {
-          delayInMinutes: 0.5,
+          delayInMinutes: 1,
           periodInMinutes: 1,
         },
         handler: () => {
@@ -633,7 +633,7 @@ export default class ChainService extends BaseService<Events> {
       maxFeePerGas: maxFeePerGas ?? 0n,
       maxPriorityFeePerGas: maxPriorityFeePerGas ?? 0n,
       input: input ?? null,
-      type: 2 as const,
+      type: network.isQuai ? 0 as const : 2 as const,
       network,
       chainID: network.chainID,
       nonce,
@@ -1174,7 +1174,7 @@ export default class ChainService extends BaseService<Events> {
 
     const provider = await this.providerForNetworkOrThrow(network)
 
-    const GasOracle = new ethers.Contract(
+    const GasOracle = new quais.Contract(
       OPTIMISM_GAS_ORACLE_ADDRESS,
       OPTIMISM_GAS_ORACLE_ABI,
       provider

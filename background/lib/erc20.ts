@@ -20,6 +20,7 @@ import {
 import logger from "./logger"
 import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
 import { ShardToMulticall, getShardFromAddress } from "../constants"
+import { get } from "lodash"
 
 export const ERC20_FUNCTIONS = {
   allowance: FunctionFragment.from(
@@ -202,7 +203,7 @@ export const getTokenBalances = async (
     CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES[network.chainID] ||
     MULTICALL_CONTRACT_ADDRESS
   if (network.isQuai) {
-    multicallAddress = ShardToMulticall(globalThis.main.SelectedShard, network)
+    multicallAddress = ShardToMulticall(getShardFromAddress(address), network)
   }
 
   const contract = new quais.Contract(

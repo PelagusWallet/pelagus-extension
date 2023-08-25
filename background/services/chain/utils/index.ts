@@ -7,7 +7,7 @@ import {
 import {
   Transaction as EthersTransaction,
   UnsignedTransaction,
-} from "@ethersproject/transactions"
+} from "@quais/transactions"
 
 import {
   AnyEVMTransaction,

@@ -34,14 +34,14 @@ export const enum AccountType {
 }
 
 export const DEFAULT_ACCOUNT_NAMES = [
-  "Phoenix",
-  "Matilda",
-  "Sirius",
-  "Topa",
-  "Atos",
-  "Sport",
-  "Lola",
-  "Foz",
+  "Nautilus",
+  "Poseidon",
+  "Compass",
+  "Calypso",
+  "Marina",
+  "Siren",
+  "Endeavour",
+  "Yawl",
 ]
 
 const availableDefaultNames = [...DEFAULT_ACCOUNT_NAMES]

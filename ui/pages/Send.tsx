@@ -24,6 +24,7 @@ import {
   parseToFixedPointNumber,
 } from "@pelagus/pelagus-background/lib/fixed-point"
 import {
+  getAccountNonceAndGasPrice,
   selectAssetPricePoint,
   transferAsset,
 } from "@pelagus/pelagus-background/redux-slices/assets"
@@ -51,6 +52,7 @@ import {
 import SharedLoadingSpinner from "../components/Shared/SharedLoadingSpinner"
 import ReadOnlyNotice from "../components/Shared/ReadOnlyNotice"
 import SharedIcon from "../components/Shared/SharedIcon"
+import { BigNumber } from "ethers"
 
 export default function Send(): ReactElement {
   const { t } = useTranslation()
@@ -69,6 +71,13 @@ export default function Send(): ReactElement {
   const [assetType, setAssetType] = useState<"token" | "nft">("token")
   const [selectedNFT, setSelectedNFT] = useState<NFTCached | null>(null)
 
+  const [nonce, setNonce] = useState<number>(0)
+  const [maxFeePerGas, setMaxFeePerGas] = useState<BigNumber>(BigNumber.from(0))
+  const [maxPriorityFeePerGas, setMaxPriorityFeePerGas] = useState<BigNumber>(BigNumber.from(0))
+  const [gasLimit, setGasLimit] = useState<number>(100000)
+
+  const [advancedVisible, setAdvancedVisible] = useState(false);
+
   const handleAssetSelect = (asset: FungibleAsset) => {
     setSelectedAsset(asset)
     setAssetType("token")
@@ -82,10 +91,17 @@ export default function Send(): ReactElement {
     } else {
       setSelectedAsset(currentAccount.network.baseAsset)
     }
+
+      dispatch(getAccountNonceAndGasPrice(currentAccount)).then( ({nonce, maxFeePerGas, maxPriorityFeePerGas}) => {
+        setNonce(nonce)
+        setMaxFeePerGas(BigNumber.from(maxFeePerGas))
+        setMaxPriorityFeePerGas(BigNumber.from(maxPriorityFeePerGas))
+      })
+
     // This disable is here because we don't necessarily have equality-by-reference
     // due to how we persist the ui redux slice with webext-redux.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentAccount.network.baseAsset.symbol])
+  }, [currentAccount.network.baseAsset.symbol, currentAccount])
 
   const [destinationAddress, setDestinationAddress] = useState<
     string | undefined
@@ -166,6 +182,10 @@ export default function Send(): ReactElement {
           },
           assetAmount,
           accountSigner: currentAccountSigner,
+          gasLimit: BigInt(gasLimit),
+          nonce: nonce,
+          maxFeePerGas: maxFeePerGas.toBigInt(),
+          maxPriorityFeePerGas: maxPriorityFeePerGas.toBigInt(),
         })
       )
     } finally {
@@ -259,6 +279,59 @@ export default function Send(): ReactElement {
                 resolved_address: resolvedNameToAddress,
               })}
             />
+            <button style={{margin: '5px'}}onClick={() => setAdvancedVisible(!advancedVisible)}>Advanced</button>
+            {advancedVisible && (
+              <div>
+            <label htmlFor="nonce">{"Nonce"}</label>
+            <input
+              id="send_address_alt"
+              type="number"
+              placeholder={nonce.toString()}
+              spellCheck={false}
+              onChange={(event) => setNonce(parseInt(event.target.value))}
+              className={classNames({
+                error: addressErrorMessage !== undefined,
+                resolved_address: resolvedNameToAddress,
+              })}
+            />
+            <label htmlFor="gasLimit">{"Gas Limit"}</label>
+            <input
+              id="send_address_alt"
+              type="number"
+              placeholder={gasLimit.toString()}
+              spellCheck={false}
+              onChange={(event) => setGasLimit(parseInt(event.target.value))}
+              className={classNames({
+                error: addressErrorMessage !== undefined,
+                resolved_address: resolvedNameToAddress,
+              })}
+            />
+            <label htmlFor="maxFeePerGas">{"Max Fee Per Gas"}</label>
+            <input
+              id="send_address_alt"
+              type="number"
+              placeholder={maxFeePerGas.toString()}
+              spellCheck={false}
+              onChange={(event) => setMaxFeePerGas(BigNumber.from(event.target.value))}
+              className={classNames({
+                error: addressErrorMessage !== undefined,
+                resolved_address: resolvedNameToAddress,
+              })}
+            />
+            <label htmlFor="maxPriorityFeePerGas">{"Max Priority Fee Per Gas"}</label>
+            <input
+              id="send_address_alt"
+              type="number"
+              placeholder={maxPriorityFeePerGas.toString()}
+              spellCheck={false}
+              onChange={(event) => setMaxPriorityFeePerGas(BigNumber.from(event.target.value))}
+              className={classNames({
+                error: addressErrorMessage !== undefined,
+                resolved_address: resolvedNameToAddress,
+              })}
+            />
+            </div>
+            )}
             {addressIsValidating ? (
               <p className="validating">
                 <SharedLoadingSpinner />
@@ -373,6 +446,23 @@ export default function Send(): ReactElement {
           input#send_address {
             box-sizing: border-box;
             height: 72px;
+            width: 100%;
+
+            font-size: 22px;
+            font-weight: 500;
+            line-height: 72px;
+            color: #fff;
+
+            border-radius: 4px;
+            background-color: var(--green-95);
+            padding: 0px 16px;
+
+            transition: padding-bottom 0.2s;
+          }
+
+          input#send_address_alt {
+            box-sizing: border-box;
+            height: 40px;
             width: 100%;
 
             font-size: 22px;

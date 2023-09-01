@@ -30,6 +30,7 @@ import type { RootState } from "."
 import { hexlify, stripZeros, toUtf8Bytes, accessListify, hexConcat, RLP } from "quais/lib/utils"
 import { emitter as transactionConstructionSliceEmitter } from "./transaction-construction"
 import { AccountSigner } from "../services/signing"
+import { normalizeEVMAddress } from "../lib/utils";
 
 
 export type AssetWithRecentPrices<T extends AnyAsset = AnyAsset> = T & {
@@ -209,6 +210,25 @@ export const removeAssetData = createBackgroundAsyncThunk(
   }
 )
 
+export const getAccountNonceAndGasPrice = createBackgroundAsyncThunk(
+  "assets/getAccountNonceAndGasPrice",
+  async (details: {
+    network: EVMNetwork,
+    address: string,
+  }
+  ): Promise<{ nonce: number; maxFeePerGas: string, maxPriorityFeePerGas: string }> => {
+    const prevShard = globalThis.main.GetShard()
+    globalThis.main.SetShard(getShardFromAddress(details.address))
+    const provider = globalThis.main.chainService.providerForNetworkOrThrow(details.network)
+    const normalizedAddress = normalizeEVMAddress(details.address)
+    const nonce = await provider.getTransactionCount(normalizedAddress)
+    const feeData = await provider.getFeeData()
+    globalThis.main.SetShard(prevShard)
+    return { nonce, maxFeePerGas: feeData.maxFeePerGas ? feeData.maxFeePerGas.toString() : '0', maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ? feeData.maxPriorityFeePerGas.toString() : '0' }
+  }
+)
+
+
 /**
  * Executes an asset transfer between two addresses, for a set amount. Supports
  * an optional fixed gas limit.
@@ -224,6 +244,8 @@ export const transferAsset = createBackgroundAsyncThunk(
     assetAmount: AnyAssetAmount
     gasLimit?: bigint
     nonce?: number
+    maxPriorityFeePerGas?: bigint
+    maxFeePerGas?: bigint
     accountSigner: AccountSigner
   }) => {
     var { 
@@ -232,6 +254,8 @@ export const transferAsset = createBackgroundAsyncThunk(
       assetAmount,
       gasLimit,
       nonce,
+      maxPriorityFeePerGas,
+      maxFeePerGas,
       accountSigner,
     } = transferDetails;
 
@@ -280,7 +304,7 @@ export const transferAsset = createBackgroundAsyncThunk(
         }
         
       }
-      let tx = genQuaiRawTransaction(fromNetwork, fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID, data)
+      let tx = genQuaiRawTransaction(fromNetwork, fromAddress, toAddress, assetAmount, nonce, fromNetwork.chainID, data, gasLimit??BigInt(200000), maxFeePerGas??BigInt(2000000000), maxPriorityFeePerGas??BigInt(1000000000))
       signData({transaction: tx, accountSigner: accountSigner})
       return
     }
@@ -330,7 +354,7 @@ export const transferAsset = createBackgroundAsyncThunk(
   }
 )
 
-function genQuaiRawTransaction (network: EVMNetwork, fromAddress: string, toAddress: string, assetAmount: AnyAssetAmount, nonce: number, chainId: string, data: string): EIP1559TransactionRequest {
+function genQuaiRawTransaction (network: EVMNetwork, fromAddress: string, toAddress: string, assetAmount: AnyAssetAmount, nonce: number, chainId: string, data: string, gasLimit: bigint, maxFeePerGas: bigint, maxPriorityFeePerGas: bigint): EIP1559TransactionRequest {
    
   let isExternal = false
   let type = 0
@@ -352,9 +376,9 @@ function genQuaiRawTransaction (network: EVMNetwork, fromAddress: string, toAddr
       from: fromAddress,
       value: assetAmount.amount,
       nonce: nonce,
-      gasLimit: BigInt(200000),
-      maxFeePerGas: BigInt(2000000000),
-      maxPriorityFeePerGas: BigInt(1000000000),
+      gasLimit: gasLimit??BigInt(200000),
+      maxFeePerGas: maxFeePerGas,
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
       type: type as KnownTxTypes,
       chainID: chainId,
       input: data,

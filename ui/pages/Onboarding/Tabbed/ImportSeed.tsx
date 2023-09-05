@@ -17,6 +17,7 @@ import {
   useAreKeyringsUnlocked,
 } from "../../../hooks"
 import OnboardingRoutes from "./Routes"
+import { langEs as es } from "@quais/wordlists/lib/lang-es"
 
 type Props = {
   nextPage: string
@@ -63,7 +64,7 @@ export default function ImportSeed(props: Props): ReactElement {
       splitTrimmedRecoveryPhrase.length !== 24
     ) {
       setErrorMessage(t("errors.phraseLengthError"))
-    } else if (isValidMnemonic(plainRecoveryPhrase)) {
+    } else if (isValidMnemonic(plainRecoveryPhrase, es)) {
       setIsImporting(true)
       dispatch(
         importKeyring({

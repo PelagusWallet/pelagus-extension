@@ -2758,10 +2758,10 @@
     node-gyp "^7.1.0"
     read-package-json-fast "^2.0.1"
 
-"@pelagus/hd-keyring@0.1.0-pre.0":
-  version "0.1.0-pre.0"
-  resolved "https://registry.yarnpkg.com/@pelagus/hd-keyring/-/hd-keyring-0.1.0-pre.0.tgz#74ddd10a071433af175d675dea3e57cea5928675"
-  integrity sha512-u/Ui/fTQN1A2wiuTIMOQrsdrsLONuQFAb9XcJT39abCbHT6M67052uXNHgWzczFib2TOKozMD8yyuSK9clSu0A==
+"@pelagus/hd-keyring@0.2.0-pre.0":
+  version "0.2.0-pre.0"
+  resolved "https://registry.yarnpkg.com/@pelagus/hd-keyring/-/hd-keyring-0.2.0-pre.0.tgz#7a26cadb14551493599d616153af2d18d9408102"
+  integrity sha512-lr0xHeE62bmc2LpkYHqN73H4nzn3J8WXHW0Ia7Sr/T4yUuNu9qunHC6m+iGmjrnOo9M/9lUUQOMnG/U6mKNMPg==
   dependencies:
     "@ethersproject/abstract-provider" "5.6.1"
     "@ethersproject/abstract-signer" "5.6.1"

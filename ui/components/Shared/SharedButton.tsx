@@ -217,13 +217,13 @@ export default function SharedButton(
             background-color: var(--trophy-gold);
           }
           .disabled {
-            background-color: var(--green-60);
+            background-color: var(--disabled);
             border-color: var(--green-60);
-            color: var(--green-80);
+            color: var(--gold-5);
             pointer-events: none;
           }
           .disabled .icon_button {
-            background-color: var(--green-80);
+            background-color: var(--gold-5);
           }
           .disabled:hover {
             background-color: var(--green-60);

@@ -74,7 +74,7 @@ export default function NewSeedReview({
           font-weight: 500;
           font-size: 36px;
           line-height: 42px;
-          color: var(--white);
+          color: var(--hunter-green);
           text-align: center;
           margin-bottom: 27px;
           margin-top 24px;

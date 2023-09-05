@@ -66,7 +66,7 @@ export default function RouteBasedContent(): JSX.Element {
           <style jsx>
             {`
               .onboarding_facts {
-                color: var(--green-20);
+                color: var(--hunter-green);
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -74,6 +74,7 @@ export default function RouteBasedContent(): JSX.Element {
               }
 
               .onboarding_facts p {
+                color: var(--hunter-green);
                 margin: 0;
                 text-align: left;
                 font-size: 18px;
@@ -81,6 +82,7 @@ export default function RouteBasedContent(): JSX.Element {
               }
 
               .onboarding_facts p::before {
+                color: var(--hunter-green);
                 content: url("./images/check.svg");
                 width: 16px;
                 height: 16px;

@@ -21,11 +21,11 @@ function OnboardingStep(props: OnboardingStepProps): ReactElement {
             width: 6px;
             height: 6px;
             border-radius: 100px;
-            background-color: var(--green-60);
+            background-color: var(--hunter-green);
           }
           li {
             display: block;
-            color: var(--green-60);
+            color: var(--hunter-green);
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;

@@ -392,7 +392,7 @@ export default function Send(): ReactElement {
           .title {
             flex-grow: 1;
             height: 32px;
-            color: #ffffff;
+            color: var(--trophy-gold);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;
@@ -451,7 +451,7 @@ export default function Send(): ReactElement {
             font-size: 22px;
             font-weight: 500;
             line-height: 72px;
-            color: #fff;
+            color: var(--green-40);
 
             border-radius: 4px;
             background-color: var(--green-95);

@@ -49,16 +49,16 @@ export default function SharedIconRouterLink(props: Props): ReactElement {
         }
         .disabled_asset_icon {
           mask-size: cover;
-          background-color: var(--green-60);
+          background-color: var(--disabled);
           width: 12px;
           height: 12px;
         }
         .router_link_container:hover {
-          background-color: var(--hunter-green);
-          color: var(--trophy-gold);
+          background-color: var(--green-120);
+          color: #FFFFFF;
         }
         .router_link_container:hover .asset_icon {
-          background-color: var(--trophy-gold);
+          background-color: #FFFFFF;
         }
       `}</style>
     </Link>

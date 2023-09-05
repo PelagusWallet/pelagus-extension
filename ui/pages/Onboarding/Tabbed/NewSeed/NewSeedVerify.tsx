@@ -68,7 +68,7 @@ function SeedWord(props: SeedWordProps): ReactElement {
         .word_container.is_filled .word_box {
           background: var(--green-60);
           border-color: var(--green-60);
-          color: var(--white);
+          color: var(--hunter-green);
           background-image: url("./images/icons/s/close.svg");
           background-size: 16px;
           background-position: calc(100% - 8px) 8px;
@@ -85,6 +85,7 @@ function SeedWord(props: SeedWordProps): ReactElement {
           border-radius: 4px;
           min-width: 55px;
           width: auto;
+          color: var(--hunter-green)
           height: 22px;
           padding: 4px 8px;
           padding-right: 32px;
@@ -360,7 +361,7 @@ export default function NewSeedVerify({
             font-weight: 500;
             font-size: 36px;
             line-height: 42px;
-            color: var(--white);
+            color: var(--hunter-green);
             margin: 24px 0 4px;
           }
 

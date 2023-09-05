@@ -45,7 +45,7 @@ export default function TabBarIconButton(
             width: 24px;
             height: 24px;
             cursor: pointer;
-            background-color: ${disabled ? "#3A4565" : "var(--green-40)"};
+            background-color: ${disabled ? "var(--disabled)" : "var(--green-40)"};
             transition: transform 0.1s ease;
           }
           span {
@@ -69,14 +69,14 @@ export default function TabBarIconButton(
           }
           .tab_bar_icon_wrap:hover:not(.active) span,
           .active span {
-            color: var(--green-20);
+            color: ${disabled ? "var(--disabled)" : "var(--green-40)"};
           }
           .tab_bar_icon_wrap:hover,
           .active {
             transform: translateY(-8px) translateZ(0);
           }
           .tab_bar_icon_wrap:hover:not(.active) .icon {
-            background-color: ${disabled ? "#3A4565" : "var(--green-20)"};
+            background-color: ${disabled ? "var(--disabled)" : "var(--green-40)"};
           }
           .active span {
             color: var(--trophy-gold);

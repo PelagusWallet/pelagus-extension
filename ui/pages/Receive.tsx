@@ -56,7 +56,7 @@ export default function Receive(): ReactElement {
           }
           h1 {
             height: 32px;
-            color: #ffffff;
+            color: var(--trophy-gold);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;

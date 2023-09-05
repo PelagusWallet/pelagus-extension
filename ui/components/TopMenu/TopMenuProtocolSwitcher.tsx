@@ -39,7 +39,7 @@ export default function TopMenuProtocolSwitcher({
             max-width: 60%;
           }
           button:hover {
-            color: #fff;
+            color: var(--green-20);
           }
           .icon_chevron_down {
             flex-shrink: 0;
@@ -52,7 +52,7 @@ export default function TopMenuProtocolSwitcher({
             background-color: var(--green-40);
           }
           button:hover .icon_chevron_down {
-            background-color: #fff;
+            background-color: var(--green-20);
           }
           .icon_wrap {
             width: 24px;
@@ -63,9 +63,6 @@ export default function TopMenuProtocolSwitcher({
             align-items: center;
             justify-content: center;
             margin-right: 5px;
-          }
-          button:hover .icon_wrap {
-            background-color: var(--green-80) !important;
           }
         `}
       </style>

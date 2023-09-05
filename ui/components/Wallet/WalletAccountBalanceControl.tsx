@@ -212,7 +212,7 @@ export default function WalletAccountBalanceControl(
             height: 48px;
           }
           .balance {
-            color: #ffffff;
+            color: var(--green-20);
             font-size: 36px;
             font-weight: 500;
             line-height: 48px;

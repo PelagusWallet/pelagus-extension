@@ -204,11 +204,12 @@ export default function ImportSeed(props: Props): ReactElement {
             : "16px"};
         }
         .illustration_import {
-          background: url("./images/doggo_import.svg");
+          background: url("./icon-128.png");
           background-size: cover;
           width: 85px;
-          height: 83px;
+          height: 85px;
           margin-bottom: 15px;
+          border-radius: 16px;
         }
         .serif_header {
           font-size: 36px;
@@ -255,6 +256,7 @@ export default function ImportSeed(props: Props): ReactElement {
           font-size: 16px;
           line-height: 24px;
           top: 12px;
+          color; var(--hunter-green)
           left: 16px;
         }
 
@@ -270,11 +272,11 @@ export default function ImportSeed(props: Props): ReactElement {
           width: 320px;
           height: 104px;
           border-radius: 4px;
-          border: 2px solid var(--green-60);
+          border: 2px solid var(--hunter-green);
           padding: 12px 16px;
           white-space: pre-wrap;
           word-wrap: break-word;
-          color: var(--white);
+          color: var(--hunter-green);
           font-family: inherit;
           overflow-y: scroll;
         }

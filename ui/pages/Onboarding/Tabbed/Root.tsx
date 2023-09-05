@@ -120,14 +120,24 @@ function Navigation({
           }
         `}
       </style>
-      <div className={classNames("left_container", { hide: !isOnboarding })}>
-        <div className="onboarding_branding">
-          <img src="./images/logo_onboarding.png" alt="Onboarding logo" className="onboarding_logo_branding"/>
-        </div>
-        <div className="route_based_content">
-          <RouteBasedContent />
-        </div>
-      </div>
+      <div className={classNames("left_container", { hide: !isOnboarding })}
+  style={{
+    backgroundImage: `
+      linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)), 
+      url('./images/bluebubbles.png')
+    `, 
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
+  }}
+>
+  <div className="onboarding_branding">
+    <img src="./images/logo_onboarding.png" alt="Onboarding logo" className="onboarding_logo_branding"/>
+  </div>
+  <div className="route_based_content">
+    <RouteBasedContent />
+  </div>
+</div>
+
       <div className="right_container">
         {!matchPath(location.pathname, {
           path: ROUTES_WITHOUT_BACK_BUTTON,

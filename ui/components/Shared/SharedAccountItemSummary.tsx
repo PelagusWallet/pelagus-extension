@@ -115,7 +115,7 @@ export default function SharedAccountItemSummary(props: Props): ReactElement {
           overflow: hidden;
         }
         .address_name {
-          color: #fff;
+          color: var(--trophy-gold);
           font-size: 18px;
           font-weight: 600;
           overflow: hidden;

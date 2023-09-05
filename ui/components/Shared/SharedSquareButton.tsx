@@ -37,7 +37,7 @@ export default function SharedSquareButton(props: Props): ReactElement {
   return (
     <button
       type="button"
-      className={!disabled ? "hoverable" : undefined}
+      className={!disabled ? "hoverable" : 'disabled'}
       aria-label={ariaLabel}
       onClick={onClick}
     >
@@ -63,6 +63,10 @@ export default function SharedSquareButton(props: Props): ReactElement {
           .hoverable:hover {
             color: ${textColor.hoverColor};
           }
+          .disabled{
+            color: var(--disabled);
+            cursor: default;
+          }
           .content_wrap {
             display: flex;
             flex-direction: column;
@@ -73,7 +77,7 @@ export default function SharedSquareButton(props: Props): ReactElement {
             border-radius: 12px;
             width: ${size}px;
             height: ${size}px;
-            background-color: ${iconColor.color};
+            background-color: ${disabled ? 'var(--disabled)' : 'var(--trophy-gold)'};
             transition: background-color 0.2s;
           }
           .hoverable:hover .icon_wrap {

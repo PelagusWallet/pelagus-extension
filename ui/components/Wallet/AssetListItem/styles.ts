@@ -31,7 +31,7 @@ export default `
   }
   .asset_amount {
     height: 17px;
-    color: #fefefc;
+    color: var(--green-20);
     font-size: 14px;
     font-weight: 400;
     letter-spacing: 0.42px;
@@ -42,14 +42,20 @@ export default `
     overflow-wrap: anywhere;
     word-break: break-all;
   }
+  .asset_list_item:hover .asset_amount{
+    color: #FFFFFF
+  }
   .bold_amount_count {
     width: 70px;
     height: 24px;
-    color: #fefefc;
+    color: var(--green-20);
     font-size: 18px;
     font-weight: 600;
     line-height: 24px;
     margin-right: 4px;
+  }
+  .asset_list_item:hover .bold_amount_count{
+    color: #FFFFFF;
   }
   .verify_asset {
     display: flex;

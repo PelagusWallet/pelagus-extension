@@ -86,7 +86,7 @@ export default function AccountItemOptionsMenu({
       </SharedSlideUpMenu>
       <SharedSlideUpMenu
         size="custom"
-        customSize="336px"
+        customSize="130px"
         isOpen={showExportPrivateKey}
         close={(e) => {
           e?.stopPropagation()
@@ -95,9 +95,9 @@ export default function AccountItemOptionsMenu({
         }}
       >
         <li className="account_container">
-        <div className="item-summary standard_width">
+        <div className="item-summary ">
         <div title="Private Key" className="address_name">Private Key</div>
-        {key}
+        <text>{key}</text>
         </div>
         </li>
         <button
@@ -185,13 +185,15 @@ export default function AccountItemOptionsMenu({
             background-color: var(--green-40);
           }
           .address_name {
-            color: #fff;
+            color: var(--trophy-gold);
             font-size: 18px;
             font-weight: 600;
             overflow: auto;
             text-overflow: ellipsis;
           }
           .item-summary {
+            overflow-wrap: break-word;
+            word-break: break-all;
             display: flex;
             justify-content: flex-start;
             flex-direction: column;
@@ -199,6 +201,7 @@ export default function AccountItemOptionsMenu({
             margin: 0 auto;
             min-width: 0; // Allow collapsing if account name is too long.
             overflow: auto;
+            padding: 2px;
           }
           li {
             display: flex;
@@ -207,7 +210,7 @@ export default function AccountItemOptionsMenu({
             flex-direction: column;
             margin: 0 auto;
             width: 336px;
-            height: 52px;
+            height: 75px;
           }
           .account_container {
             margin-top: -10px;

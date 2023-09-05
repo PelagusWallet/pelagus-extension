@@ -66,14 +66,14 @@ export default function SharedToggleButton({
             width: 16px;
             height: 16px;
             border-radius: 20px;
-            background-color: ${offColor ?? "var(--green-40)"};
+            background-color: ${offColor ?? "var(--hunter-green)"};
             transition: 0.2s ease-in-out;
 
             box-shadow: 0px 1px 1px rgba(0, 20, 19, 0.3);
           }
           .is_active .bulb {
             transform: translateX(16px);
-            background-color: ${onColor ?? "var(--trophy-gold)"};
+            background-color: ${onColor ?? "var(--gold-60)"};
           }
         `}
       </style>

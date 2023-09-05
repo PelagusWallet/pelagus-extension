@@ -158,6 +158,7 @@ export default function SharedAssetIcon(props: Props): ReactElement {
             width: 40px;
             height: 40px;
             border-radius: 80px;
+            border: 1px solid var(--disabled);
             overflow: hidden;
             background-color: var(--castle-black);
             flex-shrink: 0;

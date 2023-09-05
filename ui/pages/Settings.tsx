@@ -413,7 +413,7 @@ export default function Settings(): ReactElement {
             flex-direction: column;
           }
           h1 {
-            color: #fff;
+            color: var(--green-20);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;

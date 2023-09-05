@@ -1,22 +1,23 @@
 :root {
-  --hunter-green: #000e28;
-  --castle-black: #06080a;
-  --green-120: #00131a;
-  --green-95: #001c4a;
+  --hunter-green: #ffffff;
+  --castle-black: #ffffff;
+  --green-120: #adc4e6;
+  --green-95: #ebebeb;
   --green-80: #00407a;
-  --green-60: #305c8a;
-  --green-40: #9cb4e0;
-  --green-20: #7cafe5;
-  --green-5: #e6f6ff;
+  --green-60: #474747;
+  --green-40: #77a8f3;
+  --green-20: #0058b3;
+  --green-5: #1259d9;
 
-  --trophy-gold: #ef9c32;
-  --gold-120: #b57017;
-  --gold-80: #f0ac55;
-  --gold-60: #efbf81;
-  --gold-40: #f5dab7;
-  --gold-20: #fbedda;
-  --gold-5: #fdf6ed;
-  --white: #d6eae9;
+  --trophy-gold: #1568e5;
+  --gold-120: #0031f1;
+  --gold-80: #4789ec;
+  --gold-60: #6ca7ff;
+  --gold-40: #A0C6FF;
+  --gold-20: #b3d1fe;
+  --gold-5: #e2eeff;
+  --white: #505050;
+  --disabled: #cccccc;
 
   --error: #FF6666;
   --error-80: #B04443;
@@ -115,6 +116,7 @@ form {
 
 .center_text {
   text-align: center;
+  color: var(--hunter-green);
 }
 
 .serif_header {
@@ -188,6 +190,7 @@ label {
 
 .fadeIn {
   animation: fadeIn ease-in var(--fade-in-duration, 250ms);
+  color: var(--hunter-green);
 }
 
 @keyframes fadeIn {
@@ -202,6 +205,7 @@ label {
 .fade_out {
   animation: fade-out ease-out var(--fade-out-duration, 250ms);
   opacity: 0;
+  color: var(--hunter-green);
 }
 
 @keyframes fade-out {

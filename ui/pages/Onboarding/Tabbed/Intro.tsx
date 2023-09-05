@@ -66,10 +66,11 @@ export default function Intro(): ReactElement {
           }
 
           .illustration {
-            background: url("./images/pelagus_intro.png");
+            background: url("./icon-128.png");
             background-size: cover;
-            width: 100px;
-            height: 80px;
+            width: 120px;
+            border-radius: 20px;
+            height: 120px;
             margin: 0 auto;
           }
 
@@ -85,6 +86,7 @@ export default function Intro(): ReactElement {
             font-size: 36px;
             line-height: 42px;
             margin: 0;
+            color: #FFFFFF;
           }
 
           .actions {

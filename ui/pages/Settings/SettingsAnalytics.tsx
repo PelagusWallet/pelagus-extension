@@ -96,7 +96,7 @@ export default function SettingsAnalytics(): ReactElement {
           iconSmall="new-tab"
           iconPosition="left"
           onClick={() =>
-            window.open(`${WEBSITE_ORIGIN}/privacy/`, "_blank")?.focus()
+            window.open("https://pelaguswallet.io/privacy-policy.pdf", "_blank")?.focus()
           }
         >
           {t(`policyBtn`)}

@@ -86,24 +86,6 @@ export default function CommonAssetListItem(
                 {trimWithEllipsis(assetAmount.asset.symbol, MAX_SYMBOL_LENGTH)}
               </span>
             </div>
-
-            {
-              // @TODO don't fetch prices for unverified assets in the first place
-              // Only show prices for verified assets
-              isUnverified ||
-              (initializationLoadingTimeExpired &&
-                isMissingLocalizedUserValue) ? (
-                <></>
-              ) : (
-                <div className="price">
-                  {isMissingLocalizedUserValue ? (
-                    <SharedLoadingSpinner size="small" />
-                  ) : (
-                    `$${assetAmount.localizedMainCurrencyAmount}`
-                  )}
-                </div>
-              )
-            }
           </div>
         </div>
         <div className="asset_right">

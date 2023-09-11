@@ -31,6 +31,7 @@ import { hexlify, stripZeros, toUtf8Bytes, accessListify, hexConcat, RLP } from 
 import { emitter as transactionConstructionSliceEmitter } from "./transaction-construction"
 import { AccountSigner } from "../services/signing"
 import { normalizeEVMAddress } from "../lib/utils";
+import { setSnackbarMessage } from "./ui";
 
 
 export type AssetWithRecentPrices<T extends AnyAsset = AnyAsset> = T & {
@@ -518,14 +519,19 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
   }
 )
 
-transactionConstructionSliceEmitter.on("signedTransactionResult", (tx) => { 
+transactionConstructionSliceEmitter.on("signedTransactionResult", async (tx) => { 
   console.log("transaction signed", tx)
   const provider = globalThis.main.chainService.providerForNetworkOrThrow(tx.network)
-  console.log(provider instanceof JsonRpcProvider)
-  provider.sendTransaction(serializeSigned(tx)).then(res => {
+  try {
+    let res = await provider.sendTransaction(serializeSigned(tx))
     console.log(res)
     globalThis.main.chainService.saveTransaction(tx, "local")
-  })
+  } catch (error: any) {
+    if(error.toString().includes("insufficient funds")) {
+      globalThis.main.store.dispatch(setSnackbarMessage("Insufficient funds for gas * price + value"))
+    }
+    console.log(error)
+  }
   
 })
 

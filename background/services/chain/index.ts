@@ -1035,7 +1035,8 @@ export default class ChainService extends BaseService<Events> {
     txHash: HexString
   ): Promise<AnyEVMTransaction> {
     const cachedTx = await this.db.getTransaction(network, txHash)
-    if (cachedTx) {
+    // If tx is cached and already included in a block, don't need to query provider
+    if (cachedTx && cachedTx.blockHash != undefined) {
       return cachedTx
     }
     const gethResult = await this.providerForNetworkOrThrow(

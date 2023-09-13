@@ -11,20 +11,6 @@ export default function TopMenuProtocolListFooter(): JSX.Element {
 
   return (
     <footer>
-      <SharedButton
-        size="medium"
-        onClick={() => history.push("/settings/custom-networks")}
-        type="tertiary"
-      >
-        <SharedIcon
-          width={16}
-          height={16}
-          customStyles="margin-right: 4px"
-          icon="icons/s/add.svg"
-          color="currentColor"
-        />
-        {t("topMenu.protocolList.networkSettingsBtn")}
-      </SharedButton>
       <style jsx>
         {`
           footer {

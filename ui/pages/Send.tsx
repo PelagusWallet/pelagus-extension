@@ -260,10 +260,10 @@ export default function Send(): ReactElement {
                   : undefined
               }
             />
-            {assetType === "token" && !hasError && (
-              <div className="value">
-                ${assetAmount?.localizedMainCurrencyAmount ?? "-"}
-              </div>
+            {assetType === "token" && !hasError && ( null
+              // <div className="value">
+              //   ${assetAmount?.localizedMainCurrencyAmount ?? "-"}
+              // </div>
             )}
           </div>
           <div className="form_input send_to_field">
@@ -279,10 +279,15 @@ export default function Send(): ReactElement {
                 resolved_address: resolvedNameToAddress,
               })}
             />
-            <button style={{margin: '5px'}}onClick={() => setAdvancedVisible(!advancedVisible)}>Advanced</button>
+            <button 
+  className="advanced-button"
+  onClick={() => setAdvancedVisible(!advancedVisible)}
+>
+  Advanced
+</button>
             {advancedVisible && (
               <div>
-            <label htmlFor="nonce">{"Nonce"}</label>
+            <label style={{ paddingTop: '5px' }} htmlFor="nonce">{"Nonce"}</label>
             <input
               id="send_address_alt"
               type="number"
@@ -294,7 +299,7 @@ export default function Send(): ReactElement {
                 resolved_address: resolvedNameToAddress,
               })}
             />
-            <label htmlFor="gasLimit">{"Gas Limit"}</label>
+            <label style={{ paddingTop: '5px' }} htmlFor="gasLimit">{"Gas Limit"}</label>
             <input
               id="send_address_alt"
               type="number"
@@ -306,7 +311,7 @@ export default function Send(): ReactElement {
                 resolved_address: resolvedNameToAddress,
               })}
             />
-            <label htmlFor="maxFeePerGas">{"Max Fee Per Gas"}</label>
+            <label style={{ paddingTop: '5px' }} htmlFor="maxFeePerGas">{"Max Fee Per Gas"}</label>
             <input
               id="send_address_alt"
               type="number"
@@ -318,7 +323,7 @@ export default function Send(): ReactElement {
                 resolved_address: resolvedNameToAddress,
               })}
             />
-            <label htmlFor="maxPriorityFeePerGas">{"Max Priority Fee Per Gas"}</label>
+            <label style={{ paddingTop: '5px' }} htmlFor="maxPriorityFeePerGas">{"Max Priority Fee Per Gas"}</label>
             <input
               id="send_address_alt"
               type="number"
@@ -382,8 +387,16 @@ export default function Send(): ReactElement {
       </div>
       <style jsx>
         {`
+        .advanced-button {
+          margin: 5px;
+          text-decoration: underline;
+        }
+        
+        .advanced-button:hover {
+          color: var(--green-20);
+        }        
           .icon_activity_send_medium {
-            background: url("./images/activity_send_medium@2x.png");
+            background: url("./images/pelagus_send.png");
             background-size: 24px 24px;
             width: 24px;
             height: 24px;
@@ -468,7 +481,7 @@ export default function Send(): ReactElement {
             font-size: 22px;
             font-weight: 500;
             line-height: 72px;
-            color: #fff;
+            color: var(--green-40);
 
             border-radius: 4px;
             background-color: var(--green-95);
@@ -533,6 +546,14 @@ export default function Send(): ReactElement {
             margin-top: 21px;
             padding-bottom: 20px;
           }
+          /* Hide for all browsers */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
         `}
       </style>
     </>

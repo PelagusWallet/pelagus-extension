@@ -53,8 +53,8 @@ function Navigation({
 
           .left_container {
             position: relative;
-            width: 50%;
-            padding-top: 80px;
+            width: 80%;
+            padding-top: 10%;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -70,6 +70,7 @@ function Navigation({
           .right_container {
             position: relative;
             padding: 62px 80px 0;
+            padding-top: 10%;
             width: 50%;
             height: 100%;
             box-sizing: border-box;
@@ -124,7 +125,7 @@ function Navigation({
   style={{
     backgroundImage: `
       linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)), 
-      url('./images/bluebubbles.png')
+      url('./images/pelagus_flag.png')
     `, 
     backgroundSize: 'cover',
     backgroundPosition: 'center'

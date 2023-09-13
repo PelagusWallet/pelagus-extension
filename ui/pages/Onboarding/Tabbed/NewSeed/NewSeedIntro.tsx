@@ -44,7 +44,7 @@ export default function NewSeedIntro({
         }
 
         section h1 {
-          font-family: "Quincy CF";
+          font-family: "TT Travels";
           font-style: normal;
           font-weight: 500;
           font-size: 36px;

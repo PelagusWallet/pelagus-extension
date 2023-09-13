@@ -177,9 +177,9 @@ export default function SingleAsset(): ReactElement {
               )}
             </div>
             <div className="balance">{localizedDecimalAmount}</div>
-            {localizedMainCurrencyAmount && (
+            {/* {localizedMainCurrencyAmount && (
               <div className="usd_value">${localizedMainCurrencyAmount}</div>
-            )}
+            )} */}
           </div>
           <div className="right">
             {isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET) && (

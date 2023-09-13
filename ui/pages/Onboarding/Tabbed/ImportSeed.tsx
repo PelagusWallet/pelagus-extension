@@ -228,7 +228,7 @@ export default function ImportSeed(props: Props): ReactElement {
           text-align: center;
           font-size: 16px;
           line-height: 24px;
-          color: var(--green-40);
+          color: white;
           font-weight: 500;
         }
         .help_button {
@@ -248,6 +248,7 @@ export default function ImportSeed(props: Props): ReactElement {
         .recovery_label {
           position: absolute;
           font-size: 12px;
+          margin-left: 16px; 
           line-height: 16px;
           transition: all 0.2s ease-in-out;
           pointer-events: none;

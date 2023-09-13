@@ -79,7 +79,7 @@ export function EmptyHeader(): ReactElement {
         }
 
         h1 {
-          font-family: "Quincy CF";
+          font-family: "TT Travels";
           font-weight: 500;
           font-size: 36px;
           line-height: 42px;

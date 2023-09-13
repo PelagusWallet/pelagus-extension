@@ -47,7 +47,7 @@ export default function PasswordStrengthBar(
           font-size: 14px;
           font-weight: 500;
           line-height: 16px;
-          color: var(--green-40);
+          color: var(--trophy-gold);
           transition: color 300ms;
         }
         .bar_shape {
@@ -57,7 +57,7 @@ export default function PasswordStrengthBar(
         .bar_background {
           width: 100%;
           flex-grow: 1;
-          background-color: var(--green-60);
+          background-color: var(--trophy-gold);
         }
         .bar_description {
           text-align: right;
@@ -66,7 +66,7 @@ export default function PasswordStrengthBar(
         }
         .bar_fill {
           width: 0%;
-          background-color: var(--green-60);
+          background-color: var(--green-95);
           transition: width 300ms, background-color 300ms;
         }
 

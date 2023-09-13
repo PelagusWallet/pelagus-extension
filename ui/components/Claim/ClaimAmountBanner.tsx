@@ -52,7 +52,7 @@ export default function ClaimAmountBanner({
             margin-left: -3px;
           }
           .claimable_amount {
-            font-family: Quincy CF;
+            font-family: TT Travels;
             font-size: 36px;
             color: var(--success);
             margin-left: 5px;

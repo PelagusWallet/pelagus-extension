@@ -134,7 +134,7 @@ function BonusProgramModalContent(): ReactElement {
             margin: 0 10px 0 -3px;
           }
           .amount {
-            font-family: Quincy CF;
+            font-family: TT Travels;
             font-size: 36px;
             color: var(--success);
             margin-bottom: -4px;

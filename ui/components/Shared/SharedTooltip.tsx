@@ -115,7 +115,7 @@ export default function SharedTooltip(props: Props): ReactElement {
           .info_icon {
             mask-image: url("./images/icons/m/info.svg");
             mask-size: cover;
-            background-color: var(--tooltip-icon-color, var(--green-40));
+            background-color: var(--tooltip-icon-color, var(--green-95));
             width: 16px;
             height: 16px;
             display: block;

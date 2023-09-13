@@ -79,7 +79,7 @@ export default function Receive(): ReactElement {
             margin-top: 40px;
           }
           .icon_activity_send_medium {
-            background: url("./images/activity_receive_medium@2x.png");
+            background: url("./images/pelagus_recieve.png");
             background-size: 24px 24px;
             width: 24px;
             height: 24px;

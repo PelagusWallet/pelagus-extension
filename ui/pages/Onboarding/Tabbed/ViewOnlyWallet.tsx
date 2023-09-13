@@ -115,7 +115,7 @@ export default function ViewOnlyWallet(): ReactElement {
           }
 
           header h1 {
-            font-family: "Quincy CF";
+            font-family: "TT Travels";
             font-weight: 500;
             font-size: 36px;
             line-height: 42px;
@@ -123,7 +123,7 @@ export default function ViewOnlyWallet(): ReactElement {
           }
 
           .subtitle {
-            color: var(--green-40);
+            color: var(--green-95);
             max-width: 307px;
             text-align: center;
             line-height: 24px;

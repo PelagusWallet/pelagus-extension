@@ -110,14 +110,14 @@ function EditSectionForm({
       </form>
       <style jsx>{`
         .icon_wrap {
-          background-color: var(--green-60);
+          background-color: var(--hunter-green);
           margin: 0 7px 0 0;
           border-radius: 4px;
         }
         .icon {
           mask-image: url("${accountTypeIcon}");
           mask-size: cover;
-          background-color: var(--green-20);
+          background-color: var(--trophy-gold);
           width: 24px;
           height: 24px;
         }

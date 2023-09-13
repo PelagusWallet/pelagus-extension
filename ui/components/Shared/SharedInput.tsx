@@ -117,7 +117,7 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
             width: 100%;
             height: 48px;
             border-radius: 4px;
-            border: 2px solid var(--hunter-green);
+            border: 2px solid var(--trophy-gold);
             padding: var(--input-padding, 0px 16px);
             box-sizing: border-box;
             text-align: left;
@@ -155,7 +155,7 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
             transform: translateY(-32px);
             border-radius: 5px;
             box-sizing: border-box;
-            color: var(--green-40);
+            color: var(--green-95);
             transition: font-size 0.2s ease, transform 0.2s ease,
               font-weight 0.2s ease, padding 0.2s ease;
           }

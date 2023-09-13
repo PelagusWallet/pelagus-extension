@@ -142,6 +142,16 @@ export default function WalletActivityListItem(props: Props): ReactElement {
             justify-content: space-between;
             align-items: center;
           }
+          button:hover .top,
+          button:hover .bottom,
+          button:hover .left,
+          button:hover .right,
+          button:hover .outcome,
+          button:hover .amount,
+          button:hover .bold_amount_count,
+          button:hover .name {
+            color: white !important;
+          }
           button:hover {
             background-color: var(--green-80);
           }

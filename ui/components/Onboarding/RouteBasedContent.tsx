@@ -4,6 +4,7 @@ import { Route, Switch } from "react-router-dom"
 import OnboardingRoutes from "../../pages/Onboarding/Tabbed/Routes"
 import SharedButton from "../Shared/SharedButton"
 import WalletShortcut from "./WalletShortcut"
+import { FaDiscord, FaTwitter } from 'react-icons/fa';
 
 export default function RouteBasedContent(): JSX.Element {
   const { t } = useTranslation("translation", {
@@ -60,9 +61,17 @@ export default function RouteBasedContent(): JSX.Element {
       <Route>
         <div className="onboarding_facts fadeIn">
           <p>{t("default.fact1")}</p>
-          <p>{t("default.fact2")}</p>
-          <p>{t("default.fact3")}</p>
-          <p>{t("default.fact4")}</p>
+          <div className="community_links">
+            <div className="icon_row">
+              <a href="https://discord.gg/quai" target="_blank" rel="noreferrer">
+                <FaDiscord size={52} color="white" />
+              </a>
+              <a href="https://twitter.com/QuaiNetwork" target="_blank" rel="noreferrer">
+                <FaTwitter size={52} color="white"/>
+              </a>
+            </div>
+            <p>Join the community</p>
+          </div>
           <style jsx>
             {`
               .onboarding_facts {
@@ -76,22 +85,28 @@ export default function RouteBasedContent(): JSX.Element {
               .onboarding_facts p {
                 color: var(--hunter-green);
                 margin: 0;
-                text-align: left;
-                font-size: 18px;
+                text-align: center;
+                font-size: 24px;
                 line-height: 24px;
               }
 
-              .onboarding_facts p::before {
-                color: var(--hunter-green);
-                content: url("./images/check.svg");
-                width: 16px;
-                height: 16px;
-                margin-right: 16px;
+              .community_links {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+              }
+
+              .icon_row {
+                display: flex;
+                flex-direction: row;
+                gap: 16px;
               }
             `}
           </style>
         </div>
       </Route>
+
     </Switch>
   )
 }

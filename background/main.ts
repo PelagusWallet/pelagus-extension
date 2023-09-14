@@ -287,6 +287,8 @@ type ReduxStoreType = ReturnType<typeof initializeStore>
 
 export const popupMonitorPortName = "popup-monitor"
 
+let walletOpen = false
+
 // TODO Rename ReduxService or CoordinationService, move to services/, etc.
 export default class Main extends BaseService<never> {
   /**
@@ -537,6 +539,9 @@ export default class Main extends BaseService<never> {
 
   async startBalanceChecker(): Promise<void> {
     const interval = setInterval(async () => {
+      if (!walletOpen) {
+        return
+      }
       const selectedAccount = await this.store.getState().ui.selectedAccount
       const currentAccountState = await this.store.getState().account.accountsData.evm[selectedAccount.network.chainID]?.[normalizeEVMAddress(selectedAccount.address)]
       if (currentAccountState === undefined || currentAccountState === "loading") {
@@ -585,6 +590,58 @@ export default class Main extends BaseService<never> {
         }
     }, 10000)
     this.balanceChecker = interval
+  }
+
+  async manuallyCheckBalances(): Promise<void> {
+    // Also refresh the transactions in the account
+    this.enrichActivitiesForSelectedAccount()
+      
+    const selectedAccount = await this.store.getState().ui.selectedAccount
+    const currentAccountState = await this.store.getState().account.accountsData.evm[selectedAccount.network.chainID]?.[normalizeEVMAddress(selectedAccount.address)]
+    if (currentAccountState === undefined || currentAccountState === "loading") {
+      return
+    }
+    const balances = currentAccountState.balances
+    for (let assetSymbol in balances) {
+      const asset = balances[assetSymbol].assetAmount.asset
+      if (balances[assetSymbol].dataSource == "alchemy") {
+        continue
+      }
+      let newBalance = BigInt(0)
+      if (isSmartContractFungibleAsset(asset)) {
+        if(getShardFromAddress(asset.contractAddress) !== getShardFromAddress(selectedAccount.address)) {
+          // skip if the asset is not on the same shard as the account
+          continue
+        }
+        newBalance = (await this.chainService.assetData.getTokenBalance(selectedAccount, asset.contractAddress)).amount
+      } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
+        newBalance = (await this.chainService.getLatestBaseAccountBalance(selectedAccount)).assetAmount.amount
+      } else {
+        logger.error("Unknown asset type for balance checker, asset: " + asset.symbol)
+        continue
+      }
+      isSmartContractFungibleAsset(asset) ? console.log("Balance checker: " + asset.symbol + " " + newBalance + " " + asset.contractAddress)
+      :
+      console.log("Balance checker: " + asset.symbol + " " + newBalance)
+      await this.store.dispatch(
+        updateAccountBalance({
+          balances: [{
+            address: selectedAccount.address,
+            assetAmount: {
+              amount: newBalance,
+              asset: asset,
+            },
+            network: selectedAccount.network,
+            retrievedAt: Date.now(),
+            dataSource: "local",
+          }],
+          addressOnNetwork: {
+            address: selectedAccount.address,
+            network: selectedAccount.network,
+          }
+        })
+      )
+    }
   }
 
   protected override async internalStartService(): Promise<void> {
@@ -2026,6 +2083,10 @@ export default class Main extends BaseService<never> {
   private connectPopupMonitor() {
     runtime.onConnect.addListener((port) => {
       if (port.name !== popupMonitorPortName) return
+      console.log("Pelagus Connected")
+      
+      walletOpen = true
+      this.manuallyCheckBalances()
 
       const openTime = Date.now()
 
@@ -2045,6 +2106,8 @@ export default class Main extends BaseService<never> {
               : "switched networks",
           unit: "s",
         })
+        walletOpen = false
+        console.log("Pelagus Disconnected")
         this.onPopupDisconnected()
       })
     })

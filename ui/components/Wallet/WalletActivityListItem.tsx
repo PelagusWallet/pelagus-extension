@@ -9,6 +9,7 @@ import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import SharedActivityIcon from "../Shared/SharedActivityIcon"
 import useActivityViewDetails from "../../hooks/activity-hooks"
+import { getShardFromAddress } from "../../../background/constants"
 
 interface Props {
   onClick: () => void
@@ -70,6 +71,20 @@ export default function WalletActivityListItem(props: Props): ReactElement {
             activity.blockHash === null &&
             activity.status === 0 ? (
               <div className="status dropped">{t("transactionDropped")}</div>
+            ) : (
+              <></>
+            )}
+            {activity.blockHash !== null &&
+            activity.to &&
+            getShardFromAddress(activity.from) == getShardFromAddress(activity.to) ? (
+              <div className="status settled">{t("transactionSettled")}</div>
+            ) : (
+              <></>
+            )}
+            {activity.blockHash !== null &&
+            activity.to &&
+            getShardFromAddress(activity.from) !== getShardFromAddress(activity.to) ? (
+              <div className="status approved">{t("transactionApproved")}</div>
             ) : (
               <></>
             )}
@@ -167,6 +182,12 @@ export default function WalletActivityListItem(props: Props): ReactElement {
           }
           .dropped {
             color: var(--green-20);
+          }
+          .approved {
+            color: #5FB375;
+          }
+          .settled {
+            color: #3B66E1;
           }
           }
           .top {

@@ -542,6 +542,9 @@ export default class Main extends BaseService<never> {
       if (!walletOpen) {
         return
       }
+      // Also refresh the transactions in the account
+      this.enrichActivitiesForSelectedAccount()
+      
       const selectedAccount = await this.store.getState().ui.selectedAccount
       const currentAccountState = await this.store.getState().account.accountsData.evm[selectedAccount.network.chainID]?.[normalizeEVMAddress(selectedAccount.address)]
       if (currentAccountState === undefined || currentAccountState === "loading") {

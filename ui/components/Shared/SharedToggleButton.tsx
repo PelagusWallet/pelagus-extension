@@ -54,11 +54,12 @@ export default function SharedToggleButton({
             width: 40px;
             height: 24px;
             border-radius: 20px;
-            background-color: var(--green-80);
+            background-color: var(--green-120);
             box-sizing: border-box;
-            padding: 4px;
+            padding: 3px;
             cursor: pointer;
             display: flex;
+            border: 1px solid var(--hunter-green)
 
             ${leftToRight ? "" : "transform: rotate(180deg);"}
           }
@@ -66,14 +67,16 @@ export default function SharedToggleButton({
             width: 16px;
             height: 16px;
             border-radius: 20px;
-            background-color: ${offColor ?? "var(--hunter-green)"};
+            background-color: var(--hunter-green);
             transition: 0.2s ease-in-out;
 
             box-shadow: 0px 1px 1px rgba(0, 20, 19, 0.3);
           }
           .is_active .bulb {
             transform: translateX(16px);
-            background-color: ${onColor ?? "var(--gold-60)"};
+          }
+          .is_active {
+            background-color: var(--green-80);  // This line was added
           }
         `}
       </style>

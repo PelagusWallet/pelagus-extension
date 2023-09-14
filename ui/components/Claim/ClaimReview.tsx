@@ -77,7 +77,7 @@ export default function ClaimReview({
             flex-grow: 1;
           }
           .title {
-            font-family: Quincy CF;
+            font-family: TT Travels;
             font-size: 42px;
             line-height: 58px;
             margin-top: 12px;

@@ -5,7 +5,7 @@
   --green-95: #ebebeb;
   --green-80: #00407a;
   --green-60: #474747;
-  --green-40: #77a8f3;
+  --green-40: #303030;
   --green-20: #0058b3;
   --green-5: #1259d9;
 
@@ -15,7 +15,7 @@
   --gold-60: #6ca7ff;
   --gold-40: #A0C6FF;
   --gold-20: #b3d1fe;
-  --gold-5: #e2eeff;
+  --gold-5: #ffffff;
   --white: #505050;
   --disabled: #cccccc;
 
@@ -121,7 +121,7 @@ form {
 
 .serif_header {
   color: #fefefc;
-  font-family: "Quincy CF";
+  font-family: "TT Travels";
   font-size: 38px;
   font-weight: 400;
   padding: unset;

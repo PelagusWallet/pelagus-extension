@@ -80,7 +80,7 @@ export default function KeyringUnlock({
       <div className="img_wrap">
         <div className="illustration_unlock" />
       </div>
-      <h1 className="serif_header">{t("title")}</h1>
+      <h1 className="serif_header" style={{color: 'var(--trophy-gold'}}>{t("title")}</h1>
       <div className="simple_text subtitle">{t("subtitle")}</div>
       <form onSubmit={dispatchUnlockWallet}>
         <div className="signing_wrap">
@@ -107,11 +107,11 @@ export default function KeyringUnlock({
       <style jsx>
         {`
           .illustration_unlock {
-            background: url("./images/illustration_unlock@2x.png");
+            background: url("./images/pelagus_unlock.png");
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
-            width: 182.83px;
+            width: 90px;
             height: 172.18px;
           }
           section {

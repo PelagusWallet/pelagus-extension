@@ -131,7 +131,7 @@ function EligibleCTAContent({
             color: var(--success);
           }
           .claimable_amount {
-            font-family: Quincy CF;
+            font-family: TT Travels;
             font-size: 36px;
             line-height: 38px;
           }

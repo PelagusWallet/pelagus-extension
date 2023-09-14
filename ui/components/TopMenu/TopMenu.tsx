@@ -199,9 +199,6 @@ export default function TopMenu(): ReactElement {
             height: 32px;
             margin-right: 2px;
           }
-          button:hover {
-            background-color: var(--green-80);
-          }
           .connection_button:hover .connection_img {
             background-color: var(--success);
           }

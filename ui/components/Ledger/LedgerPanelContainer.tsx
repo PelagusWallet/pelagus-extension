@@ -39,7 +39,7 @@ export default function LedgerPanelContainer({
 
         .heading {
           margin: 0.25rem;
-          font-family: "Quincy CF";
+          font-family: "TT Travels";
           font-size: 36px;
           font-weight: 500;
           line-height: 42px;
@@ -52,7 +52,7 @@ export default function LedgerPanelContainer({
           font-size: 16px;
           line-height: 24px;
           text-align: center;
-          color: var(--green-40);
+          color: var(--green-95);
         }
       `}</style>
     </div>

@@ -55,14 +55,14 @@ const PlaceholderIcon = () => (
         display: block;
         width: 24px;
         height: 24px;
-        background-color: var(--green-20);
+        background-color: white;
       }
       div {
         border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: var(--green-60);
+        background: var(--green-20);
         width: 40px;
         color: var(--green-20);
       }
@@ -247,6 +247,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
         .input_container {
           position: relative;
           --input-padding: 0 32px 0 16px;
+          bg: var(--green-20);
+          border-radius: 10px;
         }
 
         .network_select ul {

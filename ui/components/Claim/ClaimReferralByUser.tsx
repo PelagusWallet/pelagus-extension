@@ -72,7 +72,7 @@ export default function ClaimReferralByUser({
             font-size: 36px;
             font-weight: 500;
             line-height: 42px;
-            font-family: Quincy CF;
+            font-family: TT Travels;
             margin: 0px 8px;
           }
         `}

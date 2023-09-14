@@ -46,7 +46,7 @@ export default function ClaimAmountCombinedBanner(): ReactElement {
             font-size: 14px;
           }
           .amount {
-            font-family: Quincy CF;
+            font-family: TT Travels;
             font-size: 36px;
             color: #22c480;
           }

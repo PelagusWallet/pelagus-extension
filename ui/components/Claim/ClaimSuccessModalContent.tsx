@@ -51,7 +51,7 @@ export default function ClaimSuccessModalContent({
             font-weight: 500;
             line-height: 42px;
             text-align: center;
-            font-family: Quincy CF;
+            font-family: TT Travels;
             margin: 0;
           }
           .subtitle {

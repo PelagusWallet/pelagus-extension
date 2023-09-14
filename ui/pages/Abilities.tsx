@@ -130,7 +130,7 @@ export default function Abilities(): ReactElement {
             margin-top: 24px;
           }
           .title {
-            font-family: Quincy CF;
+            font-family: TT Travels;
             font-style: normal;
             font-weight: 500;
             font-size: 36px;

@@ -73,7 +73,7 @@ export default function ActiveDAppConnection({
           height: 17px;
           padding-right: 6px;
         }
-        .connection_button:hover .connection_img {
+        .connection_img:hover {
           background-color: var(--success);
         }
         .connection_img {
@@ -84,9 +84,6 @@ export default function ActiveDAppConnection({
           mask-size: 35%;
           width: 32px;
           height: 32px;
-          background-color: var(
-            --${isConnectedToDApp ? "success" : "green-20"}
-          );
 
           margin-top: -8px;
         }

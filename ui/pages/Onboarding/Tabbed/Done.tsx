@@ -26,12 +26,12 @@ const styles = css`
 
   header h1 {
     display: inline-block;
-    font-family: "Quincy CF";
+    font-family: "TT Travels";
     font-weight: 500;
     font-size: 36px;
     line-height: 42px;
     margin: 0;
-    color: var(--white);
+    color: white;
   }
 
   header span {
@@ -40,7 +40,7 @@ const styles = css`
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
-    color: var(--green-40);
+    color: white;
   }
 
   header img {
@@ -126,8 +126,8 @@ export default function Done(): ReactElement {
           </div>
         </header>
         <img
-          width="383"
-          src="./images/onboarding_pin_extension.gif"
+          width="600"
+          src="./images/Pelagus_Wallet_Animation.gif"
           alt={t("animationAlt")}
         />
       </div>

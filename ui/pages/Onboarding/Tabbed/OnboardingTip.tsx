@@ -14,12 +14,12 @@ export default function OnboardingTip({
       <style jsx>
         {`
           .quote_icon {
-            font-family: "Quincy CF";
+            font-family: "TT Travels";
             font-weight: 500;
             font-size: 20px;
             line-height: 42px;
             text-align: center;
-            color: var(--green-60);
+            color: var(--green-95);
             display: flex;
             align-items: center;
             gap: 18px;
@@ -34,7 +34,7 @@ export default function OnboardingTip({
             max-width: 100px;
             display: inline-block;
             flex-grow: 1;
-            border: 0.5px solid var(--green-80);
+            border: 0.5px solid var(--green-95);
           }
 
           q {
@@ -42,7 +42,7 @@ export default function OnboardingTip({
             font-weight: 400;
             font-size: 16px;
             line-height: 16px;
-            color: var(--green-40);
+            color: var(--green-95);
             text-align: center;
             display: block;
           }

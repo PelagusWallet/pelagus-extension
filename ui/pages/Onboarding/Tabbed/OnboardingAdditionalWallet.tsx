@@ -84,7 +84,7 @@ export default function OnboardingAdditionalWallet(): JSX.Element {
           }
 
           header h1 {
-            font-family: "Quincy CF";
+            font-family: "TT Travels";
             font-weight: 500;
             font-size: 36px;
             line-height: 42px;

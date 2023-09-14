@@ -54,7 +54,7 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
             mask-image: url("./images/icons/s/eye-on.svg");
             mask-size: cover;
             background-position: center;
-            background-color: var(--hunter-green);
+            background-color: var(--green-95);
             background-size: 16px;
             transition: all 0.12s ease-out;
             transform: translateY(50%);
@@ -65,6 +65,7 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
           .icon_medium {
             mask-image: url("./images/icons/m/eye-on.svg");
             mask-size: cover;
+            color: var(--trophy-gold);
             width: 24px;
             height: 24px;
             background-size: 24px;

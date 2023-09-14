@@ -43,7 +43,7 @@ export default function ClaimIntro(props: {
             flex-grow: 1;
           }
           .title {
-            font-family: Quincy CF;
+            font-family: TT Travels;
             font-size: 36px;
             line-height: 58px;
             margin-top: 10px;

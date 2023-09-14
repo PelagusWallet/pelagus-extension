@@ -83,6 +83,7 @@ export default function LedgerPrepare({
           counter-reset: step;
           margin-bottom: 48px;
           align-self: center;
+          color: var(--hunter-green);
         }
 
         .steps > li {
@@ -100,8 +101,8 @@ export default function LedgerPrepare({
           height: 2.5rem;
           margin-right: 2rem;
           border-radius: 1.25rem;
-          border: 1px solid var(--green-60);
-          color: var(--green-60);
+          border: 1px solid var(--green-95);
+          color: var(--green-95);
           line-height: 2.5rem;
           vertical-align: middle;
           text-align: center;
@@ -137,7 +138,7 @@ export default function LedgerPrepare({
           margin: 0.25rem;
           font-size: 16px;
           line-height: 24px;
-          color: var(--green-40);
+          color: var(--green-95);
         }
       `}</style>
     </LedgerPanelContainer>

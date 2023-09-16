@@ -70,7 +70,7 @@ export default function NewSeed(): ReactElement {
 
   const showNewSeedPhrase = () => {
     dispatch(
-      generateNewKeyring(selectedNetwork.derivationPath ?? "m/44'/60'/0'/0")
+      generateNewKeyring(selectedNetwork.derivationPath ?? "m/44'/994'/0'/0")
     ).then(() => history.push(NewSeedRoutes.REVIEW_SEED))
   }
 

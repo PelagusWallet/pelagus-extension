@@ -43,7 +43,7 @@ function VerifySeedSuccess({
             importKeyring({
               mnemonic: mnemonic.join(" "),
               source: "internal",
-              path: selectedNetwork.derivationPath ?? "m/44'/60'/0'/0",
+              path: selectedNetwork.derivationPath ?? "m/44'/994'/0'/0",
             })
           )
           history.push(nextPage)

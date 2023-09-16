@@ -305,6 +305,7 @@ export const QUAI_NETWORK: EVMNetwork = {
   chainID: "9000",
   family: "EVM",
   chains: DEFAULT_QUAI_TESTNET.chains,
+  derivationPath: "m/44'/994'/0'/0",
   isQuai: true,
 }
 
@@ -314,6 +315,7 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   chainID: "1337",
   family: "EVM",
   chains: DEFAULT_QUAI_LOCAL.chains,
+  derivationPath: "m/44'/994'/0'/0",
   isQuai: true,
 }
 

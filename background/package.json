@@ -1,10 +1,10 @@
 {
   "name": "@pelagus/pelagus-background",
-  "version": "0.1.0-pre.0",
-  "description": "Pelagus, the community owned and operated Web3 wallet: api implementation.",
+  "version": "0.2.2",
+  "description": "Pelagus, the community owned and operated Web3 wallet for Quai Network: api implementation.",
   "main": "index.ts",
-  "repository": "git@github.com:thesis/tally-extension.git",
-  "author": "Matt Luongo <matt@thesis.co>",
+  "repository": "git@github.com:PelagusWallet/pelagus-extension.git",
+  "author": "https://pelaguswallet.io",
   "license": "GPL-3.0",
   "keywords": [
     "ethereum",

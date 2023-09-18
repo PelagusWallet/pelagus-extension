@@ -31,11 +31,11 @@ export enum DefaultPathIndex {
 // TODO make this network specific
 const defaultDerivationPaths: Record<DefaultPathIndex, DerivationPath> = {
   [DefaultPathIndex.ledgerLive]: {
-    value: "m/44'/60'/x'/0/0",
+    value: "m/44'/994'/x'/0/0",
     label: "ledger.derivationPaths.ledgerLive",
   },
   [DefaultPathIndex.bip44]: {
-    value: "m/44'/60'/0'/0",
+    value: "m/44'/994'/0'/0",
     label: "ledger.derivationPaths.bip44",
   },
   [DefaultPathIndex.ethTestnet]: {
@@ -43,7 +43,7 @@ const defaultDerivationPaths: Record<DefaultPathIndex, DerivationPath> = {
     label: "ledger.derivationPaths.ethTestnet",
   },
   [DefaultPathIndex.ledgerLegacy]: {
-    value: "m/44'/60'/0'",
+    value: "m/44'/994'/0'",
     label: "ledger.derivationPaths.ledgerLegacy",
     hideActiveValue: true,
   },

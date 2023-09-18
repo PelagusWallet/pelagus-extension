@@ -12,7 +12,7 @@ Currently, the code base assumes that a given address is always controlled by
 the same underlying key, keyring, or external device, even if it is on a
 different network. For regular keys, in practice, this is a fair assumption: if
 Bob has a mnemonic that can sign for address `0x0abc` with a derivation path of
-`44'/60'/0'/0/0`, it's extremely unlikely that Bob will ALSO have a different
+`44'/994'/0'/0/0`, it's extremely unlikely that Bob will ALSO have a different
 key that can sign for the same address but at derivation path
 `44'/137'/0'/0/0`. For this to happen, Bob would more or less have to have two
 different mnemonics that derive the same private key at two different
@@ -21,7 +21,7 @@ derivation paths!
 The assumption, however, falls apart when it comes to accounts that are not
 derived or controlled directly by in-memory private keys, however. For example,
 if Bob is viewing the Ethereum network and has a key stored on a Ledger for
-`0x0abc` at `44'/60'/0'/0/0` and can sign a transaction for that address, they
+`0x0abc` at `44'/994'/0'/0/0` and can sign a transaction for that address, they
 can interact with everything as expected--dApps, etc. If Bob switches to the
 Rootstock network, on the other hand, and they control that key using a Ledger,
 Ledger itself might require a different app to sign a transaction for that key

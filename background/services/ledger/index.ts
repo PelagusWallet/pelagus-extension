@@ -111,7 +111,7 @@ type Events = ServiceLifecycleEvents & {
   usbDeviceCount: number
 }
 
-export const idDerivationPath = "44'/60'/0'/0/0"
+export const idDerivationPath = "44'/994'/0'/0/0"
 
 async function deriveAddressOnLedger(path: string, eth: Eth) {
   const derivedIdentifiers = await eth.getAddress(path)

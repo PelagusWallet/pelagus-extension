@@ -1,10 +1,10 @@
 {
   "name": "@pelagus/pelagus-ui",
-  "version": "0.1.0-pre.0",
-  "description": "Pelagus, the community owned and operated Web3 wallet: UI package.",
+  "version": "0.2.2",
+  "description": "Pelagus, the community owned and operated Web3 wallet for Quai Network: UI package.",
   "main": "index.ts",
-  "repository": "git@github.com:thesis/tally-extension.git",
-  "author": "Matt Luongo <matt@thesis.co>",
+  "repository": "git@github.com:PelagusWallet/pelagus-extension.git",
+  "author": "https://pelaguswallet.io",
   "license": "GPL-3.0",
   "keywords": [
     "ethereum",
@@ -31,7 +31,7 @@
     "@ledgerhq/devices": "^6.20.0",
     "@reduxjs/toolkit": "^1.6.0",
     "@tallyho/provider-bridge-shared": "0.0.1",
-    "@pelagus/pelagus-background": "0.1.0-pre.0",
+    "@pelagus/pelagus-background": "0.2.2",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "12.1.5",
     "@testing-library/user-event": "14.4.3",

@@ -126,8 +126,8 @@ export default function Done(): ReactElement {
           </div>
         </header>
         <img
-          width="600"
-          src="./images/Pelagus_Wallet_Animation.gif"
+          width="70%"
+          src="./images/Pelagus_End_Animation.gif"
           alt={t("animationAlt")}
         />
       </div>

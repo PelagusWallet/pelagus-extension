@@ -150,12 +150,12 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
             position: absolute;
             pointer-events: none;
             display: flex;
+            color: var(--trophy-gold);
             width: fit-content;
             margin-left: 16px;
             transform: translateY(-32px);
             border-radius: 5px;
             box-sizing: border-box;
-            color: var(--green-95);
             transition: font-size 0.2s ease, transform 0.2s ease,
               font-weight 0.2s ease, padding 0.2s ease;
           }

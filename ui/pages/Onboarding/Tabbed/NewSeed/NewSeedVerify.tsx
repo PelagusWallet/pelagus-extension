@@ -1,7 +1,7 @@
 import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
 import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
-import React, { ReactElement, useMemo, useState } from "react"
+import React, { ReactElement, useEffect, useMemo, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import SharedButton from "../../../../components/Shared/SharedButton"
@@ -19,6 +19,20 @@ type SeedWordProps = {
 
 function SeedWord(props: SeedWordProps): ReactElement {
   const { index, word, isActive = false, onSubmit } = props
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
+
+  window.addEventListener("resize", handleResize);
+
+  return () => {
+    window.removeEventListener("resize", handleResize);
+  };
+}, []);
+
   return (
     <>
       <div
@@ -371,7 +385,7 @@ export default function NewSeedVerify({
             font-weight: 400;
             font-size: 16px;
             line-height: 24px;
-            color: var(--green-40);
+            color: var(--hunter-green);
             margin-bottom: 41px;
           }
 
@@ -411,14 +425,30 @@ export default function NewSeedVerify({
           }
 
           .words_list {
-            display: grid;
+            display: flex;
+            flex-wrap: wrap;
             grid: repeat(4, 1fr) / auto-flow;
             gap: 19px 40px;
             background: var(--green-95);
             border-radius: 8px;
             padding: 36px;
             margin-bottom: 16px;
-            place-items: start;
+            width: fit-content;
+            justify-content: center;
+            align-items: center; 
+          }
+
+          @media screen and (max-width: 600px) { 
+            .words_list {
+              grid: repeat(8, 1fr);
+              gap: 19px;
+              justify-content: center;
+              align-items: center;          
+            }
+          }
+
+          .word_container {
+            flex: 0 0 calc(50% - 19px); /* occupy half the width minus half the gap */
           }
 
           .remaining_word_list {

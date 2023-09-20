@@ -72,10 +72,10 @@ function Navigation({
             padding: 62px 80px 0;
             padding-top: 10%;
             width: 50%;
-            height: 100%;
+            max-height: 100vh;  // Adjust this if you need to
             box-sizing: border-box;
             background: #04141480;
-            overflow-y: hidden;
+            overflow-y: auto; // Makes it scrollable
           }
 
           .route_based_content {

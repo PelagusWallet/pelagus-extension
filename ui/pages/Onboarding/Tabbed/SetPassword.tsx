@@ -22,6 +22,7 @@ export default function SetPassword(): JSX.Element {
   const [password, setPassword] = useState("")
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
+  const [passwordCompleted, setPasswordCompleted] = useState(false)
   const history = useHistory()
   const { t } = useTranslation()
 
@@ -35,7 +36,7 @@ export default function SetPassword(): JSX.Element {
     if (nextPage && areKeyringsUnlocked) {
       history.replace(nextPage)
     }
-  }, [areKeyringsUnlocked, history, nextPage])
+  }, [areKeyringsUnlocked, history, nextPage, passwordCompleted])
 
   const validatePassword = (): boolean => {
     if (password.length < 8) {
@@ -61,7 +62,9 @@ export default function SetPassword(): JSX.Element {
 
   const dispatchCreatePassword = (): void => {
     if (validatePassword()) {
-      dispatch(createPassword(password))
+      dispatch(createPassword(password)).then(() => {
+        setPasswordCompleted(!passwordCompleted)
+      })
     }
   }
 

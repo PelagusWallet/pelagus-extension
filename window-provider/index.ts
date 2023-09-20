@@ -81,6 +81,8 @@ export default class TallyWindowProvider extends EventEmitter {
 
   connected = false
 
+  isPelagus = true
+
   isTally = true
 
   isMetaMask = false

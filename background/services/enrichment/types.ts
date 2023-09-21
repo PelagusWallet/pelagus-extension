@@ -79,12 +79,20 @@ export type AssetSwap = BaseTransactionAnnotation & {
   swapContractInfo?: EnrichedAddressOnNetwork
 }
 
+export type ExternalTransfer = BaseTransactionAnnotation & {
+  type: "external-transfer"
+  assetAmount?: AnyAssetAmount & AssetDecimalAmount
+  recipient?: EnrichedAddressOnNetwork
+  sender?: EnrichedAddressOnNetwork
+}
+
 export type TransactionAnnotation =
   | ContractDeployment
   | ContractInteraction
   | AssetApproval
   | AssetTransfer
   | AssetSwap
+  | ExternalTransfer
 
 export type EnrichedEVMTransaction = AnyEVMTransaction & {
   annotation?: TransactionAnnotation

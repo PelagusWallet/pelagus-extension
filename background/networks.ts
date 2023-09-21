@@ -1,4 +1,5 @@
-import { TransactionRequest as EthersTransactionRequest } from "@ethersproject/abstract-provider"
+import { TransactionRequest as EthersTransactionRequest } from "@quais/abstract-provider"
+import { Transaction } from "@quais/transactions"
 import { Slip44CoinType } from "./constants/coin-types"
 import { HexString, UNIXTime } from "./types"
 import type { CoinGeckoAsset, FungibleAsset } from "./assets"
@@ -256,6 +257,7 @@ export type ConfirmedEVMTransaction = EVMTransaction & {
   status: number
   blockHash: string
   blockHeight: number
+  etxs: Transaction[]
   logs: EVMLog[] | undefined
 }
 

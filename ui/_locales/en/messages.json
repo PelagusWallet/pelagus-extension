@@ -765,6 +765,8 @@
       "moreHistory": "For more history visit",
       "tokenApproved": "Token approval",
       "contractInteraction": "Contract Interaction",
+      "externalReceived": "External Receive",
+      "externalSend": "External Send",
       "tokenReceived": "Received",
       "tokenSent": "Send",
       "infiniteApproval": "Infinite",

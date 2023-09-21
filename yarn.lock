@@ -2748,7 +2748,18 @@
   dependencies:
     infer-owner "^1.0.4"
 
-"@npmcli/run-script@^1.8.2", "@npmcli/run-script@^1.8.3", "@npmcli/run-script@^1.8.4", "@npmcli/run-script@^1.8.6":
+"@npmcli/run-script@^1.8.2", "@npmcli/run-script@^1.8.3", "@npmcli/run-script@^1.8.4":
+  version "1.8.4"
+  resolved "https://registry.yarnpkg.com/@npmcli/run-script/-/run-script-1.8.4.tgz#03ced92503a6fe948cbc0975ce39210bc5e824d6"
+  integrity sha512-Yd9HXTtF1JGDXZw0+SOn+mWLYS0e7bHBHVC/2C8yqs4wUrs/k8rwBSinD7rfk+3WG/MFGRZKxjyoD34Pch2E/A==
+  dependencies:
+    "@npmcli/node-gyp" "^1.0.2"
+    "@npmcli/promise-spawn" "^1.3.2"
+    infer-owner "^1.0.4"
+    node-gyp "^7.1.0"
+    read-package-json-fast "^2.0.1"
+
+"@npmcli/run-script@^1.8.6":
   version "1.8.6"
   resolved "https://registry.yarnpkg.com/@npmcli/run-script/-/run-script-1.8.6.tgz#18314802a6660b0d4baa4c3afe7f1ad39d8c28b7"
   integrity sha512-e42bVZnC6VluBZBAFEr3YrdqSspG3bgilyg4nSLBJ7TRGNCzxHa92XAHxQBLYg0BmgwO4b2mf3h/l5EkEWRn3g==
@@ -2851,10 +2862,23 @@
     "@quais/properties" "^0.1.0"
     "@quais/strings" "^0.1.0"
 
-"@quais/abstract-provider@0.1.1", "@quais/abstract-provider@^0.1.0":
+"@quais/abstract-provider@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@quais/abstract-provider/-/abstract-provider-0.1.1.tgz#b8340e6b1267b812a283ad7b51957def8a48d401"
   integrity sha512-H/vyTRfmUWTKbKzteR7PBpC8l9RBrLjHPr/n4p37zu1asbNrqPiLCasCHTemIAIkKAEHiLo9eKWBTi9xNHJzUw==
+  dependencies:
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/networks" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+    "@quais/web" "^0.1.0"
+
+"@quais/abstract-provider@0.1.4", "@quais/abstract-provider@^0.1.0":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@quais/abstract-provider/-/abstract-provider-0.1.4.tgz#41ec5b8f8460df0cbd533fe20312acb989f3c1f3"
+  integrity sha512-ZQlrzI7WQkRqq1JxkeNqrxQS72ZXKfwIjKMnkWajBlu13aD+zU6gOmxHHN+osgdapm15zNARLKIXJ6nEkbhNiQ==
   dependencies:
     "@quais/bignumber" "^0.1.0"
     "@quais/bytes" "^0.1.0"
@@ -3031,6 +3055,32 @@
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@quais/providers/-/providers-0.1.2.tgz#7906651f59aa5dbcef4569c8a75c2ba84d95019a"
   integrity sha512-h+pDa+r51+Vtplz2XtDXC835r5AIymavD86V3771PcZenVZvx1B6mqjTBLidjaTK/u3/a5Bo6aPj7wBFLFtzKA==
+  dependencies:
+    "@quais/abstract-provider" "^0.1.0"
+    "@quais/abstract-signer" "^0.1.0"
+    "@quais/address" "^0.1.1"
+    "@quais/base64" "^0.1.0"
+    "@quais/basex" "^0.1.0"
+    "@quais/bignumber" "^0.1.0"
+    "@quais/bytes" "^0.1.0"
+    "@quais/constants" "^0.1.0"
+    "@quais/hash" "^0.1.0"
+    "@quais/logger" "^0.1.0"
+    "@quais/networks" "^0.1.0"
+    "@quais/properties" "^0.1.0"
+    "@quais/random" "^0.1.0"
+    "@quais/rlp" "^0.1.0"
+    "@quais/sha2" "^0.1.0"
+    "@quais/strings" "^0.1.0"
+    "@quais/transactions" "^0.1.0"
+    "@quais/web" "^0.1.0"
+    bech32 "1.1.4"
+    ws "7.4.6"
+
+"@quais/providers@0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@quais/providers/-/providers-0.1.5.tgz#2b3e83252a256fc93d7d0181047a10b3aefb62a1"
+  integrity sha512-NN2CLWVVHqSPEezl8StSyuW9O55ggCbF4I86LwNHCLnVz7Keu/aLNgjj/bSFzzYkA6g2+a73bU6izt1zseaXgw==
   dependencies:
     "@quais/abstract-provider" "^0.1.0"
     "@quais/abstract-signer" "^0.1.0"
@@ -6195,7 +6245,7 @@ co@^4.6.0:
 code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
-  integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
+  integrity sha512-RpAVKQA5T63xEj6/giIbUEtZwJ4UFIc3ZtvEkiaUERylqe8xb5IvqcgOurZLahv93CLKfxcw5YI+DZcUBRyLXA==
 
 codemirror@^5.65.1:
   version "5.65.3"
@@ -8142,9 +8192,9 @@ functions-have-names@^1.2.2:
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
 
 gauge@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/gauge/-/gauge-3.0.1.tgz#4bea07bcde3782f06dced8950e51307aa0f4a346"
-  integrity sha512-6STz6KdQgxO4S/ko+AbjlFGGdGcknluoqU+79GOFCDqqyYj5OanQf9AjxwN0jCidtT+ziPMmPSt9E4hfQ0CwIQ==
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/gauge/-/gauge-3.0.2.tgz#03bf4441c044383908bcfa0656ad91803259b395"
+  integrity sha512-+5J6MS/5XksCuXq++uFRsnUd7Ovu1XenbeuIuNRJxYWjgQbPuFhT14lAvsWfqfAmnwluf1OwMjz39HjfLPci0Q==
   dependencies:
     aproba "^1.0.3 || ^2.0.0"
     color-support "^1.1.2"
@@ -8152,8 +8202,8 @@ gauge@^3.0.0:
     has-unicode "^2.0.1"
     object-assign "^4.1.1"
     signal-exit "^3.0.0"
-    string-width "^1.0.1 || ^2.0.0"
-    strip-ansi "^3.0.1 || ^4.0.0"
+    string-width "^4.2.3"
+    strip-ansi "^6.0.1"
     wide-align "^1.1.2"
 
 gauge@^4.0.3:
@@ -8173,7 +8223,7 @@ gauge@^4.0.3:
 gauge@~2.7.3:
   version "2.7.4"
   resolved "https://registry.yarnpkg.com/gauge/-/gauge-2.7.4.tgz#2c03405c7538c39d7eb37b317022e325fb018bf7"
-  integrity sha1-LANAXHU4w51+s3sxcCLjJfsBi/c=
+  integrity sha512-14x4kjc6lkD3ltw589k0NrPD6cCNTD6CWoVUNpB85+DrtONoZn+Rug6xZU5RvSC4+TZPxA5AnBibQYAvZn41Hg==
   dependencies:
     aproba "^1.0.3"
     console-control-strings "^1.0.0"
@@ -8924,7 +8974,7 @@ is-extglob@^2.1.1:
 is-fullwidth-code-point@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-1.0.0.tgz#ef9e31386f031a7f0d643af82fde50c457ef00cb"
-  integrity sha1-754xOG8DGn8NZDr4L95QxFfvAMs=
+  integrity sha512-1pqUqRjkhPJ9miNq9SwMfdvi6lBJcd6eFxvfaivQhaH3SgisfiuudvFntdKOmxuee/77l+FPjKrQjWvmPjWrRw==
   dependencies:
     number-is-nan "^1.0.0"
 
@@ -11199,7 +11249,7 @@ npmlog@^6.0.0:
 number-is-nan@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/number-is-nan/-/number-is-nan-1.0.1.tgz#097b602b53422a522c1afb8790318336941a011d"
-  integrity sha1-CXtgK1NCKlIsGvuHkDGDNpQaAR0=
+  integrity sha512-4jbtZXNAsfZbAHiiqjLPBiCl16dES1zI4Hpzzxw61Tk+loF+sBDBKx1ICKKKwIqQ7M0mFn1TmkN7euSncWgHiQ==
 
 nwsapi@^2.2.0:
   version "2.2.0"
@@ -11993,6 +12043,42 @@ quais@0.1.11:
     "@quais/web" "0.1.0"
     "@quais/wordlists" "0.1.0"
 
+quais@0.1.14:
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/quais/-/quais-0.1.14.tgz#03cec9399f21c60d1c10bfb94b7f4f3b2529250c"
+  integrity sha512-e4YsWMlWJiVf3wTBcXXdnYBbbmFLrobpoECo4vVxsnbmBApA+79BfpX3D8CwAPEOe8n2hWx3wtgzPGyPDQSW2w==
+  dependencies:
+    "@quais/abi" "0.1.0"
+    "@quais/abstract-provider" "0.1.4"
+    "@quais/abstract-signer" "0.1.0"
+    "@quais/address" "0.1.2"
+    "@quais/base64" "0.1.0"
+    "@quais/basex" "0.1.0"
+    "@quais/bignumber" "0.1.0"
+    "@quais/bytes" "0.1.0"
+    "@quais/constants" "0.1.2"
+    "@quais/contracts" "0.1.2"
+    "@quais/hash" "0.1.0"
+    "@quais/hdnode" "0.1.1"
+    "@quais/json-wallets" "0.1.0"
+    "@quais/keccak256" "0.1.0"
+    "@quais/logger" "0.1.0"
+    "@quais/networks" "0.1.0"
+    "@quais/pbkdf2" "0.1.0"
+    "@quais/properties" "0.1.0"
+    "@quais/providers" "0.1.5"
+    "@quais/random" "0.1.0"
+    "@quais/rlp" "0.1.0"
+    "@quais/sha2" "0.1.0"
+    "@quais/signing-key" "0.1.0"
+    "@quais/solidity" "0.1.0"
+    "@quais/strings" "0.1.0"
+    "@quais/transactions" "0.1.2"
+    "@quais/units" "0.1.0"
+    "@quais/wallet" "0.1.0"
+    "@quais/web" "0.1.0"
+    "@quais/wordlists" "0.1.0"
+
 query-string@6.13.5:
   version "6.13.5"
   resolved "https://registry.yarnpkg.com/query-string/-/query-string-6.13.5.tgz#99e95e2fb7021db90a6f373f990c0c814b3812d8"
@@ -12282,10 +12368,23 @@ read@1, read@^1.0.7, read@~1.0.1, read@~1.0.7:
   dependencies:
     mute-stream "~0.0.4"
 
-readable-stream@^2.0.0, readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.2.2:
+readable-stream@^2.0.0, readable-stream@^2.0.5, readable-stream@^2.2.2:
   version "2.3.7"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.7.tgz#1eca1cf711aef814c04f62252a36a62f6cb23b57"
   integrity sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.3"
+    isarray "~1.0.0"
+    process-nextick-args "~2.0.0"
+    safe-buffer "~5.1.1"
+    string_decoder "~1.1.1"
+    util-deprecate "~1.0.1"
+
+readable-stream@^2.0.6:
+  version "2.3.8"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.8.tgz#91125e8042bba1b9887f49345f6277027ce8be9b"
+  integrity sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==
   dependencies:
     core-util-is "~1.0.0"
     inherits "~2.0.3"
@@ -12959,15 +13058,15 @@ side-channel@^1.0.3, side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
-signal-exit@^3.0.0, signal-exit@^3.0.2, signal-exit@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.3.tgz#a1410c2edd8f077b08b4e253c8eacfcaf057461c"
-  integrity sha512-VUJ49FC8U1OxwZLxIbTTrDvLnf/6TDgxZcK8wxR8zs13xpx7xbG60ndBlhNrFi2EMuFRoeDoJO7wthSLq42EjA==
-
-signal-exit@^3.0.7:
+signal-exit@^3.0.0, signal-exit@^3.0.7:
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.7.tgz#a9a1767f8af84155114eaabd73f99273c8f59ad9"
   integrity sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==
+
+signal-exit@^3.0.2, signal-exit@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.3.tgz#a1410c2edd8f077b08b4e253c8eacfcaf057461c"
+  integrity sha512-VUJ49FC8U1OxwZLxIbTTrDvLnf/6TDgxZcK8wxR8zs13xpx7xbG60ndBlhNrFi2EMuFRoeDoJO7wthSLq42EjA==
 
 simple-diff@^1.6.0:
   version "1.6.0"
@@ -13301,19 +13400,11 @@ string-template@~0.2.1:
 string-width@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
-  integrity sha1-EYvfW4zcUaKn5w0hHgfisLmxB9M=
+  integrity sha512-0XsVpQLnVCXHJfyEs8tC0zpTVIr5PKKsQtkT29IwupnPTjtPmQ3xT/4yCREF9hYkV/3M3kzcUTSAZT6a6h81tw==
   dependencies:
     code-point-at "^1.0.0"
     is-fullwidth-code-point "^1.0.0"
     strip-ansi "^3.0.0"
-
-"string-width@^1.0.1 || ^2.0.0", "string-width@^1.0.2 || 2", string-width@^2.0.0, string-width@^2.1.0:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/string-width/-/string-width-2.1.1.tgz#ab93f27a8dc13d28cac815c462143a6d9012ae9e"
-  integrity sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==
-  dependencies:
-    is-fullwidth-code-point "^2.0.0"
-    strip-ansi "^4.0.0"
 
 "string-width@^1.0.2 || 2 || 3 || 4", string-width@^4.1.0, string-width@^4.2.3:
   version "4.2.3"
@@ -13323,6 +13414,14 @@ string-width@^1.0.1:
     emoji-regex "^8.0.0"
     is-fullwidth-code-point "^3.0.0"
     strip-ansi "^6.0.1"
+
+string-width@^2.0.0, string-width@^2.1.0:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/string-width/-/string-width-2.1.1.tgz#ab93f27a8dc13d28cac815c462143a6d9012ae9e"
+  integrity sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==
+  dependencies:
+    is-fullwidth-code-point "^2.0.0"
+    strip-ansi "^4.0.0"
 
 string-width@^4.2.0:
   version "4.2.2"
@@ -13403,7 +13502,7 @@ strip-ansi@^3.0.0, strip-ansi@^3.0.1:
   dependencies:
     ansi-regex "^2.0.0"
 
-"strip-ansi@^3.0.1 || ^4.0.0", strip-ansi@^4.0.0:
+strip-ansi@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-4.0.0.tgz#a8479022eb1ac368a871389b635262c505ee368f"
   integrity sha1-qEeQIusaw2iocTibY1JixQXuNo8=
@@ -14461,14 +14560,7 @@ which@^2.0.1, which@^2.0.2:
   dependencies:
     isexe "^2.0.0"
 
-wide-align@^1.1.0, wide-align@^1.1.2:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/wide-align/-/wide-align-1.1.3.tgz#ae074e6bdc0c14a431e804e624549c633b000457"
-  integrity sha512-QGkOQc8XL6Bt5PwnsExKBPuMKBxnGxWWW3fU55Xt4feHozMUhdUMaBCk290qpm/wG5u/RSKzwdAC4i51YigihA==
-  dependencies:
-    string-width "^1.0.2 || 2"
-
-wide-align@^1.1.5:
+wide-align@^1.1.0, wide-align@^1.1.2, wide-align@^1.1.5:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/wide-align/-/wide-align-1.1.5.tgz#df1d4c206854369ecf3c9a4898f1b23fbd9d15d3"
   integrity sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==

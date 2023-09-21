@@ -62,6 +62,7 @@ export default function SingleAsset(): ReactElement {
       }
       switch (activity?.type) {
         case "asset-transfer":
+        case "external-transfer":
         case "asset-approval":
           return activity.assetSymbol === symbol
         case "asset-swap":

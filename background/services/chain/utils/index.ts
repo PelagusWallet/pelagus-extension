@@ -298,6 +298,7 @@ export function enrichTransactionWithReceipt(
       data,
       topics,
     })),
+    etxs: receipt.etxs,
     status:
       receipt.status ??
       // Pre-Byzantium transactions require a guesswork approach or an

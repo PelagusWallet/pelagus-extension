@@ -21,9 +21,15 @@ function isSendActivity(
   activity: Activity,
   activityInitiatorAddress: string
 ): boolean {
-  return activity.type === "asset-transfer"
+  return (activity.type === "asset-transfer" || activity.type === "external-transfer")
     ? sameEVMAddress(activity.sender?.address, activityInitiatorAddress)
     : true
+}
+
+function formatShard(
+  shard: string
+): string {
+  return ' ' + shard.charAt(0).toUpperCase() + shard.slice(1).replace('-', ' ')
 }
 
 export default function WalletActivityListItem(props: Props): ReactElement {
@@ -62,7 +68,7 @@ export default function WalletActivityListItem(props: Props): ReactElement {
             {activityViewDetails.label}
             {"status" in activity &&
             activity.blockHash !== null &&
-            activity.status !== 1 ? (
+            (activity.status !== 1 && activity.status !== 0 && activity.status !== 2) ? (
               <div className="status failed">{t("transactionFailed")}</div>
             ) : (
               <></>
@@ -74,7 +80,8 @@ export default function WalletActivityListItem(props: Props): ReactElement {
             ) : (
               <></>
             )}
-            {activity.blockHash !== null &&
+            {activity.status == 2 ||
+            activity.blockHash !== null &&
             activity.to &&
             getShardFromAddress(activity.from) == getShardFromAddress(activity.to) ? (
               <div className="status settled">{t("transactionSettled")}</div>
@@ -82,7 +89,8 @@ export default function WalletActivityListItem(props: Props): ReactElement {
               <></>
             )}
             {activity.blockHash !== null &&
-            activity.to &&
+            activity.to && 
+            activity.status == 1 &&
             getShardFromAddress(activity.from) !== getShardFromAddress(activity.to) ? (
               <div className="status approved">{t("transactionApproved")}</div>
             ) : (
@@ -136,8 +144,7 @@ export default function WalletActivityListItem(props: Props): ReactElement {
               </div>
             ) : (
               <div className="outcome" title={activity.from}>
-                {t("transactionFrom")}
-                {` ${truncateAddress(activity.from)}`}
+                {activity.type === "external-transfer" ? "External" : ` ${truncateAddress(activity.from)}`}
               </div>
             )}
           </div>

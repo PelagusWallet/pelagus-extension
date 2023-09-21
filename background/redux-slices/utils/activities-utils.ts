@@ -9,6 +9,7 @@ import {
 import { isDefined } from "../../lib/utils/type-guards"
 import { Transaction } from "../../services/chain/db"
 import { EnrichedEVMTransaction } from "../../services/enrichment"
+import { getShardFromAddress } from "quais/lib/utils"
 import { getRecipient, getSender } from "../../services/enrichment/utils"
 import { HexString } from "../../types"
 
@@ -70,7 +71,8 @@ function getBlockHeight(tx: EnrichedEVMTransaction): string {
   if (
     blockHeight !== null &&
     status !== undefined &&
-    status !== TxStatus.SUCCESS
+    status !== TxStatus.SUCCESS &&
+    status !== 2
   ) {
     return "(failed)"
   }
@@ -170,9 +172,34 @@ export const getActivity = (
       recipient: getRecipient(transaction),
       sender: getSender(transaction),
     }
-  }
 
-  return activity
+    return activity 
+  }
+  let annotation = getAnnotationType(transaction)
+
+  return {
+    ...activity,
+    type: annotation,
+  }
+}
+
+const getAnnotationType = (transaction: Transaction) => {
+  const { to, from } = transaction
+  if (typeof to === undefined) {
+    return "contract-deployment"
+  } 
+  
+  let annotation = "contract-interaction";
+
+  // Likely not a contract interaction
+  if (
+    transaction.input === null ||
+    transaction.input === "0x" ||
+    typeof transaction.input === "undefined"
+  ) {
+    annotation = to && getShardFromAddress(to) !== getShardFromAddress(from) ? "external-transfer" : "asset-transfer"
+  }
+  return annotation
 }
 
 export const sortActivities = (a: Activity, b: Activity): number => {
@@ -245,6 +272,7 @@ export function getActivityDetails(
     { label: "Gas", value: "gasUsed" in tx ? tx.gasUsed.toString() : "" },
     { label: "Nonce", value: tx.nonce.toString() },
     { label: "Timestamp", value: getTimestamp(tx.annotation?.blockTimestamp) },
+    { label: "Hash", value: tx.hash }
   ].concat(
     assetTransfers.map((transfer) => {
       return {

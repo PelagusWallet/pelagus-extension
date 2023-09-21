@@ -17,7 +17,7 @@ export const selectActivitesHashesForEnrichment = createSelector(
     // Only need to enrich current activities if they don't have a blockHash already
     // Once they have a blockhash, they've been included and enriched already
     return currentActivities.flatMap((activity) =>
-      activity.blockHash == undefined ? activity.hash : []
+      activity.status == 1 || activity.status == undefined ? {hash: activity.hash, status: activity.status, to: activity.to, from: activity.from} : []
     )
   }
 )

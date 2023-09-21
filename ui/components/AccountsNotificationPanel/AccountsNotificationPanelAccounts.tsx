@@ -44,6 +44,7 @@ import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import EditSectionForm from "./EditSectionForm"
 import SigningButton from "./SigningButton"
 import { ONBOARDING_ROOT } from "../../pages/Onboarding/Tabbed/Routes"
+import SharedSelect from "../Shared/SharedSelect"
 
 type WalletTypeInfo = {
   title: string
@@ -96,8 +97,16 @@ function WalletTypeHeader({
   }
   const { title, icon } = walletTypeDetails[accountType]
   const dispatch = useBackgroundDispatch()
-  
+  const shardOptions = VALID_SHARDS.map((shard) => ({
+    value: shard,
+    label: shard,
+  }));
 
+  const handleShardSelection = (selectedShard: string) => {
+    setShard(selectedShard);
+    setAddAddressSelected(false);
+    // Call other required functions like onClickAddAddress
+  };
   useEffect(() => {
     if(addAddressSelected) {
       if (areKeyringsUnlocked) {
@@ -136,6 +145,8 @@ function WalletTypeHeader({
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const [showEditMenu, setShowEditMenu] = useState(false)
   const [showShardMenu, setShowShardMenu] = useState(false)
+  const dropdownTogglerRef = useRef(null);
+  
   return (
     <>
       {accountSigner.type !== "read-only" && (
@@ -160,32 +171,45 @@ function WalletTypeHeader({
           />
         </SharedSlideUpMenu>
       )}
-      <SharedSlideUpMenu
-          size="small"
-          isOpen={showShardMenu}
-          close={(e) => {
-            e.stopPropagation()
-            setShowShardMenu(false)
-            setAddAddressSelected(false)
-          }}
-        >
-          <EditSectionForm
-            onSubmit={(shard) => {
-              if (shard && setShard && onClickAddAddress) {
-                setShard(shard)
-                onClickAddAddress()
-              }
-              setShowShardMenu(false)
-              setAddAddressSelected(false)
-            }}
-            onCancel={() => {setShowShardMenu(false); setAddAddressSelected(false)}}
-            accountTypeIcon={walletTypeDetails[accountType].icon}
-            currentName={sectionTitle}
-            label="Choose Shard"
-            saveName="New Address"
-            typeNewName="Type shard e.g. cyprus-1"
-          />
-        </SharedSlideUpMenu>
+<SharedSlideUpMenu
+  size="xsmall"
+  isOpen={showShardMenu}
+  close={(e) => {
+    e.stopPropagation();
+    setShowShardMenu(false);
+    setAddAddressSelected(false);
+  }}
+  customStyles={{ display: "flex", width: "100%", justifyContent: "center", alignItems: "center" }}
+>
+  <div className="menu-content">
+    <SharedSelect
+      options={shardOptions}
+      onChange={handleShardSelection}
+      defaultIndex={0}
+      label="Choose Shard"
+      width="100%"
+
+      align-self='center'
+      
+    />
+
+    <SharedButton
+      type="tertiary"
+      size="small"
+      style={{ display: "flex", justifyContent: "flex-end", width: "fit-content", marginLeft: '75%' }}
+      onClick={() => {
+        onClickAddAddress && onClickAddAddress();
+        setShowShardMenu(false);
+        setAddAddressSelected(false);
+      }}
+    >
+      Confirm
+    </SharedButton>
+  </div>
+</SharedSlideUpMenu>
+
+
+      
       <header className="wallet_title">
         <h2 className="left">
           <div className="icon_wrap">
@@ -237,6 +261,22 @@ function WalletTypeHeader({
         )}
       </header>
       <style jsx>{`
+          .menu-content {
+            top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 80%;
+          }
+          .menu-content > :first-child {
+            margin--left: 30px;
+            margin: auto; 
+          }
+          .menu-content > :last-child {
+            
+            margin-bottom: 16px; 
+            margin-right: 16px; 
+          }
         .wallet_title {
           display: flex;
           align-items: center;

@@ -5,6 +5,7 @@ import SharedIcon from "./SharedIcon"
 
 export type SharedSlideUpMenuSize =
   | "auto"
+  | "xsmall"
   | "small"
   | "medium"
   | "large"
@@ -30,6 +31,7 @@ type Props = {
 
 const menuHeights: Record<SharedSlideUpMenuSize, string | null> = {
   auto: "auto",
+  xsmall: "200px",
   small: "268px",
   medium: "536px",
   large: "600px",

@@ -52,7 +52,7 @@ export default function OnboardingAdditionalWallet(): JSX.Element {
           .list_wrapper span {
             font-size: 16px;
             text-align: center;
-            color: var(--green-40);
+            color: var(--hunter-green);
           }
 
           .list_container {

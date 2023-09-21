@@ -97,7 +97,7 @@ export default class OnboardingHelper {
           .fill(DEFAULT_PASSWORD)
       }
 
-      await page.getByRole("button", { name: "Begin the hunt" }).click()
+      await page.getByRole("button", { name: "Anchors Away!" }).click()
 
       await page
         .getByRole("textbox", { name: "Input recovery phrase" })
@@ -124,7 +124,7 @@ export default class OnboardingHelper {
         .fill(DEFAULT_PASSWORD)
     }
 
-    await page.getByRole("button", { name: "Begin the hunt" }).click()
+    await page.getByRole("button", { name: "Anchors Away!" }).click()
     await page.getByRole("button", { name: "Create recovery phrase" }).click()
 
     // Verify seed

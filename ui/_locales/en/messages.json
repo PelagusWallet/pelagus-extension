@@ -86,7 +86,7 @@
       "password": "Password",
       "repeatPassword": "Repeat password",
       "restorePassword": "Restoring account?",
-      "submitBtn": "Begin the hunt",
+      "submitBtn": "Anchors Away!",
       "error": {
         "characterCount": "Must be at least 8 characters",
         "noMatch": "Passwords don’t match"
@@ -398,7 +398,7 @@
     "setPassword": {
       "title": "First, let's secure<br /> your wallet",
       "setAsDefault": "Set Pelagus as default wallet",
-      "submit": "Begin the hunt"
+      "submit": "Anchors Away!"
     },
     "steps": {
       "create": "Create",

@@ -53,21 +53,6 @@ export default function WalletShortcut(): JSX.Element {
   })
   return (
     <div className="wallet_shortcut">
-      <span>{t("onboarding.tabbed.walletShortcut")}</span>
-      <img
-        height="38"
-        className="indicator"
-        src={
-          os === "mac"
-            ? `/images/mac-shortcut${altPressed ? "-option" : ""}${
-                tPressed ? "-t" : ""
-              }.svg`
-            : `/images/windows-shortcut${altPressed ? "-alt" : ""}${
-                tPressed ? "-t" : ""
-              }.svg`
-        }
-        alt={os === "mac" ? "option + T" : "alt + T"}
-      />
       <style jsx>{`
         .wallet_shortcut {
           display: flex;

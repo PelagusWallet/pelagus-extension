@@ -12,7 +12,7 @@ function isReceiveActivity(
   activityInitiatorAddress: string
 ): boolean {
   return (
-    activity.type === "asset-transfer" &&
+    (activity.type === "asset-transfer" || activity.type === "external-transfer") &&
     sameEVMAddress(activity.recipient?.address, activityInitiatorAddress)
   )
 }
@@ -75,6 +75,16 @@ export default function useActivityViewDetails(
         ...baseDetails,
         icon: "asset-swap",
         label: t("tokenSwapped"),
+      }
+    case "external-transfer":
+      return {
+        ...baseDetails,
+        icon: isReceiveActivity(activity, activityInitiatorAddress)
+          ? "asset-transfer-receive"
+          : "asset-transfer-send",
+        label: isReceiveActivity(activity, activityInitiatorAddress)
+          ? t("externalReceived")
+          : t("externalSend"),
       }
     case "contract-deployment":
     case "contract-interaction":

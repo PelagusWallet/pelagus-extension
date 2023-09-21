@@ -596,9 +596,6 @@ export default class Main extends BaseService<never> {
   }
 
   async manuallyCheckBalances(): Promise<void> {
-    // Also refresh the transactions in the account
-    this.enrichActivitiesForSelectedAccount()
-      
     const selectedAccount = await this.store.getState().ui.selectedAccount
     const currentAccountState = await this.store.getState().account.accountsData.evm[selectedAccount.network.chainID]?.[normalizeEVMAddress(selectedAccount.address)]
     if (currentAccountState === undefined || currentAccountState === "loading") {
@@ -869,29 +866,75 @@ export default class Main extends BaseService<never> {
   }
 
   async enrichActivities(addressNetwork: AddressOnNetwork): Promise<void> {
-    const accountsToTrack = await this.chainService.getAccountsToTrack()
     const activitiesToEnrich = selectActivitesHashesForEnrichment(
       this.store.getState()
     )
-
-    activitiesToEnrich.forEach(async (txHash) => {
-      const transaction = await this.chainService.getTransaction(
-        addressNetwork.network,
-        txHash
-      )
-      const enrichedTransaction =
-        await this.enrichmentService.enrichTransaction(transaction, 2)
-
-      this.store.dispatch(
-        addActivity({
-          transaction: enrichedTransaction,
-          forAccounts: getRelevantTransactionAddresses(
-            enrichedTransaction,
-            accountsToTrack
-          ),
-        })
-      )
+    // This a mint if the from address is '0x0000000000000000000000000000000000000000' and we enrich it as an ITX
+    activitiesToEnrich.forEach(async ({hash: txHash, status, to, from}) => {
+      // Enrich ETX or ITX
+      if (to && getShardFromAddress(to) !== getShardFromAddress(from) && from !== '0x0000000000000000000000000000000000000000') {
+        await this.enrichETXActivity(addressNetwork, txHash, status, to)
+      } else {
+        await this.enrichITXActivity(addressNetwork, txHash, status)
+      }
     })
+  }
+
+  async enrichITXActivity(addressNetwork: AddressOnNetwork, txHash: HexString, status: number | undefined): Promise<void> {
+    const accountsToTrack = await this.chainService.getAccountsToTrack()
+    const transaction = await this.chainService.getTransaction(
+      addressNetwork.network,
+      txHash
+    )
+    const enrichedTransaction =
+      await this.enrichmentService.enrichTransaction(transaction, 2)
+
+    this.store.dispatch(
+      addActivity({
+        transaction: {
+          ...enrichedTransaction,
+          status: status ?? transaction.blockHash ? 2 : -1,
+        },
+        forAccounts: getRelevantTransactionAddresses(
+          enrichedTransaction,
+          accountsToTrack
+        ),
+      })
+    )
+  }
+
+  async enrichETXActivity(addressNetwork: AddressOnNetwork, txHash: HexString, status: number | undefined, to: string): Promise<void> {
+    const accountsToTrack = await this.chainService.getAccountsToTrack()
+    const transaction = await this.chainService.getETX(
+      addressNetwork.network,
+      txHash,
+      getShardFromAddress(to)
+    )
+
+    if (transaction.blockHash && (!("etxs" in transaction) || transaction.etxs.length == 0)) {
+      console.warn("No ETXs emitted for tx: ", transaction.hash)
+      return
+    }
+
+    if ("status" in transaction && transaction.status == status) {
+      console.log("ETX not yet found on destination chain: ", "etxs" in transaction ? transaction.etxs[0].hash : "No hash")
+      return // Nothing has changed since last enrichment
+    }
+
+    console.log("Enriching again because status has changed", "status" in transaction ? transaction.status : "No status before - ", status)
+    
+    const enrichedTransaction =
+      await this.enrichmentService.enrichTransaction(transaction, 2)
+
+    this.store.dispatch(
+      addActivity({
+        transaction: enrichedTransaction,
+        forAccounts: getRelevantTransactionAddresses(
+          enrichedTransaction,
+          accountsToTrack
+        )
+      })
+    )
   }
 
   async connectChainService(): Promise<void> {

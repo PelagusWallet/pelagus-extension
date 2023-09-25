@@ -10,6 +10,7 @@ import AccountItemRemovalConfirm from "./AccountItemRemovalConfirm"
 import { useHistory } from "react-router-dom"
 import { exportPrivKey } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import AccountitemOptionLabel from "./AccountItemOptionLabel"
+import AccountHistoryRemovalConfirm from "./AccountHistoryRemovalConfirm"
 
 type AccountItemOptionsMenuProps = {
   accountTotal: AccountTotal
@@ -30,7 +31,8 @@ export default function AccountItemOptionsMenu({
   const [key, setKey] = useState("")
   const [showExportPrivateKey, setShowExportPrivateKey] = useState(false)
   const [showEditName, setShowEditName] = useState(false)
-
+  const [showClearTXHistory, setShowClearTXHistory] =
+    useState(false)
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
     dispatch(setSnackbarMessage("Address copied to clipboard"))
@@ -81,6 +83,26 @@ export default function AccountItemOptionsMenu({
           <AccountItemRemovalConfirm
             account={accountTotal}
             close={() => setShowAddressRemoveConfirm(false)}
+          />
+        </div>
+      </SharedSlideUpMenu>
+      <SharedSlideUpMenu
+        size="custom"
+        customSize="336px"
+        isOpen={showClearTXHistory}
+        close={(e) => {
+          e?.stopPropagation()
+          setShowClearTXHistory(false)
+        }}
+      > 
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          style={{ cursor: "default" }}
+        >
+          <AccountHistoryRemovalConfirm
+            account={accountTotal}
+            close={() => setShowClearTXHistory(false)}
           />
         </div>
       </SharedSlideUpMenu>
@@ -165,6 +187,16 @@ export default function AccountItemOptionsMenu({
                 history.push("/keyring/unlock")
               }
             },
+          },
+          {
+            key: 'clearHistory',
+            icon: 'garbage@2x.png',
+            label: t('clearHistory'),
+            onClick: () => {
+              setShowClearTXHistory(true)
+            },
+            color: "var(--error)",
+            hoverColor: "var(--error-80)",
           }
         ]}
       />

@@ -181,6 +181,18 @@ export const {
   initializeActivitiesForAccount,
 } = activitiesSlice.actions
 
+export const removeAccountActivities = createBackgroundAsyncThunk(
+  "activities/removeAccountActivities",
+  async (
+    payload: HexString,
+    { extra: { main } }
+  ) => {
+    const address = payload
+    const normalizedAddress = normalizeEVMAddress(address)
+    await main.removeAccountActivity(normalizedAddress)
+  }
+)
+
 export default activitiesSlice.reducer
 
 export const fetchSelectedActivityDetails = createBackgroundAsyncThunk(

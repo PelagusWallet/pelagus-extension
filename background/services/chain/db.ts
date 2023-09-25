@@ -20,6 +20,7 @@ import {
   NETWORK_BY_CHAIN_ID,
   POLYGON,
 } from "../../constants"
+import { result } from "lodash"
 
 export type Transaction = AnyEVMTransaction & {
   dataSource: "alchemy" | "local"
@@ -460,6 +461,30 @@ export class ChainDatabase extends Dexie {
     // @TODO Network Specific deletion when we support it.
     await this.accountsToTrack.where("address").equals(address).delete()
   }
+
+  async removeActivities(address: string): Promise<void> {
+  
+    // Get all transactions
+    const txs = await this.getAllTransactions();
+  
+    // Filter transactions that include the specified address in the `from` or `to` fields
+    const txsToRemove = txs.filter(
+      tx => tx.from?.toLowerCase().trim() === address.toLowerCase().trim() 
+             || tx.to?.toLowerCase().trim() === address.toLowerCase().trim()
+    );
+    // Delete each transaction by their `hash` and `network.name`
+    for (const tx of txsToRemove) {
+      const { hash, network } = tx;
+      await this.chainTransactions
+        .where(['hash', 'network.name'])
+        .equals([hash, network.name])
+        .delete();
+    }
+  
+    // Fetch all transactions again to verify
+    const updatedTxs = await this.getAllTransactions();
+  }
+  
 
   async getOldestAccountAssetTransferLookup(
     addressNetwork: AddressOnNetwork

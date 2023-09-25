@@ -766,6 +766,13 @@ export default class Main extends BaseService<never> {
     this.analyticsService.sendAnalyticsEvent(AnalyticsEvent.ACCOUNT_NAME_EDITED)
   }
 
+  async removeAccountActivity(
+    address: HexString,
+  ): Promise<void> {
+    this.store.dispatch(removeActivities(address))
+    await this.chainService.removeActivities(address)
+  }
+
   async removeAccount(
     address: HexString,
     signer: AccountSigner,

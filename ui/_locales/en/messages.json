@@ -14,7 +14,10 @@
       "removeAddress": "Remove address",
       "copyAddress": "Copy address",
       "exportAccount": "Export private key",
-      "removeConfirm": "Yes, I want to remove it"
+      "removeConfirm": "Yes, I want to remove it",
+      "clearHistory": "Clear transaction history",
+      "clearConfirm": "Yes, I want to clear it",
+      "clearHistoryWarning": "Clearing your wallet history in this extension does not delete transaction records from the blockchain. Your transaction history remains publicly visible on the blockchain and can be viewed using block explorers."
     },
     "notificationPanel": {
       "accountPanelName": "Accounts",

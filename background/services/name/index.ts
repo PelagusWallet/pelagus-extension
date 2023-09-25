@@ -317,6 +317,13 @@ export default class NameService extends BaseService<Events> {
     })
   }
 
+  removeActivities(address: HexString): void {
+    const chainIds = Object.keys(this.cachedResolvedNames.EVM)
+    chainIds.forEach((chainId) => {
+      this.clearNameCacheEntry(chainId, address)
+    })
+  }
+
   async lookUpAvatar(
     addressOnNetwork: AddressOnNetwork
   ): Promise<ResolvedAvatarRecord | undefined> {

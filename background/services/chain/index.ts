@@ -891,6 +891,10 @@ export default class ChainService extends BaseService<Events> {
     await this.db.removeAccountToTrack(address)
   }
 
+  async removeActivities(address: string): Promise<void> {
+    await this.db.removeActivities(address)
+  }
+
   async getLatestBaseAccountBalance({
     address,
     network,

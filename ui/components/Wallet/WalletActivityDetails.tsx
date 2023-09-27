@@ -17,6 +17,19 @@ import { getBlockExplorerURL } from "../../utils/networks"
 function DetailRowItem(props: ActivityDetail): ReactElement {
   const { assetIconUrl, label, value } = props
 
+  function truncateValue(value: string) {
+    const isLong = value.length > 30;
+    const displayValue = isLong ? `${value.substring(0, 13)}...${value.substring(value.length - 13)}` : value;
+    if (isLong) {
+      return (
+        <SharedAddress name={displayValue} address={value} />
+      );
+    }
+    return (
+    <div className="right">{value}</div>
+    );
+  }
+
   return (
     <li>
       <div className="label">
@@ -27,7 +40,7 @@ function DetailRowItem(props: ActivityDetail): ReactElement {
         )}
         {label}
       </div>
-      <div className="right">{value}</div>
+      {truncateValue(value)}
       <style jsx>
         {`
           li {

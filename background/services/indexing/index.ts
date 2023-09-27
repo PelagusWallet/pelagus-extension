@@ -515,9 +515,13 @@ export default class IndexingService extends BaseService<Events> {
   ): Promise<SmartContractAmount[]> {
     const addressNetwork = normalizeAddressOnNetwork(unsafeAddressNetwork)
 
+    const filteredSmartContractAssets = (smartContractAssets ?? []).filter(({ contractAddress }) =>
+      getShardFromAddress(contractAddress) == getShardFromAddress(addressNetwork.address)
+    );
+
     const balances = await this.chainService.assetData.getTokenBalances(
       addressNetwork,
-      smartContractAssets?.map(({ contractAddress }) => getShardFromAddress(contractAddress) == getShardFromAddress(addressNetwork.address) ? contractAddress : "")
+      filteredSmartContractAssets?.map(({ contractAddress }) => getShardFromAddress(contractAddress) == getShardFromAddress(addressNetwork.address) ? contractAddress : "")
     )
 
     const listedAssetByAddress = (smartContractAssets ?? []).reduce<{

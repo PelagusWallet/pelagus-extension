@@ -219,7 +219,7 @@ export const getTokenBalances = async (
   const response = (await contract.callStatic.tryBlockAndAggregate(
     // false === don't require all calls to succeed
     false,
-    tokenAddresses.map((tokenAddress) => getShardFromAddress(address) == getShardFromAddress(tokenAddress) ? [tokenAddress, balanceOfCallData] : [])
+    tokenAddresses.map((tokenAddress) => (tokenAddress != "" && getShardFromAddress(address) == getShardFromAddress(tokenAddress)) ? [tokenAddress, balanceOfCallData] : [])
   )) as AggregateContractResponse
 
   return response.returnData.flatMap((data, i) => {

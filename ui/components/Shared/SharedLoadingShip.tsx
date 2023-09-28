@@ -48,7 +48,7 @@ export default function SharedLoadingShip({
         }
 
         span {
-          color: #3B66E1;
+          color: #3b66e1;
           font-weight: bold;
           font-size: 20px;
         }

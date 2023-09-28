@@ -1,5 +1,8 @@
 import { formatUnits } from "@ethersproject/units"
-import { AnyAssetAmount, FungibleAsset } from "@pelagus/pelagus-background/assets"
+import {
+  AnyAssetAmount,
+  FungibleAsset,
+} from "@pelagus/pelagus-background/assets"
 import {
   AssetDecimalAmount,
   enrichAssetAmountWithMainCurrencyValues,

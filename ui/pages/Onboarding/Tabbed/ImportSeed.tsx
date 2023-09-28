@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
+import { langEs as es } from "@quais/wordlists/lib/lang-es"
 import SharedButton from "../../../components/Shared/SharedButton"
 import OnboardingDerivationPathSelect, {
   DefaultPathIndex,
@@ -17,7 +18,6 @@ import {
   useAreKeyringsUnlocked,
 } from "../../../hooks"
 import OnboardingRoutes from "./Routes"
-import { langEs as es } from "@quais/wordlists/lib/lang-es"
 
 type Props = {
   nextPage: string
@@ -197,12 +197,16 @@ export default function ImportSeed(props: Props): ReactElement {
         .bottom {
           justify-content: space-between;
           flex-direction: column;
-          margin-top: ${isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
-            ? "48px"
-            : "24px"};
-          margin-bottom: ${isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
-            ? "24px"
-            : "16px"};
+          margin-top: ${
+            isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
+              ? "48px"
+              : "24px"
+          };
+          margin-bottom: ${
+            isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
+              ? "24px"
+              : "16px"
+          };
         }
         .illustration_import {
           background: url("./icon-128.png");

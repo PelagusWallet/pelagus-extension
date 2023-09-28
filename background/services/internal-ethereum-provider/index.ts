@@ -392,7 +392,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       return defaultNetwork
     }
     return currentNetwork
-    //return QUAI_NETWORK
+    // return QUAI_NETWORK
   }
 
   async removePrefererencesForChain(chainId: string): Promise<void> {
@@ -415,11 +415,11 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       throw new Error("Transactions must have a from address for signing.")
     }
 
-    /*let currentNetwork = await this.getCurrentOrDefaultNetworkForOrigin(
+    /* let currentNetwork = await this.getCurrentOrDefaultNetworkForOrigin(
       origin
-    )*/
-    const currentNetwork = globalThis.main.store.getState().ui.selectedAccount.network
-
+    ) */
+    const currentNetwork =
+      globalThis.main.store.getState().ui.selectedAccount.network
 
     const isRootstock = currentNetwork.chainID === ROOTSTOCK.chainID
 

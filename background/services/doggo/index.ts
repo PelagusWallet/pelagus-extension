@@ -142,7 +142,7 @@ export default class DoggoService extends BaseService<Events> {
       )
 
       const referralHandler: Parameters<
-        typeof providedClaimWithFriends["on"]
+        (typeof providedClaimWithFriends)["on"]
       >[1] = (...args) => {
         if (args.length !== 6) {
           logger.error(

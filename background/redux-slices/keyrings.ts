@@ -146,9 +146,11 @@ export const generateNewKeyring = createBackgroundAsyncThunk(
 
 export const deriveAddress = createBackgroundAsyncThunk(
   "keyrings/deriveAddress",
-  async ({signerId: id, shard: shard}: DeriveAddressData) => {
-    console.log("Emitting derive address for signerId: " + id + " and shard: " + shard)
-    await emitter.emit("deriveAddress", {signerId: id, shard: shard})
+  async ({ signerId: id, shard }: DeriveAddressData) => {
+    console.log(
+      `Emitting derive address for signerId: ${id} and shard: ${shard}`
+    )
+    await emitter.emit("deriveAddress", { signerId: id, shard })
   }
 )
 

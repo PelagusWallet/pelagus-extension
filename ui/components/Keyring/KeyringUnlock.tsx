@@ -80,7 +80,9 @@ export default function KeyringUnlock({
       <div className="img_wrap">
         <div className="illustration_unlock" />
       </div>
-      <h1 className="serif_header" style={{color: 'var(--trophy-gold'}}>{t("title")}</h1>
+      <h1 className="serif_header" style={{ color: "var(--trophy-gold" }}>
+        {t("title")}
+      </h1>
       <div className="simple_text subtitle">{t("subtitle")}</div>
       <form onSubmit={dispatchUnlockWallet}>
         <div className="signing_wrap">

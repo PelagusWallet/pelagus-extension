@@ -182,7 +182,7 @@ export type LegacyEVMTransactionRequest = Pick<
  * 100 - EIP-2718 on Arbitrum
  */
 export const KNOWN_TX_TYPES = [0, 1, 2, 100] as const
-export type KnownTxTypes = typeof KNOWN_TX_TYPES[number]
+export type KnownTxTypes = (typeof KNOWN_TX_TYPES)[number]
 export function isKnownTxType(arg: unknown): arg is KnownTxTypes {
   return (
     arg !== undefined &&

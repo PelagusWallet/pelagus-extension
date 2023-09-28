@@ -17,4 +17,4 @@ export const coinTypesByAssetSymbol = {
  * All coin types known to the extension.
  */
 export type Slip44CoinType =
-  typeof coinTypesByAssetSymbol[keyof typeof coinTypesByAssetSymbol]
+  (typeof coinTypesByAssetSymbol)[keyof typeof coinTypesByAssetSymbol]

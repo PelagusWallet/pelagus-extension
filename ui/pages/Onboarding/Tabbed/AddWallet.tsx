@@ -13,12 +13,7 @@ function OnboardingAddWallet(): ReactElement {
   return (
     <section className="fadeIn">
       <header>
-        <img
-          width="80"
-          height="80"
-          alt="Pelagus Gold"
-          src="./icon-128.png"
-        />
+        <img width="80" height="80" alt="Pelagus Gold" src="./icon-128.png" />
         <div className="bottom_content">
           <h1 className="bottom_title">{t("title")}</h1>
         </div>

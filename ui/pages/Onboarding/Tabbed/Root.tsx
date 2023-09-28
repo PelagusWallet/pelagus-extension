@@ -72,7 +72,7 @@ function Navigation({
             padding: 62px 80px 0;
             padding-top: 10%;
             width: 50%;
-            max-height: 100vh;  // Adjust this if you need to
+            max-height: 100vh; // Adjust this if you need to
             box-sizing: border-box;
             background: #04141480;
             overflow-y: auto; // Makes it scrollable
@@ -121,23 +121,28 @@ function Navigation({
           }
         `}
       </style>
-      <div className={classNames("left_container", { hide: !isOnboarding })}
-  style={{
-    backgroundImage: `
+      <div
+        className={classNames("left_container", { hide: !isOnboarding })}
+        style={{
+          backgroundImage: `
       linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)), 
       url('./images/pelagus_flag.png')
-    `, 
-    backgroundSize: 'cover',
-    backgroundPosition: 'center'
-  }}
->
-  <div className="onboarding_branding">
-    <img src="./images/logo_onboarding.png" alt="Onboarding logo" className="onboarding_logo_branding"/>
-  </div>
-  <div className="route_based_content">
-    <RouteBasedContent />
-  </div>
-</div>
+    `,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="onboarding_branding">
+          <img
+            src="./images/logo_onboarding.png"
+            alt="Onboarding logo"
+            className="onboarding_logo_branding"
+          />
+        </div>
+        <div className="route_based_content">
+          <RouteBasedContent />
+        </div>
+      </div>
 
       <div className="right_container">
         {!matchPath(location.pathname, {

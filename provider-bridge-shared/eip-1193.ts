@@ -35,12 +35,12 @@ export const EIP1193_ERROR_CODES = {
 } as const
 
 export type EIP1193ErrorPayload =
-  | typeof EIP1193_ERROR_CODES[keyof typeof EIP1193_ERROR_CODES] & {
+  | (typeof EIP1193_ERROR_CODES)[keyof typeof EIP1193_ERROR_CODES] & {
       data?: unknown
     }
 
 export type EIP1193ErrorCodeNumbers = Pick<
-  typeof EIP1193_ERROR_CODES[keyof typeof EIP1193_ERROR_CODES],
+  (typeof EIP1193_ERROR_CODES)[keyof typeof EIP1193_ERROR_CODES],
   "code"
 >
 export class EIP1193Error extends Error {

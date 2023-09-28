@@ -60,8 +60,7 @@ export default function SharedToggleButton({
             cursor: pointer;
             display: flex;
             border: 1px solid var(--hunter-green)
-
-            ${leftToRight ? "" : "transform: rotate(180deg);"}
+              ${leftToRight ? "" : "transform: rotate(180deg);"};
           }
           .bulb {
             width: 16px;
@@ -76,7 +75,7 @@ export default function SharedToggleButton({
             transform: translateX(16px);
           }
           .is_active {
-            background-color: var(--green-80);  // This line was added
+            background-color: var(--green-80); // This line was added
           }
         `}
       </style>

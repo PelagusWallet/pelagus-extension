@@ -34,7 +34,10 @@ import {
   sameEVMAddress,
   truncateAddress,
 } from "../../lib/utils"
-import { getShardFromAddress, selectAccountSignersByAddress } from "./signingSelectors"
+import {
+  getShardFromAddress,
+  selectAccountSignersByAddress,
+} from "./signingSelectors"
 import {
   selectKeyringsByAddresses,
   selectSourcesByAddress,
@@ -300,24 +303,31 @@ export const selectCurrentAccountBalances = createSelector(
       hideDust,
       showUnverifiedAssets
     )
-    
-      for (let i = 0; i < allAssetAmounts.length; i++) {
-        let isInCombined = false
-        let firstAsset = allAssetAmounts[i].asset
-        if (isSmartContractFungibleAsset(firstAsset)) {
-          for(let j = 0; j < combinedAssetAmounts.length; j++) {
-            let secondAsset = combinedAssetAmounts[j].asset
-            if (isSmartContractFungibleAsset(secondAsset)) {
-              if(firstAsset.contractAddress === secondAsset.contractAddress && firstAsset.symbol === secondAsset.symbol) {
-                isInCombined = true
-              }
+
+    for (let i = 0; i < allAssetAmounts.length; i++) {
+      let isInCombined = false
+      const firstAsset = allAssetAmounts[i].asset
+      if (isSmartContractFungibleAsset(firstAsset)) {
+        for (let j = 0; j < combinedAssetAmounts.length; j++) {
+          const secondAsset = combinedAssetAmounts[j].asset
+          if (isSmartContractFungibleAsset(secondAsset)) {
+            if (
+              firstAsset.contractAddress === secondAsset.contractAddress &&
+              firstAsset.symbol === secondAsset.symbol
+            ) {
+              isInCombined = true
             }
           }
-          if(!isInCombined && getShardFromAddress(firstAsset.contractAddress) == getShardFromAddress(currentAccount.address)) {
-            combinedAssetAmounts.push(allAssetAmounts[i])
-          }
+        }
+        if (
+          !isInCombined &&
+          getShardFromAddress(firstAsset.contractAddress) ==
+            getShardFromAddress(currentAccount.address)
+        ) {
+          combinedAssetAmounts.push(allAssetAmounts[i])
         }
       }
+    }
     return {
       allAssetAmounts,
       assetAmounts: combinedAssetAmounts,
@@ -461,14 +471,16 @@ function getNetworkAccountTotalsByCategory(
           accountSigner,
         }
       }
-      let shard = getShardFromAddress(address)
+      const shard = getShardFromAddress(address)
       let name = accountData.ens.name ?? accountData.defaultName
       let balance = "0"
-      if (accountData.balances["QUAI"] !== undefined) {
-        balance = parseFloat(convertToEth(accountData.balances["QUAI"].assetAmount.amount)).toFixed(2)
+      if (accountData.balances.QUAI !== undefined) {
+        balance = parseFloat(
+          convertToEth(accountData.balances.QUAI.assetAmount.amount)
+        ).toFixed(2)
       }
-      name = name + " (" + shard + ")"
-  
+      name = `${name} (${shard})`
+
       return {
         address,
         network,
@@ -477,14 +489,14 @@ function getNetworkAccountTotalsByCategory(
         signerId,
         path,
         accountSigner,
-        name: name,
+        name,
         avatarURL: accountData.ens.avatarURL ?? accountData.defaultAvatar,
         localizedTotalMainCurrencyAmount: formatCurrencyAmount(
           mainCurrencySymbol,
           getTotalBalance(accountData.balances, assets, mainCurrencySymbol),
           desiredDecimals.default
         ),
-        balance: balance + " " + "QUAI", // May want to change this in the future
+        balance: `${balance} ` + `QUAI`, // May want to change this in the future
       }
     })
     .reduce<CategorizedAccountTotals>(

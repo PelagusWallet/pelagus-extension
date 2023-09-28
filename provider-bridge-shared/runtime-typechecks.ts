@@ -70,7 +70,7 @@ export const AllowedQueryParamPage = {
 } as const
 
 export type AllowedQueryParamPageType =
-  typeof AllowedQueryParamPage[keyof typeof AllowedQueryParamPage]
+  (typeof AllowedQueryParamPage)[keyof typeof AllowedQueryParamPage]
 
 export function isAllowedQueryParamPage(
   url: unknown

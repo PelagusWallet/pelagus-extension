@@ -42,7 +42,6 @@ async function getCachedLegacySession(): Promise<IWalletConnectSession | null> {
 
   const local = await localStorageShim.getItem("walletconnect")
 
-
   let session = null
   if (local) {
     session = JSON.parse(local)
@@ -60,7 +59,7 @@ export async function createLegacySignClient(
   if (uri) {
     deleteCachedLegacySession()
     legacySignClient = new LegacySignClient({ uri })
-  } else if (!legacySignClient && await getCachedLegacySession()) {
+  } else if (!legacySignClient && (await getCachedLegacySession())) {
     const session = await getCachedLegacySession()
     if (session != null) {
       legacySignClient = new LegacySignClient({ session })

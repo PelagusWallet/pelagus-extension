@@ -40,7 +40,7 @@ export default class AssetDataHelper {
     addressOnNetwork: AddressOnNetwork,
     smartContractAddress: HexString
   ): Promise<SmartContractAmount> {
-    let prevShard = globalThis.main.GetShard()
+    const prevShard = globalThis.main.GetShard()
     globalThis.main.SetShard(getShardFromAddress(smartContractAddress))
     const provider = this.providerTracker.providerForNetwork(
       addressOnNetwork.network
@@ -53,14 +53,18 @@ export default class AssetDataHelper {
       )
     }
 
-    const balance = await getBalance(provider, smartContractAddress, addressOnNetwork.address)
+    const balance = await getBalance(
+      provider,
+      smartContractAddress,
+      addressOnNetwork.address
+    )
     globalThis.main.SetShard(prevShard)
     return {
       amount: balance,
       smartContract: {
         contractAddress: smartContractAddress,
         homeNetwork: addressOnNetwork.network,
-      }
+      },
     }
   }
 
@@ -68,7 +72,7 @@ export default class AssetDataHelper {
     addressOnNetwork: AddressOnNetwork,
     smartContractAddresses?: HexString[]
   ): Promise<SmartContractAmount[]> {
-    let prevShard = globalThis.main.GetShard()
+    const prevShard = globalThis.main.GetShard()
     globalThis.main.SetShard(getShardFromAddress(addressOnNetwork.address))
     const provider = this.providerTracker.providerForNetwork(
       addressOnNetwork.network

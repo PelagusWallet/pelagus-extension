@@ -515,13 +515,20 @@ export default class IndexingService extends BaseService<Events> {
   ): Promise<SmartContractAmount[]> {
     const addressNetwork = normalizeAddressOnNetwork(unsafeAddressNetwork)
 
-    const filteredSmartContractAssets = (smartContractAssets ?? []).filter(({ contractAddress }) =>
-      getShardFromAddress(contractAddress) == getShardFromAddress(addressNetwork.address)
-    );
+    const filteredSmartContractAssets = (smartContractAssets ?? []).filter(
+      ({ contractAddress }) =>
+        getShardFromAddress(contractAddress) ==
+        getShardFromAddress(addressNetwork.address)
+    )
 
     const balances = await this.chainService.assetData.getTokenBalances(
       addressNetwork,
-      filteredSmartContractAssets?.map(({ contractAddress }) => getShardFromAddress(contractAddress) == getShardFromAddress(addressNetwork.address) ? contractAddress : "")
+      filteredSmartContractAssets?.map(({ contractAddress }) =>
+        getShardFromAddress(contractAddress) ==
+        getShardFromAddress(addressNetwork.address)
+          ? contractAddress
+          : ""
+      )
     )
 
     const listedAssetByAddress = (smartContractAssets ?? []).reduce<{
@@ -954,15 +961,15 @@ export default class IndexingService extends BaseService<Events> {
     await Promise.allSettled(
       accounts.map(async (addressOnNetwork) => {
         const { network } = addressOnNetwork
-        
-        let prevShard = globalThis.main.SelectedShard
+
+        const prevShard = globalThis.main.SelectedShard
         if (network.isQuai) {
-          let shard = getShardFromAddress(addressOnNetwork.address)
+          const shard = getShardFromAddress(addressOnNetwork.address)
           globalThis.main.SetShard(shard)
         }
-        
+
         const provider = this.chainService.providerForNetworkOrThrow(network)
-       
+
         const loadBaseAccountBalance =
           this.chainService.getLatestBaseAccountBalance(addressOnNetwork)
 

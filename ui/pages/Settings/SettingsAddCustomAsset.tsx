@@ -25,6 +25,7 @@ import { HexString } from "@pelagus/pelagus-background/types"
 import React, { FormEventHandler, ReactElement, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
+import { updateAccountBalance } from "@pelagus/pelagus-background/redux-slices/accounts"
 import SharedAssetIcon from "../../components/Shared/SharedAssetIcon"
 import SharedButton from "../../components/Shared/SharedButton"
 import SharedIcon from "../../components/Shared/SharedIcon"
@@ -39,7 +40,6 @@ import TopMenuProtocolListItem from "../../components/TopMenu/TopMenuProtocolLis
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { useSetState } from "../../hooks/react-hooks"
 import { trimWithEllipsis } from "../../utils/textUtils"
-import { updateAccountBalance } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 const HELPDESK_CUSTOM_TOKENS_LINK =
   "https://pelaguswallet.notion.site/Adding-Custom-Tokens-2facd9b82b5f4685a7d4766caeb05a4c"
@@ -100,7 +100,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
   const allNetworks = useBackgroundSelector(selectEVMNetworks)
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
-  const selectedAccountAddress = useBackgroundSelector(selectCurrentAccount).address
+  const selectedAccountAddress =
+    useBackgroundSelector(selectCurrentAccount).address
 
   const networks = allNetworks.filter(
     (network) =>
@@ -162,28 +163,28 @@ export default function SettingsAddCustomAsset(): ReactElement {
             found = true
           }
         }
-        if(!found) {
+        if (!found) {
           await dispatch(
             updateAccountBalance({
-              balances: [{
-                address: selectedAccountAddress,
-                assetAmount: {
-                  amount: details.amount,
-                  asset: details.asset,
+              balances: [
+                {
+                  address: selectedAccountAddress,
+                  assetAmount: {
+                    amount: details.amount,
+                    asset: details.asset,
+                  },
+                  network: currentNetwork,
+                  retrievedAt: Date.now(),
+                  dataSource: "local",
                 },
-                network: currentNetwork,
-                retrievedAt: Date.now(),
-                dataSource: "local",
-              }],
+              ],
               addressOnNetwork: {
                 address: selectedAccountAddress,
                 network: currentNetwork,
-              }
+              },
             })
           )
         }
-      
-
       }
     }
   }
@@ -204,22 +205,25 @@ export default function SettingsAddCustomAsset(): ReactElement {
       await dispatch(setSnackbarMessage(t("snackbar.success")))
       setIsImportingToken(false)
       history.push("/")
-      await dispatch( // TODO: Only do this if necessary
+      await dispatch(
+        // TODO: Only do this if necessary
         updateAccountBalance({
-          balances: [{
-            address: selectedAccountAddress,
-            assetAmount: {
-              amount: assetData.amount,
-              asset: assetData.asset,
+          balances: [
+            {
+              address: selectedAccountAddress,
+              assetAmount: {
+                amount: assetData.amount,
+                asset: assetData.asset,
+              },
+              network: currentNetwork,
+              retrievedAt: Date.now(),
+              dataSource: "local",
             },
-            network: currentNetwork,
-            retrievedAt: Date.now(),
-            dataSource: "local",
-          }],
+          ],
           addressOnNetwork: {
             address: selectedAccountAddress,
             network: currentNetwork,
-          }
+          },
         })
       )
     } else {

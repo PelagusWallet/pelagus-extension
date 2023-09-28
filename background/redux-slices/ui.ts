@@ -134,7 +134,7 @@ const uiSlice = createSlice({
       immerState,
       { payload: addressNetwork }: { payload: AddressOnNetwork }
     ) => {
-      let shard = getShardFromAddress(addressNetwork.address)
+      const shard = getShardFromAddress(addressNetwork.address)
       globalThis.main.SetShard(shard)
       // TODO: Potentially call getLatestBaseAccountBalance here
       immerState.selectedAccount = addressNetwork
@@ -239,7 +239,7 @@ export const setNewDefaultWalletValue = createBackgroundAsyncThunk(
 export const setNewSelectedAccount = createBackgroundAsyncThunk(
   "ui/setNewCurrentAddressValue",
   async (addressNetwork: AddressOnNetwork, { dispatch }) => {
-    let shard = getShardFromAddress(addressNetwork.address)
+    const shard = getShardFromAddress(addressNetwork.address)
     globalThis.main.SetShard(shard)
     globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await emitter.emit("newSelectedAccount", addressNetwork)
@@ -284,7 +284,8 @@ export const userActivityEncountered = createBackgroundAsyncThunk(
 export const setSelectedNetwork = createBackgroundAsyncThunk(
   "ui/setSelectedNetwork",
   async (network: EVMNetwork, { getState, dispatch }) => {
-    if (network.name == "Ethereum") { // Ethereum is disabled
+    if (network.name == "Ethereum") {
+      // Ethereum is disabled
       return
     }
     const state = getState() as { ui: UIState; account: AccountState }
@@ -367,7 +368,7 @@ export const selectShowUnverifiedAssets = createSelector(
 
 export const selectCollectAnalytics = createSelector(
   selectSettings,
-  (settings) => false//settings?.collectAnalytics // changed to only false
+  (settings) => false // settings?.collectAnalytics // changed to only false
 )
 
 export const selectHideBanners = createSelector(

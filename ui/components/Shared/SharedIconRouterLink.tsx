@@ -55,10 +55,10 @@ export default function SharedIconRouterLink(props: Props): ReactElement {
         }
         .router_link_container:hover {
           background-color: var(--green-120);
-          color: #FFFFFF;
+          color: #ffffff;
         }
         .router_link_container:hover .asset_icon {
-          background-color: #FFFFFF;
+          background-color: #ffffff;
         }
       `}</style>
     </Link>

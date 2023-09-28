@@ -40,6 +40,7 @@ import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { NFTCached } from "@pelagus/pelagus-background/redux-slices/nfts"
+import { BigNumber } from "ethers"
 import SharedAssetInput from "../components/Shared/SharedAssetInput"
 import SharedBackButton from "../components/Shared/SharedBackButton"
 import SharedButton from "../components/Shared/SharedButton"
@@ -52,7 +53,6 @@ import {
 import SharedLoadingSpinner from "../components/Shared/SharedLoadingSpinner"
 import ReadOnlyNotice from "../components/Shared/ReadOnlyNotice"
 import SharedIcon from "../components/Shared/SharedIcon"
-import { BigNumber } from "ethers"
 
 export default function Send(): ReactElement {
   const { t } = useTranslation()
@@ -63,7 +63,6 @@ export default function Send(): ReactElement {
   const currentAccountSigner = useBackgroundSelector(selectCurrentAccountSigner)
   const areKeyringsUnlocked = useAreKeyringsUnlocked(true)
 
-
   const [selectedAsset, setSelectedAsset] = useState<FungibleAsset>(
     location.state ?? currentAccount.network.baseAsset
   )
@@ -73,10 +72,12 @@ export default function Send(): ReactElement {
 
   const [nonce, setNonce] = useState<number>(0)
   const [maxFeePerGas, setMaxFeePerGas] = useState<BigNumber>(BigNumber.from(0))
-  const [maxPriorityFeePerGas, setMaxPriorityFeePerGas] = useState<BigNumber>(BigNumber.from(0))
+  const [maxPriorityFeePerGas, setMaxPriorityFeePerGas] = useState<BigNumber>(
+    BigNumber.from(0)
+  )
   const [gasLimit, setGasLimit] = useState<number>(100000)
 
-  const [advancedVisible, setAdvancedVisible] = useState(false);
+  const [advancedVisible, setAdvancedVisible] = useState(false)
 
   const handleAssetSelect = (asset: FungibleAsset) => {
     setSelectedAsset(asset)
@@ -92,11 +93,13 @@ export default function Send(): ReactElement {
       setSelectedAsset(currentAccount.network.baseAsset)
     }
 
-      dispatch(getAccountNonceAndGasPrice(currentAccount)).then( ({nonce, maxFeePerGas, maxPriorityFeePerGas}) => {
+    dispatch(getAccountNonceAndGasPrice(currentAccount)).then(
+      ({ nonce, maxFeePerGas, maxPriorityFeePerGas }) => {
         setNonce(nonce)
         setMaxFeePerGas(BigNumber.from(maxFeePerGas))
         setMaxPriorityFeePerGas(BigNumber.from(maxPriorityFeePerGas))
-      })
+      }
+    )
 
     // This disable is here because we don't necessarily have equality-by-reference
     // due to how we persist the ui redux slice with webext-redux.
@@ -162,8 +165,10 @@ export default function Send(): ReactElement {
   const assetAmount = assetAmountFromForm()
 
   const sendTransactionRequest = useCallback(async () => {
-    if(!areKeyringsUnlocked)  {
-      dispatch(setSnackbarMessage("Please unlock your wallet to send a transaction"))
+    if (!areKeyringsUnlocked) {
+      dispatch(
+        setSnackbarMessage("Please unlock your wallet to send a transaction")
+      )
       return
     }
     if (assetAmount === undefined || destinationAddress === undefined) {
@@ -183,7 +188,7 @@ export default function Send(): ReactElement {
           assetAmount,
           accountSigner: currentAccountSigner,
           gasLimit: BigInt(gasLimit),
-          nonce: nonce,
+          nonce,
           maxFeePerGas: maxFeePerGas.toBigInt(),
           maxPriorityFeePerGas: maxPriorityFeePerGas.toBigInt(),
         })
@@ -260,11 +265,12 @@ export default function Send(): ReactElement {
                   : undefined
               }
             />
-            {assetType === "token" && !hasError && ( null
+            {
+              assetType === "token" && !hasError && null
               // <div className="value">
               //   ${assetAmount?.localizedMainCurrencyAmount ?? "-"}
               // </div>
-            )}
+            }
           </div>
           <div className="form_input send_to_field">
             <label htmlFor="send_address">{t("wallet.sendTo")}</label>
@@ -279,63 +285,80 @@ export default function Send(): ReactElement {
                 resolved_address: resolvedNameToAddress,
               })}
             />
-            <button 
-  className="advanced-button"
-  onClick={() => setAdvancedVisible(!advancedVisible)}
->
-  Advanced
-</button>
+            <button
+              className="advanced-button"
+              onClick={() => setAdvancedVisible(!advancedVisible)}
+            >
+              Advanced
+            </button>
             {advancedVisible && (
               <div>
-            <label style={{ paddingTop: '5px' }} htmlFor="nonce">{"Nonce"}</label>
-            <input
-              id="send_address_alt"
-              type="number"
-              placeholder={nonce.toString()}
-              spellCheck={false}
-              onChange={(event) => setNonce(parseInt(event.target.value))}
-              className={classNames({
-                error: addressErrorMessage !== undefined,
-                resolved_address: resolvedNameToAddress,
-              })}
-            />
-            <label style={{ paddingTop: '5px' }} htmlFor="gasLimit">{"Gas Limit"}</label>
-            <input
-              id="send_address_alt"
-              type="number"
-              placeholder={gasLimit.toString()}
-              spellCheck={false}
-              onChange={(event) => setGasLimit(parseInt(event.target.value))}
-              className={classNames({
-                error: addressErrorMessage !== undefined,
-                resolved_address: resolvedNameToAddress,
-              })}
-            />
-            <label style={{ paddingTop: '5px' }} htmlFor="maxFeePerGas">{"Max Fee Per Gas"}</label>
-            <input
-              id="send_address_alt"
-              type="number"
-              placeholder={maxFeePerGas.toString()}
-              spellCheck={false}
-              onChange={(event) => setMaxFeePerGas(BigNumber.from(event.target.value))}
-              className={classNames({
-                error: addressErrorMessage !== undefined,
-                resolved_address: resolvedNameToAddress,
-              })}
-            />
-            <label style={{ paddingTop: '5px' }} htmlFor="maxPriorityFeePerGas">{"Max Priority Fee Per Gas"}</label>
-            <input
-              id="send_address_alt"
-              type="number"
-              placeholder={maxPriorityFeePerGas.toString()}
-              spellCheck={false}
-              onChange={(event) => setMaxPriorityFeePerGas(BigNumber.from(event.target.value))}
-              className={classNames({
-                error: addressErrorMessage !== undefined,
-                resolved_address: resolvedNameToAddress,
-              })}
-            />
-            </div>
+                <label style={{ paddingTop: "5px" }} htmlFor="nonce">
+                  Nonce
+                </label>
+                <input
+                  id="send_address_alt"
+                  type="number"
+                  placeholder={nonce.toString()}
+                  spellCheck={false}
+                  onChange={(event) => setNonce(parseInt(event.target.value))}
+                  className={classNames({
+                    error: addressErrorMessage !== undefined,
+                    resolved_address: resolvedNameToAddress,
+                  })}
+                />
+                <label style={{ paddingTop: "5px" }} htmlFor="gasLimit">
+                  Gas Limit
+                </label>
+                <input
+                  id="send_address_alt"
+                  type="number"
+                  placeholder={gasLimit.toString()}
+                  spellCheck={false}
+                  onChange={(event) =>
+                    setGasLimit(parseInt(event.target.value))
+                  }
+                  className={classNames({
+                    error: addressErrorMessage !== undefined,
+                    resolved_address: resolvedNameToAddress,
+                  })}
+                />
+                <label style={{ paddingTop: "5px" }} htmlFor="maxFeePerGas">
+                  Max Fee Per Gas
+                </label>
+                <input
+                  id="send_address_alt"
+                  type="number"
+                  placeholder={maxFeePerGas.toString()}
+                  spellCheck={false}
+                  onChange={(event) =>
+                    setMaxFeePerGas(BigNumber.from(event.target.value))
+                  }
+                  className={classNames({
+                    error: addressErrorMessage !== undefined,
+                    resolved_address: resolvedNameToAddress,
+                  })}
+                />
+                <label
+                  style={{ paddingTop: "5px" }}
+                  htmlFor="maxPriorityFeePerGas"
+                >
+                  Max Priority Fee Per Gas
+                </label>
+                <input
+                  id="send_address_alt"
+                  type="number"
+                  placeholder={maxPriorityFeePerGas.toString()}
+                  spellCheck={false}
+                  onChange={(event) =>
+                    setMaxPriorityFeePerGas(BigNumber.from(event.target.value))
+                  }
+                  className={classNames({
+                    error: addressErrorMessage !== undefined,
+                    resolved_address: resolvedNameToAddress,
+                  })}
+                />
+              </div>
             )}
             {addressIsValidating ? (
               <p className="validating">
@@ -387,14 +410,14 @@ export default function Send(): ReactElement {
       </div>
       <style jsx>
         {`
-        .advanced-button {
-          margin: 5px;
-          text-decoration: underline;
-        }
-        
-        .advanced-button:hover {
-          color: var(--green-20);
-        }        
+          .advanced-button {
+            margin: 5px;
+            text-decoration: underline;
+          }
+
+          .advanced-button:hover {
+            color: var(--green-20);
+          }
           .icon_activity_send_medium {
             background: url("./images/pelagus_send.png");
             background-size: 24px 24px;
@@ -547,13 +570,11 @@ export default function Send(): ReactElement {
             padding-bottom: 20px;
           }
           /* Hide for all browsers */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-
+          input[type="number"]::-webkit-inner-spin-button,
+          input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
         `}
       </style>
     </>

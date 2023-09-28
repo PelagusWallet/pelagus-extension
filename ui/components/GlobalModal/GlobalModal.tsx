@@ -11,10 +11,7 @@ const LINK = "https://blog.pelaguswallet.io/rename-announcement"
 export default function GlobalModal({ id }: { id: string }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "globalModal" })
 
-  const [showModal, setShowModal] = useLocalStorage(
-    `modal_${id}`,
-    "true"
-  )
+  const [showModal, setShowModal] = useLocalStorage(`modal_${id}`, "true")
 
   const handleClick = () => {
     setShowModal("false")

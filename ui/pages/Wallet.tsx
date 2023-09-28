@@ -19,8 +19,12 @@ import {
   selectShowUnverifiedAssets,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
-import { SwappableAsset, isFungibleAsset } from "@pelagus/pelagus-background/assets"
+import {
+  SwappableAsset,
+  isFungibleAsset,
+} from "@pelagus/pelagus-background/assets"
 import { useHistory } from "react-router-dom"
+import { bigIntToDecimal } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
 import WalletAssetList from "../components/Wallet/WalletAssetList"
@@ -34,7 +38,6 @@ import NFTListCurrentWallet from "../components/NFTs/NFTListCurrentWallet"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
-import { bigIntToDecimal } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 
 export default function Wallet(): ReactElement {
   const { t } = useTranslation()
@@ -70,7 +73,6 @@ export default function Wallet(): ReactElement {
       unverifiedAssetAmounts: [],
       totalMainCurrencyValue: undefined,
     }
-
 
   const currentAccountActivities = useBackgroundSelector(
     selectCurrentAccountActivities
@@ -121,12 +123,17 @@ export default function Wallet(): ReactElement {
         <WalletAnalyticsNotificationBanner />
         <div className="section">
           <WalletAccountBalanceControl
-            mainAssetBalance={assetAmounts[0] != undefined ? 
-              (isFungibleAsset(assetAmounts[0].asset) ? 
-              (bigIntToDecimal(assetAmounts[0].amount, assetAmounts[0].asset.decimals, 4) ?? "0") 
-              :
-              (assetAmounts[0].decimalAmount.toString() ?? "0"))
-              : "0"}
+            mainAssetBalance={
+              assetAmounts[0] != undefined
+                ? isFungibleAsset(assetAmounts[0].asset)
+                  ? bigIntToDecimal(
+                      assetAmounts[0].amount,
+                      assetAmounts[0].asset.decimals,
+                      4
+                    ) ?? "0"
+                  : assetAmounts[0].decimalAmount.toString() ?? "0"
+                : "0"
+            }
             initializationLoadingTimeExpired={initializationLoadingTimeExpired}
           />
         </div>

@@ -162,9 +162,8 @@ test.describe("NFTs", () => {
         .click()
     })
 
-    const collectionItem = await test.step(
-      "Check collection expands",
-      async () => {
+    const collectionItem =
+      await test.step("Check collection expands", async () => {
         const nftCollection = page
           .getByTestId("nft_list_item")
           .filter({ has: page.getByTestId("nft_list_item_collection") })
@@ -181,8 +180,7 @@ test.describe("NFTs", () => {
         expect((await collectionItems.all()).length).toBeGreaterThan(1)
 
         return collectionItems.filter({ hasText: /ethereum unique user/i })
-      }
-    )
+      })
 
     // Check Details
     await test.step("Check NFT details", async () => {

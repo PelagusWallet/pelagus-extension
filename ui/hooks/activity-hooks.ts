@@ -12,7 +12,8 @@ function isReceiveActivity(
   activityInitiatorAddress: string
 ): boolean {
   return (
-    (activity.type === "asset-transfer" || activity.type === "external-transfer") &&
+    (activity.type === "asset-transfer" ||
+      activity.type === "external-transfer") &&
     sameEVMAddress(activity.recipient?.address, activityInitiatorAddress)
   )
 }

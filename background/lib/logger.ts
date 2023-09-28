@@ -2,15 +2,16 @@
 // the console.
 /* eslint-disable no-console */
 
-const HOUR = 1000 * 60 * 60
 import localStorageShim from "../utils/local-storage-shim"
+
+const HOUR = 1000 * 60 * 60
 
 const store = {
   async get(key: string): Promise<string> {
-    return await localStorageShim.getItem(key) ?? ""
+    return (await localStorageShim.getItem(key)) ?? ""
   },
   async set(key: string, value: string): Promise<void> {
-    return await localStorageShim.setItem(key, value)
+    return localStorageShim.setItem(key, value)
   },
 }
 
@@ -255,7 +256,7 @@ class Logger {
       const fullPrefix = `[${isoDateString}] [${level.toUpperCase()}:${
         this.contextId
       }]`
-  
+
       // Note: we have to do everything from here to `storage.local.set`
       // synchronously, i.e. no promises, otherwise we risk losing logs between
       // background and content/UI scripts.
@@ -265,9 +266,9 @@ class Logger {
           // Restrict each log level to hold the last 50k characters to avoid excess resource
           // usage.
           .slice(-50000)
-  
+
       await this.store.set(logKey, updatedLogs)
-    }) 
+    })
   }
 
   async serializeLogs(): Promise<string> {

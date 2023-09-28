@@ -54,16 +54,15 @@ export const getSignerAddress = async (): Promise<string> => {
   return signerAddress
 }
 
-var latestBlockNumber = 0
-var latestAsk = 0
+let latestBlockNumber = 0
+let latestAsk = 0
 export const getCurrentTimestamp = async (): Promise<number> => {
-  if(latestAsk + 10 * SECOND < Date.now()) {
+  if (latestAsk + 10 * SECOND < Date.now()) {
     const provider = getProvider()
     const { timestamp } = await provider.getBlock(provider.getBlockNumber())
     latestBlockNumber = timestamp
     latestAsk = Date.now()
     return timestamp
-  } else {
-    return latestBlockNumber
   }
+  return latestBlockNumber
 }

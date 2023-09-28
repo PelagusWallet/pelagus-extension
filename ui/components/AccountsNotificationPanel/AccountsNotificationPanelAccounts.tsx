@@ -53,7 +53,6 @@ type WalletTypeInfo = {
   category: string
 }
 
-
 function WalletTypeHeader({
   accountType,
   onClickAddAddress,
@@ -65,12 +64,12 @@ function WalletTypeHeader({
   addAddressSelected,
   setAddAddressSelected,
   updateCustomOrder,
-  updateUseCustomOrder
+  updateUseCustomOrder,
 }: {
   accountType: AccountType
   onClickAddAddress?: () => void
   accountSigner: AccountSigner
-  signerId?: string | null 
+  signerId?: string | null
   walletNumber?: number
   path?: string | null
   setShard: (shard: string) => void
@@ -107,15 +106,15 @@ function WalletTypeHeader({
   const shardOptions = VALID_SHARDS.map((shard) => ({
     value: shard,
     label: shard,
-  }));
+  }))
 
   const handleShardSelection = (selectedShard: string) => {
-    setShard(selectedShard);
-    setAddAddressSelected(false);
+    setShard(selectedShard)
+    setAddAddressSelected(false)
     // Call other required functions like onClickAddAddress
-  };
+  }
   useEffect(() => {
-    if(addAddressSelected) {
+    if (addAddressSelected) {
       if (areKeyringsUnlocked) {
         setShowShardMenu(true)
       } else {
@@ -123,7 +122,7 @@ function WalletTypeHeader({
         setAddAddressSelected(false)
       }
     }
-}, [addAddressSelected]);
+  }, [addAddressSelected])
 
   const settingsBySigner = useBackgroundSelector(
     (state) => state.ui.accountSignerSettings
@@ -152,8 +151,8 @@ function WalletTypeHeader({
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const [showEditMenu, setShowEditMenu] = useState(false)
   const [showShardMenu, setShowShardMenu] = useState(false)
-  const dropdownTogglerRef = useRef(null);
-  
+  const dropdownTogglerRef = useRef(null)
+
   return (
     <>
       {accountSigner.type !== "read-only" && (
@@ -178,48 +177,58 @@ function WalletTypeHeader({
           />
         </SharedSlideUpMenu>
       )}
-<SharedSlideUpMenu
-  size="xsmall"
-  isOpen={showShardMenu}
-  close={(e) => {
-    e.stopPropagation();
-    setShowShardMenu(false);
-    setAddAddressSelected(false);
-  }}
-  customStyles={{ display: "flex", width: "100%", justifyContent: "center", alignItems: "center" }}
->
-  <div className="menu-content">
-    <SharedSelect
-      options={shardOptions}
-      onChange={handleShardSelection}
-      defaultIndex={0}
-      label="Choose Shard"
-      width="100%"
+      <SharedSlideUpMenu
+        size="xsmall"
+        isOpen={showShardMenu}
+        close={(e) => {
+          e.stopPropagation()
+          setShowShardMenu(false)
+          setAddAddressSelected(false)
+        }}
+        customStyles={{
+          display: "flex",
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div className="menu-content">
+          <SharedSelect
+            options={shardOptions}
+            onChange={handleShardSelection}
+            defaultIndex={0}
+            label="Choose Shard"
+            width="100%"
+            align-self="center"
+          />
 
-      align-self='center'
-      
-    />
-
-    <SharedButton
-      type="tertiary"
-      size="small"
-      style={{ display: "flex", justifyContent: "flex-end", width: "fit-content", marginLeft: '75%' }}
-      onClick={() => {
-        onClickAddAddress && onClickAddAddress();
-        setShowShardMenu(false);
-        setAddAddressSelected(false);
-      }}
-    >
-      Confirm
-    </SharedButton>
-  </div>
-</SharedSlideUpMenu>
+          <SharedButton
+            type="tertiary"
+            size="small"
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              width: "fit-content",
+              marginLeft: "75%",
+            }}
+            onClick={() => {
+              onClickAddAddress && onClickAddAddress()
+              setShowShardMenu(false)
+              setAddAddressSelected(false)
+            }}
+          >
+            Confirm
+          </SharedButton>
+        </div>
+      </SharedSlideUpMenu>
       <header className="wallet_title">
         <h2 className="left">
           <div className="icon_wrap">
             <div className="icon" />
           </div>
-          {sectionTitle.length > 25 ? (sectionTitle.slice(0, 25) + "...") : sectionTitle}
+          {sectionTitle.length > 25
+            ? `${sectionTitle.slice(0, 25)}...`
+            : sectionTitle}
         </h2>
         {accountType !== AccountType.ReadOnly && (
           <SharedDropdown
@@ -266,32 +275,31 @@ function WalletTypeHeader({
                 label: t("accounts.notificationPanel.resetOrder"),
                 onClick: () => {
                   if (signerId != undefined) {
-                    updateCustomOrder([], signerId);
-                    updateUseCustomOrder(false, signerId);
+                    updateCustomOrder([], signerId)
+                    updateUseCustomOrder(false, signerId)
                   }
                 },
-              }
+              },
             ]}
           />
         )}
       </header>
       <style jsx>{`
-          .menu-content {
-            top: 20px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 80%;
-          }
-          .menu-content > :first-child {
-            margin--left: 30px;
-            margin: auto; 
-          }
-          .menu-content > :last-child {
-            
-            margin-bottom: 16px; 
-            margin-right: 16px; 
-          }
+        .menu-content {
+          top: 20px;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          width: 80%;
+        }
+        .menu-content > :first-child {
+          margin--left: 30px;
+          margin: auto;
+        }
+        .menu-content > :last-child {
+          margin-bottom: 16px;
+          margin-right: 16px;
+        }
         .wallet_title {
           display: flex;
           align-items: center;
@@ -359,69 +367,74 @@ export default function AccountsNotificationPanelAccounts({
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const isMounted = useRef(false)
-  const [isLoading, setIsLoading] = useState(true);
-  const [customOrder, setCustomOrder] = useState<{ [key: string] : string[] }>({})
-  const [useCustomOrder, setUseCustomOrder] = useState<{ [key: string] : boolean }>({});
+  const [isLoading, setIsLoading] = useState(true)
+  const [customOrder, setCustomOrder] = useState<{ [key: string]: string[] }>(
+    {}
+  )
+  const [useCustomOrder, setUseCustomOrder] = useState<{
+    [key: string]: boolean
+  }>({})
 
   useEffect(() => {
-    const savedUseOrder = localStorage.getItem("useCustomOrder");
+    const savedUseOrder = localStorage.getItem("useCustomOrder")
     if (savedUseOrder) {
-      setUseCustomOrder(JSON.parse(savedUseOrder));
+      setUseCustomOrder(JSON.parse(savedUseOrder))
     }
 
-    const savedOrder = localStorage.getItem("customOrder");
+    const savedOrder = localStorage.getItem("customOrder")
     if (savedOrder) {
-      setCustomOrder(JSON.parse(savedOrder));
+      setCustomOrder(JSON.parse(savedOrder))
     }
-    setIsLoading(false);
-  }, []);
+    setIsLoading(false)
+  }, [])
 
   const updateCustomOrder = async (newOrder: string[], signerId: string) => {
-    setCustomOrder(prevOrder => {
+    setCustomOrder((prevOrder) => {
       const updatedOrder = {
-          ...prevOrder,
-          [signerId]: newOrder
-      };
-      localStorage.setItem("customOrder", JSON.stringify(updatedOrder));
-      return updatedOrder;
-    });
-  };
+        ...prevOrder,
+        [signerId]: newOrder,
+      }
+      localStorage.setItem("customOrder", JSON.stringify(updatedOrder))
+      return updatedOrder
+    })
+  }
 
-  const updateUseCustomOrder = async (useCustomOrder: boolean, signerId: string) => {
-    setUseCustomOrder(prevUseOrder => {
+  const updateUseCustomOrder = async (
+    useCustomOrder: boolean,
+    signerId: string
+  ) => {
+    setUseCustomOrder((prevUseOrder) => {
       const updatedUseOrder = {
         ...prevUseOrder,
-        [signerId]: useCustomOrder
-      };
-      localStorage.setItem("useCustomOrder", JSON.stringify(updatedUseOrder));
-      return updatedUseOrder;
-    });
-  };
+        [signerId]: useCustomOrder,
+      }
+      localStorage.setItem("useCustomOrder", JSON.stringify(updatedUseOrder))
+      return updatedUseOrder
+    })
+  }
 
   const moveAccountUp = (address: string, signerId: string) => {
-    const index = customOrder[signerId].indexOf(address);
-    if (index <= 0) return;
+    const index = customOrder[signerId].indexOf(address)
+    if (index <= 0) return
 
-    const newOrder = [...customOrder[signerId]];
-    newOrder[index] = newOrder[index - 1];
-    newOrder[index - 1] = address;
+    const newOrder = [...customOrder[signerId]]
+    newOrder[index] = newOrder[index - 1]
+    newOrder[index - 1] = address
 
-    updateCustomOrder(newOrder, signerId);
-    if (!useCustomOrder[signerId])
-      updateUseCustomOrder(true, signerId);
+    updateCustomOrder(newOrder, signerId)
+    if (!useCustomOrder[signerId]) updateUseCustomOrder(true, signerId)
   }
 
   const moveAccountDown = (address: string, signerId: string) => {
-    const index = customOrder[signerId].indexOf(address);
-    if (index === -1 || index === customOrder[signerId].length - 1) return;
+    const index = customOrder[signerId].indexOf(address)
+    if (index === -1 || index === customOrder[signerId].length - 1) return
 
-    const newOrder = [...customOrder[signerId]];
-    newOrder[index] = newOrder[index + 1];
-    newOrder[index + 1] = address;
+    const newOrder = [...customOrder[signerId]]
+    newOrder[index] = newOrder[index + 1]
+    newOrder[index + 1] = address
 
-    updateCustomOrder(newOrder, signerId);
-    if (!useCustomOrder[signerId])
-      updateUseCustomOrder(true, signerId);
+    updateCustomOrder(newOrder, signerId)
+    if (!useCustomOrder[signerId]) updateUseCustomOrder(true, signerId)
   }
 
   const accountTotals = useBackgroundSelector(
@@ -453,7 +466,8 @@ export default function AccountsNotificationPanelAccounts({
   const [pendingSelectedAddress, setPendingSelectedAddress] = useState("")
   const shard = useRef("")
 
-  const handleSetShard = (newShard: string) => { // This is for updating user-selected shard for new address
+  const handleSetShard = (newShard: string) => {
+    // This is for updating user-selected shard for new address
     console.log(newShard)
     shard.current = newShard
   }
@@ -525,50 +539,71 @@ export default function AccountsNotificationPanelAccounts({
         )
 
         while (isLoading) {
-          return SharedLoadingShip({size: 50, message: "Loading", padding: "40%", margin: "0", animated: true})
+          return SharedLoadingShip({
+            size: 50,
+            message: "Loading",
+            padding: "40%",
+            margin: "0",
+            animated: true,
+          })
         }
 
         for (const signerId in accountTotalsByType) {
-          if (useCustomOrder[signerId] && customOrder[signerId] ? customOrder[signerId].length > 0 : false) {
+          if (
+            useCustomOrder[signerId] && customOrder[signerId]
+              ? customOrder[signerId].length > 0
+              : false
+          ) {
             accountTotalsByType[signerId].sort((a, b) => {
-              let indexOfA = customOrder[signerId].indexOf(a.address);
-              let indexOfB = customOrder[signerId].indexOf(b.address);
+              let indexOfA = customOrder[signerId].indexOf(a.address)
+              let indexOfB = customOrder[signerId].indexOf(b.address)
 
               if (indexOfA === -1) {
-                updateCustomOrder([...customOrder[signerId], a.address], signerId)
+                updateCustomOrder(
+                  [...customOrder[signerId], a.address],
+                  signerId
+                )
                 indexOfA = customOrder[signerId].length - 1
               }
 
               if (indexOfB == -1) {
-                updateCustomOrder([...customOrder[signerId], b.address], signerId)
+                updateCustomOrder(
+                  [...customOrder[signerId], b.address],
+                  signerId
+                )
                 indexOfB = customOrder[signerId].length - 1
               }
 
               // If both addresses are found in customOrder, compare their indices
               if (indexOfA !== -1 && indexOfB !== -1) {
-                  return indexOfA - indexOfB;
+                return indexOfA - indexOfB
               }
 
               // If address A is not in customOrder, but B is, B should come first
               if (indexOfA === -1 && indexOfB !== -1) {
-                  return 1;
+                return 1
               }
 
               // If address B is not in customOrder, but A is, A should come first
               if (indexOfA !== -1 && indexOfB === -1) {
-                  return -1;
+                return -1
               }
 
               // If neither address is in customOrder, use localeCompare as a fallback
-              return a.address.localeCompare(b.address);
-            });
+              return a.address.localeCompare(b.address)
+            })
           } else {
             accountTotalsByType[signerId].sort((a, b) => {
-              return a.address.localeCompare(b.address);
-            });
-            const newCustomOrder = accountTotalsByType[signerId].map(item => item.address);
-            if (!(signerId in customOrder) || newCustomOrder.length !== customOrder[signerId].length) {
-              updateCustomOrder(newCustomOrder, signerId);
+              return a.address.localeCompare(b.address)
+            })
+            const newCustomOrder = accountTotalsByType[signerId].map(
+              (item) => item.address
+            )
+            if (
+              !(signerId in customOrder) ||
+              newCustomOrder.length !== customOrder[signerId].length
+            ) {
+              updateCustomOrder(newCustomOrder, signerId)
             }
           }
         }
@@ -606,18 +641,22 @@ export default function AccountsNotificationPanelAccounts({
                         accountType === "imported" || accountType === "internal"
                           ? () => {
                               if (accountTotalsBySignerId[0].signerId) {
-                                console.log("onClickAddress " + shard.current)
+                                console.log(`onClickAddress ${shard.current}`)
                                 if (shard.current === "") {
                                   throw new Error("shard is empty")
-                                } else if (!VALID_SHARDS.includes(shard.current)) {
+                                } else if (
+                                  !VALID_SHARDS.includes(shard.current)
+                                ) {
                                   dispatch(setSnackbarMessage("Invalid shard"))
                                   throw new Error("shard is invalid")
                                   return
                                 }
                                 dispatch(
-                                  deriveAddress(
-                                    {signerId: accountTotalsBySignerId[0].signerId, shard: shard.current }
-                                  )
+                                  deriveAddress({
+                                    signerId:
+                                      accountTotalsBySignerId[0].signerId,
+                                    shard: shard.current,
+                                  })
                                 )
                               }
                             }
@@ -697,7 +736,7 @@ export default function AccountsNotificationPanelAccounts({
         )
       })}
       <footer>
-      <SharedButton
+        <SharedButton
           type="tertiary"
           size="medium"
           iconSmall="add"

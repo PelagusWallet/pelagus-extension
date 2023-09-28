@@ -3,7 +3,7 @@ import Emittery from "emittery"
 import { AddressOnNetwork } from "../accounts"
 import { QUAI_NETWORK } from "../constants"
 import { AnalyticsEvent, OneTimeAnalyticsEvent } from "../lib/posthog"
-import { EVMNetwork } from "../networks"
+import { EVMNetwork, ChainIdWithError } from "../networks"
 import { AnalyticsPreferences } from "../services/preferences/types"
 import { AccountSignerWithId } from "../signing"
 import { AccountSignerSettings } from "../ui"
@@ -14,6 +14,7 @@ import { getShardFromAddress } from "./selectors"
 export const defaultSettings = {
   hideDust: false,
   defaultWallet: false,
+  networkConnectError: [],
   showTestNetworks: false,
   collectAnalytics: false,
   showAnalyticsNotification: false,
@@ -29,6 +30,7 @@ export type UIState = {
   settings: {
     hideDust: boolean
     defaultWallet: boolean
+    networkConnectError: ChainIdWithError[],
     showTestNetworks: boolean
     collectAnalytics: boolean
     showAnalyticsNotification: boolean
@@ -45,6 +47,7 @@ export type Events = {
   snackbarMessage: string
   deleteAnalyticsData: never
   newDefaultWalletValue: boolean
+  newNetworkConnectError: ChainIdWithError[]
   refreshBackgroundPage: null
   sendEvent: AnalyticsEvent | OneTimeAnalyticsEvent
   newSelectedAccount: AddressOnNetwork
@@ -166,6 +169,16 @@ const uiSlice = createSlice({
         defaultWallet,
       },
     }),
+    setNetworkConnectError: (
+      state,
+      { payload: networkConnectError }: { payload: ChainIdWithError[] }
+      ) => ({
+        ...state,
+        settings: {
+         ...state.settings,
+          networkConnectError,
+        },
+      }),
     setRouteHistoryEntries: (
       state,
       { payload: routeHistoryEntries }: { payload: Partial<Location>[] }
@@ -201,6 +214,7 @@ export const {
   setSelectedAccount,
   setSnackbarMessage,
   setDefaultWallet,
+  setNetworkConnectError,
   clearSnackbarMessage,
   setRouteHistoryEntries,
   setSlippageTolerance,
@@ -232,6 +246,36 @@ export const setNewDefaultWalletValue = createBackgroundAsyncThunk(
     await emitter.emit("newDefaultWalletValue", defaultWallet)
     // Once the default value has persisted, propagate to the store.
     dispatch(uiSlice.actions.setDefaultWallet(defaultWallet))
+  }
+)
+
+export const setNewNetworkConnectError = createBackgroundAsyncThunk(
+  "ui/setNewNetworkConnectError",
+  async (networkConnectError: ChainIdWithError, { getState, dispatch }) => {
+    const state = getState() as { ui: UIState }
+    let current = state.ui.settings.networkConnectError
+    if(!Array.isArray(current)) {
+      current = []
+    }
+    // Check if network error already exists
+    for (let i = 0; i < current.length; i++) {
+      if (current[i].chainId == networkConnectError.chainId && current[i].error != networkConnectError.error) {
+        const newErrors = current.map((error) => {
+          if (error.chainId === networkConnectError.chainId) {
+            return { ...error, error: networkConnectError.error };
+          }
+          return error;
+        });
+        dispatch(uiSlice.actions.setNetworkConnectError(newErrors))
+        return
+      } else if (current[i].chainId == networkConnectError.chainId && current[i].error == networkConnectError.error) {
+        // don't need to do anything in this case
+        return
+      }
+    }
+    // Network error doesn't exist, create it
+    const newErrors: ChainIdWithError[] = [...current, networkConnectError];
+    dispatch(uiSlice.actions.setNetworkConnectError(newErrors))
   }
 )
 
@@ -338,6 +382,11 @@ export const selectSnackbarMessage = createSelector(
 export const selectDefaultWallet = createSelector(
   selectSettings,
   (settings) => settings?.defaultWallet
+)
+
+export const selectNetworkConnectError = createSelector(
+  selectSettings,
+  (settings) => settings?.networkConnectError
 )
 
 export const selectShowAnalyticsNotification = createSelector(

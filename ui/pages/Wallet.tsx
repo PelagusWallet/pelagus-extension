@@ -28,6 +28,7 @@ import WalletActivityList from "../components/Wallet/WalletActivityList"
 import WalletAccountBalanceControl from "../components/Wallet/WalletAccountBalanceControl"
 import OnboardingOpenClaimFlowBanner from "../components/Onboarding/OnboardingOpenClaimFlowBanner"
 import WalletToggleDefaultBanner from "../components/Wallet/WalletToggleDefaultBanner"
+import WalletNoConnectionBanner from "../components/Wallet/WalletNoConnectionBanner"
 import WalletBanner from "../components/Wallet/Banner/WalletBanner"
 import WalletAnalyticsNotificationBanner from "../components/Wallet/WalletAnalyticsNotificationBanner"
 import NFTListCurrentWallet from "../components/NFTs/NFTListCurrentWallet"
@@ -118,6 +119,9 @@ export default function Wallet(): ReactElement {
           isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (
             <WalletToggleDefaultBanner />
           )}
+
+        <WalletNoConnectionBanner />
+
         <WalletAnalyticsNotificationBanner />
         <div className="section">
           <WalletAccountBalanceControl

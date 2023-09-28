@@ -72,6 +72,11 @@ export type EVMNetwork = Network & {
   isQuai?: boolean
 }
 
+export type ChainIdWithError = {
+  chainId: string
+  error: boolean
+}
+
 /**
  * Union type that allows narrowing to particular network subtypes.
  */

@@ -905,15 +905,26 @@ export default class ChainService extends BaseService<Events> {
     if (globalThis.main.SelectedShard !== addrShard) { // Ideally this never happens, but it might
       globalThis.main.SetShard(addrShard)
     }
+    let err = false
     let balance = BigNumber.from(0)
     const provider = getProviderForGivenShard(this.providers.evm[network.chainID], addrShard)
     try {
       balance = await provider.getBalance(
         normalizedAddress
       )
-    } catch (e) {
-      console.error("Error getting balance for address", address, e)
-      console.error("Global shard: " + globalThis.main.SelectedShard + " Address shard: " + addrShard + " Provider: " + provider.connection.url)
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error getting balance for address", address, error)
+        err = true // only reset user-displayed error if there's no error at all
+        if (error.message.includes("could not detect network")) {
+          globalThis.main.SetNetworkError({chainId: network.chainID, error: true})
+        } 
+        console.error("Global shard: " + globalThis.main.SelectedShard + " Address shard: " + addrShard + " Provider: " + provider.connection.url)
+    }
+    } finally {
+      if(!err) {
+        globalThis.main.SetNetworkError({chainId: network.chainID, error: false})
+      }
     }
     
 

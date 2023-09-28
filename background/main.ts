@@ -39,7 +39,7 @@ import {
 } from "./services"
 
 import { HexString, KeyringTypes, NormalizedEVMAddress } from "./types"
-import { SignedTransaction } from "./networks"
+import { ChainIdWithError, SignedTransaction } from "./networks"
 import { AccountBalance, AddressOnNetwork, NameOnNetwork } from "./accounts"
 import { Eligible } from "./services/doggo/types"
 
@@ -76,6 +76,7 @@ import {
   initializationLoadingTimeHitLimit,
   emitter as uiSliceEmitter,
   setDefaultWallet,
+  setNetworkConnectError,
   setSelectedAccount,
   setNewSelectedAccount,
   setSnackbarMessage,
@@ -83,6 +84,7 @@ import {
   toggleCollectAnalytics,
   setShowAnalyticsNotification,
   setSelectedNetwork,
+  setNewNetworkConnectError,
 } from "./redux-slices/ui"
 import {
   estimatedFeesPerGas,
@@ -303,6 +305,8 @@ export default class Main extends BaseService<never> {
   public SelectedShard: string
 
   public UrlToProvider: Map<string, JsonRpcProvider | WebSocketProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider>
+
+  public ready: Promise<boolean>
 
   balanceChecker: NodeJS.Timer
 
@@ -535,6 +539,12 @@ export default class Main extends BaseService<never> {
     this.initializeRedux()
     this.UrlToProvider = new Map()
     globalThis.main = this
+    this.ready = Promise.resolve(true)
+  }
+
+  async SetNetworkError(chainIdWithError: ChainIdWithError): Promise<void> {
+    await this.ready
+    await this.store.dispatch(setNewNetworkConnectError(chainIdWithError))
   }
 
   async startBalanceChecker(): Promise<void> {

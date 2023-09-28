@@ -98,9 +98,7 @@ export default function Done(): ReactElement {
             </div>
           </header>
         </div>
-        <div className="shortcut_container">
-          <WalletShortcut />
-        </div>
+
         <style jsx>{styles}</style>
       </section>
     )

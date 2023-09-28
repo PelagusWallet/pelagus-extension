@@ -170,16 +170,6 @@ export default function AccountItemOptionsMenu({
             },
           },
           {
-            key: "remove",
-            icon: "garbage@2x.png",
-            label: t("removeAddress"),
-            onClick: () => {
-              setShowAddressRemoveConfirm(true)
-            },
-            color: "var(--error)",
-            hoverColor: "var(--error-80)",
-          },
-          {
             key: "export",
             icon: "icons/s/add.svg",
             label: t("exportAccount"),

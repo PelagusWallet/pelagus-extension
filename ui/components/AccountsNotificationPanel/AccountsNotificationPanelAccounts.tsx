@@ -45,6 +45,7 @@ import EditSectionForm from "./EditSectionForm"
 import SigningButton from "./SigningButton"
 import { ONBOARDING_ROOT } from "../../pages/Onboarding/Tabbed/Routes"
 import SharedSelect from "../Shared/SharedSelect"
+import SharedLoadingShip from "../Shared/SharedLoadingShip"
 
 type WalletTypeInfo = {
   title: string
@@ -59,18 +60,24 @@ function WalletTypeHeader({
   walletNumber,
   path,
   accountSigner,
+  signerId,
   setShard,
   addAddressSelected,
   setAddAddressSelected,
+  updateCustomOrder,
+  updateUseCustomOrder
 }: {
   accountType: AccountType
   onClickAddAddress?: () => void
   accountSigner: AccountSigner
+  signerId?: string | null 
   walletNumber?: number
   path?: string | null
   setShard: (shard: string) => void
   addAddressSelected: boolean
   setAddAddressSelected: (selected: boolean) => void
+  updateCustomOrder: (address: string[], signerId: string) => void
+  updateUseCustomOrder: (useOrder: boolean, signerId: string) => void
 }) {
   const { t } = useTranslation()
   const walletTypeDetails: { [key in AccountType]: WalletTypeInfo } = {
@@ -207,9 +214,6 @@ function WalletTypeHeader({
     </SharedButton>
   </div>
 </SharedSlideUpMenu>
-
-
-      
       <header className="wallet_title">
         <h2 className="left">
           <div className="icon_wrap">
@@ -256,6 +260,17 @@ function WalletTypeHeader({
                 icon: "icons/s/add.svg",
                 label: t("accounts.notificationPanel.addAddress"),
               },
+              {
+                key: "resetOrder",
+                icon: "icons/s/refresh.svg",
+                label: t("accounts.notificationPanel.resetOrder"),
+                onClick: () => {
+                  if (signerId != undefined) {
+                    updateCustomOrder([], signerId);
+                    updateUseCustomOrder(false, signerId);
+                  }
+                },
+              }
             ]}
           />
         )}
@@ -344,6 +359,70 @@ export default function AccountsNotificationPanelAccounts({
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const isMounted = useRef(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [customOrder, setCustomOrder] = useState<{ [key: string] : string[] }>({})
+  const [useCustomOrder, setUseCustomOrder] = useState<{ [key: string] : boolean }>({});
+
+  useEffect(() => {
+    const savedUseOrder = localStorage.getItem("useCustomOrder");
+    if (savedUseOrder) {
+      setUseCustomOrder(JSON.parse(savedUseOrder));
+    }
+
+    const savedOrder = localStorage.getItem("customOrder");
+    if (savedOrder) {
+      setCustomOrder(JSON.parse(savedOrder));
+    }
+    setIsLoading(false);
+  }, []);
+
+  const updateCustomOrder = async (newOrder: string[], signerId: string) => {
+    setCustomOrder(prevOrder => {
+      const updatedOrder = {
+          ...prevOrder,
+          [signerId]: newOrder
+      };
+      localStorage.setItem("customOrder", JSON.stringify(updatedOrder));
+      return updatedOrder;
+    });
+  };
+
+  const updateUseCustomOrder = async (useCustomOrder: boolean, signerId: string) => {
+    setUseCustomOrder(prevUseOrder => {
+      const updatedUseOrder = {
+        ...prevUseOrder,
+        [signerId]: useCustomOrder
+      };
+      localStorage.setItem("useCustomOrder", JSON.stringify(updatedUseOrder));
+      return updatedUseOrder;
+    });
+  };
+
+  const moveAccountUp = (address: string, signerId: string) => {
+    const index = customOrder[signerId].indexOf(address);
+    if (index <= 0) return;
+
+    const newOrder = [...customOrder[signerId]];
+    newOrder[index] = newOrder[index - 1];
+    newOrder[index - 1] = address;
+
+    updateCustomOrder(newOrder, signerId);
+    if (!useCustomOrder[signerId])
+      updateUseCustomOrder(true, signerId);
+  }
+
+  const moveAccountDown = (address: string, signerId: string) => {
+    const index = customOrder[signerId].indexOf(address);
+    if (index === -1 || index === customOrder[signerId].length - 1) return;
+
+    const newOrder = [...customOrder[signerId]];
+    newOrder[index] = newOrder[index + 1];
+    newOrder[index + 1] = address;
+
+    updateCustomOrder(newOrder, signerId);
+    if (!useCustomOrder[signerId])
+      updateUseCustomOrder(true, signerId);
+  }
 
   const accountTotals = useBackgroundSelector(
     selectCurrentNetworkAccountTotalsByCategory
@@ -445,6 +524,55 @@ export default function AccountsNotificationPanelAccounts({
           {} as { [signerId: string]: AccountTotal[] }
         )
 
+        while (isLoading) {
+          return SharedLoadingShip({size: 50, message: "Loading", padding: "40%", margin: "0", animated: true})
+        }
+
+        for (const signerId in accountTotalsByType) {
+          if (useCustomOrder[signerId] && customOrder[signerId] ? customOrder[signerId].length > 0 : false) {
+            accountTotalsByType[signerId].sort((a, b) => {
+              let indexOfA = customOrder[signerId].indexOf(a.address);
+              let indexOfB = customOrder[signerId].indexOf(b.address);
+
+              if (indexOfA === -1) {
+                updateCustomOrder([...customOrder[signerId], a.address], signerId)
+                indexOfA = customOrder[signerId].length - 1
+              }
+
+              if (indexOfB == -1) {
+                updateCustomOrder([...customOrder[signerId], b.address], signerId)
+                indexOfB = customOrder[signerId].length - 1
+              }
+
+              // If both addresses are found in customOrder, compare their indices
+              if (indexOfA !== -1 && indexOfB !== -1) {
+                  return indexOfA - indexOfB;
+              }
+
+              // If address A is not in customOrder, but B is, B should come first
+              if (indexOfA === -1 && indexOfB !== -1) {
+                  return 1;
+              }
+
+              // If address B is not in customOrder, but A is, A should come first
+              if (indexOfA !== -1 && indexOfB === -1) {
+                  return -1;
+              }
+
+              // If neither address is in customOrder, use localeCompare as a fallback
+              return a.address.localeCompare(b.address);
+            });
+          } else {
+            accountTotalsByType[signerId].sort((a, b) => {
+              return a.address.localeCompare(b.address);
+            });
+            const newCustomOrder = accountTotalsByType[signerId].map(item => item.address);
+            if (!(signerId in customOrder) || newCustomOrder.length !== customOrder[signerId].length) {
+              updateCustomOrder(newCustomOrder, signerId);
+            }
+          }
+        }
+
         return (
           <>
             {!(
@@ -472,6 +600,7 @@ export default function AccountsNotificationPanelAccounts({
                       walletNumber={idx + 1}
                       path={accountTotalsBySignerId[0].path}
                       accountSigner={accountTotalsBySignerId[0].accountSigner}
+                      signerId={accountTotalsBySignerId[0].signerId}
                       setShard={handleSetShard}
                       onClickAddAddress={
                         accountType === "imported" || accountType === "internal"
@@ -496,6 +625,8 @@ export default function AccountsNotificationPanelAccounts({
                       }
                       addAddressSelected={addAddressSelected}
                       setAddAddressSelected={setAddAddressSelected}
+                      updateCustomOrder={updateCustomOrder}
+                      updateUseCustomOrder={updateUseCustomOrder}
                     />
                     <ul>
                       {accountTotalsBySignerId.map((accountTotal) => {
@@ -548,6 +679,9 @@ export default function AccountsNotificationPanelAccounts({
                               >
                                 <AccountItemOptionsMenu
                                   accountTotal={accountTotal}
+                                  moveAccountUp={moveAccountUp}
+                                  moveAccountDown={moveAccountDown}
+                                  signerId={accountTotalsBySignerId[0].signerId}
                                 />
                               </SharedAccountItemSummary>
                             </div>

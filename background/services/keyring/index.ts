@@ -340,8 +340,6 @@ export default class KeyringService extends BaseService<Events> {
     source: "import" | "internal",
     path?: string
   ): Promise<string> {
-    this.requireUnlocked()
-
     const newKeyring = path
       ? new HDKeyring({ mnemonic, path })
       : new HDKeyring({ mnemonic })

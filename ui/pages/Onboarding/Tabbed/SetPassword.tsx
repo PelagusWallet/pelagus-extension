@@ -99,8 +99,8 @@ export default function SetPassword(): JSX.Element {
         <header className="center_text">
           <img
             alt={t("onboarding.tabbed.unlockWallet.title")}
-            width="183"
-            src="./images/illustration_unlock@2x.png"
+            width="120"
+            src="./images/pelagus_unlock.png"
           />
           <style jsx>
             {`

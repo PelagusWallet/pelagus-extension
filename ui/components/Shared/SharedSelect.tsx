@@ -183,6 +183,7 @@ export default function SharedSelect(props: Props): ReactElement {
             border-color: var(--green-60);
             border-style: solid;
             border-radius: 5px;
+            font-weight: bold;
             transition: background-color 0.2s ease-in-out;
           }
 
@@ -238,7 +239,7 @@ export default function SharedSelect(props: Props): ReactElement {
           }
 
           .select.bottom .options {
-            top: 42px;
+            top: 21px;
           }
 
           .select.top .options {
@@ -246,7 +247,7 @@ export default function SharedSelect(props: Props): ReactElement {
           }
 
           .options.show {
-            max-height: 140px;
+            max-height: 300px;
             bottom: 42px;
             opacity: 1;
           }
@@ -259,15 +260,15 @@ export default function SharedSelect(props: Props): ReactElement {
             font-weight: 600;
             cursor: pointer;
             padding: 0 16px;
-            color: var(--green-20);
+            color: var(--green-60);
           }
 
           .option.selected {
             color: var(--green-60);
           }
 
-          .option:hover:not(.selected) {
-            color: var(--green-40);
+          .option:hover {
+            color: var(--green-20);
           }
 
           .option_content {

@@ -11,7 +11,7 @@ import {
   updateSignerTitle,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { deriveAddress } from "@pelagus/pelagus-background/redux-slices/keyrings"
-import { ROOTSTOCK, VALID_SHARDS } from "@pelagus/pelagus-background/constants"
+import { ROOTSTOCK, VALID_SHARDS, VALID_SHARDS_NAMES } from "@pelagus/pelagus-background/constants"
 import {
   AccountTotal,
   selectCurrentNetworkAccountTotalsByCategory,
@@ -104,9 +104,9 @@ function WalletTypeHeader({
   }
   const { title, icon } = walletTypeDetails[accountType]
   const dispatch = useBackgroundDispatch()
-  const shardOptions = VALID_SHARDS.map((shard) => ({
+  const shardOptions = VALID_SHARDS.map((shard, index) => ({
     value: shard,
-    label: shard,
+    label: VALID_SHARDS_NAMES[index],
   }));
 
   const handleShardSelection = (selectedShard: string) => {
@@ -179,7 +179,8 @@ function WalletTypeHeader({
         </SharedSlideUpMenu>
       )}
 <SharedSlideUpMenu
-  size="xsmall"
+  size="custom"
+  customSize="400px"
   isOpen={showShardMenu}
   close={(e) => {
     e.stopPropagation();

@@ -100,6 +100,7 @@ export const ZK_SYNC: EVMNetwork = {
 }
 
 export const VALID_SHARDS: Array<string> = ["cyprus-1", "cyprus-2", "cyprus-3", "paxos-1", "paxos-2", "paxos-3", "hydra-1", "hydra-2", "hydra-3"]
+export const VALID_SHARDS_NAMES: Array<string> = ["Cyprus 1", "Cyprus 2", "Cyprus 3", "Paxos 1", "Paxos 2", "Paxos 3", "Hydra 1", "Hydra 2", "Hydra 3"]
 
 export const DEFAULT_QUAI_TESTNET = {
   name: "Colosseum",

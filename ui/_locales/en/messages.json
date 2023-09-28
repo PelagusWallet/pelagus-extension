@@ -397,7 +397,7 @@
       "complete": {
         "title": "Welcome to Pelagus",
         "titleExisting": "Account added to Pelagus!",
-        "subtitle": "For faster access we recommend pinning Pelagus to your browser",
+        "subtitle": "To avoid conflicts with other wallets, we recommend that you turn off all other wallet extensions.",
         "animationAlt": "Pin the wallet"
       }
     },

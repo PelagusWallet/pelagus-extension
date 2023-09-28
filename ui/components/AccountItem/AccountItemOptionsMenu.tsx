@@ -14,10 +14,16 @@ import AccountHistoryRemovalConfirm from "./AccountHistoryRemovalConfirm"
 
 type AccountItemOptionsMenuProps = {
   accountTotal: AccountTotal
+  moveAccountUp: (address: string, signerId: string) => void
+  moveAccountDown: (address: string, signerId: string) => void
+  signerId: string | null
 }
 
 export default function AccountItemOptionsMenu({
   accountTotal,
+  moveAccountUp,
+  moveAccountDown,
+  signerId
 }: AccountItemOptionsMenuProps): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "accounts.accountItem",
@@ -187,6 +193,24 @@ export default function AccountItemOptionsMenu({
                 history.push("/keyring/unlock")
               }
             },
+          },
+          {
+            key: "moveUp",
+            icon: "icons/s/arrow-up.svg",
+            label: t("moveUp"),
+            onClick: () => {
+              if (signerId != null)
+                moveAccountUp(address, signerId);
+            }
+          },
+          {
+            key: "moveDown",
+            icon: "icons/s/arrow-down.svg",
+            label: t("moveDown"),
+            onClick: () => {
+              if (signerId != null)
+                moveAccountDown(address, signerId);
+            }
           },
           {
             key: 'clearHistory',

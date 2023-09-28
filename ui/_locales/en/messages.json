@@ -17,12 +17,15 @@
       "removeConfirm": "Yes, I want to remove it",
       "clearHistory": "Clear transaction history",
       "clearConfirm": "Yes, I want to clear it",
-      "clearHistoryWarning": "Clearing your wallet history in this extension does not delete transaction records from the blockchain. Your transaction history remains publicly visible on the blockchain and can be viewed using block explorers."
+      "clearHistoryWarning": "Clearing your wallet history in this extension does not delete transaction records from the blockchain. Your transaction history remains publicly visible on the blockchain and can be viewed using block explorers.",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
     },
     "notificationPanel": {
       "accountPanelName": "Accounts",
       "addWallet": "Add Wallet",
       "addAddress": "Add Address",
+      "resetOrder": "Reset Order",
       "readOnly": "Read-only",
       "import": "Import",
       "internal": "Pelagus",

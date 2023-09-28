@@ -790,6 +790,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
               "ms. URL:",
               this.currentProvider.connection.url
             )
+            // Provider will cache the error, so delete it
+            globalThis.main.UrlToProvider.delete(this.currentProvider.connection.url)
           }
         }
     } finally {
@@ -899,7 +901,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       if (error instanceof Error) {
         err = true // only reset backoff timer if there is no error
         if (error.message.includes("could not detect network")) {
-          
+
           let prevBackoffTime = this.backoffUrlsToTime.get(this.currentProvider.connection.url)??BASE_BACKOFF_MS
           let newBackoffTime = Math.min(prevBackoffTime * 2, MAX_BACKOFF_MS)
           this.backoffUrlsToTime.set(this.currentProvider.connection.url, newBackoffTime)
@@ -911,6 +913,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
             "ms. URL:",
             this.currentProvider.connection.url
           )
+          // Provider will cache the error, so delete it
+          globalThis.main.UrlToProvider.delete(this.currentProvider.connection.url)
         }
       }
     } finally {
@@ -1045,7 +1049,8 @@ export function makeSerialFallbackProvider(
     creator: () => {
       const url = new URL(rpcUrl)
       if(globalThis.main.UrlToProvider.has(rpcUrl)){
-        return globalThis.main.UrlToProvider.get(rpcUrl) as WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
+        let provider = globalThis.main.UrlToProvider.get(rpcUrl) as WebSocketProvider | JsonRpcProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider
+        return provider
       } else {
         console.log("Provider not found in map, creating new provider...")
       }

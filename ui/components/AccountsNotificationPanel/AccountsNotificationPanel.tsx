@@ -5,10 +5,15 @@ import AccountsNotificationPanelAccounts from "./AccountsNotificationPanelAccoun
 
 type Props = {
   onCurrentAddressChange: (address: string) => void
+  setSelectedAccountSigner: (address: string) => void
+  selectedAccountSigner: string
 }
 
 export default function AccountsNotificationPanel({
   onCurrentAddressChange,
+  setSelectedAccountSigner,
+  selectedAccountSigner,
+
 }: Props): ReactElement {
   const { t } = useTranslation()
 
@@ -18,6 +23,8 @@ export default function AccountsNotificationPanel({
     >
       <AccountsNotificationPanelAccounts
         onCurrentAddressChange={onCurrentAddressChange}
+        setSelectedAccountSigner={setSelectedAccountSigner}
+        selectedAccountSigner={selectedAccountSigner}
       />
     </SharedSlideUpMenuPanel>
   )

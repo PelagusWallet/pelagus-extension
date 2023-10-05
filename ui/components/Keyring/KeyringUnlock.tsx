@@ -23,6 +23,7 @@ export default function KeyringUnlock({
   const { t: tShared } = useTranslation("translation", { keyPrefix: "shared" })
   const [password, setPassword] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
+  const [unlockSuccess, setUnlockSuccess] = useState(false)
   const isDappPopup = useIsDappPopup()
   const history: {
     entries?: { pathname: string }[]
@@ -38,15 +39,18 @@ export default function KeyringUnlock({
       history.goBack()
       dispatch(setSnackbarMessage(t("snackbar")))
     }
-  }, [history, areKeyringsUnlocked, dispatch, t])
+  }, [history, areKeyringsUnlocked, dispatch, t, unlockSuccess])
 
   const dispatchUnlockWallet = async (
     event: React.FormEvent<HTMLFormElement>
   ): Promise<void> => {
     event.preventDefault()
-    await dispatch(unlockKeyrings(password))
+    const { success } = await dispatch(unlockKeyrings(password))
     // If keyring was unable to unlock, display error message
-    setErrorMessage(t("error.incorrect"))
+    if(!success) {
+      setErrorMessage(t("error.incorrect"))
+    }
+    setUnlockSuccess(success)
   }
 
   const handleReject = async () => {

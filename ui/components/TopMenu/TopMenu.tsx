@@ -28,6 +28,7 @@ export default function TopMenu(): ReactElement {
   const [isProtocolListOpen, setIsProtocolListOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isBonusProgramOpen, setIsBonusProgramOpen] = useState(false)
+  const [selectedAccountSigner, setSelectedAccountSigner] = useState("")
 
   const [isActiveDAppConnectionInfoOpen, setIsActiveDAppConnectionInfoOpen] =
     useState(false)
@@ -132,6 +133,8 @@ export default function TopMenu(): ReactElement {
       >
         <AccountsNotificationPanel
           onCurrentAddressChange={() => setIsNotificationsOpen(false)}
+          setSelectedAccountSigner={setSelectedAccountSigner}
+          selectedAccountSigner={selectedAccountSigner}
         />
       </SharedSlideUpMenu>
       {isEnabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (

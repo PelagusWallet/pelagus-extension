@@ -7,6 +7,7 @@ import React, {
 } from "react"
 import {
   setNewSelectedAccount,
+  setSelectedAccount,
   setSnackbarMessage,
   updateSignerTitle,
 } from "@pelagus/pelagus-background/redux-slices/ui"
@@ -17,6 +18,7 @@ import {
   selectCurrentNetworkAccountTotalsByCategory,
   selectCurrentAccount,
   selectCurrentNetwork,
+  CategorizedAccountTotals,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useHistory } from "react-router-dom"
 import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
@@ -65,7 +67,8 @@ function WalletTypeHeader({
   addAddressSelected,
   setAddAddressSelected,
   updateCustomOrder,
-  updateUseCustomOrder
+  updateUseCustomOrder,
+  setSelectedAccountSigner,
 }: {
   accountType: AccountType
   onClickAddAddress?: () => void
@@ -78,6 +81,7 @@ function WalletTypeHeader({
   setAddAddressSelected: (selected: boolean) => void
   updateCustomOrder: (address: string[], signerId: string) => void
   updateUseCustomOrder: (useOrder: boolean, signerId: string) => void
+  setSelectedAccountSigner: (signerId: string) => void
 }) {
   const { t } = useTranslation()
   const walletTypeDetails: { [key in AccountType]: WalletTypeInfo } = {
@@ -253,6 +257,7 @@ function WalletTypeHeader({
                 key: "addAddress",
                 onClick: () => {
                   if (areKeyringsUnlocked) {
+                    setSelectedAccountSigner(signerId??"")
                     setShowShardMenu(true)
                   } else {
                     history.push("/keyring/unlock")
@@ -349,10 +354,14 @@ function WalletTypeHeader({
 
 type Props = {
   onCurrentAddressChange: (newAddress: string) => void
+  setSelectedAccountSigner: (signerId: string) => void
+  selectedAccountSigner: string
 }
 
 export default function AccountsNotificationPanelAccounts({
   onCurrentAddressChange,
+  setSelectedAccountSigner,
+  selectedAccountSigner,
 }: Props): ReactElement {
   const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
@@ -452,6 +461,7 @@ export default function AccountsNotificationPanelAccounts({
   }
 
   const [pendingSelectedAddress, setPendingSelectedAddress] = useState("")
+  const defaultSigner = useRef(accountTotals.internal != undefined ? accountTotals.internal[0].signerId??"" : accountTotals.imported != undefined ? accountTotals.imported[0].signerId??"" : "")
   const shard = useRef("")
 
   const handleSetShard = (newShard: string) => { // This is for updating user-selected shard for new address
@@ -464,9 +474,13 @@ export default function AccountsNotificationPanelAccounts({
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
 
-  const updateCurrentAccount = (address: string) => {
+  const updateCurrentAccount = (address: string, signerId: string) => {
     dispatch(clearSignature())
     setPendingSelectedAddress(address)
+    setSelectedAccountSigner(signerId)
+    if(signerId == "") {
+      console.error("signerId is empty")
+    }
     dispatch(
       setNewSelectedAccount({
         address,
@@ -606,21 +620,35 @@ export default function AccountsNotificationPanelAccounts({
                       onClickAddAddress={
                         accountType === "imported" || accountType === "internal"
                           ? () => {
-                              if (accountTotalsBySignerId[0].signerId) {
                                 console.log("onClickAddress " + shard.current)
                                 if (shard.current === "") {
                                   throw new Error("shard is empty")
                                 } else if (!VALID_SHARDS.includes(shard.current)) {
                                   dispatch(setSnackbarMessage("Invalid shard"))
                                   throw new Error("shard is invalid")
-                                  return
                                 }
-                                dispatch(
-                                  deriveAddress(
-                                    {signerId: accountTotalsBySignerId[0].signerId, shard: shard.current }
+                                if (selectedAccountSigner == "") {
+                                  for (const account in accountTotals) {
+                                    let accountTotalsArray = accountTotals[account as keyof CategorizedAccountTotals]
+                                    if (accountTotalsArray && accountTotalsArray.find((accountTotal) => accountTotal.address == selectedAccountAddress) != undefined) {            
+                                      defaultSigner.current = accountTotalsArray[0].signerId??""
+                                      break
+                                    }
+                                  }
+
+                                  setSelectedAccountSigner(defaultSigner.current)
+                                  dispatch(
+                                    deriveAddress(
+                                      {signerId: defaultSigner.current, shard: shard.current }
+                                    )
                                   )
-                                )
-                              }
+                                } else {
+                                  dispatch(
+                                    deriveAddress(
+                                      {signerId: selectedAccountSigner, shard: shard.current }
+                                    )
+                                  )
+                                }
                             }
                           : undefined
                       }
@@ -628,6 +656,7 @@ export default function AccountsNotificationPanelAccounts({
                       setAddAddressSelected={setAddAddressSelected}
                       updateCustomOrder={updateCustomOrder}
                       updateUseCustomOrder={updateUseCustomOrder}
+                      setSelectedAccountSigner={setSelectedAccountSigner}
                     />
                     <ul>
                       {accountTotalsBySignerId.map((accountTotal) => {
@@ -665,12 +694,12 @@ export default function AccountsNotificationPanelAccounts({
                               tabIndex={0}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                  updateCurrentAccount(normalizedAddress)
+                                  updateCurrentAccount(normalizedAddress, accountTotal.signerId??"")
                                 }
                               }}
                               onClick={() => {
                                 dispatch(resetClaimFlow())
-                                updateCurrentAccount(normalizedAddress)
+                                updateCurrentAccount(normalizedAddress, accountTotal.signerId??"")
                               }}
                             >
                               <SharedAccountItemSummary

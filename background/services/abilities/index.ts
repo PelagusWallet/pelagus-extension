@@ -156,6 +156,7 @@ export default class AbilitiesService extends BaseService<Events> {
   }
 
   async pollForAbilities(address: NormalizedEVMAddress): Promise<void> {
+    return
     const latestDaylightAbilities = await getDaylightAbilities(address)
     const latestAbilities = normalizeDaylightAbilities(
       latestDaylightAbilities,

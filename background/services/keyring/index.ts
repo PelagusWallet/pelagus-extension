@@ -420,12 +420,28 @@ export default class KeyringService extends BaseService<Events> {
     //const keyringAddresses = keyring.getAddressesSync()
     let found = false
     let newAddress = ''
+
+    // If There are any hidden addresses, check those first before adding new ones. 
+    for (const [address, isHidden] of Object.entries(this.#hiddenAccounts)) {
+      if (!isHidden) {
+        continue
+      }
+      const shardFromAddress = getShardFromAddress(address)
+      //console.log(`Address: ${address}, isHidden: ${isHidden} Shard: ${shardFromAddress}`);
+      if (shardFromAddress !== undefined) {
+        // Check if address is in correct shard
+        if (shardFromAddress === shard && keyring.getAddressesSync().includes(address)) {
+          found = true
+          delete this.#hiddenAccounts[address]
+          newAddress = address
+          console.log("Found hidden address in shard %s %s", shard, address)
+          break
+        }
+      }
+    }
+
     while(!found) {
-      // If There are any hidden addresses, show those first before adding new ones. (Not being done anymore)
-      newAddress =
-        /*keyringAddresses.find(
-          (address) => this.#hiddenAccounts[address] === true
-        ) ??*/ keyring.addAddressesSync(1)[0]
+      newAddress = keyring.addAddressesSync(1)[0]
       const shardFromAddress = getShardFromAddress(newAddress)
       if (shardFromAddress !== undefined) {
         // Check if address is in correct shard

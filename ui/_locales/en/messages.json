@@ -810,7 +810,7 @@
     "sendAsset": "Send Asset",
     "assetAmount": "Asset / Amount",
     "sendTo": "Send To:",
-    "sendButton": "Continue",
+    "sendButton": "Send",
     "receiveAddress": "Receive address",
     "sendToContractWarning": "This is a contract address, sending assets could result in loss of funds.",
     "pages": {

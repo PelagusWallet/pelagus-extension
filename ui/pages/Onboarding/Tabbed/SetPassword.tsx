@@ -36,7 +36,13 @@ export default function SetPassword(): JSX.Element {
     if (nextPage && areKeyringsUnlocked) {
       history.replace(nextPage)
     }
-  }, [areKeyringsUnlocked, history, nextPage, passwordCompleted])
+  }, [areKeyringsUnlocked, history, nextPage])
+
+  useEffect( () => {
+    if (nextPage && passwordCompleted) {
+      history.replace(nextPage)
+    }
+  }, [passwordCompleted, history, nextPage])
 
   const validatePassword = (): boolean => {
     if (password.length < 8) {
@@ -62,8 +68,15 @@ export default function SetPassword(): JSX.Element {
 
   const dispatchCreatePassword = (): void => {
     if (validatePassword()) {
-      dispatch(createPassword(password)).then(() => {
-        setPasswordCompleted(!passwordCompleted)
+      dispatch(createPassword(password)).then(async () => {
+        const { success } = await dispatch(unlockKeyrings(password))
+        if(success) {
+          setPasswordCompleted(true)
+        } else {
+          setPasswordCompleted(false)
+          setPasswordErrorMessage(t("keyring.setPassword.error.noMatch"))
+        }
+        
       })
     }
   }

@@ -465,7 +465,7 @@ function getNetworkAccountTotalsByCategory(
       let name = accountData.ens.name ?? accountData.defaultName
       let balance = "0"
       if (accountData.balances["QUAI"] !== undefined) {
-        balance = parseFloat(convertToEth(accountData.balances["QUAI"].assetAmount.amount)).toFixed(2)
+        balance = parseFloat(convertToEth(accountData.balances["QUAI"].assetAmount.amount)).toFixed(4)
       }
       name = name + " (" + shard + ")"
   

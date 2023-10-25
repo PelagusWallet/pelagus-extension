@@ -4,9 +4,9 @@ import { getLocalStorageItem, useLocalStorage } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedModal from "../Shared/SharedModal"
 
-const IMG = `/images/pelagusnamechange.gif`
-// TODO update
-const LINK = "https://blog.pelaguswallet.io/rename-announcement"
+const IMG = `/images/pelagus_intro.png` // This was a gif that isn't in the repo, switched to png
+
+const LINK = "https://qu.ai/blog/pelagus-wallet/"
 
 export default function GlobalModal({ id }: { id: string }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "globalModal" })

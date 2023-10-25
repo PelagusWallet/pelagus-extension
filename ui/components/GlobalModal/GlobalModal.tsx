@@ -6,7 +6,7 @@ import SharedModal from "../Shared/SharedModal"
 
 const IMG = `/images/pelagusnamechange.gif`
 // TODO update
-const LINK = "https://blog.pelaguswallet.io/rename-announcement"
+const LINK = "https://qu.ai/blog/pelagus-wallet/"
 
 export default function GlobalModal({ id }: { id: string }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "globalModal" })

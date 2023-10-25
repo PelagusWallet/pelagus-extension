@@ -239,7 +239,7 @@ export default class TallyWindowProvider extends EventEmitter {
         }
         break
 
-      case "eth_chainId":
+      case "quai_chainId":
       case "net_version":
         if (
           typeof result === "string" &&
@@ -249,8 +249,8 @@ export default class TallyWindowProvider extends EventEmitter {
         }
         break
 
-      case "eth_accounts":
-      case "eth_requestAccounts":
+      case "quai_accounts":
+      case "quai_requestAccounts":
         if (Array.isArray(result) && result.length !== 0) {
           this.handleAddressChange(result)
         }
@@ -265,7 +265,7 @@ export default class TallyWindowProvider extends EventEmitter {
 
   // deprecated EIP-1193 method
   async enable(): Promise<unknown> {
-    return this.request({ method: "eth_requestAccounts" })
+    return this.request({ method: "quai_requestAccounts" })
   }
 
   isConnected(): boolean {

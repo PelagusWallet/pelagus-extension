@@ -40,10 +40,10 @@ export function approveEIP155Request(
   const { id, method } = request
 
   switch (method) {
-    case "eth_sign":
+    case "quai_sign":
     case "personal_sign":
-    case "eth_signTransaction":
-    case "eth_sendTransaction":
+    case "quai_signTransaction":
+    case "quai_sendTransaction":
       return formatJsonRpcResult(id, signedMessage)
 
     default:
@@ -68,10 +68,10 @@ export function processRequestParams(
   const { request } = eventParams
 
   switch (request.method) {
-    case "eth_sign":
+    case "quai_sign":
     case "personal_sign":
-    case "eth_sendTransaction":
-    case "eth_signTransaction":
+    case "quai_sendTransaction":
+    case "quai_signTransaction":
       return {
         id,
         topic,

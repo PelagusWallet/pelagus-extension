@@ -158,7 +158,7 @@ export function parseRPCRequestParams(
   params: RPCRequest["params"]
 ): RPCRequest["params"] {
   switch (method) {
-    case "eth_sign":
+    case "quai_sign":
       return sameEVMAddress(
         params[0] as HexString,
         enablingPermission.accountAddress

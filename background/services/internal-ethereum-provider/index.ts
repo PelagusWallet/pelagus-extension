@@ -176,10 +176,10 @@ export default class InternalEthereumProviderService extends BaseService<Events>
   ): Promise<unknown> {
     switch (method) {
       // supported alchemy methods: https://docs.alchemy.com/alchemy/apis/ethereum
-      case "eth_signTypedData":
-      case "eth_signTypedData_v1":
-      case "eth_signTypedData_v3":
-      case "eth_signTypedData_v4":
+      case "quai_signTypedData":
+      case "quai_signTypedData_v1":
+      case "quai_signTypedData_v3":
+      case "quai_signTypedData_v4":
         return this.signTypedData({
           account: {
             address: params[0] as string,
@@ -187,7 +187,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           },
           typedData: JSON.parse(params[1] as string),
         })
-      case "eth_chainId":
+      case "quai_chainId":
         // TODO Decide on a better way to track whether a particular chain is
         // allowed to have an RPC call made to it. Ideally this would be based
         // on a user's idea of a dApp connection rather than a network-specific
@@ -195,41 +195,41 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         return toHexChainID(
           (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
         )
-      case "eth_blockNumber":
-      case "eth_call":
-      case "eth_estimateGas":
-      case "eth_feeHistory":
-      case "eth_gasPrice":
-      case "eth_getBalance":
-      case "eth_getBlockByHash":
-      case "eth_getBlockByNumber":
-      case "eth_getBlockTransactionCountByHash":
-      case "eth_getBlockTransactionCountByNumber":
-      case "eth_getCode":
-      case "eth_getFilterChanges":
-      case "eth_getFilterLogs":
-      case "eth_getLogs":
-      case "eth_getProof":
-      case "eth_getStorageAt":
-      case "eth_getTransactionByBlockHashAndIndex":
-      case "eth_getTransactionByBlockNumberAndIndex":
-      case "eth_getTransactionByHash":
-      case "eth_getTransactionCount":
-      case "eth_getTransactionReceipt":
-      case "eth_getUncleByBlockHashAndIndex":
-      case "eth_getUncleByBlockNumberAndIndex":
-      case "eth_getUncleCountByBlockHash":
-      case "eth_getUncleCountByBlockNumber":
-      case "eth_maxPriorityFeePerGas":
-      case "eth_newBlockFilter":
-      case "eth_newFilter":
-      case "eth_newPendingTransactionFilter":
-      case "eth_protocolVersion":
-      case "eth_sendRawTransaction":
-      case "eth_subscribe":
-      case "eth_syncing":
-      case "eth_uninstallFilter":
-      case "eth_unsubscribe":
+      case "quai_blockNumber":
+      case "quai_call":
+      case "quai_estimateGas":
+      case "quai_feeHistory":
+      case "quai_gasPrice":
+      case "quai_getBalance":
+      case "quai_getBlockByHash":
+      case "quai_getBlockByNumber":
+      case "quai_getBlockTransactionCountByHash":
+      case "quai_getBlockTransactionCountByNumber":
+      case "quai_getCode":
+      case "quai_getFilterChanges":
+      case "quai_getFilterLogs":
+      case "quai_getLogs":
+      case "quai_getProof":
+      case "quai_getStorageAt":
+      case "quai_getTransactionByBlockHashAndIndex":
+      case "quai_getTransactionByBlockNumberAndIndex":
+      case "quai_getTransactionByHash":
+      case "quai_getTransactionCount":
+      case "quai_getTransactionReceipt":
+      case "quai_getUncleByBlockHashAndIndex":
+      case "quai_getUncleByBlockNumberAndIndex":
+      case "quai_getUncleCountByBlockHash":
+      case "quai_getUncleCountByBlockNumber":
+      case "quai_maxPriorityFeePerGas":
+      case "quai_newBlockFilter":
+      case "quai_newFilter":
+      case "quai_newPendingTransactionFilter":
+      case "quai_protocolVersion":
+      case "quai_sendRawTransaction":
+      case "quai_subscribe":
+      case "quai_syncing":
+      case "quai_uninstallFilter":
+      case "quai_unsubscribe":
       case "net_listening":
       case "net_version":
       case "web3_clientVersion":
@@ -239,12 +239,12 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           params,
           await this.getCurrentOrDefaultNetworkForOrigin(origin)
         )
-      case "eth_accounts": {
+      case "quai_accounts": {
         // This is a special method, because Alchemy provider DO support it, but always return null (because they do not store keys.)
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
       }
-      case "eth_sendTransaction":
+      case "quai_sendTransaction":
         return this.signTransaction(
           {
             ...(params[0] as JsonRpcTransactionRequest),
@@ -254,7 +254,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           await this.chainService.broadcastSignedTransaction(signed)
           return signed.hash
         })
-      case "eth_signTransaction":
+      case "quai_signTransaction":
         return this.signTransaction(
           params[0] as JsonRpcTransactionRequest,
           origin
@@ -268,7 +268,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
             }
           )
         )
-      case "eth_sign": // --- important wallet methods ---
+      case "quai_sign": // --- important wallet methods ---
         return this.signData(
           {
             input: params[1] as string,

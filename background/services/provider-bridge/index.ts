@@ -209,7 +209,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
       response.result = null
     } else if (
-      event.request.method === "eth_chainId" ||
+      event.request.method === "quai_chainId" ||
       event.request.method === "net_version"
     ) {
       // we need to send back the chainId and net_version (a deprecated
@@ -233,7 +233,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
         event.request.params,
         origin
       )
-    } else if (event.request.method === "eth_requestAccounts") {
+    } else if (event.request.method === "quai_requestAccounts") {
       // if it's external communication AND the dApp does not have permission BUT asks for it
       // then let's ask the user what he/she thinks
 
@@ -244,7 +244,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       // @TODO 7/12/21 Figure out underlying cause here
       const dAppChainID = Number(
         (await this.internalEthereumProviderService.routeSafeRPCRequest(
-          "eth_chainId",
+          "quai_chainId",
           [],
           origin
         )) as string
@@ -279,7 +279,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
         response.result = await this.routeContentScriptRPCRequest(
           persistedPermission,
-          "eth_accounts",
+          "quai_accounts",
           event.request.params,
           origin
         )
@@ -296,10 +296,10 @@ export default class ProviderBridgeService extends BaseService<Events> {
           EIP1193_ERROR_CODES.userRejectedRequest
         ).toJSON()
       }
-    } else if (event.request.method === "eth_accounts") {
+    } else if (event.request.method === "quai_accounts") {
       const dAppChainID = Number(
         (await this.internalEthereumProviderService.routeSafeRPCRequest(
-          "eth_chainId",
+          "quai_chainId",
           [],
           origin
         )) as string
@@ -312,7 +312,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       if (permission) {
         response.result = await this.routeContentScriptRPCRequest(
           permission,
-          "eth_accounts",
+          "quai_accounts",
           event.request.params,
           origin
         )
@@ -462,13 +462,13 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
     try {
       switch (method) {
-        case "eth_requestAccounts":
-        case "eth_accounts":
+        case "quai_requestAccounts":
+        case "quai_accounts":
           return [enablingPermission.accountAddress]
-        case "eth_signTypedData":
-        case "eth_signTypedData_v1":
-        case "eth_signTypedData_v3":
-        case "eth_signTypedData_v4":
+        case "quai_signTypedData":
+        case "quai_signTypedData_v1":
+        case "quai_signTypedData_v3":
+        case "quai_signTypedData_v4":
           checkPermissionSignTypedData(
             params[0] as HexString,
             enablingPermission
@@ -480,7 +480,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.signData)
           )
-        case "eth_sign":
+        case "quai_sign":
           checkPermissionSign(params[0] as HexString, enablingPermission)
 
           return await this.routeSafeRequest(
@@ -498,8 +498,8 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
-        case "eth_signTransaction":
-        case "eth_sendTransaction":
+        case "quai_signTransaction":
+        case "quai_sendTransaction":
           checkPermissionSignTransaction(
             {
               // A dApp can't know what should be the next nonce because it can't access

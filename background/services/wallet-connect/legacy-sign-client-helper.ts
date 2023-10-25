@@ -123,10 +123,10 @@ export function processLegacyRequestParams(
   // TODO: handle chain id
 
   switch (method) {
-    case "eth_signTypedData":
+    case "quai_signTypedData":
     case "personal_sign":
-    case "eth_sendTransaction":
-    case "eth_signTransaction":
+    case "quai_sendTransaction":
+    case "quai_signTransaction":
       return payload
     default:
       return undefined

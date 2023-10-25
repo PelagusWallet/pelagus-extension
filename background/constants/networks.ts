@@ -431,15 +431,15 @@ export const CHAIN_ID_TO_COINGECKO_PLATFORM_ID: {
 export const RPC_METHOD_PROVIDER_ROUTING = {
   everyChain: [
     "alchemy_", // alchemy specific api calls start with this
-    "eth_sendRawTransaction", // broadcast should always go to alchemy
-    "eth_subscribe", // generic http providers do not support this, but dapps need this
-    "eth_estimateGas", // just want to be safe, when setting up a transaction
+    "quai_sendRawTransaction", // broadcast should always go to alchemy
+    "quai_subscribe", // generic http providers do not support this, but dapps need this
+    "quai_estimateGas", // just want to be safe, when setting up a transaction
   ],
   [OPTIMISM.chainID]: [
-    "eth_call", // this is causing issues on optimism with ankr and is used heavily by uniswap
+    "quai_call", // this is causing issues on optimism with ankr and is used heavily by uniswap
   ],
   [ARBITRUM_ONE.chainID]: [
-    "eth_call", // this is causing issues on arbitrum with ankr and is used heavily by uniswap
+    "quai_call", // this is causing issues on arbitrum with ankr and is used heavily by uniswap
   ],
 } as const
 

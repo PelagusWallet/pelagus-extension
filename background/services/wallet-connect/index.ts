@@ -338,7 +338,7 @@ export default class WalletConnectService extends BaseService<Events> {
     await this.providerBridgeService.onMessageListener(port, {
       id: "1300",
       request: {
-        method: "eth_requestAccounts",
+        method: "quai_requestAccounts",
         params: [dAppName, favicon],
       },
     })

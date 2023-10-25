@@ -529,7 +529,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   override async send(method: string, params: unknown[]): Promise<unknown> {
     // Since we can reliably return the chainId with absolutely no communication with
     // the provider - we can return it without needing to worry about routing rpc calls
-    if (method === "eth_chainId") {
+    if (method === "quai_chainId") {
       return this.cachedChainId
     }
 

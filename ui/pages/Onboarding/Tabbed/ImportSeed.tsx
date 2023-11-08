@@ -18,6 +18,7 @@ import {
 } from "../../../hooks"
 import OnboardingRoutes from "./Routes"
 import { langEs as es } from "@quais/wordlists/lib/lang-es"
+import SharedSelect from "../../../components/Shared/SharedSelect"
 
 type Props = {
   nextPage: string
@@ -28,10 +29,20 @@ export default function ImportSeed(props: Props): ReactElement {
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
 
+  const legacyDerivationPath = "m/44'/60'/0'/0"
+  const mainnetDerivationPath = "m/44'/994'/0'/0"
+  const testnetDerivationPath = "m/44'/1'/0'/0"
+  const selectionOptions = [
+    { label: "1", value: testnetDerivationPath },
+    { label: "994", value: mainnetDerivationPath },
+    { label: "60", value: legacyDerivationPath },
+  ]
+
+  const [advancedVisible, setAdvancedVisible] = useState(false)
   const [recoveryPhrase, setRecoveryPhrase] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const [path, setPath] = useState<string>(
-    selectedNetwork.derivationPath ?? "m/44'/60'/0'/0"
+    selectedNetwork.derivationPath ?? testnetDerivationPath
   )
   const [isImporting, setIsImporting] = useState(false)
 
@@ -159,6 +170,27 @@ export default function ImportSeed(props: Props): ReactElement {
           >
             {t("submit")}
           </SharedButton>
+
+          <button 
+          className="advanced-button"
+          onClick={() => setAdvancedVisible(!advancedVisible)}
+          style={{marginTop: "5%"}}
+          type="button"
+        >
+          Advanced
+        </button>
+        {advancedVisible && (
+          <SharedSelect
+          options={selectionOptions}
+          onChange={(newPath) => { setPath(newPath) }}
+          defaultIndex={0}
+          label="Choose Cointype"
+          width="100%"
+          labelColor="white"
+          align-self='center'
+          
+        />
+        )}
           {!isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH) && (
             <button
               className="help_button"

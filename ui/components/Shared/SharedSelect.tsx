@@ -22,6 +22,7 @@ type Props = {
   showValue?: boolean
   showOptionValue?: boolean
   width?: string | number
+  labelColor?: string
 }
 
 export default function SharedSelect(props: Props): ReactElement {
@@ -36,6 +37,7 @@ export default function SharedSelect(props: Props): ReactElement {
     showValue,
     showOptionValue,
     width = "320px",
+    labelColor = "var(--green-40)",
   } = props
 
   const cssWidth = typeof width === "number" ? `${width}px` : width
@@ -159,7 +161,7 @@ export default function SharedSelect(props: Props): ReactElement {
           }
 
           label {
-            color: var(--green-40);
+            color: ${labelColor};
             font-size: 12px;
             display: block;
             margin-bottom: 4px;

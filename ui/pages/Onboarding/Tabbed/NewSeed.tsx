@@ -70,7 +70,7 @@ export default function NewSeed(): ReactElement {
 
   const showNewSeedPhrase = () => {
     dispatch(
-      generateNewKeyring(selectedNetwork.derivationPath ?? "m/44'/60'/0'/0")
+      generateNewKeyring(selectedNetwork.derivationPath ?? "m/44'/1'/0'/0")
     ).then(() => history.push(NewSeedRoutes.REVIEW_SEED))
   }
 
@@ -83,7 +83,7 @@ export default function NewSeed(): ReactElement {
       importKeyring({
         mnemonic: verifiedMnemonic.join(" "),
         source: "internal",
-        path: selectedNetwork.derivationPath ?? "m/44'/60'/0'/0",
+        path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
       })
     ).then(() => history.push(OnboardingRoutes.ONBOARDING_COMPLETE))
   }

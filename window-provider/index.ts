@@ -240,6 +240,7 @@ export default class TallyWindowProvider extends EventEmitter {
         break
 
       case "quai_chainId":
+      case "eth_chainId":
       case "net_version":
         if (
           typeof result === "string" &&
@@ -250,6 +251,8 @@ export default class TallyWindowProvider extends EventEmitter {
         break
 
       case "quai_accounts":
+      case "eth_accounts":
+      case "eth_requestAccounts":
       case "quai_requestAccounts":
         if (Array.isArray(result) && result.length !== 0) {
           this.handleAddressChange(result)

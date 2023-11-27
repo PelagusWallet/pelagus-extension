@@ -195,6 +195,10 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         return toHexChainID(
           (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
         )
+      case "eth_chainId":
+        return toHexChainID(
+          (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
+        )
       case "quai_blockNumber":
       case "quai_call":
       case "quai_estimateGas":
@@ -224,6 +228,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       case "quai_newBlockFilter":
       case "quai_newFilter":
       case "quai_newPendingTransactionFilter":
+      case "quai_nodeLocation":
       case "quai_protocolVersion":
       case "quai_sendRawTransaction":
       case "quai_subscribe":

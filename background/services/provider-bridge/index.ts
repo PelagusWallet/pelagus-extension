@@ -210,7 +210,8 @@ export default class ProviderBridgeService extends BaseService<Events> {
       response.result = null
     } else if (
       event.request.method === "quai_chainId" ||
-      event.request.method === "net_version"
+      event.request.method === "net_version" || 
+      event.request.method === "eth_chainId"
     ) {
       // we need to send back the chainId and net_version (a deprecated
       // precursor to eth_chainId) independent of dApp permission if we want to
@@ -233,7 +234,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
         event.request.params,
         origin
       )
-    } else if (event.request.method === "quai_requestAccounts") {
+    } else if (event.request.method === "quai_requestAccounts" || event.request.method == "eth_requestAccounts") {
       // if it's external communication AND the dApp does not have permission BUT asks for it
       // then let's ask the user what he/she thinks
 
@@ -463,6 +464,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     try {
       switch (method) {
         case "quai_requestAccounts":
+        case "eth_requestAccounts":
         case "quai_accounts":
           return [enablingPermission.accountAddress]
         case "quai_signTypedData":

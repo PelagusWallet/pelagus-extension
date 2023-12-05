@@ -83,6 +83,15 @@ export default function Send(): ReactElement {
     setAssetType("token")
   }
 
+  useEffect(() => {
+    dispatch(getAccountNonceAndGasPrice({details: {address: currentAccount.address, network: currentAccount.network}})).then( ({nonce, maxFeePerGas, maxPriorityFeePerGas}) => {
+      console.log(nonce, maxFeePerGas, maxPriorityFeePerGas)
+      setNonce(nonce)
+      setMaxFeePerGas(BigNumber.from(maxFeePerGas))
+      setMaxPriorityFeePerGas(BigNumber.from(maxPriorityFeePerGas))
+    })
+  }, [])
+
   // Switch the asset being sent when switching between networks, but still use
   // location.state on initial page render - if it exists
   useEffect(() => {
@@ -92,11 +101,7 @@ export default function Send(): ReactElement {
       setSelectedAsset(currentAccount.network.baseAsset)
     }
 
-      dispatch(getAccountNonceAndGasPrice(currentAccount)).then( ({nonce, maxFeePerGas, maxPriorityFeePerGas}) => {
-        setNonce(nonce)
-        setMaxFeePerGas(BigNumber.from(maxFeePerGas))
-        setMaxPriorityFeePerGas(BigNumber.from(maxPriorityFeePerGas))
-      })
+      
 
     // This disable is here because we don't necessarily have equality-by-reference
     // due to how we persist the ui redux slice with webext-redux.

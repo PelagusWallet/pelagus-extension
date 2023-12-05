@@ -213,18 +213,27 @@ export const removeAssetData = createBackgroundAsyncThunk(
 
 export const getAccountNonceAndGasPrice = createBackgroundAsyncThunk(
   "assets/getAccountNonceAndGasPrice",
-  async (details: {
-    network: EVMNetwork,
-    address: string,
-  }
+  async (
+    {
+    details,
+    }: {
+      details: {
+        network: EVMNetwork,
+        address: string,
+      },
+  },
+  { dispatch }
   ): Promise<{ nonce: number; maxFeePerGas: string, maxPriorityFeePerGas: string }> => {
     const prevShard = globalThis.main.GetShard()
     globalThis.main.SetShard(getShardFromAddress(details.address))
     const provider = globalThis.main.chainService.providerForNetworkOrThrow(details.network)
     const normalizedAddress = normalizeEVMAddress(details.address)
-    const nonce = await provider.getTransactionCount(normalizedAddress)
+    const nonce = await provider.getTransactionCount(normalizedAddress, "pending")
     const feeData = await provider.getFeeData()
     globalThis.main.SetShard(prevShard)
+    if (feeData.gasPrice == undefined || feeData.maxFeePerGas == undefined || feeData.maxPriorityFeePerGas == undefined) {
+      dispatch(setSnackbarMessage("Failed to get gas price, please enter manually"))
+    }
     return { nonce, maxFeePerGas: feeData.maxFeePerGas ? feeData.maxFeePerGas.toString() : '0', maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ? feeData.maxPriorityFeePerGas.toString() : '0' }
   }
 )

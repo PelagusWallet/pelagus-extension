@@ -465,6 +465,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       switch (method) {
         case "quai_requestAccounts":
         case "eth_requestAccounts":
+        case "eth_accounts":
         case "quai_accounts":
           return [enablingPermission.accountAddress]
         case "quai_signTypedData":

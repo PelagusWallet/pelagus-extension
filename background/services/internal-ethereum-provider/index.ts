@@ -244,6 +244,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           params,
           await this.getCurrentOrDefaultNetworkForOrigin(origin)
         )
+      case "eth_accounts":
       case "quai_accounts": {
         // This is a special method, because Alchemy provider DO support it, but always return null (because they do not store keys.)
         const { address } = await this.preferenceService.getSelectedAccount()

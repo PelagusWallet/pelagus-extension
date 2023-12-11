@@ -200,6 +200,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
         )
       case "quai_blockNumber":
+      case "eth_call":
       case "quai_call":
       case "quai_estimateGas":
       case "quai_feeHistory":

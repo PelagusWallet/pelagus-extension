@@ -110,7 +110,7 @@ export default function DAppConnectPage({
           margin-left: 5px;
         }
         .permissions_list_title {
-          color: #fff;
+          color: var(--green-40);
           margin-bottom: 8px;
           margin-top: 15px;
           margin-left: 0px;

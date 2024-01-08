@@ -180,6 +180,10 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       case "quai_signTypedData_v1":
       case "quai_signTypedData_v3":
       case "quai_signTypedData_v4":
+      case "eth_signTypedData":
+      case "eth_signTypedData_v1":
+      case "eth_signTypedData_v3":
+      case "eth_signTypedData_v4":
         return this.signTypedData({
           account: {
             address: params[0] as string,
@@ -239,6 +243,42 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       case "net_version":
       case "web3_clientVersion":
       case "web3_sha3":
+      case "eth_blockNumber":
+      case "eth_call":
+      case "eth_estimateGas":
+      case "eth_feeHistory":
+      case "eth_gasPrice":
+      case "eth_getBalance":
+      case "eth_getBlockByHash":
+      case "eth_getBlockByNumber":
+      case "eth_getBlockTransactionCountByHash":
+      case "eth_getBlockTransactionCountByNumber":
+      case "eth_getCode":
+      case "eth_getFilterChanges":
+      case "eth_getFilterLogs":
+      case "eth_getLogs":
+      case "eth_getProof":
+      case "eth_getStorageAt":
+      case "eth_getTransactionByBlockHashAndIndex":
+      case "eth_getTransactionByBlockNumberAndIndex":
+      case "eth_getTransactionByHash":
+      case "eth_getTransactionCount":
+      case "eth_getTransactionReceipt":
+      case "eth_getUncleByBlockHashAndIndex":
+      case "eth_getUncleByBlockNumberAndIndex":
+      case "eth_getUncleCountByBlockHash":
+      case "eth_getUncleCountByBlockNumber":
+      case "eth_maxPriorityFeePerGas":
+      case "eth_newBlockFilter":
+      case "eth_newFilter":
+      case "eth_newPendingTransactionFilter":
+      case "eth_nodeLocation":
+      case "eth_protocolVersion":
+      case "eth_sendRawTransaction":
+      case "eth_subscribe":
+      case "eth_syncing":
+      case "eth_uninstallFilter":
+      case "eth_unsubscribe":
         return this.chainService.send(
           method,
           params,
@@ -250,6 +290,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
       }
+      case "eth_sendTransaction":
       case "quai_sendTransaction":
         return this.signTransaction(
           {
@@ -260,6 +301,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           await this.chainService.broadcastSignedTransaction(signed)
           return signed.hash
         })
+      case "eth_signTransaction":
       case "quai_signTransaction":
         return this.signTransaction(
           params[0] as JsonRpcTransactionRequest,
@@ -274,6 +316,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
             }
           )
         )
+      case "eth_sign":
       case "quai_sign": // --- important wallet methods ---
         return this.signData(
           {

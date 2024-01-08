@@ -127,6 +127,9 @@ export function processLegacyRequestParams(
     case "personal_sign":
     case "quai_sendTransaction":
     case "quai_signTransaction":
+    case "eth_signTypedData":
+    case "eth_sendTransaction":
+    case "eth_signTransaction":
       return payload
     default:
       return undefined

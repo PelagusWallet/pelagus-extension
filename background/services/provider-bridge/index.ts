@@ -472,6 +472,10 @@ export default class ProviderBridgeService extends BaseService<Events> {
         case "quai_signTypedData_v1":
         case "quai_signTypedData_v3":
         case "quai_signTypedData_v4":
+        case "eth_signTypedData":
+        case "eth_signTypedData_v1":
+        case "eth_signTypedData_v3":
+        case "eth_signTypedData_v4":
           checkPermissionSignTypedData(
             params[0] as HexString,
             enablingPermission
@@ -483,6 +487,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.signData)
           )
+        case "eth_sign":
         case "quai_sign":
           checkPermissionSign(params[0] as HexString, enablingPermission)
 
@@ -501,6 +506,8 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
+        case "eth_signTransaction":
+        case "eth_sendTransaction":
         case "quai_signTransaction":
         case "quai_sendTransaction":
           checkPermissionSignTransaction(

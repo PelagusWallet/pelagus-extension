@@ -44,6 +44,9 @@ export function approveEIP155Request(
     case "personal_sign":
     case "quai_signTransaction":
     case "quai_sendTransaction":
+    case "eth_sign":
+    case "eth_sendTransaction":
+    case "eth_signTransaction":
       return formatJsonRpcResult(id, signedMessage)
 
     default:
@@ -72,6 +75,9 @@ export function processRequestParams(
     case "personal_sign":
     case "quai_sendTransaction":
     case "quai_signTransaction":
+    case "eth_sign":
+    case "eth_sendTransaction":
+    case "eth_signTransaction":
       return {
         id,
         topic,

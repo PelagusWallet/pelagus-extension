@@ -22,6 +22,7 @@ import NetworkSettingsChooser from "../../../NetworkFees/NetworkSettingsChooser"
 import FeeSettingsButton from "../../../NetworkFees/FeeSettingsButton"
 import TransactionAdditionalDetails from "./TransactionAdditionalDetails"
 import TransactionSignatureDetailsWarning from "./TransactionSignatureDetailsWarning"
+import { getAccountNonceAndGasPrice } from "@pelagus/pelagus-background/redux-slices/assets"
 
 export type PanelState = {
   dismissedWarnings: string[]
@@ -43,6 +44,9 @@ export default function DetailPanel({
     useState(false)
   const [updateNum, setUpdateNum] = useState(0)
 
+  const [nonce, setNonce] = useState<number>(0)
+  const [nonceUpdated, setNonceUpdated] = useState<boolean>(false)
+
   const estimatedFeesPerGas = useBackgroundSelector(selectEstimatedFeesPerGas)
 
   const reduxTransactionData = useBackgroundSelector(selectTransactionData)
@@ -58,6 +62,10 @@ export default function DetailPanel({
   // dispatched with old transactionDetails. transactionDetails is dependent on a
   // dispatching setFeeType, for example, inside NetworkSettingsChooser.
   useEffect(() => {
+    if(transactionDetails && nonceUpdated) {
+      transactionDetails.nonce = nonce
+      setNonceUpdated(false)
+    }
     if (transactionDetails) {
       dispatch(updateTransactionData(transactionDetails))
     }
@@ -70,7 +78,26 @@ export default function DetailPanel({
     transactionDetails?.gasLimit,
     (transactionDetails as EnrichedLegacyTransactionRequest)?.gasPrice,
     (transactionDetails as EnrichedEIP1559TransactionRequest)?.maxFeePerGas,
+    (transactionDetails as EnrichedEIP1559TransactionRequest)?.maxPriorityFeePerGas,
+    nonce
   ])
+
+  useEffect(() => {
+    if (transactionDetails && transactionDetails.from && transactionDetails.network) {
+      dispatch(getAccountNonceAndGasPrice({details: {address: transactionDetails.from, network: transactionDetails.network}})).then( ({nonce, maxFeePerGas, maxPriorityFeePerGas}) => {
+        console.log("Returned nonce and gasprice " + nonce, maxFeePerGas, maxPriorityFeePerGas)
+        setNonce(nonce)
+        if(estimatedFeesPerGas) {
+          if (estimatedFeesPerGas.regular) {
+            estimatedFeesPerGas.regular.maxFeePerGas = BigInt(maxFeePerGas)
+            estimatedFeesPerGas.regular.maxPriorityFeePerGas = BigInt(maxPriorityFeePerGas)
+          }
+          estimatedFeesPerGas.maxFeePerGas = BigInt(maxFeePerGas)
+          estimatedFeesPerGas.maxPriorityFeePerGas = BigInt(maxPriorityFeePerGas)
+        }
+      })
+    }
+  }, [])
 
   if (transactionDetails === undefined) return <></>
 
@@ -142,6 +169,22 @@ export default function DetailPanel({
         transactionRequest={transactionDetails}
         annotation={transactionDetails.annotation}
       />
+      <span className="detail_item">
+        <div className="detail_label">
+          {"Nonce"}
+        </div>
+          <span className="detail_item_right">
+          <input
+              id="send_address_alt"
+              type="number"
+              placeholder={nonce.toString()}
+              value={nonce}
+              spellCheck={false}
+              onChange={(event) => {if (parseInt(event.target.value) >= 0) {setNonceUpdated(true); setNonce(parseInt(event.target.value))}}}
+              style={{border: "#33514e", borderStyle: "solid", borderWidth: "1px", borderRadius: "4px"}}
+            />
+          </span>
+      </span>
       <span
         className={classNames("detail_item warning", {
           visible: hasInsufficientFundsWarning,

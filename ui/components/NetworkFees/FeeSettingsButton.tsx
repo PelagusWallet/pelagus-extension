@@ -64,7 +64,6 @@ export default function FeeSettingsButton({
             height: 32px;
             display: flex;
             align-items: center;
-            color: var(--gold-5);
             font-size: 16px;
             line-height: 20px;
             border-radius: 4px;

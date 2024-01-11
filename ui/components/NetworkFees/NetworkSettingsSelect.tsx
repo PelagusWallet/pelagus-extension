@@ -114,6 +114,13 @@ export default function NetworkSettingsSelect({
     selectTransactionMainCurrencyPricePoint
   )
 
+  useEffect(() => {
+    // Base fee should not be below 1 gwei unless user-specified
+    if (estimatedFeesPerGas?.baseFeePerGas ?? 0n < 1000000000n) {
+      estimatedFeesPerGas != undefined ? estimatedFeesPerGas.baseFeePerGas = 1000000000n : 1000000000n
+    }
+  }, [estimatedFeesPerGas])
+
   // Select activeFeeIndex to regular option once gasOptions load
   useEffect(() => {
     if (gasOptions.length > 0) {
@@ -162,10 +169,14 @@ export default function NetworkSettingsSelect({
 
         baseFees.forEach((option) => {
           if (option) {
+            // Basefee minimum is 1 gwei
+            if (estimatedFeesPerGas.baseFeePerGas??0n < 1000000000n) {
+              estimatedFeesPerGas.baseFeePerGas = 1000000000n
+            }
             updatedGasOptions.push(
               gasOptionFromEstimate(
                 mainCurrencyPricePoint,
-                estimatedFeesPerGas.baseFeePerGas ?? 0n,
+                estimatedFeesPerGas.baseFeePerGas ?? 1000000000n,
                 gasLimit,
                 option
               )
@@ -177,7 +188,7 @@ export default function NetworkSettingsSelect({
           updatedGasOptions.push(
             gasOptionFromEstimate(
               mainCurrencyPricePoint,
-              estimatedFeesPerGas.baseFeePerGas ?? 0n,
+              estimatedFeesPerGas.baseFeePerGas ?? 1000000000n,
               gasLimit,
               customGas
             )
@@ -259,7 +270,7 @@ export default function NetworkSettingsSelect({
         {transactionDetails?.annotation?.warnings?.includes(
           "insufficient-funds"
         ) && (
-          <SharedBanner icon="notif-attention" iconColor="var(--attention)">
+          <SharedBanner icon="notif-attention" iconColor="var(--error)">
             <span className="warning_text">
               {t("networkFees.insufficientBaseAsset", {
                 symbol: transactionDetails.network.baseAsset.symbol,
@@ -360,7 +371,7 @@ export default function NetworkSettingsSelect({
             font-size: 16px;
             line-height: 24px;
             font-weight: 500;
-            color: var(--attention);
+            color: var(--error);
           }
         `}
       </style>

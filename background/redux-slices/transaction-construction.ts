@@ -204,7 +204,7 @@ const transactionSlice = createSlice({
 
         newState.transactionRequest.maxFeePerGas =
           estimatedMaxFeePerGas ?? transactionRequest.maxFeePerGas
-
+        
         const estimatedMaxPriorityFeePerGas =
           feeType === NetworkFeeTypeChosen.Custom
             ? state.customFeesPerGas?.maxPriorityFeePerGas
@@ -214,6 +214,16 @@ const transactionSlice = createSlice({
         newState.transactionRequest.maxPriorityFeePerGas =
           estimatedMaxPriorityFeePerGas ??
           transactionRequest.maxPriorityFeePerGas
+
+          // Gas minimums
+
+          if (newState.transactionRequest.maxPriorityFeePerGas < 1000000000n) {
+            newState.transactionRequest.maxPriorityFeePerGas = 1000000000n
+          }
+
+          if (newState.transactionRequest.maxFeePerGas < newState.transactionRequest.maxPriorityFeePerGas + 1000000000n) {
+            newState.transactionRequest.maxFeePerGas = newState.transactionRequest.maxPriorityFeePerGas + 1000000000n
+          }
       }
 
       if (

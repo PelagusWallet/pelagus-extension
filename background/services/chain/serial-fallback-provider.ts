@@ -361,7 +361,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
         )
       ) {
         if (this.shouldSendMessageOnNextProvider(messageId)) {
-          console.trace()
           // If there is another provider to try - try to send the message on that provider
           if (this.currentProviderIndex + 1 < this.providerCreators.length) {
             return await this.attemptToSendMessageOnNewProvider(messageId)
@@ -403,7 +402,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
         error,
         error instanceof Error ? error.stack : ""
       )
-      console.trace()
       delete this.messagesToSend[messageId]
       throw error
     }

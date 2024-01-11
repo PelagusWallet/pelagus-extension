@@ -72,7 +72,6 @@ export function TransferSummaryBase({
               margin-bottom: 4px;
             }
             .spend_amount {
-              color: #fff;
               font-size: 28px;
               text-align: right;
               text-transform: uppercase;

@@ -24,10 +24,13 @@ export default function KeyringUnlock({
   const [password, setPassword] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const [unlockSuccess, setUnlockSuccess] = useState(false)
+
   const isDappPopup = useIsDappPopup()
   const history: {
     entries?: { pathname: string }[]
+    go: (n: number) => void
     goBack: () => void
+    replace: (path: string) => void
   } = useHistory()
 
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
@@ -59,7 +62,27 @@ export default function KeyringUnlock({
 
   const handleBack = async () => {
     await handleReject()
-    history.goBack()
+    
+    // Find eligible path to navigate back to in order to prevent the user from getting stuck in a loop.
+    // An eligible path is defined as any path that does not automatically redirect to the unlock page.
+    const ineligiblePaths: string[] = ["/send", "/keyring/unlock"]
+    const backPaths = history.entries!.slice().map((entry) => entry.pathname)
+    const firstBackPath = backPaths[backPaths.length - 2]
+    if (ineligiblePaths.includes(firstBackPath)) {
+      const eligiblePaths = backPaths
+        .slice(0, - 1) 
+        .reverse() // Reverse to find last non-eligible path
+        .filter((path: string) => !ineligiblePaths.includes(path))
+      if (eligiblePaths.length > 0) {
+        const lastEligiblePathIndex =  backPaths.indexOf(eligiblePaths[0])
+        history.go(lastEligiblePathIndex - backPaths.length + 1)
+      } else {
+        // No eligible paths so redirect to the home page
+        history.replace("/")
+      }
+    } else {
+      history.goBack()
+    }
   }
 
   const handleCancel = () => {

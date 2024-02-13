@@ -13,7 +13,6 @@ export default function AccountsNotificationPanel({
   onCurrentAddressChange,
   setSelectedAccountSigner,
   selectedAccountSigner,
-
 }: Props): ReactElement {
   const { t } = useTranslation()
 

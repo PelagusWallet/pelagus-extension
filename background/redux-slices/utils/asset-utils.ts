@@ -417,25 +417,30 @@ export function isSameAsset(asset1?: AnyAsset, asset2?: AnyAsset): boolean {
   return asset1.symbol === asset2.symbol
 }
 
-
-export function bigIntToDecimal(bigIntValue: bigint, decimalPlaces = 18, precision = 3) {
+export function bigIntToDecimal(
+  bigIntValue: bigint,
+  decimalPlaces = 18,
+  precision = 3
+) {
   if (bigIntValue == BigInt(0)) {
-    return "0.000";
+    return "0.000"
   }
   // Convert BigInt to String
-  let bigIntStr = bigIntValue.toString();
+  let bigIntStr = bigIntValue.toString()
 
   // Ensure that bigIntStr is at least decimalPlaces long by padding with leading zeros if necessary
   while (bigIntStr.length < decimalPlaces) {
-    bigIntStr = "0" + bigIntStr;
+    bigIntStr = `0${bigIntStr}`
   }
 
   // Calculate the index where we need to insert the decimal point
-  let decimalIndex = bigIntStr.length - decimalPlaces;
-  
+  const decimalIndex = bigIntStr.length - decimalPlaces
+
   // Insert the decimal point at the correct index
-  let result = bigIntStr.slice(0, decimalIndex) + "." + bigIntStr.slice(decimalIndex, decimalIndex + precision);
+  const result = `${bigIntStr.slice(0, decimalIndex)}.${bigIntStr.slice(
+    decimalIndex,
+    decimalIndex + precision
+  )}`
 
-  return parseFloat(result).toFixed(precision);
+  return parseFloat(result).toFixed(precision)
 }
-

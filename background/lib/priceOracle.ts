@@ -154,7 +154,7 @@ const getRatesForTokens = async (
   }[]
 > => {
   let multicallAddress = MULTICALL_CONTRACT_ADDRESS
-  if(network.isQuai) {
+  if (network.isQuai) {
     multicallAddress = ShardToMulticall(globalThis.main.SelectedShard, network)
   }
   const multicall = new ethers.Contract(

@@ -1,7 +1,8 @@
-import { NETWORK_BY_CHAIN_ID, SECOND } from "@pelagus/pelagus-background/constants"
 import {
-    selectNetworkConnectError
-} from "@pelagus/pelagus-background/redux-slices/ui"
+  NETWORK_BY_CHAIN_ID,
+  SECOND,
+} from "@pelagus/pelagus-background/constants"
+import { selectNetworkConnectError } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
 import React, {
   ReactElement,
@@ -11,15 +12,18 @@ import React, {
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
-import { useBackgroundSelector } from "../../hooks"
 import { ChainIdWithError } from "@pelagus/pelagus-background/networks"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
+import { useBackgroundSelector } from "../../hooks"
 
 export default function WalletNoConnectionBanner(): ReactElement {
   const { t } = useTranslation()
-  const networkConnectErrors: ChainIdWithError[] = useBackgroundSelector(selectNetworkConnectError)
-  const selectedAccount: AddressOnNetwork = useBackgroundSelector(selectCurrentAccount)
+  const networkConnectErrors: ChainIdWithError[] = useBackgroundSelector(
+    selectNetworkConnectError
+  )
+  const selectedAccount: AddressOnNetwork =
+    useBackgroundSelector(selectCurrentAccount)
   const [showErr, setShowErr] = useState(false)
   const [networkName, setNetworkName] = useState("")
   const timeout = useRef<number | undefined>()
@@ -30,10 +34,12 @@ export default function WalletNoConnectionBanner(): ReactElement {
   }, [])
 
   useEffect(() => {
-    for(let i = 0; i < networkConnectErrors.length; i++) {
-      if(selectedAccount.network.chainID === networkConnectErrors[i].chainId) {
+    for (let i = 0; i < networkConnectErrors.length; i++) {
+      if (selectedAccount.network.chainID === networkConnectErrors[i].chainId) {
         setShowErr(networkConnectErrors[i].error)
-        setNetworkName(NETWORK_BY_CHAIN_ID[networkConnectErrors[i].chainId].name)
+        setNetworkName(
+          NETWORK_BY_CHAIN_ID[networkConnectErrors[i].chainId].name
+        )
       }
     }
   }, [networkConnectErrors, selectedAccount])
@@ -45,10 +51,8 @@ export default function WalletNoConnectionBanner(): ReactElement {
       })}
     >
       <div className="no_connection">
-        <div>
-         {"Error connecting to " + networkName}
-        </div>
-        <div className="spinner"></div>
+        <div>{`Error connecting to ${networkName}`}</div>
+        <div className="spinner" />
       </div>
       <style jsx>{`
         .no_connection {
@@ -75,8 +79,12 @@ export default function WalletNoConnectionBanner(): ReactElement {
           margin-right: 1px;
         }
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
         .default_toggle_container {
           height: 40px;

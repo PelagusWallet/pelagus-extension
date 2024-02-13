@@ -354,7 +354,7 @@ export class PreferenceDatabase extends Dexie {
   }
 
   async setSelectedAccount(addressNetwork: AddressOnNetwork): Promise<void> {
-    let shard = getShardFromAddress(addressNetwork.address)
+    const shard = getShardFromAddress(addressNetwork.address)
     globalThis.main.SetShard(shard)
     globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await this.preferences

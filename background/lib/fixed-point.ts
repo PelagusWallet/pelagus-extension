@@ -223,7 +223,7 @@ export function fixedPointNumberToString(
  * fixed point precision is used.
  *
  * This function is best used as the last step after any computations are done.
- * 
+ *
  * NOTE: This function TRUNCATES to desiredDecimals but does not ROUND UP.
  */
 export function fromFixedPoint(

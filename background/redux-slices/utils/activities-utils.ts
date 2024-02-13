@@ -1,3 +1,4 @@
+import { getShardFromAddress } from "quais/lib/utils"
 import { assetAmountToDesiredDecimals } from "../../assets"
 import {
   convertToEth,
@@ -9,7 +10,6 @@ import {
 import { isDefined } from "../../lib/utils/type-guards"
 import { Transaction } from "../../services/chain/db"
 import { EnrichedEVMTransaction } from "../../services/enrichment"
-import { getShardFromAddress } from "quais/lib/utils"
 import { getRecipient, getSender } from "../../services/enrichment/utils"
 import { HexString } from "../../types"
 
@@ -173,9 +173,9 @@ export const getActivity = (
       sender: getSender(transaction),
     }
 
-    return activity 
+    return activity
   }
-  let annotation = getAnnotationType(transaction)
+  const annotation = getAnnotationType(transaction)
 
   return {
     ...activity,
@@ -187,9 +187,9 @@ const getAnnotationType = (transaction: Transaction) => {
   const { to, from } = transaction
   if (typeof to === undefined) {
     return "contract-deployment"
-  } 
-  
-  let annotation = "contract-interaction";
+  }
+
+  let annotation = "contract-interaction"
 
   // Likely not a contract interaction
   if (
@@ -197,7 +197,10 @@ const getAnnotationType = (transaction: Transaction) => {
     transaction.input === "0x" ||
     typeof transaction.input === "undefined"
   ) {
-    annotation = to && getShardFromAddress(to) !== getShardFromAddress(from) ? "external-transfer" : "asset-transfer"
+    annotation =
+      to && getShardFromAddress(to) !== getShardFromAddress(from)
+        ? "external-transfer"
+        : "asset-transfer"
   }
   return annotation
 }
@@ -272,7 +275,7 @@ export function getActivityDetails(
     { label: "Gas", value: "gasUsed" in tx ? tx.gasUsed.toString() : "" },
     { label: "Nonce", value: tx.nonce.toString() },
     { label: "Timestamp", value: getTimestamp(tx.annotation?.blockTimestamp) },
-    { label: "Hash", value: tx.hash }
+    { label: "Hash", value: tx.hash },
   ].concat(
     assetTransfers.map((transfer) => {
       return {

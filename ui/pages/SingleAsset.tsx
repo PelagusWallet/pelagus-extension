@@ -158,7 +158,12 @@ export default function SingleAsset(): ReactElement {
                       href={
                         DEFAULT_NETWORKS_BY_CHAIN_ID.has(currentNetwork.chainID)
                           ? `${
-                              currentNetwork.isQuai ? CurrentShardToExplorer(currentNetwork, account.address) : blockExplorer[currentNetwork.chainID].url
+                              currentNetwork.isQuai
+                                ? CurrentShardToExplorer(
+                                    currentNetwork,
+                                    account.address
+                                  )
+                                : blockExplorer[currentNetwork.chainID].url
                             }/token/${contractAddress}`
                           : currentNetwork.blockExplorerURL
                       }

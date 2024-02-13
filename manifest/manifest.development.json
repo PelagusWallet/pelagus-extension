@@ -2,5 +2,4 @@
   "content_security_policy": {
     "extension-pages": "object-src 'self'; script-src 'self' http://localhost:*;"
   }
-
 }

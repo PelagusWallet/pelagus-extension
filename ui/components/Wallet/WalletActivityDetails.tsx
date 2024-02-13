@@ -1,5 +1,8 @@
 import React, { useCallback, ReactElement, useEffect, useState } from "react"
-import { selectCurrentAccount, selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  selectCurrentAccount,
+  selectCurrentNetwork,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   ActivityDetail,
   Activity,
@@ -18,16 +21,14 @@ function DetailRowItem(props: ActivityDetail): ReactElement {
   const { assetIconUrl, label, value } = props
 
   function truncateValue(value: string) {
-    const isLong = value.length > 30;
-    const displayValue = isLong ? `${value.substring(0, 13)}...${value.substring(value.length - 13)}` : value;
+    const isLong = value.length > 30
+    const displayValue = isLong
+      ? `${value.substring(0, 13)}...${value.substring(value.length - 13)}`
+      : value
     if (isLong) {
-      return (
-        <SharedAddress name={displayValue} address={value} />
-      );
+      return <SharedAddress name={displayValue} address={value} />
     }
-    return (
-    <div className="right">{value}</div>
-    );
+    return <div className="right">{value}</div>
   }
 
   return (

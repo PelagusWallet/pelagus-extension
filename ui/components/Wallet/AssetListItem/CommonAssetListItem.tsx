@@ -3,7 +3,10 @@ import { Link } from "react-router-dom"
 import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 import { useTranslation } from "react-i18next"
-import { bigIntToDecimal, isUnverifiedAssetByUser } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
+import {
+  bigIntToDecimal,
+  isUnverifiedAssetByUser,
+} from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { NETWORKS_SUPPORTING_SWAPS } from "@pelagus/pelagus-background/constants"
 import {
@@ -80,7 +83,11 @@ export default function CommonAssetListItem(
           <div className="asset_left_content">
             <div className="asset_amount">
               <span className="bold_amount_count">
-                {bigIntToDecimal(assetAmount.amount, assetAmount.asset.decimals, 4)}
+                {bigIntToDecimal(
+                  assetAmount.amount,
+                  assetAmount.asset.decimals,
+                  4
+                )}
               </span>
               <span title={assetAmount.asset.symbol}>
                 {trimWithEllipsis(assetAmount.asset.symbol, MAX_SYMBOL_LENGTH)}

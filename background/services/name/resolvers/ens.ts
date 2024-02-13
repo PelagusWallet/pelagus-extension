@@ -110,10 +110,10 @@ export default function ensResolverFor(
         return undefined
       }
 
-      /*return {
+      /* return {
         name,
         network,
-      }*/
+      } */
     },
   }
 }

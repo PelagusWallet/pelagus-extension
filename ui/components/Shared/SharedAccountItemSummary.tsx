@@ -14,13 +14,7 @@ interface Props {
 export default function SharedAccountItemSummary(props: Props): ReactElement {
   const { isSelected, accountTotal, children } = props
   const { t } = useTranslation()
-  const {
-    address,
-    shortenedAddress,
-    name,
-    avatarURL,
-    balance
-  } = accountTotal
+  const { address, shortenedAddress, name, avatarURL, balance } = accountTotal
 
   return (
     <div className="item-summary standard_width">

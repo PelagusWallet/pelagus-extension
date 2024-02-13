@@ -15,7 +15,7 @@ export async function resolveAddressAnnotation(
   addressOnNetwork: AddressOnNetwork
 ): Promise<AddressOnNetworkAnnotation> {
   const { address, network } = addressOnNetwork
-  let prevShard = globalThis.main.GetShard()
+  const prevShard = globalThis.main.GetShard()
   globalThis.main.SetShard(getShardFromAddress(address))
   const provider = chainService.providerForNetworkOrThrow(network)
   const codeHex = await provider.getCode(address)

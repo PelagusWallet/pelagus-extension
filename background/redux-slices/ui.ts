@@ -30,7 +30,7 @@ export type UIState = {
   settings: {
     hideDust: boolean
     defaultWallet: boolean
-    networkConnectError: ChainIdWithError[],
+    networkConnectError: ChainIdWithError[]
     showTestNetworks: boolean
     collectAnalytics: boolean
     showAnalyticsNotification: boolean
@@ -137,7 +137,7 @@ const uiSlice = createSlice({
       immerState,
       { payload: addressNetwork }: { payload: AddressOnNetwork }
     ) => {
-      let shard = getShardFromAddress(addressNetwork.address)
+      const shard = getShardFromAddress(addressNetwork.address)
       globalThis.main.SetShard(shard)
       // TODO: Potentially call getLatestBaseAccountBalance here
       immerState.selectedAccount = addressNetwork
@@ -172,13 +172,13 @@ const uiSlice = createSlice({
     setNetworkConnectError: (
       state,
       { payload: networkConnectError }: { payload: ChainIdWithError[] }
-      ) => ({
-        ...state,
-        settings: {
-         ...state.settings,
-          networkConnectError,
-        },
-      }),
+    ) => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        networkConnectError,
+      },
+    }),
     setRouteHistoryEntries: (
       state,
       { payload: routeHistoryEntries }: { payload: Partial<Location>[] }
@@ -254,27 +254,34 @@ export const setNewNetworkConnectError = createBackgroundAsyncThunk(
   async (networkConnectError: ChainIdWithError, { getState, dispatch }) => {
     const state = getState() as { ui: UIState }
     let current = state.ui.settings.networkConnectError
-    if(!Array.isArray(current)) {
+    if (!Array.isArray(current)) {
       current = []
     }
     // Check if network error already exists
     for (let i = 0; i < current.length; i++) {
-      if (current[i].chainId == networkConnectError.chainId && current[i].error != networkConnectError.error) {
+      if (
+        current[i].chainId == networkConnectError.chainId &&
+        current[i].error != networkConnectError.error
+      ) {
         const newErrors = current.map((error) => {
           if (error.chainId === networkConnectError.chainId) {
-            return { ...error, error: networkConnectError.error };
+            return { ...error, error: networkConnectError.error }
           }
-          return error;
-        });
+          return error
+        })
         dispatch(uiSlice.actions.setNetworkConnectError(newErrors))
         return
-      } else if (current[i].chainId == networkConnectError.chainId && current[i].error == networkConnectError.error) {
+      }
+      if (
+        current[i].chainId == networkConnectError.chainId &&
+        current[i].error == networkConnectError.error
+      ) {
         // don't need to do anything in this case
         return
       }
     }
     // Network error doesn't exist, create it
-    const newErrors: ChainIdWithError[] = [...current, networkConnectError];
+    const newErrors: ChainIdWithError[] = [...current, networkConnectError]
     dispatch(uiSlice.actions.setNetworkConnectError(newErrors))
   }
 )
@@ -283,7 +290,7 @@ export const setNewNetworkConnectError = createBackgroundAsyncThunk(
 export const setNewSelectedAccount = createBackgroundAsyncThunk(
   "ui/setNewCurrentAddressValue",
   async (addressNetwork: AddressOnNetwork, { dispatch }) => {
-    let shard = getShardFromAddress(addressNetwork.address)
+    const shard = getShardFromAddress(addressNetwork.address)
     globalThis.main.SetShard(shard)
     globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await emitter.emit("newSelectedAccount", addressNetwork)
@@ -328,7 +335,8 @@ export const userActivityEncountered = createBackgroundAsyncThunk(
 export const setSelectedNetwork = createBackgroundAsyncThunk(
   "ui/setSelectedNetwork",
   async (network: EVMNetwork, { getState, dispatch }) => {
-    if (network.name == "Ethereum") { // Ethereum is disabled
+    if (network.name == "Ethereum") {
+      // Ethereum is disabled
       return
     }
     const state = getState() as { ui: UIState; account: AccountState }
@@ -416,7 +424,7 @@ export const selectShowUnverifiedAssets = createSelector(
 
 export const selectCollectAnalytics = createSelector(
   selectSettings,
-  (settings) => false//settings?.collectAnalytics // changed to only false
+  (settings) => false // settings?.collectAnalytics // changed to only false
 )
 
 export const selectHideBanners = createSelector(

@@ -11,9 +11,11 @@ export default function SettingsExportLogs(): ReactElement {
 
   useEffect(() => {
     serializeLogs().then((serializedLogs) => {
-      setBase64LogData(Buffer.from(
-        `${window.navigator.userAgent}\n\n\n${serializedLogs}` || ""
-      ).toString("base64"))
+      setBase64LogData(
+        Buffer.from(
+          `${window.navigator.userAgent}\n\n\n${serializedLogs}` || ""
+        ).toString("base64")
+      )
     })
   }, [])
 

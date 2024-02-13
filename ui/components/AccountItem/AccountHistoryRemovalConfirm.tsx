@@ -5,6 +5,10 @@ import {
 import React, { ReactElement, useCallback } from "react"
 import { useHistory } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import {
+  removeAccountActivities,
+  removeActivities,
+} from "@pelagus/pelagus-background/redux-slices/activities"
 import SharedButton from "../Shared/SharedButton"
 import SharedAccountItemSummary from "../Shared/SharedAccountItemSummary"
 import {
@@ -14,7 +18,6 @@ import {
 } from "../../hooks"
 import AccountItemActionHeader from "./AccountItemActionHeader"
 import ClearHistoryWarning from "./ClearHistoryWarning"
-import { removeAccountActivities, removeActivities } from "@pelagus/pelagus-background/redux-slices/activities"
 
 interface AccountHistoryRemovalConfirmProps {
   account: AccountTotal
@@ -37,9 +40,9 @@ export default function AccountHistoryRemovalConfirm({
   const readOnlyAccount = typeof keyring === "undefined"
 
   const handleClearActivities = useCallback(() => {
-    dispatch(removeActivities(address));
-    dispatch(removeAccountActivities(address));
-  }, [dispatch, address]);
+    dispatch(removeActivities(address))
+    dispatch(removeAccountActivities(address))
+  }, [dispatch, address])
 
   return (
     <div className="remove_history_option">
@@ -61,7 +64,7 @@ export default function AccountHistoryRemovalConfirm({
         </li>
       </ul>
       <div className="remove_address_details">
-        <ClearHistoryWarning/>
+        <ClearHistoryWarning />
       </div>
       <div className="button_container">
         <SharedButton
@@ -81,9 +84,8 @@ export default function AccountHistoryRemovalConfirm({
             e.stopPropagation()
             // don't prompt for unlock if removing read-only account.
             if (readOnlyAccount || areKeyringsUnlocked) {
-                handleClearActivities()
+              handleClearActivities()
               close()
-
             } else {
               history.push("/keyring/unlock")
             }

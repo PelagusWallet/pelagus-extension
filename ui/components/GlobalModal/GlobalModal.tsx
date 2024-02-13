@@ -11,10 +11,7 @@ const LINK = "https://qu.ai/blog/pelagus-wallet/"
 export default function GlobalModal({ id }: { id: string }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "globalModal" })
 
-  const [showModal, setShowModal] = useLocalStorage(
-    `modal_${id}`,
-    "true"
-  )
+  const [showModal, setShowModal] = useLocalStorage(`modal_${id}`, "true")
 
   const handleClick = () => {
     setShowModal("false")

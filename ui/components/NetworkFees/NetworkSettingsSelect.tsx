@@ -117,7 +117,9 @@ export default function NetworkSettingsSelect({
   useEffect(() => {
     // Base fee should not be below 1 gwei unless user-specified
     if (estimatedFeesPerGas?.baseFeePerGas ?? 0n < 1000000000n) {
-      estimatedFeesPerGas != undefined ? estimatedFeesPerGas.baseFeePerGas = 1000000000n : 1000000000n
+      estimatedFeesPerGas != undefined
+        ? (estimatedFeesPerGas.baseFeePerGas = 1000000000n)
+        : 1000000000n
     }
   }, [estimatedFeesPerGas])
 
@@ -170,7 +172,7 @@ export default function NetworkSettingsSelect({
         baseFees.forEach((option) => {
           if (option) {
             // Basefee minimum is 1 gwei
-            if (estimatedFeesPerGas.baseFeePerGas??0n < 1000000000n) {
+            if (estimatedFeesPerGas.baseFeePerGas ?? 0n < 1000000000n) {
               estimatedFeesPerGas.baseFeePerGas = 1000000000n
             }
             updatedGasOptions.push(

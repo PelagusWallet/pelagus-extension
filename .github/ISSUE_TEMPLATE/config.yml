@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: "Discord #feature-requests"
-    url:  https://discord.gg/pcaA5EapZk
+    url: https://discord.gg/pcaA5EapZk
     about: Please discuss feature requests here before filing an issue.
   - name: "Discord #bug-reports for bugs"
     url: https://discord.gg/pcaA5EapZk

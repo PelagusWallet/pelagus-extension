@@ -47,12 +47,22 @@ const addActivityToState =
     chainID: string,
     transaction: Transaction | EnrichedEVMTransaction
   ) => {
-    const isEtx = transaction.to && getShardFromAddress(transaction.from) !== getShardFromAddress(transaction.to)
+    const isEtx =
+      transaction.to &&
+      getShardFromAddress(transaction.from) !==
+        getShardFromAddress(transaction.to)
     // Don't add TX if it's an ETX and it's not from the null address, this will lead to duplicate transactions
     // Example: 0xCyprus1 -> 0xCyprus2 (TX1) generates an ITX on Cyprus2 which is 0x00000 -> 0xCyprus2 (TX2)
     // 0xCyprus1 Activities: TX1
     // 0xCyprus2 Activities: TX1, TX2
-    if (isEtx && sameEVMAddress(transaction.to, address) && !sameEVMAddress(transaction.from, "0x0000000000000000000000000000000000000000")) {
+    if (
+      isEtx &&
+      sameEVMAddress(transaction.to, address) &&
+      !sameEVMAddress(
+        transaction.from,
+        "0x0000000000000000000000000000000000000000"
+      )
+    ) {
       return
     }
 
@@ -105,7 +115,12 @@ const initializeActivitiesFromTransactions = ({
         sameEVMAddress(from, address)
     )
 
-    if (to && isTrackedTo && (getShardFromAddress(to) === getShardFromAddress(from) || sameEVMAddress(from, "0x0000000000000000000000000000000000000000"))) {
+    if (
+      to &&
+      isTrackedTo &&
+      (getShardFromAddress(to) === getShardFromAddress(from) ||
+        sameEVMAddress(from, "0x0000000000000000000000000000000000000000"))
+    ) {
       addActivity(to, network.chainID, transaction)
     }
     if (from && isTrackedFrom) {
@@ -193,10 +208,7 @@ export const {
 
 export const removeAccountActivities = createBackgroundAsyncThunk(
   "activities/removeAccountActivities",
-  async (
-    payload: HexString,
-    { extra: { main } }
-  ) => {
+  async (payload: HexString, { extra: { main } }) => {
     const address = payload
     const normalizedAddress = normalizeEVMAddress(address)
     await main.removeAccountActivity(normalizedAddress)

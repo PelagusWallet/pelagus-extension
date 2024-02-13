@@ -71,11 +71,13 @@ export default (prevState: Record<string, unknown>): NewState => {
       if (chainID === "ids" || chainID === "entities") {
         return
       }
-      Object.keys(typedPrevState.activities[address][chainID].entities??{}).forEach(
+      Object.keys(
+        typedPrevState.activities[address][chainID].entities ?? {}
+      ).forEach(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (_) => {
           Object.values(
-            typedPrevState.activities[address][chainID].entities??{}
+            typedPrevState.activities[address][chainID].entities ?? {}
           ).forEach((activityItem) => {
             const { annotation } = activityItem
             if (

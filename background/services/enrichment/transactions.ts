@@ -1,3 +1,4 @@
+import { getShardFromAddress } from "quais/lib/utils"
 import {
   AnyEVMBlock,
   AnyEVMTransaction,
@@ -25,7 +26,7 @@ import {
 } from "./types"
 import {
   getDistinctRecipentAddressesFromERC20Logs,
-  getERC20LogsForAddresses
+  getERC20LogsForAddresses,
 } from "./utils"
 import { enrichAddressOnNetwork } from "./addresses"
 import { OPTIMISM, SECOND } from "../../constants"
@@ -37,7 +38,6 @@ import {
 } from "../../lib/erc20"
 import { isDefined, isFulfilledPromise } from "../../lib/utils/type-guards"
 import { unsignedTransactionFromEVMTransaction } from "../chain/utils"
-import { getShardFromAddress } from "quais/lib/utils"
 
 async function buildSubannotations(
   chainService: ChainService,
@@ -89,7 +89,11 @@ async function buildSubannotations(
             }))
 
           return {
-            type: getShardFromAddress(senderAddress) !== getShardFromAddress(recipientAddress) ? "external-transfer" as const : "asset-transfer" as const,
+            type:
+              getShardFromAddress(senderAddress) !==
+              getShardFromAddress(recipientAddress)
+                ? ("external-transfer" as const)
+                : ("asset-transfer" as const),
             assetAmount: enrichAssetAmountWithDecimalValues(
               {
                 asset: matchingFungibleAsset,
@@ -184,8 +188,8 @@ export async function annotationsFromLogs(
  * Resolve an annotation for a partial transaction request, or a pending
  * or mined transaction.
  */
-var latestWorkedAsk = 0
-var numAsks = 0
+let latestWorkedAsk = 0
+let numAsks = 0
 export default async function resolveTransactionAnnotation(
   chainService: ChainService,
   indexingService: IndexingService,
@@ -201,10 +205,16 @@ export default async function resolveTransactionAnnotation(
       }),
   desiredDecimals: number
 ): Promise<TransactionAnnotation> {
-
   const assets = await indexingService.getCachedAssets(network)
-  const isExternalTransfer = "type" in transaction && (transaction.type == 1 || transaction.type == 2) && "to" in transaction && transaction.to !== undefined
-  const useDestinationShard = sameEVMAddress(transaction.from, "0x0000000000000000000000000000000000000000")
+  const isExternalTransfer =
+    "type" in transaction &&
+    (transaction.type == 1 || transaction.type == 2) &&
+    "to" in transaction &&
+    transaction.to !== undefined
+  const useDestinationShard = sameEVMAddress(
+    transaction.from,
+    "0x0000000000000000000000000000000000000000"
+  )
 
   // By default, annotate all requests as contract interactions, unless they
   // already carry additional metadata.
@@ -223,14 +233,10 @@ export default async function resolveTransactionAnnotation(
         }
   // We know this is an External Transfer, and transaction.to means not deployment
   if (useDestinationShard && transaction.to !== undefined) {
-    const recipient = await enrichAddressOnNetwork(
-      chainService,
-      nameService,
-      {
-        address: transaction.to,
-        network,
-      }
-    )
+    const recipient = await enrichAddressOnNetwork(chainService, nameService, {
+      address: transaction.to,
+      network,
+    })
     const sender = await enrichAddressOnNetwork(chainService, nameService, {
       address: transaction.from,
       network,
@@ -251,11 +257,12 @@ export default async function resolveTransactionAnnotation(
     }
   }
 
-  if(numAsks > 10 && latestWorkedAsk + 5 * SECOND > Date.now()) {
+  if (numAsks > 10 && latestWorkedAsk + 5 * SECOND > Date.now()) {
     // Requesting too often
     console.log("Requesting tx annotations too often, skipping")
     return txAnnotation
-  } else if (numAsks > 10 && latestWorkedAsk + 5 * SECOND < Date.now()) {
+  }
+  if (numAsks > 10 && latestWorkedAsk + 5 * SECOND < Date.now()) {
     // Reset
     numAsks = 0
   }
@@ -302,7 +309,18 @@ export default async function resolveTransactionAnnotation(
 
   // If the transaction has been mined, get the block and set the timestamp
   if (blockHash) {
-    block = (useDestinationShard && transaction.to) ? await chainService.getBlockDataExternal(network, getShardFromAddress(transaction.to), blockHash) : await chainService.getBlockDataExternal(network, getShardFromAddress(transaction.from), blockHash)
+    block =
+      useDestinationShard && transaction.to
+        ? await chainService.getBlockDataExternal(
+            network,
+            getShardFromAddress(transaction.to),
+            blockHash
+          )
+        : await chainService.getBlockDataExternal(
+            network,
+            getShardFromAddress(transaction.from),
+            blockHash
+          )
     txAnnotation = {
       ...txAnnotation,
       blockTimestamp: block?.timestamp,

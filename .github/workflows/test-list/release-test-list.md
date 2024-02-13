@@ -196,6 +196,7 @@ This release checklist should be performed before release is published.
 ### 🎭 Sign in with Ethereum
 
 - [ ] SIWE on [login.xyz](https://login.xyz/)
+
 ### 🐶 Default wallet
 
 1. Default wallet setting turned OFF

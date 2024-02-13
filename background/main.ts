@@ -7,6 +7,11 @@ import { PermissionRequest } from "@tallyho/provider-bridge-shared"
 import { debounce } from "lodash"
 import { utils } from "ethers"
 
+import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers"
+import {
+  JsonRpcProvider as QuaisJsonRpcProvider,
+  WebSocketProvider as QuaisWebSocketProvider,
+} from "@quais/providers"
 import {
   decodeJSON,
   encodeJSON,
@@ -191,8 +196,6 @@ import {
 import { isBuiltInNetworkBaseAsset } from "./redux-slices/utils/asset-utils"
 import { getPricePoint, getTokenPrices } from "./lib/prices"
 import localStorageShim from "./utils/local-storage-shim"
-import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers"
-import { JsonRpcProvider as QuaisJsonRpcProvider, WebSocketProvider as QuaisWebSocketProvider } from "@quais/providers"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -237,7 +240,7 @@ const reduxCache: Middleware = (store) => (next) => (action) => {
 }
 
 declare global {
-    var main: Main
+  var main: Main
 }
 
 // Declared out here so ReduxStoreType can be used in Main.store type
@@ -304,7 +307,13 @@ export default class Main extends BaseService<never> {
 
   public SelectedShard: string
 
-  public UrlToProvider: Map<string, JsonRpcProvider | WebSocketProvider | QuaisJsonRpcProvider | QuaisWebSocketProvider>
+  public UrlToProvider: Map<
+    string,
+    | JsonRpcProvider
+    | WebSocketProvider
+    | QuaisJsonRpcProvider
+    | QuaisWebSocketProvider
+  >
 
   public ready: Promise<boolean>
 
@@ -554,101 +563,145 @@ export default class Main extends BaseService<never> {
       }
       // Also refresh the transactions in the account
       this.enrichActivitiesForSelectedAccount()
-      
+
       const selectedAccount = await this.store.getState().ui.selectedAccount
-      const currentAccountState = await this.store.getState().account.accountsData.evm[selectedAccount.network.chainID]?.[normalizeEVMAddress(selectedAccount.address)]
-      if (currentAccountState === undefined || currentAccountState === "loading") {
+      const currentAccountState = await this.store.getState().account
+        .accountsData.evm[selectedAccount.network.chainID]?.[
+        normalizeEVMAddress(selectedAccount.address)
+      ]
+      if (
+        currentAccountState === undefined ||
+        currentAccountState === "loading"
+      ) {
         return
       }
-      const balances = currentAccountState.balances
-      for (let assetSymbol in balances) {
-        const asset = balances[assetSymbol].assetAmount.asset
+      const { balances } = currentAccountState
+      for (const assetSymbol in balances) {
+        const { asset } = balances[assetSymbol].assetAmount
         if (balances[assetSymbol].dataSource == "alchemy") {
           continue
         }
         let newBalance = BigInt(0)
         if (isSmartContractFungibleAsset(asset)) {
-          if(getShardFromAddress(asset.contractAddress) !== getShardFromAddress(selectedAccount.address)) {
+          if (
+            getShardFromAddress(asset.contractAddress) !==
+            getShardFromAddress(selectedAccount.address)
+          ) {
             // skip if the asset is not on the same shard as the account
             continue
           }
-          newBalance = (await this.chainService.assetData.getTokenBalance(selectedAccount, asset.contractAddress)).amount
+          newBalance = (
+            await this.chainService.assetData.getTokenBalance(
+              selectedAccount,
+              asset.contractAddress
+            )
+          ).amount
         } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
-          newBalance = (await this.chainService.getLatestBaseAccountBalance(selectedAccount)).assetAmount.amount
+          newBalance = (
+            await this.chainService.getLatestBaseAccountBalance(selectedAccount)
+          ).assetAmount.amount
         } else {
-          logger.error("Unknown asset type for balance checker, asset: " + asset.symbol)
+          logger.error(
+            `Unknown asset type for balance checker, asset: ${asset.symbol}`
+          )
           continue
         }
-        isSmartContractFungibleAsset(asset) ? console.log("Balance checker: " + asset.symbol + " " + newBalance + " " + asset.contractAddress)
-        :
-        console.log("Balance checker: " + asset.symbol + " " + newBalance)
+        isSmartContractFungibleAsset(asset)
+          ? console.log(
+              `Balance checker: ${asset.symbol} ${newBalance} ${asset.contractAddress}`
+            )
+          : console.log(`Balance checker: ${asset.symbol} ${newBalance}`)
         await this.store.dispatch(
           updateAccountBalance({
-            balances: [{
-              address: selectedAccount.address,
-              assetAmount: {
-                amount: newBalance,
-                asset: asset,
+            balances: [
+              {
+                address: selectedAccount.address,
+                assetAmount: {
+                  amount: newBalance,
+                  asset,
+                },
+                network: selectedAccount.network,
+                retrievedAt: Date.now(),
+                dataSource: "local",
               },
-              network: selectedAccount.network,
-              retrievedAt: Date.now(),
-              dataSource: "local",
-            }],
+            ],
             addressOnNetwork: {
               address: selectedAccount.address,
               network: selectedAccount.network,
-            }
+            },
           })
         )
-        }
+      }
     }, 10000)
     this.balanceChecker = interval
   }
 
   async manuallyCheckBalances(): Promise<void> {
     const selectedAccount = await this.store.getState().ui.selectedAccount
-    const currentAccountState = await this.store.getState().account.accountsData.evm[selectedAccount.network.chainID]?.[normalizeEVMAddress(selectedAccount.address)]
-    if (currentAccountState === undefined || currentAccountState === "loading") {
+    const currentAccountState = await this.store.getState().account.accountsData
+      .evm[selectedAccount.network.chainID]?.[
+      normalizeEVMAddress(selectedAccount.address)
+    ]
+    if (
+      currentAccountState === undefined ||
+      currentAccountState === "loading"
+    ) {
       return
     }
-    const balances = currentAccountState.balances
-    for (let assetSymbol in balances) {
-      const asset = balances[assetSymbol].assetAmount.asset
+    const { balances } = currentAccountState
+    for (const assetSymbol in balances) {
+      const { asset } = balances[assetSymbol].assetAmount
       if (balances[assetSymbol].dataSource == "alchemy") {
         continue
       }
       let newBalance = BigInt(0)
       if (isSmartContractFungibleAsset(asset)) {
-        if(getShardFromAddress(asset.contractAddress) !== getShardFromAddress(selectedAccount.address)) {
+        if (
+          getShardFromAddress(asset.contractAddress) !==
+          getShardFromAddress(selectedAccount.address)
+        ) {
           // skip if the asset is not on the same shard as the account
           continue
         }
-        newBalance = (await this.chainService.assetData.getTokenBalance(selectedAccount, asset.contractAddress)).amount
+        newBalance = (
+          await this.chainService.assetData.getTokenBalance(
+            selectedAccount,
+            asset.contractAddress
+          )
+        ).amount
       } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
-        newBalance = (await this.chainService.getLatestBaseAccountBalance(selectedAccount)).assetAmount.amount
+        newBalance = (
+          await this.chainService.getLatestBaseAccountBalance(selectedAccount)
+        ).assetAmount.amount
       } else {
-        logger.error("Unknown asset type for balance checker, asset: " + asset.symbol)
+        logger.error(
+          `Unknown asset type for balance checker, asset: ${asset.symbol}`
+        )
         continue
       }
-      isSmartContractFungibleAsset(asset) ? console.log("Balance checker: " + asset.symbol + " " + newBalance + " " + asset.contractAddress)
-      :
-      console.log("Balance checker: " + asset.symbol + " " + newBalance)
+      isSmartContractFungibleAsset(asset)
+        ? console.log(
+            `Balance checker: ${asset.symbol} ${newBalance} ${asset.contractAddress}`
+          )
+        : console.log(`Balance checker: ${asset.symbol} ${newBalance}`)
       await this.store.dispatch(
         updateAccountBalance({
-          balances: [{
-            address: selectedAccount.address,
-            assetAmount: {
-              amount: newBalance,
-              asset: asset,
+          balances: [
+            {
+              address: selectedAccount.address,
+              assetAmount: {
+                amount: newBalance,
+                asset,
+              },
+              network: selectedAccount.network,
+              retrievedAt: Date.now(),
+              dataSource: "local",
             },
-            network: selectedAccount.network,
-            retrievedAt: Date.now(),
-            dataSource: "local",
-          }],
+          ],
           addressOnNetwork: {
             address: selectedAccount.address,
             network: selectedAccount.network,
-          }
+          },
         })
       )
     }
@@ -733,7 +786,7 @@ export default class Main extends BaseService<never> {
   }
 
   public GetShard(): string {
-    let selectedAddress = this.store.getState().ui.selectedAccount.address
+    const selectedAddress = this.store.getState().ui.selectedAccount.address
     if (selectedAddress === undefined || selectedAddress === "") {
       console.error("No selected address")
       return "cyprus-1" // Set default shard
@@ -742,12 +795,12 @@ export default class Main extends BaseService<never> {
   }
 
   public SetShard(shard: string): void {
-    console.log("Shard set to " + shard)
+    console.log(`Shard set to ${shard}`)
     this.SelectedShard = shard
   }
 
   public SetCorrectShard(): void {
-    let selectedAddress = this.store.getState().ui.selectedAccount.address
+    const selectedAddress = this.store.getState().ui.selectedAccount.address
     if (selectedAddress === undefined || selectedAddress === "") {
       console.error("No selected address")
       this.SelectedShard = "cyprus-1" // Set default shard
@@ -773,9 +826,7 @@ export default class Main extends BaseService<never> {
     this.analyticsService.sendAnalyticsEvent(AnalyticsEvent.ACCOUNT_NAME_EDITED)
   }
 
-  async removeAccountActivity(
-    address: HexString,
-  ): Promise<void> {
+  async removeAccountActivity(address: HexString): Promise<void> {
     this.store.dispatch(removeActivities(address))
     await this.chainService.removeActivities(address)
   }
@@ -887,9 +938,13 @@ export default class Main extends BaseService<never> {
       this.store.getState()
     )
     // This a mint if the from address is '0x0000000000000000000000000000000000000000' and we enrich it as an ITX
-    activitiesToEnrich.forEach(async ({hash: txHash, status, to, from}) => {
+    activitiesToEnrich.forEach(async ({ hash: txHash, status, to, from }) => {
       // Enrich ETX or ITX
-      if (to && getShardFromAddress(to) !== getShardFromAddress(from) && from !== '0x0000000000000000000000000000000000000000') {
+      if (
+        to &&
+        getShardFromAddress(to) !== getShardFromAddress(from) &&
+        from !== "0x0000000000000000000000000000000000000000"
+      ) {
         await this.enrichETXActivity(addressNetwork, txHash, status, to)
       } else {
         await this.enrichITXActivity(addressNetwork, txHash, status)
@@ -897,14 +952,20 @@ export default class Main extends BaseService<never> {
     })
   }
 
-  async enrichITXActivity(addressNetwork: AddressOnNetwork, txHash: HexString, status: number | undefined): Promise<void> {
+  async enrichITXActivity(
+    addressNetwork: AddressOnNetwork,
+    txHash: HexString,
+    status: number | undefined
+  ): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
     const transaction = await this.chainService.getTransaction(
       addressNetwork.network,
       txHash
     )
-    const enrichedTransaction =
-      await this.enrichmentService.enrichTransaction(transaction, 2)
+    const enrichedTransaction = await this.enrichmentService.enrichTransaction(
+      transaction,
+      2
+    )
 
     this.store.dispatch(
       addActivity({
@@ -920,7 +981,12 @@ export default class Main extends BaseService<never> {
     )
   }
 
-  async enrichETXActivity(addressNetwork: AddressOnNetwork, txHash: HexString, status: number | undefined, to: string): Promise<void> {
+  async enrichETXActivity(
+    addressNetwork: AddressOnNetwork,
+    txHash: HexString,
+    status: number | undefined,
+    to: string
+  ): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
     const transaction = await this.chainService.getETX(
       addressNetwork.network,
@@ -928,20 +994,32 @@ export default class Main extends BaseService<never> {
       getShardFromAddress(to)
     )
 
-    if (transaction.blockHash && (!("etxs" in transaction) || transaction.etxs.length == 0)) {
+    if (
+      transaction.blockHash &&
+      (!("etxs" in transaction) || transaction.etxs.length == 0)
+    ) {
       console.warn("No ETXs emitted for tx: ", transaction.hash)
       return
     }
 
     if ("status" in transaction && transaction.status == status) {
-      console.log("ETX not yet found on destination chain: ", "etxs" in transaction ? transaction.etxs[0].hash : "No hash")
+      console.log(
+        "ETX not yet found on destination chain: ",
+        "etxs" in transaction ? transaction.etxs[0].hash : "No hash"
+      )
       return // Nothing has changed since last enrichment
     }
 
-    console.log("Enriching again because status has changed", "status" in transaction ? transaction.status : "No status before - ", status)
-    
-    const enrichedTransaction =
-      await this.enrichmentService.enrichTransaction(transaction, 2)
+    console.log(
+      "Enriching again because status has changed",
+      "status" in transaction ? transaction.status : "No status before - ",
+      status
+    )
+
+    const enrichedTransaction = await this.enrichmentService.enrichTransaction(
+      transaction,
+      2
+    )
 
     this.store.dispatch(
       addActivity({
@@ -949,7 +1027,7 @@ export default class Main extends BaseService<never> {
         forAccounts: getRelevantTransactionAddresses(
           enrichedTransaction,
           accountsToTrack
-        )
+        ),
       })
     )
   }
@@ -1085,9 +1163,14 @@ export default class Main extends BaseService<never> {
           const signedTransactionResult =
             await this.signingService.signTransaction(request, accountSigner)
           await this.store.dispatch(transactionSigned(signedTransactionResult))
-          setTimeout(() => transactionConstructionSliceEmitter.emit("signedTransactionResult", 
-            signedTransactionResult
-          ), 1000) // could check broadcastOnSign here and broadcast if false but this is a hacky solution (could result in tx broadcasted twice)
+          setTimeout(
+            () =>
+              transactionConstructionSliceEmitter.emit(
+                "signedTransactionResult",
+                signedTransactionResult
+              ),
+            1000
+          ) // could check broadcastOnSign here and broadcast if false but this is a hacky solution (could result in tx broadcasted twice)
           this.analyticsService.sendAnalyticsEvent(
             AnalyticsEvent.TRANSACTION_SIGNED,
             {
@@ -2147,7 +2230,7 @@ export default class Main extends BaseService<never> {
     runtime.onConnect.addListener((port) => {
       if (port.name !== popupMonitorPortName) return
       console.log("Pelagus Connected")
-      
+
       walletOpen = true
       this.manuallyCheckBalances()
 

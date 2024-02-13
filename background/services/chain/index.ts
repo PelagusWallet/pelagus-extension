@@ -1,7 +1,4 @@
-import {
-  TransactionReceipt,
-  TransactionResponse,
-} from "@quais/providers"
+import { TransactionReceipt, TransactionResponse } from "@quais/providers"
 import { BigNumber, quais, utils } from "quais"
 import { Logger, UnsignedTransaction } from "quais/lib/utils"
 import logger from "../../lib/logger"
@@ -394,8 +391,8 @@ export default class ChainService extends BaseService<Events> {
     if (this.providers.evm[network.chainID] === undefined) {
       this.initializeNetworks().then(() => {
         if (this.providers.evm[network.chainID] === undefined) {
-          console.error("Provider is undefined for network " + network.name)
-        } 
+          console.error(`Provider is undefined for network ${network.name}`)
+        }
         setProviderForShard(this.providers.evm[network.chainID])
       })
     } else {
@@ -634,7 +631,7 @@ export default class ChainService extends BaseService<Events> {
       maxFeePerGas: maxFeePerGas ?? 0n,
       maxPriorityFeePerGas: maxPriorityFeePerGas ?? 0n,
       input: input ?? null,
-      type: network.isQuai ? 0 as const : 2 as const,
+      type: network.isQuai ? (0 as const) : (2 as const),
       network,
       chainID: network.chainID,
       nonce,
@@ -902,31 +899,40 @@ export default class ChainService extends BaseService<Events> {
     const normalizedAddress = normalizeEVMAddress(address)
     const prevShard = globalThis.main.SelectedShard
     const addrShard = getShardFromAddress(address)
-    if (globalThis.main.SelectedShard !== addrShard) { // Ideally this never happens, but it might
+    if (globalThis.main.SelectedShard !== addrShard) {
+      // Ideally this never happens, but it might
       globalThis.main.SetShard(addrShard)
     }
     let err = false
     let balance = BigNumber.from(0)
-    const provider = getProviderForGivenShard(this.providers.evm[network.chainID], addrShard)
+    const provider = getProviderForGivenShard(
+      this.providers.evm[network.chainID],
+      addrShard
+    )
     try {
-      balance = await provider.getBalance(
-        normalizedAddress
-      )
+      balance = await provider.getBalance(normalizedAddress)
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error getting balance for address", address, error)
         err = true // only reset user-displayed error if there's no error at all
         if (error.message.includes("could not detect network")) {
-          globalThis.main.SetNetworkError({chainId: network.chainID, error: true})
-        } 
-        console.error("Global shard: " + globalThis.main.SelectedShard + " Address shard: " + addrShard + " Provider: " + provider.connection.url)
-    }
+          globalThis.main.SetNetworkError({
+            chainId: network.chainID,
+            error: true,
+          })
+        }
+        console.error(
+          `Global shard: ${globalThis.main.SelectedShard} Address shard: ${addrShard} Provider: ${provider.connection.url}`
+        )
+      }
     } finally {
-      if(!err) {
-        globalThis.main.SetNetworkError({chainId: network.chainID, error: false})
+      if (!err) {
+        globalThis.main.SetNetworkError({
+          chainId: network.chainID,
+          error: false,
+        })
       }
     }
-    
 
     const trackedAccounts = await this.getAccountsToTrack()
     const allTrackedAddresses = new Set(
@@ -1045,39 +1051,42 @@ export default class ChainService extends BaseService<Events> {
    * @param network the EVM network we're interested in
    * @param blockHash the hash of the block we're interested in
    */
-    async getBlockDataExternal(
-      network: EVMNetwork,
-      shard: string,
-      blockHash: string
-    ): Promise<AnyEVMBlock> {
-      const cachedBlock = await this.db.getBlock(network, blockHash)
-      if (cachedBlock) {
-        return cachedBlock
-      }
-
-      // Convert shard string. Map 0 to cyprus, 1 to paxos, 2 to hydra
-      // zone-0-0 should become cyprus-1
-      // zone-1-2 shoule become paxos-3
-      // zone-2-1 should become hydra-2
-      const regionNames = ['cyprus', 'paxos', 'hydra']
-      const shardSplit = shard.split('-')
-      const shardName = regionNames[+shardSplit[1]] + '-' + (+shardSplit[2] + 1).toString()
-
-      const provider = getProviderForGivenShard(this.providers.evm[network.chainID], shardName)
-      console.log(provider)
-
-      const resultBlock = await provider.getBlock(
-        blockHash
-      )
-
-      console.log(resultBlock)
-  
-      const block = blockFromEthersBlock(network, resultBlock)
-  
-      await this.db.addBlock(block)
-      this.emitter.emit("block", block)
-      return block
+  async getBlockDataExternal(
+    network: EVMNetwork,
+    shard: string,
+    blockHash: string
+  ): Promise<AnyEVMBlock> {
+    const cachedBlock = await this.db.getBlock(network, blockHash)
+    if (cachedBlock) {
+      return cachedBlock
     }
+
+    // Convert shard string. Map 0 to cyprus, 1 to paxos, 2 to hydra
+    // zone-0-0 should become cyprus-1
+    // zone-1-2 shoule become paxos-3
+    // zone-2-1 should become hydra-2
+    const regionNames = ["cyprus", "paxos", "hydra"]
+    const shardSplit = shard.split("-")
+    const shardName = `${regionNames[+shardSplit[1]]}-${(
+      +shardSplit[2] + 1
+    ).toString()}`
+
+    const provider = getProviderForGivenShard(
+      this.providers.evm[network.chainID],
+      shardName
+    )
+    console.log(provider)
+
+    const resultBlock = await provider.getBlock(blockHash)
+
+    console.log(resultBlock)
+
+    const block = blockFromEthersBlock(network, resultBlock)
+
+    await this.db.addBlock(block)
+    this.emitter.emit("block", block)
+    return block
+  }
 
   /**
    * Return cached information on a transaction, if it's both confirmed and
@@ -1114,7 +1123,7 @@ export default class ChainService extends BaseService<Events> {
 
   /**
    * Should check the status of emitted ETX and update the status of the ITX
-   * 
+   *
    * @param network the EVM network we're interested in
    * @param txHash the hash of the ITX (that emits 1 ETX) transaction we're interested in
    */
@@ -1126,12 +1135,20 @@ export default class ChainService extends BaseService<Events> {
     const cachedTx = await this.db.getTransaction(network, txHash)
 
     // Transaction is already included in origin chain block, and etx is settled in destination
-    if (cachedTx && cachedTx.blockHash != undefined && "status" in cachedTx && cachedTx.status == 2) {
+    if (
+      cachedTx &&
+      cachedTx.blockHash != undefined &&
+      "status" in cachedTx &&
+      cachedTx.status == 2
+    ) {
       return cachedTx
     }
 
     // Provider for destination shard
-    const destinationProvider = getProviderForGivenShard(this.providers.evm[network.chainID], destinationShard)
+    const destinationProvider = getProviderForGivenShard(
+      this.providers.evm[network.chainID],
+      destinationShard
+    )
     const originProvider = this.providerForNetworkOrThrow(network)
 
     // Transaction hasn't confirmed in origin chain yet
@@ -1139,15 +1156,18 @@ export default class ChainService extends BaseService<Events> {
       console.log("Transaction hasn't confirmed in origin chain yet")
       const gethResult = await originProvider.getTransaction(txHash)
 
-      const newTransaction = transactionFromEthersTransaction(gethResult, network)
-  
+      const newTransaction = transactionFromEthersTransaction(
+        gethResult,
+        network
+      )
+
       if (!newTransaction.blockHash && !newTransaction.blockHeight) {
         this.subscribeToTransactionConfirmation(network, newTransaction)
       }
 
       // Retrieve Transaction Receipt which should save it
       this.retrieveTransactionReceipt(network, newTransaction)
-  
+
       // If transaction hadn't been cached yet, its ETX definetly hasn't been confirmed yet, so we can return
       return newTransaction
     }
@@ -1158,13 +1178,13 @@ export default class ChainService extends BaseService<Events> {
         return cachedTx
       }
 
-      let etxHash = "etxs" in cachedTx ? cachedTx.etxs[0].hash : undefined
+      const etxHash = "etxs" in cachedTx ? cachedTx.etxs[0].hash : undefined
       if (!etxHash) {
         return cachedTx
       }
 
       const gethResult = await destinationProvider.getTransaction(etxHash)
-      let newTransaction;
+      let newTransaction
       if (gethResult) {
         newTransaction = transactionFromEthersTransaction(gethResult, network)
       }
@@ -1172,22 +1192,21 @@ export default class ChainService extends BaseService<Events> {
       if (!newTransaction) {
         return cachedTx
       }
-  
+
       if (!newTransaction.blockHash && !newTransaction.blockHeight) {
         this.subscribeToETXConfirmation(network, cachedTx, newTransaction)
       }
 
       // ETX has been settled in destination chain
       // Overwrite the cachedTx to have status = 2
-      "status" in cachedTx ? cachedTx.status = 2 : undefined
+      "status" in cachedTx ? (cachedTx.status = 2) : undefined
       this.saveTransaction(cachedTx, "local")
 
-  
       // Also save the emitted ETX
       this.saveTransaction(newTransaction, "local")
       return newTransaction
     }
-    
+
     // Transaction is not cached
     const gethResult = await this.providerForNetworkOrThrow(
       network
@@ -1868,11 +1887,17 @@ export default class ChainService extends BaseService<Events> {
     }
     try {
       let accounts = await this.getAccountsToTrack()
-      if(accounts.length === 0) {
-        this.db.addAccountToTrack({address: finalTransaction.from, network: finalTransaction.network})
+      if (accounts.length === 0) {
+        this.db.addAccountToTrack({
+          address: finalTransaction.from,
+          network: finalTransaction.network,
+        })
         accounts = await this.getAccountsToTrack()
       }
-      const forAccounts = getRelevantTransactionAddresses(finalTransaction, accounts)
+      const forAccounts = getRelevantTransactionAddresses(
+        finalTransaction,
+        accounts
+      )
 
       // emit in a separate try so outside services still get the tx
       this.emitter.emit("transaction", {
@@ -2066,7 +2091,7 @@ export default class ChainService extends BaseService<Events> {
       this.saveTransaction(
         {
           ...itx,
-          status: 2
+          status: 2,
         },
         "local"
       )

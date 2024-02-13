@@ -272,7 +272,7 @@ export const initialVaults: AvailableVault[] = [
     pendingRewards: 0n,
   },
   {
-  network: QUAI_NETWORK,
+    network: QUAI_NETWORK,
     icons: tokenIcons.DOGGOETH,
     vaultAddress: "0x041BE32B10eC4740387a42Bd82703798A9303753",
     yearnVault: "0x9A39f31DD5EDF5919A5C0c2433cE053fAD2E0336",

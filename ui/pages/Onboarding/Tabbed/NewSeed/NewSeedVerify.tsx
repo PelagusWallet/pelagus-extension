@@ -19,19 +19,19 @@ type SeedWordProps = {
 
 function SeedWord(props: SeedWordProps): ReactElement {
   const { index, word, isActive = false, onSubmit } = props
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
-useEffect(() => {
-  const handleResize = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
 
-  window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize)
 
-  return () => {
-    window.removeEventListener("resize", handleResize);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [])
 
   return (
     <>
@@ -435,15 +435,15 @@ export default function NewSeedVerify({
             margin-bottom: 16px;
             width: fit-content;
             justify-content: center;
-            align-items: center; 
+            align-items: center;
           }
 
-          @media screen and (max-width: 600px) { 
+          @media screen and (max-width: 600px) {
             .words_list {
               grid: repeat(8, 1fr);
               gap: 19px;
               justify-content: center;
-              align-items: center;          
+              align-items: center;
             }
           }
 

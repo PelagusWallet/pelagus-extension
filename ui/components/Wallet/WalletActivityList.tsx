@@ -7,7 +7,10 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
-import { ALCHEMY_SUPPORTED_CHAIN_IDS, CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
+import {
+  ALCHEMY_SUPPORTED_CHAIN_IDS,
+  CurrentShardToExplorer,
+} from "@pelagus/pelagus-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import WalletActivityDetails from "./WalletActivityDetails"
@@ -38,7 +41,12 @@ export default function WalletActivityList({
     useState(true)
 
   const network = useBackgroundSelector(selectCurrentNetwork)
-  const blockExplorerInfo = network.isQuai ? { title: blockExplorer[network.chainID].title, url: CurrentShardToExplorer(network, account.address) } : blockExplorer[network.chainID]
+  const blockExplorerInfo = network.isQuai
+    ? {
+        title: blockExplorer[network.chainID].title,
+        url: CurrentShardToExplorer(network, account.address),
+      }
+    : blockExplorer[network.chainID]
 
   useEffect(() => {
     setInstantlyHideActivityDetails(true)

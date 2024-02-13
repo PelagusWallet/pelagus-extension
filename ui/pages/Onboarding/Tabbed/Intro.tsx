@@ -86,7 +86,7 @@ export default function Intro(): ReactElement {
             font-size: 45px;
             line-height: 52px;
             margin: 0;
-            color: #FFFFFF;
+            color: #ffffff;
             display: block;
             text-align: center;
           }

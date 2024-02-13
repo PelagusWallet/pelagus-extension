@@ -1,12 +1,15 @@
 import React, { ReactElement, useEffect, useState } from "react"
 import { AnyAsset, AnyAssetAmount } from "@pelagus/pelagus-background/assets"
 import { EVMNetwork } from "@pelagus/pelagus-background/networks"
-import { ROOTSTOCK, CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
+import {
+  ROOTSTOCK,
+  CurrentShardToExplorer,
+} from "@pelagus/pelagus-background/constants"
+import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedAssetIcon from "./SharedAssetIcon"
 import SharedIcon from "./SharedIcon"
 import { blockExplorer } from "../../utils/constants"
 import { useBackgroundSelector } from "../../hooks"
-import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 export type AnyAssetWithOptionalAmount<T extends AnyAsset> =
   | {
@@ -47,7 +50,9 @@ export default function SharedAssetItem<T extends AnyAsset>(
   }
 
   useEffect(() => {
-    const baseLink = currentNetwork.isQuai ? CurrentShardToExplorer(currentNetwork, account.address) : blockExplorer[currentNetwork.chainID]?.url
+    const baseLink = currentNetwork.isQuai
+      ? CurrentShardToExplorer(currentNetwork, account.address)
+      : blockExplorer[currentNetwork.chainID]?.url
 
     if ("contractAddress" in asset && baseLink) {
       const contractBase =

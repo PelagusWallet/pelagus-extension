@@ -33,7 +33,7 @@ function ConnectionDAppGuideline({
           "--panel-switcher-border": "var(--green-80)",
           "--header-padding": "16px",
           "--content-fade-in-duration": "200ms",
-          border: '1px solid var(--trophy-gold)'
+          border: "1px solid var(--trophy-gold)",
         }}
         isInitiallyOpen={!isConnected}
         headerElement={<div className="title">{t("guideline.title")}</div>}
@@ -89,7 +89,10 @@ function ConnectionDAppGuideline({
                   </ol>
                   <div className="list_wrap">
                     <span className="item">
-                      <img src="./images/pelagus_icon_xs.png" alt="Pelagus token" />
+                      <img
+                        src="./images/pelagus_icon_xs.png"
+                        alt="Pelagus token"
+                      />
                       {tShared("pelagus")}
                     </span>
                     <span className="item">
@@ -114,7 +117,7 @@ function ConnectionDAppGuideline({
           font-weight: 600;
           font-size: 18px;
           line-height: 24px;
-          color: var(--trophy-gold)
+          color: var(--trophy-gold);
         }
         .content_wrap {
           height: 85%;
@@ -269,7 +272,7 @@ export default function TopMenuConnectedDAppInfo(props: {
           width: 100%;
           height: 100%;
           border-radius: 16px;
-          background-color: rgba(0, 88, 179, 0.40);
+          background-color: rgba(0, 88, 179, 0.4);
           position: fixed;
           z-index: 99999;
           top: 55px;

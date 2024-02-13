@@ -37,12 +37,18 @@ export const blockExplorer = {
   },
   [QUAI_NETWORK.chainID]: {
     title: "Quai Blockscout",
-    url: QUAI_NETWORK.chains != undefined ? QUAI_NETWORK.chains[0].blockExplorerUrl : "",
+    url:
+      QUAI_NETWORK.chains != undefined
+        ? QUAI_NETWORK.chains[0].blockExplorerUrl
+        : "",
   },
   [QUAI_NETWORK_LOCAL.chainID]: {
     title: "Quai Blockscout",
-    url: QUAI_NETWORK_LOCAL.chains != undefined ? QUAI_NETWORK_LOCAL.chains[0].blockExplorerUrl : "", // Do we want this to be colosseum explorer?
-  }
+    url:
+      QUAI_NETWORK_LOCAL.chains != undefined
+        ? QUAI_NETWORK_LOCAL.chains[0].blockExplorerUrl
+        : "", // Do we want this to be colosseum explorer?
+  },
 }
 
 export const ESTIMATED_SPEED_IN_READABLE_FORMAT_RELATIVE_TO_CONFIDENCE_LEVEL: {

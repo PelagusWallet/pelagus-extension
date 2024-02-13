@@ -358,9 +358,12 @@ export default class KeyringService extends BaseService<Events> {
 
   async exportPrivKey(address: string): Promise<string> {
     this.requireUnlocked()
-    let keyring = await this.#findKeyring(address)
-    const privKey = keyring.exportPrivateKey(address, "I solemnly swear that I am treating this private key material with great care.")
-    return privKey??"Not found"
+    const keyring = await this.#findKeyring(address)
+    const privKey = keyring.exportPrivateKey(
+      address,
+      "I solemnly swear that I am treating this private key material with great care."
+    )
+    return privKey ?? "Not found"
   }
 
   /**
@@ -408,7 +411,10 @@ export default class KeyringService extends BaseService<Events> {
    * @param keyringAccountSigner - A KeyringAccountSigner representing the
    *        given keyring.
    */
-  async deriveAddress({ keyringID, shard }: KeyringAccountSigner): Promise<HexString> {
+  async deriveAddress({
+    keyringID,
+    shard,
+  }: KeyringAccountSigner): Promise<HexString> {
     this.requireUnlocked()
     console.log("Deriving address for keyring", keyringID, "in shard", shard)
     // find the keyring using a linear search
@@ -417,20 +423,23 @@ export default class KeyringService extends BaseService<Events> {
       throw new Error("Keyring not found.")
     }
 
-    //const keyringAddresses = keyring.getAddressesSync()
+    // const keyringAddresses = keyring.getAddressesSync()
     let found = false
-    let newAddress = ''
+    let newAddress = ""
 
-    // If There are any hidden addresses, check those first before adding new ones. 
+    // If There are any hidden addresses, check those first before adding new ones.
     for (const [address, isHidden] of Object.entries(this.#hiddenAccounts)) {
       if (!isHidden) {
         continue
       }
       const shardFromAddress = getShardFromAddress(address)
-      //console.log(`Address: ${address}, isHidden: ${isHidden} Shard: ${shardFromAddress}`);
+      // console.log(`Address: ${address}, isHidden: ${isHidden} Shard: ${shardFromAddress}`);
       if (shardFromAddress !== undefined) {
         // Check if address is in correct shard
-        if (shardFromAddress === shard && keyring.getAddressesSync().includes(address)) {
+        if (
+          shardFromAddress === shard &&
+          keyring.getAddressesSync().includes(address)
+        ) {
           found = true
           delete this.#hiddenAccounts[address]
           newAddress = address
@@ -440,7 +449,7 @@ export default class KeyringService extends BaseService<Events> {
       }
     }
 
-    while(!found) {
+    while (!found) {
       newAddress = keyring.addAddressesSync(1)[0]
       const shardFromAddress = getShardFromAddress(newAddress)
       if (shardFromAddress !== undefined) {
@@ -452,8 +461,8 @@ export default class KeyringService extends BaseService<Events> {
       }
       this.#hiddenAccounts[newAddress] = true // may want to reconsider this
     }
-    if (newAddress === undefined || newAddress === null || newAddress === '') {
-      throw new Error("Could not find address in given shard " + shard)
+    if (newAddress === undefined || newAddress === null || newAddress === "") {
+      throw new Error(`Could not find address in given shard ${shard}`)
     }
     this.#hiddenAccounts[newAddress] = false
 
@@ -565,7 +574,9 @@ export default class KeyringService extends BaseService<Events> {
     } = tx
 
     if (
-      typeof maxPriorityFeePerGas === "undefined" || typeof maxFeePerGas === "undefined") {
+      typeof maxPriorityFeePerGas === "undefined" ||
+      typeof maxFeePerGas === "undefined"
+    ) {
       const signedTx = {
         hash,
         from,
@@ -589,7 +600,6 @@ export default class KeyringService extends BaseService<Events> {
       return signedTx
     }
 
-    
     // TODO move this to a helper function
     const signedTx: SignedTransaction = {
       hash,
@@ -609,7 +619,7 @@ export default class KeyringService extends BaseService<Events> {
       externalGasLimit: externalGasLimit?.toBigInt(),
       externalGasPrice: externalGasPrice?.toBigInt(),
       externalGasTip: externalGasTip?.toBigInt(),
-      //TODO: Add external data and access list
+      // TODO: Add external data and access list
       blockHash: null,
       blockHeight: null,
       asset: network.baseAsset,

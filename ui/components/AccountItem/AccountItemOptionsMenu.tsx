@@ -2,13 +2,13 @@ import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors
 import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useHistory } from "react-router-dom"
+import { exportPrivKey } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import AccountItemEditName from "./AccountItemEditName"
 import AccountItemRemovalConfirm from "./AccountItemRemovalConfirm"
-import { useHistory } from "react-router-dom"
-import { exportPrivKey } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import AccountitemOptionLabel from "./AccountItemOptionLabel"
 import AccountHistoryRemovalConfirm from "./AccountHistoryRemovalConfirm"
 
@@ -23,7 +23,7 @@ export default function AccountItemOptionsMenu({
   accountTotal,
   moveAccountUp,
   moveAccountDown,
-  signerId
+  signerId,
 }: AccountItemOptionsMenuProps): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "accounts.accountItem",
@@ -37,8 +37,7 @@ export default function AccountItemOptionsMenu({
   const [key, setKey] = useState("")
   const [showExportPrivateKey, setShowExportPrivateKey] = useState(false)
   const [showEditName, setShowEditName] = useState(false)
-  const [showClearTXHistory, setShowClearTXHistory] =
-    useState(false)
+  const [showClearTXHistory, setShowClearTXHistory] = useState(false)
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
     dispatch(setSnackbarMessage("Address copied to clipboard"))
@@ -80,7 +79,7 @@ export default function AccountItemOptionsMenu({
           e?.stopPropagation()
           setShowAddressRemoveConfirm(false)
         }}
-      > 
+      >
         <div
           role="presentation"
           onClick={(e) => e.stopPropagation()}
@@ -100,7 +99,7 @@ export default function AccountItemOptionsMenu({
           e?.stopPropagation()
           setShowClearTXHistory(false)
         }}
-      > 
+      >
         <div
           role="presentation"
           onClick={(e) => e.stopPropagation()}
@@ -123,25 +122,27 @@ export default function AccountItemOptionsMenu({
         }}
       >
         <li className="account_container">
-        <div className="item-summary ">
-        <div title="Private Key" className="address_name">Private Key</div>
-        <text>{key}</text>
-        </div>
+          <div className="item-summary ">
+            <div title="Private Key" className="address_name">
+              Private Key
+            </div>
+            <text>{key}</text>
+          </div>
         </li>
         <button
           type="button"
           onClick={() => copyKey()}
-          style={{ marginLeft: "5%"}}
+          style={{ marginLeft: "5%" }}
         >
           <AccountitemOptionLabel
-                          icon={"icons/s/copy.svg"}
-                          label={"Copy Key"}
-                          hoverable
-                          color={"var(--green-40)"}
-                          hoverColor={"var(--green-20)"}
-                        />
+            icon="icons/s/copy.svg"
+            label="Copy Key"
+            hoverable
+            color="var(--green-40)"
+            hoverColor="var(--green-20)"
+          />
         </button>
-    </SharedSlideUpMenu>
+      </SharedSlideUpMenu>
       <SharedDropdown
         toggler={(toggle) => (
           <button
@@ -175,7 +176,7 @@ export default function AccountItemOptionsMenu({
             label: t("exportAccount"),
             onClick: () => {
               if (areKeyringsUnlocked) {
-                dispatch(exportPrivKey(address)).then(({key}) => {
+                dispatch(exportPrivKey(address)).then(({ key }) => {
                   setKey(key)
                   setShowExportPrivateKey(true)
                 })
@@ -189,29 +190,27 @@ export default function AccountItemOptionsMenu({
             icon: "icons/s/arrow-up.svg",
             label: t("moveUp"),
             onClick: () => {
-              if (signerId != null)
-                moveAccountUp(address, signerId);
-            }
+              if (signerId != null) moveAccountUp(address, signerId)
+            },
           },
           {
             key: "moveDown",
             icon: "icons/s/arrow-down.svg",
             label: t("moveDown"),
             onClick: () => {
-              if (signerId != null)
-                moveAccountDown(address, signerId);
-            }
+              if (signerId != null) moveAccountDown(address, signerId)
+            },
           },
           {
-            key: 'clearHistory',
-            icon: 'garbage@2x.png',
-            label: t('clearHistory'),
+            key: "clearHistory",
+            icon: "garbage@2x.png",
+            label: t("clearHistory"),
             onClick: () => {
               setShowClearTXHistory(true)
             },
             color: "var(--error)",
             hoverColor: "var(--error-80)",
-          }
+          },
         ]}
       />
 

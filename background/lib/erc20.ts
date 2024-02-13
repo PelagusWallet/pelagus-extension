@@ -7,6 +7,7 @@ import {
   FunctionFragment,
   TransactionDescription,
 } from "ethers/lib/utils"
+import { get } from "lodash"
 import { SmartContractAmount, SmartContractFungibleAsset } from "../assets"
 import { EVMLog, SmartContract } from "../networks"
 import { HexString } from "../types"
@@ -20,7 +21,6 @@ import {
 import logger from "./logger"
 import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
 import { ShardToMulticall, getShardFromAddress } from "../constants"
-import { get } from "lodash"
 
 export const ERC20_FUNCTIONS = {
   allowance: FunctionFragment.from(
@@ -206,11 +206,7 @@ export const getTokenBalances = async (
     multicallAddress = ShardToMulticall(getShardFromAddress(address), network)
   }
 
-  const contract = new quais.Contract(
-    multicallAddress,
-    MULTICALL_ABI,
-    provider
-  )
+  const contract = new quais.Contract(multicallAddress, MULTICALL_ABI, provider)
 
   const balanceOfCallData = ERC20_INTERFACE.encodeFunctionData("balanceOf", [
     address,
@@ -219,7 +215,12 @@ export const getTokenBalances = async (
   const response = (await contract.callStatic.tryBlockAndAggregate(
     // false === don't require all calls to succeed
     false,
-    tokenAddresses.map((tokenAddress) => (tokenAddress != "" && getShardFromAddress(address) == getShardFromAddress(tokenAddress)) ? [tokenAddress, balanceOfCallData] : [])
+    tokenAddresses.map((tokenAddress) =>
+      tokenAddress != "" &&
+      getShardFromAddress(address) == getShardFromAddress(tokenAddress)
+        ? [tokenAddress, balanceOfCallData]
+        : []
+    )
   )) as AggregateContractResponse
 
   return response.returnData.flatMap((data, i) => {

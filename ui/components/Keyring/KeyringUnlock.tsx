@@ -50,7 +50,7 @@ export default function KeyringUnlock({
     event.preventDefault()
     const { success } = await dispatch(unlockKeyrings(password))
     // If keyring was unable to unlock, display error message
-    if(!success) {
+    if (!success) {
       setErrorMessage(t("error.incorrect"))
     }
     setUnlockSuccess(success)
@@ -62,7 +62,7 @@ export default function KeyringUnlock({
 
   const handleBack = async () => {
     await handleReject()
-    
+
     // Find eligible path to navigate back to in order to prevent the user from getting stuck in a loop.
     // An eligible path is defined as any path that does not automatically redirect to the unlock page.
     const ineligiblePaths: string[] = ["/send", "/keyring/unlock"]
@@ -70,11 +70,11 @@ export default function KeyringUnlock({
     const firstBackPath = backPaths[backPaths.length - 2]
     if (ineligiblePaths.includes(firstBackPath)) {
       const eligiblePaths = backPaths
-        .slice(0, - 1) 
+        .slice(0, -1)
         .reverse() // Reverse to find last non-eligible path
         .filter((path: string) => !ineligiblePaths.includes(path))
       if (eligiblePaths.length > 0) {
-        const lastEligiblePathIndex =  backPaths.indexOf(eligiblePaths[0])
+        const lastEligiblePathIndex = backPaths.indexOf(eligiblePaths[0])
         history.go(lastEligiblePathIndex - backPaths.length + 1)
       } else {
         // No eligible paths so redirect to the home page
@@ -107,7 +107,9 @@ export default function KeyringUnlock({
       <div className="img_wrap">
         <div className="illustration_unlock" />
       </div>
-      <h1 className="serif_header" style={{color: 'var(--trophy-gold'}}>{t("title")}</h1>
+      <h1 className="serif_header" style={{ color: "var(--trophy-gold" }}>
+        {t("title")}
+      </h1>
       <div className="simple_text subtitle">{t("subtitle")}</div>
       <form onSubmit={dispatchUnlockWallet}>
         <div className="signing_wrap">

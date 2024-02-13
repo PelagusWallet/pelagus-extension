@@ -69,7 +69,7 @@ function BrowserTabContainer({
           );
           background-size: 200% 200%;
           animation: gradient 40s ease infinite;
-        }        
+        }
 
         @keyframes gradient {
           0% {

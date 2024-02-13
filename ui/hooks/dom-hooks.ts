@@ -116,13 +116,15 @@ export const useDebounce = <T>(initial: T, wait = 300): [T, (v: T) => void] => {
   return [state, setDebouncedState]
 }
 
-export const setLocalStorageItem = (key: string, value: string): Promise<void> =>
- localStorageShim.setItem(key, value)
+export const setLocalStorageItem = (
+  key: string,
+  value: string
+): Promise<void> => localStorageShim.setItem(key, value)
 
 export const getLocalStorageItem = async (
   key: string,
   defaultValue: string
-): Promise<string> => await localStorageShim.getItem(key) || defaultValue
+): Promise<string> => (await localStorageShim.getItem(key)) || defaultValue
 
 export function useLocalStorage(
   key: string,
@@ -132,18 +134,18 @@ export function useLocalStorage(
 
   useEffect(() => {
     const initializeValue = async () => {
-      const storedValue = await getLocalStorageItem(key, initialValue);
-      setValue(storedValue);    
-    };
-    initializeValue();
-  }, [key, initialValue]);
+      const storedValue = await getLocalStorageItem(key, initialValue)
+      setValue(storedValue)
+    }
+    initializeValue()
+  }, [key, initialValue])
 
   useEffect(() => {
     const storeValue = async () => {
-      await setLocalStorageItem(key, value);
-    };
-    storeValue();
-  }, [key, value]);
+      await setLocalStorageItem(key, value)
+    }
+    storeValue()
+  }, [key, value])
 
   return [value, setValue]
 }

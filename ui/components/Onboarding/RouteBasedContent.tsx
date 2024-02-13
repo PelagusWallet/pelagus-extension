@@ -1,10 +1,10 @@
 import React from "react"
 import { useTranslation } from "react-i18next"
 import { Route, Switch } from "react-router-dom"
+import { FaDiscord, FaTwitter } from "react-icons/fa"
 import OnboardingRoutes from "../../pages/Onboarding/Tabbed/Routes"
 import SharedButton from "../Shared/SharedButton"
 import WalletShortcut from "./WalletShortcut"
-import { FaDiscord, FaTwitter } from 'react-icons/fa';
 
 export default function RouteBasedContent(): JSX.Element {
   const { t } = useTranslation("translation", {
@@ -63,11 +63,19 @@ export default function RouteBasedContent(): JSX.Element {
           <p>{t("default.fact1")}</p>
           <div className="community_links">
             <div className="icon_row">
-              <a href="https://discord.gg/quai" target="_blank" rel="noreferrer">
+              <a
+                href="https://discord.gg/quai"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <FaDiscord size={52} color="white" />
               </a>
-              <a href="https://twitter.com/QuaiNetwork" target="_blank" rel="noreferrer">
-                <FaTwitter size={52} color="white"/>
+              <a
+                href="https://twitter.com/QuaiNetwork"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <FaTwitter size={52} color="white" />
               </a>
             </div>
             <p>Join the community</p>
@@ -106,7 +114,6 @@ export default function RouteBasedContent(): JSX.Element {
           </style>
         </div>
       </Route>
-
     </Switch>
   )
 }

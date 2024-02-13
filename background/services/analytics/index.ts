@@ -69,9 +69,7 @@ export default class AnalyticsService extends BaseService<Events> {
     if (isEnabled) {
       const { uuid, isNew } = await this.getOrCreateAnalyticsUUID()
 
-      browser.runtime.setUninstallURL(
-        `${process.env.WEBSITE_ORIGIN}`
-      )
+      browser.runtime.setUninstallURL(`${process.env.WEBSITE_ORIGIN}`)
 
       if (isNew) {
         await this.sendAnalyticsEvent(AnalyticsEvent.NEW_INSTALL)

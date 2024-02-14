@@ -66,7 +66,7 @@ export default function KeyringUnlock({
     // Find eligible path to navigate back to in order to prevent the user from getting stuck in a loop.
     // An eligible path is defined as any path that does not automatically redirect to the unlock page.
     const ineligiblePaths: string[] = ["/send", "/keyring/unlock"]
-    const backPaths = history.entries!.slice().map((entry) => entry.pathname)
+    const backPaths = history.entries!.map((entry) => entry.pathname)
     const firstBackPath = backPaths[backPaths.length - 2]
     if (ineligiblePaths.includes(firstBackPath)) {
       const eligiblePaths = backPaths

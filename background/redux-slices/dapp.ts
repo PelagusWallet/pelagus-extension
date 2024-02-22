@@ -36,9 +36,7 @@ export const emitter = new Emittery<Events>()
 export const grantPermission = createBackgroundAsyncThunk(
   "dapp-permission/permissionGrant",
   async (permission: PermissionRequest) => {
-    await emitter.emit("grantPermission", {
-      ...permission,
-    })
+    await emitter.emit("grantPermission", permission)
     return permission
   }
 )

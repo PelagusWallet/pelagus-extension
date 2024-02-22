@@ -385,7 +385,14 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
   async grantPermission(permission: PermissionRequest): Promise<void> {
     // FIXME proper error handling if this happens - should not tho
-    if (permission.state !== "allow" || !permission.accountAddress) return
+    if (permission.state !== "allow") {
+      console.error(`Invalid state received when granting permission. Expected 'allow' but got '${permission.state}'.`)
+      return
+    }
+    if (!permission.accountAddress) {
+      console.error("Empty account address received when granting permission.")
+      return
+    }
 
     await this.db.setPermission(permission)
 
@@ -397,7 +404,12 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
   async denyOrRevokePermission(permission: PermissionRequest): Promise<void> {
     // FIXME proper error handling if this happens - should not tho
-    if (permission.state !== "deny" || !permission.accountAddress) {
+    if (permission.state !== "deny") {
+      console.error(`Invalid state received when denying permission. Expected 'deny' but got '${permission.state}'.`)
+      return
+    }
+    if (!permission.accountAddress) {
+      console.error("Empty account address received when denying permission.")
       return
     }
 

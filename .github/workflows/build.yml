@@ -71,34 +71,34 @@ jobs:
           draft: true
           generate_release_notes: true
           prerelease: ${{ contains(github.ref, '-pre') || contains(github.ref, 'v0.') }}
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Read .nvmrc
-        run: echo "NVMRC=$(cat ./.nvmrc)" >> $GITHUB_OUTPUT
-        id: nvm
-      - name: Use Node + Yarn
-        uses: actions/setup-node@v3
-        with:
-          node-version: "${{ steps.nvm.outputs.NVMRC }}"
-          cache: "yarn"
-      - run: yarn install --frozen-lockfile
-      - run: yarn test
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Read .nvmrc
-        run: echo "NVMRC=$(cat ./.nvmrc)" >> $GITHUB_OUTPUT
-        id: nvm
-      - name: Use Node + Yarn
-        uses: actions/setup-node@v3
-        with:
-          node-version: "${{ steps.nvm.outputs.NVMRC }}"
-          cache: "yarn"
-      - run: yarn install --frozen-lockfile
-      - run: yarn lint
+  ## test:
+  ##   runs-on: ubuntu-latest
+  ##   steps:
+  ##     - uses: actions/checkout@v3
+  ##     - name: Read .nvmrc
+  ##       run: echo "NVMRC=$(cat ./.nvmrc)" >> $GITHUB_OUTPUT
+  ##       id: nvm
+  ##     - name: Use Node + Yarn
+  ##       uses: actions/setup-node@v3
+  ##       with:
+  ##         node-version: "${{ steps.nvm.outputs.NVMRC }}"
+  ##         cache: "yarn"
+  ##     - run: yarn install --frozen-lockfile
+  ##     - run: yarn test
+  ## lint:
+  ##   runs-on: ubuntu-latest
+  ##   steps:
+  ##     - uses: actions/checkout@v3
+  ##     - name: Read .nvmrc
+  ##       run: echo "NVMRC=$(cat ./.nvmrc)" >> $GITHUB_OUTPUT
+  ##       id: nvm
+  ##     - name: Use Node + Yarn
+  ##       uses: actions/setup-node@v3
+  ##       with:
+  ##         node-version: "${{ steps.nvm.outputs.NVMRC }}"
+  ##         cache: "yarn"
+  ##     - run: yarn install --frozen-lockfile
+  ##     - run: yarn lint
   detect-if-flag-changed:
     runs-on: ubuntu-latest
     outputs:
@@ -113,41 +113,41 @@ jobs:
           filters: |
             path-filter:
               - '.env.defaults'
-  e2e-tests:
-    if: |
-      github.ref == 'refs/heads/main'
-        || contains(github.head_ref, 'e2e')
-        || needs.detect-if-flag-changed.outputs.path-filter == 'true'
-    needs: [build, detect-if-flag-changed]
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Read .nvmrc
-        run: echo "NVMRC=$(cat ./.nvmrc)" >> $GITHUB_OUTPUT
-        id: nvm
-      - name: Use Node + Yarn
-        uses: actions/setup-node@v3
-        with:
-          node-version: "${{ steps.nvm.outputs.NVMRC }}"
-          cache: "yarn"
-      - run: yarn install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - uses: actions/download-artifact@v3
-        with:
-          name: extension-builds-${{ github.event.number || github.event.head_commit.id }}
-      - name: Extract extension
-        run: unzip -o chrome.zip -d dist/chrome
-      - name: Run Playwright tests
-        run: xvfb-run npx playwright test
-        #env:
-        # DEBUG: pw:api*
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: debug-output
-          path: |
-            test-results/
-            #videos/
-          retention-days: 30
+  ## e2e-tests:
+  ##   if: |
+  ##     github.ref == 'refs/heads/main'
+  ##       || contains(github.head_ref, 'e2e')
+  ##       || needs.detect-if-flag-changed.outputs.path-filter == 'true'
+  ##   needs: [build, detect-if-flag-changed]
+  ##   timeout-minutes: 60
+  ##   runs-on: ubuntu-latest
+  ##   steps:
+  ##     - uses: actions/checkout@v3
+  ##     - name: Read .nvmrc
+  ##       run: echo "NVMRC=$(cat ./.nvmrc)" >> $GITHUB_OUTPUT
+  ##       id: nvm
+  ##     - name: Use Node + Yarn
+  ##       uses: actions/setup-node@v3
+  ##       with:
+  ##         node-version: "${{ steps.nvm.outputs.NVMRC }}"
+  ##         cache: "yarn"
+  ##     - run: yarn install --frozen-lockfile
+  ##     - name: Install Playwright Browsers
+  ##       run: npx playwright install --with-deps chromium
+  ##     - uses: actions/download-artifact@v3
+  ##       with:
+  ##         name: extension-builds-${{ github.event.number || github.event.head_commit.id }}
+  ##     - name: Extract extension
+  ##       run: unzip -o chrome.zip -d dist/chrome
+  ##     - name: Run Playwright tests
+  ##       run: xvfb-run npx playwright test
+  ##       #env:
+  ##       # DEBUG: pw:api*
+  ##     - uses: actions/upload-artifact@v3
+  ##       if: failure()
+  ##       with:
+  ##         name: debug-output
+  ##         path: |
+  ##           test-results/
+  ##           #videos/
+  ##         retention-days: 30

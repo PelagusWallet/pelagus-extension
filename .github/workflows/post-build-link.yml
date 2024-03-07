@@ -10,6 +10,7 @@ on:
   workflow_run:
     workflows:
       - Build
+      - Build-Manual
     types:
       - completed
 

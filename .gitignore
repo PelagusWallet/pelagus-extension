@@ -10,4 +10,5 @@ app/extension-scripts/api/playground/
 .vscode
 playwright-report
 test-results/
-.idea
+.idea/
+.yarn/

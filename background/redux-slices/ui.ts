@@ -25,6 +25,8 @@ export const defaultSettings = {
 export type UIState = {
   selectedAccount: AddressOnNetwork
   showingActivityDetailID: string | null
+  showingAccountsModal: boolean
+  showingAddAccountModal: boolean
   initializationLoadingTimeExpired: boolean
   // FIXME: Move these settings to preferences service db
   settings: {
@@ -62,6 +64,8 @@ export const emitter = new Emittery<Events>()
 
 export const initialState: UIState = {
   showingActivityDetailID: null,
+  showingAccountsModal: false,
+  showingAddAccountModal: false,
   selectedAccount: {
     address: "",
     network: QUAI_NETWORK,
@@ -133,6 +137,20 @@ const uiSlice = createSlice({
       ...state,
       showingActivityDetailID: transactionID,
     }),
+    setShowingAccountsModal: (
+      state,
+      { payload: isShowingAccountsModal }: { payload: boolean }
+    ): UIState => ({
+      ...state,
+      showingAccountsModal: isShowingAccountsModal,
+    }),
+    setShowingAddAccountModal: (
+      state,
+      { payload: isShowingAddAccountModal }: { payload: boolean }
+    ): UIState => ({
+      ...state,
+      showingAddAccountModal: isShowingAddAccountModal,
+    }),
     setSelectedAccount: (
       immerState,
       { payload: addressNetwork }: { payload: AddressOnNetwork }
@@ -202,6 +220,8 @@ const uiSlice = createSlice({
 
 export const {
   setShowingActivityDetail,
+  setShowingAccountsModal,
+  setShowingAddAccountModal,
   initializationLoadingTimeHitLimit,
   toggleHideDust,
   toggleTestNetworks,
@@ -402,6 +422,16 @@ export const selectShowAnalyticsNotification = createSelector(
 export const selectSlippageTolerance = createSelector(
   selectUI,
   (ui) => ui.slippageTolerance
+)
+
+export const selectShowingAccountsModal = createSelector(
+  selectUI,
+  (ui) => ui.showingAccountsModal
+)
+
+export const selectShowingAddAccountModal = createSelector(
+  selectUI,
+  (ui) => ui.showingAddAccountModal
 )
 
 export const selectInitializationTimeExpired = createSelector(

@@ -6,8 +6,10 @@ import React, {
   useState,
 } from "react"
 import {
+  selectShowingAddAccountModal,
   setNewSelectedAccount,
-  setSelectedAccount,
+  setShowingAccountsModal,
+  setShowingAddAccountModal,
   setSnackbarMessage,
   updateSignerTitle,
 } from "@pelagus/pelagus-background/redux-slices/ui"
@@ -43,7 +45,6 @@ import {
 } from "../../hooks"
 import SharedAccountItemSummary from "../Shared/SharedAccountItemSummary"
 import AccountItemOptionsMenu from "../AccountItem/AccountItemOptionsMenu"
-import { i18n } from "../../_locales/i18n"
 import SharedIcon from "../Shared/SharedIcon"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -68,7 +69,6 @@ function WalletTypeHeader({
   signerId,
   setShard,
   addAddressSelected,
-  setAddAddressSelected,
   updateCustomOrder,
   updateUseCustomOrder,
   setSelectedAccountSigner,
@@ -81,7 +81,6 @@ function WalletTypeHeader({
   path?: string | null
   setShard: (shard: string) => void
   addAddressSelected: boolean
-  setAddAddressSelected: (selected: boolean) => void
   updateCustomOrder: (address: string[], signerId: string) => void
   updateUseCustomOrder: (useOrder: boolean, signerId: string) => void
   setSelectedAccountSigner: (signerId: string) => void
@@ -118,7 +117,7 @@ function WalletTypeHeader({
 
   const handleShardSelection = (selectedShard: string) => {
     setShard(selectedShard)
-    setAddAddressSelected(false)
+    dispatch(setShowingAddAccountModal(false))
     // Call other required functions like onClickAddAddress
   }
   useEffect(() => {
@@ -127,7 +126,8 @@ function WalletTypeHeader({
         setShowShardMenu(true)
       } else {
         history.push("/keyring/unlock")
-        setAddAddressSelected(false)
+        dispatch(setShowingAddAccountModal(true))
+        dispatch(setShowingAccountsModal(true))
       }
     }
   }, [addAddressSelected])
@@ -192,7 +192,7 @@ function WalletTypeHeader({
         close={(e) => {
           e.stopPropagation()
           setShowShardMenu(false)
-          setAddAddressSelected(false)
+          dispatch(setShowingAddAccountModal(false))
         }}
         customStyles={{
           display: "flex",
@@ -223,7 +223,7 @@ function WalletTypeHeader({
             onClick={() => {
               onClickAddAddress && onClickAddAddress()
               setShowShardMenu(false)
-              setAddAddressSelected(false)
+              dispatch(setShowingAddAccountModal(false))
             }}
           >
             Confirm
@@ -493,7 +493,9 @@ export default function AccountsNotificationPanelAccounts({
     shard.current = newShard
   }
 
-  const [addAddressSelected, setAddAddressSelected] = useState(false)
+  const isShowingAddAccountModal = useBackgroundSelector(
+    selectShowingAddAccountModal
+  )
 
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
@@ -712,8 +714,7 @@ export default function AccountsNotificationPanelAccounts({
                             }
                           : undefined
                       }
-                      addAddressSelected={addAddressSelected}
-                      setAddAddressSelected={setAddAddressSelected}
+                      addAddressSelected={isShowingAddAccountModal}
                       updateCustomOrder={updateCustomOrder}
                       updateUseCustomOrder={updateUseCustomOrder}
                       setSelectedAccountSigner={setSelectedAccountSigner}
@@ -798,9 +799,7 @@ export default function AccountsNotificationPanelAccounts({
           size="medium"
           iconSmall="add"
           iconPosition="left"
-          onClick={() => {
-            setAddAddressSelected(true)
-          }}
+          onClick={() => dispatch(setShowingAddAccountModal(true))}
         >
           {t("accounts.notificationPanel.addAddress")}
         </SharedButton>

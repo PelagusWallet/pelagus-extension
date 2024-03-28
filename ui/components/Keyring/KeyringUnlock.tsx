@@ -3,7 +3,11 @@ import { useHistory } from "react-router-dom"
 import { unlockKeyrings } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { rejectTransactionSignature } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { useTranslation } from "react-i18next"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import {
+  setShowingAccountsModal,
+  setShowingAddAccountModal,
+  setSnackbarMessage,
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   useBackgroundDispatch,
   useAreKeyringsUnlocked,
@@ -86,6 +90,9 @@ export default function KeyringUnlock({
   }
 
   const handleCancel = () => {
+    dispatch(setShowingAccountsModal(false))
+    dispatch(setShowingAddAccountModal(false))
+
     if (isDappPopup) {
       handleReject()
     } else {

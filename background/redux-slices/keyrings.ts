@@ -15,7 +15,6 @@ export type KeyringsState = {
   keyringMetadata: {
     [keyringId: string]: KeyringMetadata
   }
-  importing: false | "pending" | "done"
   status: "locked" | "unlocked" | "uninitialized"
   keyringToVerify: KeyringToVerify
 }
@@ -23,7 +22,6 @@ export type KeyringsState = {
 export const initialState: KeyringsState = {
   keyrings: [],
   keyringMetadata: {},
-  importing: false,
   status: "uninitialized",
   keyringToVerify: null,
 }
@@ -53,8 +51,18 @@ interface ImportKeyring {
 // Async thunk to bubble the importKeyring action from  store to emitter.
 export const importKeyring = createBackgroundAsyncThunk(
   "keyrings/importKeyring",
-  async ({ mnemonic, source, path }: ImportKeyring, { getState, dispatch }) => {
-    await emitter.emit("importKeyring", { mnemonic, path, source })
+  async (
+    { mnemonic, source, path }: ImportKeyring,
+    { getState, dispatch, extra: { main } }
+  ): Promise<{ success: boolean; errorMessage?: string }> => {
+    const newKeyringId = await main.importSigner({ mnemonic, path, source })
+
+    if (!newKeyringId) {
+      return {
+        success: false,
+        errorMessage: "Unexpected error during signer import",
+      }
+    }
 
     const { keyrings, ui } = getState() as {
       keyrings: KeyringsState
@@ -70,6 +78,8 @@ export const importKeyring = createBackgroundAsyncThunk(
         network: ui.selectedAccount.network,
       })
     )
+
+    return { success: true }
   }
 )
 
@@ -108,22 +118,6 @@ const keyringsSlice = createSlice({
       ...state,
       keyringToVerify: payload,
     }),
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(importKeyring.pending, (state) => {
-        return {
-          ...state,
-          importing: "pending",
-        }
-      })
-      .addCase(importKeyring.fulfilled, (state) => {
-        return {
-          ...state,
-          importing: "done",
-          keyringToVerify: null,
-        }
-      })
   },
 })
 

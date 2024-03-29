@@ -1491,13 +1491,6 @@ export default class Main extends BaseService<never> {
 
       this.store.dispatch(setKeyringToVerify(generated))
     })
-
-    keyringSliceEmitter.on(
-      "importKeyring",
-      async ({ mnemonic, path, source }) => {
-        await this.keyringService.importKeyring(mnemonic, source, path)
-      }
-    )
   }
 
   async connectInternalEthereumProviderService(): Promise<void> {
@@ -1982,6 +1975,18 @@ export default class Main extends BaseService<never> {
 
   async exportPrivKey(address: string): Promise<string> {
     return this.keyringService.exportPrivKey(address)
+  }
+
+  async importSigner({
+    mnemonic,
+    path,
+    source,
+  }: {
+    mnemonic: string
+    path?: string
+    source: "import" | "internal"
+  }): Promise<string | null> {
+    return this.keyringService.importKeyring(mnemonic, source, path)
   }
 
   async getActivityDetails(txHash: string): Promise<ActivityDetail[]> {

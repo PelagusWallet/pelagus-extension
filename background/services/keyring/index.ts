@@ -340,20 +340,31 @@ export default class KeyringService extends BaseService<Events> {
     source: "import" | "internal",
     path?: string
   ): Promise<string> {
-    const newKeyring = path
-      ? new HDKeyring({ mnemonic, path })
-      : new HDKeyring({ mnemonic })
+    this.requireUnlocked()
 
-    if (this.#keyrings.some((kr) => kr.id === newKeyring.id)) {
+    try {
+      const newKeyring = path
+        ? new HDKeyring({ mnemonic, path })
+        : new HDKeyring({ mnemonic })
+
+      if (this.#keyrings.some((kr) => kr.id === newKeyring.id)) {
+        return newKeyring.id
+      }
+
+      this.#keyrings.push(newKeyring)
+      const [address] = newKeyring.addAddressesSync(1)
+
+      this.#keyringMetadata[newKeyring.id] = { source }
+      await this.persistKeyrings()
+
+      this.emitter.emit("address", address)
+      this.emitKeyrings()
+
       return newKeyring.id
+    } catch (error) {
+      logger.error("Keyring import failed:", error)
+      return ""
     }
-    this.#keyrings.push(newKeyring)
-    const [address] = newKeyring.addAddressesSync(1)
-    this.#keyringMetadata[newKeyring.id] = { source }
-    await this.persistKeyrings()
-    this.emitter.emit("address", address)
-    this.emitKeyrings()
-    return newKeyring.id
   }
 
   async exportPrivKey(address: string): Promise<string> {

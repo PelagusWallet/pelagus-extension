@@ -1,6 +1,7 @@
 import {
   generateNewKeyring,
   importKeyring,
+  setKeyringToVerify,
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import React, { ReactElement } from "react"
 import {
@@ -21,6 +22,7 @@ import NewSeedIntro from "./NewSeed/NewSeedIntro"
 import NewSeedReview from "./NewSeed/NewSeedReview"
 import NewSeedVerify from "./NewSeed/NewSeedVerify"
 import OnboardingRoutes from "./Routes"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 
 const StepContainer = ({
   children,
@@ -78,14 +80,19 @@ export default function NewSeed(): ReactElement {
     history.replace(NewSeedRoutes.VERIFY_SEED)
   }
 
-  const onVerifySuccess = (verifiedMnemonic: string[]) => {
-    dispatch(
+  const onVerifySuccess = async (verifiedMnemonic: string[]) => {
+    const { success } = (await dispatch(
       importKeyring({
         mnemonic: verifiedMnemonic.join(" "),
         source: "internal",
         path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
       })
-    ).then(() => history.push(OnboardingRoutes.ONBOARDING_COMPLETE))
+    )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
+
+    if (success) {
+      dispatch(setKeyringToVerify(null))
+      history.push(OnboardingRoutes.ONBOARDING_COMPLETE)
+    }
   }
 
   if (!areKeyringsUnlocked)

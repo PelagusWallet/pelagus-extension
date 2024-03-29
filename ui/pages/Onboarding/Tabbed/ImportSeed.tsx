@@ -19,6 +19,7 @@ import {
 } from "../../../hooks"
 import OnboardingRoutes from "./Routes"
 import SharedSelect from "../../../components/Shared/SharedSelect"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 
 type Props = {
   nextPage: string
@@ -51,18 +52,7 @@ export default function ImportSeed(props: Props): ReactElement {
   })
 
   const dispatch = useBackgroundDispatch()
-  const keyringImport = useBackgroundSelector(
-    (state) => state.keyrings.importing
-  )
-
   const history = useHistory()
-
-  useEffect(() => {
-    if (areKeyringsUnlocked && keyringImport === "done" && isImporting) {
-      setIsImporting(false)
-      history.push(nextPage)
-    }
-  }, [history, areKeyringsUnlocked, keyringImport, nextPage, isImporting])
 
   const importWallet = useCallback(async () => {
     const plainRecoveryPhrase = recoveryPhrase
@@ -77,18 +67,25 @@ export default function ImportSeed(props: Props): ReactElement {
       setErrorMessage(t("errors.phraseLengthError"))
     } else if (isValidMnemonic(plainRecoveryPhrase, es)) {
       setIsImporting(true)
-      dispatch(
+
+      const { success } = (await dispatch(
         importKeyring({
           mnemonic: plainRecoveryPhrase,
-          path,
           source: "import",
+          path,
         })
-      )
-      dispatch(sendEvent(OneTimeAnalyticsEvent.ONBOARDING_FINISHED))
+      )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
+
+      if (success) {
+        await dispatch(sendEvent(OneTimeAnalyticsEvent.ONBOARDING_FINISHED))
+        history.push(nextPage)
+      } else {
+        setIsImporting(false)
+      }
     } else {
       setErrorMessage(t("errors.invalidPhraseError"))
     }
-  }, [dispatch, recoveryPhrase, path, t])
+  }, [dispatch, recoveryPhrase, path, t, history, nextPage])
 
   if (!areKeyringsUnlocked)
     return (

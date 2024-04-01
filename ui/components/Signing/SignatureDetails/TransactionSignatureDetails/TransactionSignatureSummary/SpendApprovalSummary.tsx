@@ -296,7 +296,7 @@ export default function SpendApprovalSummary({
             margin-top: 24px;
           }
           .spend_amount {
-            color: #fff;
+            color: var(--green-40);
             font-size: 16px;
             line-height: 24px;
           }

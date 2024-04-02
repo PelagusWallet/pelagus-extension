@@ -149,12 +149,10 @@ const uiSlice = createSlice({
     setSnackbarMessage: (
       state,
       { payload: snackbarMessage }: { payload: string }
-    ): UIState => {
-      return {
-        ...state,
-        snackbarMessage,
-      }
-    },
+    ): UIState => ({
+      ...state,
+      snackbarMessage,
+    }),
     clearSnackbarMessage: (state): UIState => ({
       ...state,
       snackbarMessage: "",
@@ -382,9 +380,8 @@ export const selectHideDust = createSelector(
   (settings) => settings?.hideDust
 )
 
-export const selectSnackbarMessage = createSelector(
-  selectUI,
-  (ui) => ui.snackbarMessage
+export const selectSnackbarMessage = createSelector(selectUI, (ui) =>
+  ui ? ui.snackbarMessage : ""
 )
 
 export const selectDefaultWallet = createSelector(

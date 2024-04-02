@@ -333,3 +333,16 @@ For other languages, we will use language code defined in [Support locales](http
 <a href="https://hosted.weblate.org/engage/tallycash/">
 <img src="https://hosted.weblate.org/widgets/tallycash/-/svg-badge.svg" alt="Translation status" />
 </a>
+
+## CICD
+
+The GitHub Actions workflow is defined in `.github/workflows/` and is responsible for building, testing, and pushing a release for the extension to GitHub. It triggers when a new commit is pushed to the main branch with a tag that matches the pattern `v*`.
+
+
+In order to create a new release, you need to create a new tag and push it to the repository. The tag should be in the format `v*`, where `*` is the version number. For example, to create a new release with version `v1.0.0`, you would run the following commands:
+
+```sh
+$ git tag v1.0.0
+$ git push origin v1.0.0
+```
+You can also manually run the build workflow by going to the Actions tab in the GitHub repository and selecting the Build-Manual workflow.

@@ -24,7 +24,6 @@ jobs:
           ssh-key: ${{ secrets.GH_PAT }}
 
       - name: Import GPG Key
-        if: ${{ inputs.update_version }}
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}

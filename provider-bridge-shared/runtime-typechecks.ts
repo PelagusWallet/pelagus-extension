@@ -5,6 +5,7 @@ import {
   TallyConfigPayload,
   TallyInternalCommunication,
   TallyAccountPayload,
+  PortHealthResponseEvent,
 } from "./types"
 
 export function getType(arg: unknown): string {
@@ -78,6 +79,12 @@ export function isAllowedQueryParamPage(
   // The typing for Array.includes in `lib.es.2016.array.include.ts` does not make any sense here -> Object.values<string>
   // interface Array<T> { ... includes(searchElement: T, fromIndex?: number): boolean; ...
   return Object.values<unknown>(AllowedQueryParamPage).includes(url)
+}
+
+export function isTallyPortHealthCheck(
+  arg: unknown
+): arg is PortHealthResponseEvent {
+  return isObject(arg) && arg.method === "tally_healthCheck"
 }
 
 export function isTallyInternalCommunication(

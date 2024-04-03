@@ -9,6 +9,7 @@ import {
   RPCRequest,
   EIP1193_ERROR_CODES,
   isTallyConfigPayload,
+  isTallyPortHealthCheck,
 } from "@tallyho/provider-bridge-shared"
 import { TransactionRequest as EthersTransactionRequest } from "@ethersproject/abstract-provider"
 import BaseService from "../base"
@@ -173,6 +174,11 @@ export default class ProviderBridgeService extends BaseService<Events> {
         method: event.request.method,
         defaultWallet: await this.preferenceService.getDefaultWallet(),
         chainId: toHexChainID(network.chainID),
+      }
+    } else if (isTallyPortHealthCheck(event.request)) {
+      logger.info(`keeping port health 'tally_healthCheck' request`)
+      response.result = {
+        method: event.request.method,
       }
     } else if (event.request.method.startsWith("tally_")) {
       switch (event.request.method) {
@@ -386,7 +392,9 @@ export default class ProviderBridgeService extends BaseService<Events> {
   async grantPermission(permission: PermissionRequest): Promise<void> {
     // FIXME proper error handling if this happens - should not tho
     if (permission.state !== "allow") {
-      console.error(`Invalid state received when granting permission. Expected 'allow' but got '${permission.state}'.`)
+      console.error(
+        `Invalid state received when granting permission. Expected 'allow' but got '${permission.state}'.`
+      )
       return
     }
     if (!permission.accountAddress) {
@@ -405,7 +413,9 @@ export default class ProviderBridgeService extends BaseService<Events> {
   async denyOrRevokePermission(permission: PermissionRequest): Promise<void> {
     // FIXME proper error handling if this happens - should not tho
     if (permission.state !== "deny") {
-      console.error(`Invalid state received when denying permission. Expected 'deny' but got '${permission.state}'.`)
+      console.error(
+        `Invalid state received when denying permission. Expected 'deny' but got '${permission.state}'.`
+      )
       return
     }
     if (!permission.accountAddress) {

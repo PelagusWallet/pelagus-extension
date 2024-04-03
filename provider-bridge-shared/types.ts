@@ -30,6 +30,12 @@ export type PortResponseEvent = {
   result: unknown
 }
 
+export type PortHealthResponseEvent = {
+  jsonrpc: "2.0"
+  result: unknown
+  method: "tally_healthCheck"
+}
+
 export type PortRequestEvent = {
   id: string
   request: RPCRequest

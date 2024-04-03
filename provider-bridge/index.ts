@@ -1,6 +1,8 @@
 import browser from "webextension-polyfill"
 import {
   EXTERNAL_PORT_NAME,
+  PORT_HEALTH_CHECK_INTERVAL_IN_MILLISECONDS,
+  PORT_RECONNECT_TIMEOUT_IN_MILLISECONDS,
   PROVIDER_BRIDGE_TARGET,
   WINDOW_PROVIDER_TARGET,
 } from "@tallyho/provider-bridge-shared"
@@ -9,8 +11,19 @@ const windowOriginAtLoadTime = window.location.origin
 
 const INJECTED_WINDOW_PROVIDER_SOURCE = "@@@WINDOW_PROVIDER@@@"
 
+function performHealthCheck(port: browser.Runtime.Port): void {
+  port.postMessage({
+    request: {
+      method: "tally_healthCheck",
+      origin: windowOriginAtLoadTime,
+    },
+  })
+}
+
 export function connectProviderBridge(): void {
-  const port = browser.runtime.connect({ name: EXTERNAL_PORT_NAME })
+  let portHealthInterval: NodeJS.Timeout | null = null
+  let port = browser.runtime.connect({ name: EXTERNAL_PORT_NAME })
+
   window.addEventListener("message", (event) => {
     if (
       event.origin === windowOriginAtLoadTime && // we want to recieve msgs only from the in-page script
@@ -45,22 +58,6 @@ export function connectProviderBridge(): void {
     }
   })
 
-  port.onMessage.addListener((data) => {
-    // TODO: replace with better logging before v1. Now it's invaluable in debugging.
-    // eslint-disable-next-line no-console
-    console.log(
-      `%c content: background > inpage: ${JSON.stringify(data)}`,
-      "background: #222; color: #bada55"
-    )
-    window.postMessage(
-      {
-        ...data,
-        target: WINDOW_PROVIDER_TARGET,
-      },
-      windowOriginAtLoadTime
-    )
-  })
-
   // let's grab the internal config that also has chainId info
   // we send the config on port initialization, but that needs to
   // be as fast as possible, so we omit the chainId information
@@ -68,6 +65,46 @@ export function connectProviderBridge(): void {
   port.postMessage({
     request: { method: "tally_getConfig", origin: windowOriginAtLoadTime },
   })
+
+  function setupListeners(port: browser.Runtime.Port): void {
+    port.onMessage.addListener((data) => {
+      // TODO: replace with better logging before v1. Now it's invaluable in debugging.
+      // eslint-disable-next-line no-console
+      console.log(
+        `%c content: background > inpage: ${JSON.stringify(data)}`,
+        "background: #222; color: #bada55"
+      )
+      window.postMessage(
+        {
+          ...data,
+          target: WINDOW_PROVIDER_TARGET,
+        },
+        windowOriginAtLoadTime
+      )
+    })
+
+    port.onDisconnect.addListener(() => {
+      console.log("Port disconnected, attempting to reconnect...")
+
+      if (portHealthInterval !== null) clearInterval(portHealthInterval)
+      setTimeout(reconnect, PORT_RECONNECT_TIMEOUT_IN_MILLISECONDS)
+    })
+
+    performHealthCheck(port)
+  }
+
+  function reconnect(): void {
+    console.log("Reconnecting port...")
+    port = browser.runtime.connect({ name: EXTERNAL_PORT_NAME })
+    setupListeners(port)
+  }
+
+  setupListeners(port)
+
+  portHealthInterval = setInterval(
+    () => performHealthCheck(port),
+    PORT_HEALTH_CHECK_INTERVAL_IN_MILLISECONDS
+  )
 }
 
 export function injectTallyWindowProvider(): void {

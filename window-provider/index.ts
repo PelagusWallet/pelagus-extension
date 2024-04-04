@@ -87,7 +87,7 @@ export default class TallyWindowProvider extends EventEmitter {
 
   isMetaMask = false
 
-  tallySetAsDefault = false
+  pelagusSetAsDefault = false
 
   isWeb3 = true
 
@@ -132,18 +132,18 @@ export default class TallyWindowProvider extends EventEmitter {
           return
         }
 
-        ;({ result } = event.data)
+        ; ({ result } = event.data)
       } else if (
         isPortResponseEvent(event) &&
         isTallyInternalCommunication(event)
       ) {
-        ;({ result } = event)
+        ; ({ result } = event)
       } else {
         return
       }
 
       if (isTallyConfigPayload(result)) {
-        window.walletRouter?.shouldSetTallyForCurrentProvider(
+        window.walletRouter?.shouldSetPelagusForCurrentProvider(
           result.defaultWallet,
           result.shouldReload
         )
@@ -165,7 +165,7 @@ export default class TallyWindowProvider extends EventEmitter {
             this._state = METAMASK_STATE_MOCK
           }
 
-          this.tallySetAsDefault = result.defaultWallet
+          this.pelagusSetAsDefault = result.defaultWallet
         }
         if (result.chainId && result.chainId !== this.chainId) {
           this.handleChainIdChange(result.chainId)
@@ -201,9 +201,9 @@ export default class TallyWindowProvider extends EventEmitter {
         return
       }
 
-      ;({ id, result } = event.data)
+      ; ({ id, result } = event.data)
     } else if (isPortResponseEvent(event)) {
-      ;({ id, result } = event)
+      ; ({ id, result } = event)
     } else {
       return
     }

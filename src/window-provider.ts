@@ -21,38 +21,53 @@ Object.defineProperty(window, "tally", {
   configurable: false,
 })
 
+Object.defineProperty(window, "pelagus", {
+  value: new TallyWindowProvider({
+    postMessage: (data: WindowRequestEvent) =>
+      window.postMessage(data, window.location.origin),
+    addEventListener: (fn: WindowListener) =>
+      window.addEventListener("message", fn, false),
+    removeEventListener: (fn: WindowListener) =>
+      window.removeEventListener("message", fn, false),
+    origin: window.location.origin,
+  }),
+  writable: false,
+  configurable: false,
+})
+
 if (!window.walletRouter) {
   Object.defineProperty(window, "walletRouter", {
     value: {
-      currentProvider: window.tally,
+      currentProvider: window.pelagus,
       lastInjectedProvider: window.ethereum,
+      pelagusProvider: window.pelagus,
       tallyProvider: window.tally,
       providers: [
         // deduplicate the providers array: https://medium.com/@jakubsynowiec/unique-array-values-in-javascript-7c932682766c
         ...new Set([
+          window.pelagus,
           window.tally,
           // eslint-disable-next-line no-nested-ternary
           ...(window.ethereum
             ? // let's use the providers that has already been registered
-              // This format is used by coinbase wallet
-              Array.isArray(window.ethereum.providers)
+            // This format is used by coinbase wallet
+            Array.isArray(window.ethereum.providers)
               ? [...window.ethereum.providers, window.ethereum]
               : [window.ethereum]
             : []),
-          window.tally,
         ]),
       ],
-      shouldSetTallyForCurrentProvider(
-        shouldSetTally: boolean,
+      shouldSetPelagusForCurrentProvider(
+        shouldSetPelagus: boolean,
         shouldReload = false
       ) {
-        if (shouldSetTally && this.currentProvider !== this.tallyProvider) {
-          this.currentProvider = this.tallyProvider
+        if (shouldSetPelagus && this.currentProvider !== this.pelagusProvider) {
+          this.currentProvider = this.pelagusProvider
         } else if (
-          !shouldSetTally &&
-          this.currentProvider === this.tallyProvider
+          !shouldSetPelagus &&
+          this.currentProvider === this.pelagusProvider
         ) {
-          this.currentProvider = this.lastInjectedProvider ?? this.tallyProvider
+          this.currentProvider = this.lastInjectedProvider ?? this.pelagusProvider
         }
 
         if (
@@ -74,7 +89,7 @@ if (!window.walletRouter) {
           }
         )
       },
-      setSelectedProvider() {},
+      setSelectedProvider() { },
       addProvider(newProvider: WalletProvider) {
         if (!this.providers.includes(newProvider)) {
           this.providers.push(newProvider)

@@ -1,0 +1,122 @@
+name: Cut a new Minor Release Branch
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to use'
+        required: true
+        default: 'main'
+
+jobs:
+
+  cutReleaseCandidateTS:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.set-branch.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.GH_PAT }}
+
+      - name: Import GPG Key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --import
+          git config --global user.signingkey $GPG_KEY_ID
+          git config --global commit.gpgsign true
+          # Configure Git with CI account details
+          git config --global user.name "ci-dominantstrategies"
+          git config --global user.email "ci@dominantstrategies.io"
+          
+          # Optionally, check that the GPG key is correctly configured for signing
+          gpg --list-keys "ci@dominantstrategies.io"
+
+      - name: Install jq
+        if: ${{ inputs.update_version }}
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Set Repo Name in Camel Case
+        run: |
+          repo_name=$(basename ${{ github.repository }})
+          if [ -n "${{ inputs.name_override }}" ]; then
+              repo_name=${{ inputs.name_override }}
+          fi
+          camel_case_name=$(echo $repo_name | awk -F- '{for(i=2; i<=NF; i++) $i=toupper(substr($i,1,1)) substr($i,2); }1' OFS="")
+          echo "CAMEL_CASE_REPO_NAME=$camel_case_name" >> $GITHUB_ENV
+
+      - name: Install Volta
+        run: |
+          curl -sSLf https://get.volta.sh | bash
+          echo "$HOME/.volta/bin" >> $GITHUB_PATH
+
+      - name: Log Node and Npm Versions
+        run:  |
+          echo node version $(node -v)
+          echo npm version $(npm -v)
+
+      - name: install semver globally
+        if: ${{ inputs.update_version }}
+        run: npm install -g semver
+
+      - name: Update Version
+        if: ${{ inputs.update_version }}
+        run: |
+          jq --arg new_version "v$(npx semver -i patch $(jq -r '.version' package.json | sed 's/^v//'))" '.version = $new_version' package.json > temp.json && mv temp.json package.json
+          NEW_VERSION=$(jq -r '.version' package.json)
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Update version environment variable
+        run: echo "VERSION=$(echo $VERSION | sed 's/\.[0-9]*$//')" >> $GITHUB_ENV
+
+      - name: Store version in branch variable
+        id: set-branch
+        run: echo "branch=${{ env.VERSION }}" >> $GITHUB_OUTPUT
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Release ${{ env.VERSION }}
+          branch: ${{ env.VERSION }}
+          create_branch: true
+          commit_user_name: ci-dominantstrategies
+          commit_user_email: ci@dominantstrategies.io
+
+      - uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.GH_PAT }}
+
+      - name: Update Version
+        run: |
+          jq --arg new_version "v$(npx semver -i minor $(jq -r '.version' package.json | sed 's/^v//;s/-pre$//'))-pre" '.version = $new_version' package.json > temp.json && mv temp.json package.json
+          NEW_VERSION=$(jq -r '.version' package.json)
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Sync package-lock.json
+        run: npm i --package-lock-only --ignore-scripts
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Rev'd main to Release ${{ env.VERSION }}
+          branch: ${{ inputs.branch }}
+          commit_user_name: ci-dominantstrategies
+          commit_user_email: ci@dominantstrategies.io
+
+  deployReleaseCandidateTS:
+    uses: ./.github/workflows/build.yml
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+      GPG_PRIVATE_KEY2: ${{ secrets.GPG_PRIVATE_KEY2 }}
+      GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+      ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+      BLOCKNATIVE_API_KEY: ${{ secrets.BLOCKNATIVE_API_KEY }}
+      UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
+      SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
+      ZEROX_API_KEY: ${{ secrets.ZEROX_API_KEY }}
+      POAP_API_KEY: ${{ secrets.POAP_API_KEY }}
+      DAYLIGHT_API_KEY: ${{ secrets.DAYLIGHT_API_KEY }}
+
+    with:
+      update_version_command: "jq --arg new_version \"v$(npx semver -i patch $(jq -r '.version' package.json | sed 's/^v//'))\" '.version = $new_version' package.json > temp.json && mv temp.json package.json"
+      update_version: true
+      branch: ${{ needs.cutReleaseCandidateTS.outputs.branch }}

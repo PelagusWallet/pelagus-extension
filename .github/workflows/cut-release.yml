@@ -46,10 +46,14 @@ jobs:
           camel_case_name=$(echo $repo_name | awk -F- '{for(i=2; i<=NF; i++) $i=toupper(substr($i,1,1)) substr($i,2); }1' OFS="")
           echo "CAMEL_CASE_REPO_NAME=$camel_case_name" >> $GITHUB_ENV
 
-      - name: Install Volta
-        run: |
-          curl -sSLf https://get.volta.sh | bash
-          echo "$HOME/.volta/bin" >> $GITHUB_PATH
+      - name: Read .nvmrc
+        run: echo "NVMRC=$(cat ./.nvmrc)" >> $GITHUB_OUTPUT
+        id: nvm
+      - name: Use Node + Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: "${{ steps.nvm.outputs.NVMRC }}"
+          cache: "yarn"
 
       - name: Log Node and Npm Versions
         run:  |
@@ -93,7 +97,7 @@ jobs:
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Sync package-lock.json
-        run: npm i --package-lock-only --ignore-scripts
+        run: yarn install --ignore-scripts
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:

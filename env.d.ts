@@ -41,9 +41,15 @@ type TallyProvider = WalletProvider & {
   send: (method: string, params: unknown[]) => Promise<void>
 }
 
+type PelagusProvider = WalletProvider & {
+  isPelagus: true
+  send: (method: string, params: unknown[]) => Promise<void>
+}
+
 type WindowEthereum = WalletProvider & {
   isMetaMask?: boolean
-  tallySetAsDefault?: boolean
+  pelagusSetAsDefault?: boolean
+  isPelagus?: boolean
   isTally?: boolean
   autoRefreshOnNetworkChange?: boolean
 }
@@ -51,8 +57,8 @@ interface Window {
   walletRouter?: {
     currentProvider: WalletProvider
     providers: WalletProvider[]
-    shouldSetTallyForCurrentProvider: (
-      shouldSetTally: boolean,
+    shouldSetPelagusForCurrentProvider: (
+      shouldSetPelagus: boolean,
       shouldReload?: boolean
     ) => void
     getProviderInfo: (
@@ -61,6 +67,7 @@ interface Window {
     addProvider: (newProvider: WalletProvider) => void
   }
   tally?: TallyProvider
+  pelagus?: PelagusProvider
   ethereum?: WindowEthereum
   oldEthereum?: WindowEthereum
 }

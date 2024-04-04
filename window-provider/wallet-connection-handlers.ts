@@ -30,7 +30,7 @@ const moreThanOneWalletInstalledAndPelagusIsNotDefault = (): boolean => {
     window.ethereum.providers.length > 1
   ) {
     // If the user has more than 1 wallet installed
-    if (!window.ethereum.tallySetAsDefault) {
+    if (!window.ethereum.pelagusSetAsDefault) {
       // And Pelagus is not set as the default - return true
       return true
     }
@@ -505,7 +505,7 @@ const hostnameToHandler = {
 } as const
 
 export default function monitorForWalletConnectionPrompts(): void {
-  ;(
+  ; (
     Object.keys(hostnameToHandler) as Array<keyof typeof hostnameToHandler>
   ).forEach((hostname) => {
     if (

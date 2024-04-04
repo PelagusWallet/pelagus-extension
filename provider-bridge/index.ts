@@ -84,8 +84,6 @@ export function connectProviderBridge(): void {
     })
 
     port.onDisconnect.addListener(() => {
-      console.log("Port disconnected, attempting to reconnect...")
-
       if (portHealthInterval !== null) clearInterval(portHealthInterval)
       setTimeout(reconnect, PORT_RECONNECT_TIMEOUT_IN_MILLISECONDS)
     })
@@ -94,7 +92,6 @@ export function connectProviderBridge(): void {
   }
 
   function reconnect(): void {
-    console.log("Reconnecting port...")
     port = browser.runtime.connect({ name: EXTERNAL_PORT_NAME })
     setupListeners(port)
   }

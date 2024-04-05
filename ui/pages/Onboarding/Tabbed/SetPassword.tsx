@@ -23,14 +23,13 @@ export default function SetPassword(): JSX.Element {
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
   const [passwordCompleted, setPasswordCompleted] = useState(false)
+
   const history = useHistory()
   const { t } = useTranslation()
-
+  const dispatch = useBackgroundDispatch()
   const { state: { nextPage } = {} } = useLocation<{ nextPage?: string }>()
 
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
-
-  const dispatch = useBackgroundDispatch()
 
   useEffect(() => {
     if (nextPage && areKeyringsUnlocked) {
@@ -38,11 +37,11 @@ export default function SetPassword(): JSX.Element {
     }
   }, [areKeyringsUnlocked, history, nextPage])
 
-  useEffect(() => {
-    if (nextPage && passwordCompleted) {
-      history.replace(nextPage)
+  const dispatchCreatePassword = async () => {
+    if (validatePassword()) {
+      dispatch(createPassword(password))
     }
-  }, [passwordCompleted, history, nextPage])
+  }
 
   const validatePassword = (): boolean => {
     if (password.length < 8) {
@@ -63,20 +62,6 @@ export default function SetPassword(): JSX.Element {
       // If the input field changes, remove the error.
       setPasswordErrorMessage("")
       return f(value)
-    }
-  }
-
-  const dispatchCreatePassword = (): void => {
-    if (validatePassword()) {
-      dispatch(createPassword(password)).then(async () => {
-        const { success } = await dispatch(unlockKeyrings(password))
-        if (success) {
-          setPasswordCompleted(true)
-        } else {
-          setPasswordCompleted(false)
-          setPasswordErrorMessage(t("keyring.setPassword.error.noMatch"))
-        }
-      })
     }
   }
 

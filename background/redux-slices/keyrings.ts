@@ -88,7 +88,10 @@ const keyringsSlice = createSlice({
   initialState,
   reducers: {
     keyringLocked: (state) => ({ ...state, status: "locked" }),
-    keyringUnlocked: (state) => ({ ...state, status: "unlocked" }),
+    keyringUnlocked: (state) => {
+      console.log("UPDATING STATE USE SELECTOR..............")
+      return { ...state, status: "unlocked" }
+    },
     updateKeyrings: (
       state,
       {

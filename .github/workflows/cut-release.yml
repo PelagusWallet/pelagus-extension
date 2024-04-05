@@ -108,6 +108,7 @@ jobs:
 
   deployReleaseCandidateTS:
     uses: ./.github/workflows/build.yml
+    needs: cutReleaseCandidateTS
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
       GPG_PRIVATE_KEY2: ${{ secrets.GPG_PRIVATE_KEY2 }}

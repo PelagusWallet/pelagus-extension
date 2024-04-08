@@ -5,39 +5,38 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { Redirect, useHistory, useLocation } from "react-router-dom"
 import { Trans, useTranslation } from "react-i18next"
-import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
-import {
-  useBackgroundDispatch,
-  useAreKeyringsUnlocked,
-  useBackgroundSelector,
-  useIsOnboarding,
-} from "../../../hooks"
+import { useBackgroundDispatch, useIsOnboarding } from "../../../hooks"
 import SharedButton from "../../../components/Shared/SharedButton"
 import PasswordStrengthBar from "../../../components/Password/PasswordStrengthBar"
 import PasswordInput from "../../../components/Shared/PasswordInput"
 import { WalletDefaultToggle } from "../../../components/Wallet/WalletToggleDefaultBanner"
 import OnboardingRoutes from "./Routes"
+import { useAreKeyringsOnboardingUnlocked } from "../../../hooks/unlocked-hooks"
 
 export default function SetPassword(): JSX.Element {
   const [password, setPassword] = useState("")
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
-  const [passwordCompleted, setPasswordCompleted] = useState(false)
 
   const history = useHistory()
   const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const { state: { nextPage } = {} } = useLocation<{ nextPage?: string }>()
 
-  const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
+  // I`ve added new hook just for tests. Old hook was: useAreKeyringsUnlocked
+  const areKeyringsUnlocked = useAreKeyringsOnboardingUnlocked()
+
+  console.log("In component areKeyringsUnlocked", areKeyringsUnlocked)
 
   useEffect(() => {
+    console.log("useeffect areKeyringsUnlocked", areKeyringsUnlocked)
+
     if (nextPage && areKeyringsUnlocked) {
       history.replace(nextPage)
     }
   }, [areKeyringsUnlocked, history, nextPage])
 
-  const dispatchCreatePassword = async () => {
+  const dispatchCreatePassword = () => {
     if (validatePassword()) {
       dispatch(createPassword(password))
     }
@@ -65,7 +64,7 @@ export default function SetPassword(): JSX.Element {
     }
   }
 
-  const keyringStatus = useBackgroundSelector(selectKeyringStatus)
+  // const keyringStatus = useBackgroundSelector(selectKeyringStatus)
   const isOnboarding = useIsOnboarding()
 
   if (!nextPage) {
@@ -73,7 +72,7 @@ export default function SetPassword(): JSX.Element {
   }
 
   // Unlock Wallet
-  if (!isOnboarding && keyringStatus === "locked") {
+  if (!isOnboarding && !areKeyringsUnlocked) {
     const handleAttemptUnlock: React.FormEventHandler<HTMLFormElement> = async (
       event
     ) => {

@@ -1,5 +1,8 @@
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
-import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  selectKeyringStatus,
+  selectTEST,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useEffect } from "react"
 import { useHistory } from "react-router-dom"
@@ -22,6 +25,12 @@ import { useBackgroundSelector } from "./redux-hooks"
  */
 export const useAreKeyringsUnlocked = (redirectIfNot: boolean): boolean => {
   const keyringStatus = useBackgroundSelector(selectKeyringStatus)
+  const TEST = useBackgroundSelector(selectTEST)
+  console.log(
+    "---------------------------- here ----------------------------",
+    TEST
+  )
+
   const history = useHistory()
 
   let redirectTarget: string | undefined

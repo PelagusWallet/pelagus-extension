@@ -67,9 +67,16 @@ export function blockFromProviderBlock(
     baseFeePerGas?: string
   }
 
+  let blockNumber: string
+  if (Array.isArray(gethResult.number)) {
+    blockNumber = gethResult.number[gethResult.number.length - 1]
+  } else {
+    blockNumber = gethResult.number
+  }
+
   return {
     hash: gethResult.hash,
-    blockHeight: BigNumber.from(gethResult.number).toNumber(),
+    blockHeight: BigNumber.from(blockNumber).toNumber(),
     parentHash: gethResult.parentHash,
     // PoS networks will not have block difficulty.
     difficulty: gethResult.difficulty ? BigInt(gethResult.difficulty) : 0n,

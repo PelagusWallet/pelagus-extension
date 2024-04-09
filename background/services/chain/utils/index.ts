@@ -67,12 +67,9 @@ export function blockFromProviderBlock(
     baseFeePerGas?: string
   }
 
-  let blockNumber: string
-  if (Array.isArray(gethResult.number)) {
-    blockNumber = gethResult.number[gethResult.number.length - 1]
-  } else {
-    blockNumber = gethResult.number
-  }
+  let blockNumber: string = Array.isArray(gethResult.number)
+    ? gethResult.number[gethResult.number.length - 1]
+    : gethResult.number
 
   return {
     hash: gethResult.hash,

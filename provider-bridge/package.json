@@ -24,7 +24,7 @@
     "watch": "webpack --mode=development --watch"
   },
   "dependencies": {
-    "@tallyho/provider-bridge-shared": "0.0.1",
+    "@tallyho/provider-bridge-shared": "v0.3.0-pre",
     "webextension-polyfill": "^0.8.0"
   },
   "devDependencies": {

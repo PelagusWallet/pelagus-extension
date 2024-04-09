@@ -3685,7 +3685,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pelagus/pelagus-background@0.2.11, @pelagus/pelagus-background@workspace:background":
+"@pelagus/pelagus-background@v0.3.0-pre, @pelagus/pelagus-background@workspace:background":
   version: 0.0.0-use.local
   resolution: "@pelagus/pelagus-background@workspace:background"
   dependencies:
@@ -3706,8 +3706,8 @@ __metadata:
     "@pelagus/hd-keyring": 0.2.0-pre.0
     "@redux-devtools/remote": ^0.7.4
     "@reduxjs/toolkit": ^1.6.1
-    "@tallyho/provider-bridge-shared": 0.0.1
-    "@tallyho/window-provider": 0.0.1
+    "@tallyho/provider-bridge-shared": v0.3.0-pre
+    "@tallyho/window-provider": v0.3.0-pre
     "@types/sinon": ^10.0.12
     "@types/uuid": ^8.3.4
     "@types/w3c-web-usb": ^1.0.5
@@ -3754,13 +3754,13 @@ __metadata:
     "@babel/register": ^7.14.5
     "@ethersproject/providers": 5.5.3
     "@fortawesome/fontawesome-free": ^5.15.2
-    "@pelagus/pelagus-background": 0.2.11
-    "@pelagus/pelagus-ui": 0.2.11
+    "@pelagus/pelagus-background": v0.3.0-pre
+    "@pelagus/pelagus-ui": v0.3.0-pre
     "@playwright/test": ^1.31
     "@redux-devtools/cli": ^1.0.7
-    "@tallyho/provider-bridge": 0.0.1
-    "@tallyho/provider-bridge-shared": 0.0.1
-    "@tallyho/window-provider": 0.0.1
+    "@tallyho/provider-bridge": v0.3.0-pre
+    "@tallyho/provider-bridge-shared": v0.3.0-pre
+    "@tallyho/window-provider": v0.3.0-pre
     "@types/archiver": ^5.1.0
     "@types/copy-webpack-plugin": ^8.0.0
     "@types/dotenv-webpack": ^7.0.3
@@ -3816,7 +3816,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@pelagus/pelagus-ui@0.2.11, @pelagus/pelagus-ui@workspace:ui":
+"@pelagus/pelagus-ui@v0.3.0-pre, @pelagus/pelagus-ui@workspace:ui":
   version: 0.0.0-use.local
   resolution: "@pelagus/pelagus-ui@workspace:ui"
   dependencies:
@@ -3826,9 +3826,9 @@ __metadata:
     "@ethersproject/units": 5.5.0
     "@ethersproject/web": ^5.5.1
     "@ledgerhq/devices": ^6.20.0
-    "@pelagus/pelagus-background": 0.2.11
+    "@pelagus/pelagus-background": v0.3.0-pre
     "@reduxjs/toolkit": ^1.6.0
-    "@tallyho/provider-bridge-shared": 0.0.1
+    "@tallyho/provider-bridge-shared": v0.3.0-pre
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 12.1.5
     "@testing-library/user-event": 14.4.3
@@ -5109,27 +5109,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tallyho/provider-bridge-shared@0.0.1, @tallyho/provider-bridge-shared@workspace:provider-bridge-shared":
+"@tallyho/provider-bridge-shared@v0.3.0-pre, @tallyho/provider-bridge-shared@workspace:provider-bridge-shared":
   version: 0.0.0-use.local
   resolution: "@tallyho/provider-bridge-shared@workspace:provider-bridge-shared"
   languageName: unknown
   linkType: soft
 
-"@tallyho/provider-bridge@0.0.1, @tallyho/provider-bridge@workspace:provider-bridge":
+"@tallyho/provider-bridge@v0.3.0-pre, @tallyho/provider-bridge@workspace:provider-bridge":
   version: 0.0.0-use.local
   resolution: "@tallyho/provider-bridge@workspace:provider-bridge"
   dependencies:
-    "@tallyho/provider-bridge-shared": 0.0.1
+    "@tallyho/provider-bridge-shared": v0.3.0-pre
     "@types/webextension-polyfill": ^0.8.0
     webextension-polyfill: ^0.8.0
   languageName: unknown
   linkType: soft
 
-"@tallyho/window-provider@0.0.1, @tallyho/window-provider@workspace:window-provider":
+"@tallyho/window-provider@v0.3.0-pre, @tallyho/window-provider@workspace:window-provider":
   version: 0.0.0-use.local
   resolution: "@tallyho/window-provider@workspace:window-provider"
   dependencies:
-    "@tallyho/provider-bridge-shared": 0.0.1
+    "@tallyho/provider-bridge-shared": v0.3.0-pre
   languageName: unknown
   linkType: soft
 

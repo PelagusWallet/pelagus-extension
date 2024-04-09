@@ -185,7 +185,19 @@ jobs:
       - name: Sync Versions
         if: ${{ inputs.update_version }}
         run: |
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-ui = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" window-provider/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" background/package.json
           yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge-shared/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" window-provider/package.json
           yq eval -i ".version = \"${{ env.VERSION }}\"" background/package.json
           yq eval -i ".version = \"${{ env.VERSION }}\"" ui/package.json
           STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')

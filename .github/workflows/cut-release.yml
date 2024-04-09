@@ -90,30 +90,26 @@ jobs:
         with:
           ssh-key: ${{ secrets.GH_PAT }}
 
-      - name: Update Version
-        run: |
-          jq --arg new_version "v$(npx semver -i minor $(jq -r '.version' package.json | sed 's/^v//;s/-pre$//'))-pre" '.version = $new_version' package.json > temp.json && mv temp.json package.json
-          NEW_VERSION=$(jq -r '.version' package.json)
-          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
-
       - name: Sync Versions
         if: ${{ inputs.update_version }}
         run: |
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-ui = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" window-provider/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" background/package.json
           yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge-shared/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" window-provider/package.json
           yq eval -i ".version = \"${{ env.VERSION }}\"" background/package.json
           yq eval -i ".version = \"${{ env.VERSION }}\"" ui/package.json
           STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')
           yq eval -i ".version = \"${STRIPPED_VERSION}\"" manifest/manifest.json
-
-      - name: Sync package-lock.json
-        run: yarn install --ignore-scripts
-
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Rev'd main to Release ${{ env.VERSION }}
-          branch: ${{ inputs.branch }}
-          commit_user_name: ci-dominantstrategies
-          commit_user_email: ci@dominantstrategies.io
 
   deployReleaseCandidateTS:
     uses: ./.github/workflows/build.yml

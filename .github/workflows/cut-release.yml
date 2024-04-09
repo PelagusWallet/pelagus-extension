@@ -96,6 +96,15 @@ jobs:
           NEW_VERSION=$(jq -r '.version' package.json)
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
+      - name: Sync Versions
+        if: ${{ inputs.update_version }}
+        run: |
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" ui/package.json
+          STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')
+          yq eval -i ".version = \"${STRIPPED_VERSION}\"" manifest/manifest.json
+
       - name: Sync package-lock.json
         run: yarn install --ignore-scripts
 

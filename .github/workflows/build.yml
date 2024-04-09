@@ -182,10 +182,14 @@ jobs:
           VERSION_VALUE=$(sudo yq eval '.version' package.json | head -n 1)
           echo "VERSION=$VERSION_VALUE"
           echo "VERSION=$VERSION_VALUE" >> $GITHUB_ENV
-      - name: Sync Manifest
+      - name: Sync Versions
         if: ${{ inputs.update_version }}
         run: |
-          yq eval -i ".version = \"${{ env.VERSION }}\"" manifest/manifest.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" ui/package.json
+          STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')
+          yq eval -i ".version = \"${STRIPPED_VERSION}\"" manifest/manifest.json
       - uses: stefanzweifel/git-auto-commit-action@v4
         if: ${{ inputs.update_version }}
         with:

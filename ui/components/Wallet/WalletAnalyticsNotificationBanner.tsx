@@ -41,8 +41,7 @@ export default function WalletAnalyticsNotificationBanner(): ReactElement {
               style={{ height: "auto", margin: "8px 0" }}
               size="medium"
               type="tertiary"
-              // FIXME temporary solution to hide analytics screen
-              // linkTo="/settings/analytics"
+              linkTo="/settings/analytics"
               iconSmall="settings"
               iconPosition="left"
             >

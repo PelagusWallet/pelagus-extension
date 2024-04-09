@@ -124,7 +124,9 @@ export default function Wallet(): ReactElement {
 
         <WalletNoConnectionBanner />
 
-        <WalletAnalyticsNotificationBanner />
+        {/* FIXME temporary solution to hide analytics screen
+        <WalletAnalyticsNotificationBanner /> */}
+
         <div className="section">
           <WalletAccountBalanceControl
             mainAssetBalance={

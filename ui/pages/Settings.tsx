@@ -289,17 +289,18 @@ export default function Settings(): ReactElement {
     ),
   }
 
-  const analytics = {
-    title: "",
-    component: () => (
-      <SettingButton
-        link="/settings/analytics"
-        label={t("settings.analytics")}
-        ariaLabel={t("settings.analyticsSetUp.ariaLabel")}
-        icon="continue"
-      />
-    ),
-  }
+  // FIXME temporary solution to hide analytics screen
+  // const analytics = {
+  //   title: "",
+  //   component: () => (
+  //     <SettingButton
+  //       link="/settings/analytics"
+  //       label={t("settings.analytics")}
+  //       ariaLabel={t("settings.analyticsSetUp.ariaLabel")}
+  //       icon="continue"
+  //     />
+  //   ),
+  // }
 
   const notificationBanner = {
     title: t("settings.showBanners"),
@@ -333,7 +334,8 @@ export default function Settings(): ReactElement {
           setAsDefault
         ),
         dAppsSettings,
-        analytics,
+        // FIXME temporary solution to hide analytics screen
+        // analytics,
         ...wrapIfEnabled(FeatureFlags.SUPPORT_MULTIPLE_LANGUAGES, languages),
         ...wrapIfEnabled(
           FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER,

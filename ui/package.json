@@ -1,6 +1,6 @@
 {
   "name": "@pelagus/pelagus-ui",
-  "version": "v0.3.0-pre",
+  "version": "v0.3.0",
   "description": "Pelagus, the community owned and operated Web3 wallet for Quai Network: UI package.",
   "main": "index.ts",
   "repository": "git@github.com:PelagusWallet/pelagus-extension.git",

@@ -144,7 +144,6 @@ export default class KeyringService extends BaseService<Events> {
   #unlock(): void {
     this.lastKeyringActivity = Date.now()
     this.lastOutsideActivity = Date.now()
-    console.log("unlock sending locked event")
     this.emitter.emit("locked", false)
   }
 
@@ -172,7 +171,6 @@ export default class KeyringService extends BaseService<Events> {
     password: string,
     ignoreExistingVaults = false
   ): Promise<boolean> {
-    console.log("inside unlock", password, ignoreExistingVaults)
     if (!this.locked()) {
       logger.warn("KeyringService is already unlocked!")
       this.#unlock()
@@ -213,6 +211,8 @@ export default class KeyringService extends BaseService<Events> {
         this.#hiddenAccounts = {
           ...plainTextVault.hiddenAccounts,
         }
+
+        this.emitKeyrings()
       }
     }
 
@@ -224,10 +224,6 @@ export default class KeyringService extends BaseService<Events> {
     }
 
     this.#unlock()
-    this.emitKeyrings()
-
-    console.log("might be true")
-
     return true
   }
 
@@ -714,12 +710,9 @@ export default class KeyringService extends BaseService<Events> {
   // //////////////////
 
   private emitKeyrings() {
-    console.log("emitting keys")
     if (this.locked()) {
-      console.log("locked")
       this.emitter.emit("keyrings", { keyrings: [], keyringMetadata: {} })
     } else {
-      console.log("existing")
       const keyrings = this.getKeyrings()
       this.emitter.emit("keyrings", {
         keyrings,

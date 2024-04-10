@@ -1455,12 +1455,9 @@ export default class Main extends BaseService<never> {
     })
 
     this.keyringService.emitter.on("locked", async (isLocked) => {
-      console.log("event catched")
       if (isLocked) {
-        console.log("keyringLocked()")
         this.store.dispatch(keyringLocked())
       } else {
-        console.log("keyringUnlocked()")
         this.store.dispatch(keyringUnlocked())
       }
     })
@@ -1470,7 +1467,6 @@ export default class Main extends BaseService<never> {
     })
 
     keyringSliceEmitter.on("lockKeyrings", async () => {
-      console.log("lock()")
       await this.keyringService.lock()
     })
 

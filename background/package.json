@@ -35,7 +35,7 @@
     "@ethersproject/web": "^5.5.1",
     "@ledgerhq/devices": "^6.20.0",
     "@ledgerhq/errors": "^6.12.0",
-    "@ledgerhq/hw-app-eth": "^6.30.0",
+    "@ledgerhq/hw-app-eth": "^6.35.7",
     "@ledgerhq/hw-transport": "^6.20.0",
     "@ledgerhq/hw-transport-webusb": "^6.20.0",
     "@pelagus/hd-keyring": "0.2.0-pre.0",

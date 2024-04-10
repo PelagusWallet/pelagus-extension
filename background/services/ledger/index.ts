@@ -192,8 +192,8 @@ export default class LedgerService extends BaseService<Events> {
     )
 
     this.#lastOperationPromise = newOperationPromise.then(
-      () => {},
-      () => {}
+      () => { },
+      () => { }
     )
 
     return newOperationPromise
@@ -206,7 +206,7 @@ export default class LedgerService extends BaseService<Events> {
       }
 
       try {
-        this.transport = await TransportWebUSB.create()
+        this.transport = await TransportWebUSB.create() as Transport
 
         const eth = new Eth(this.transport)
 
@@ -349,8 +349,7 @@ export default class LedgerService extends BaseService<Events> {
         return accountAddress
       } catch (err) {
         logger.error(
-          `Error encountered deriving address at path ${derivationPath}! ledgerID: ${
-            this.#currentLedgerId
+          `Error encountered deriving address at path ${derivationPath}! ledgerID: ${this.#currentLedgerId
           } error: ${err}`
         )
         throw err
@@ -467,8 +466,7 @@ export default class LedgerService extends BaseService<Events> {
         return signedTx
       } catch (err) {
         logger.error(
-          `Error encountered! ledgerID: ${
-            this.#currentLedgerId
+          `Error encountered! ledgerID: ${this.#currentLedgerId
           } transactionRequest: ${transactionRequest} error: ${err}`
         )
 

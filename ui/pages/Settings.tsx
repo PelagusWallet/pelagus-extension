@@ -312,17 +312,18 @@ export default function Settings(): ReactElement {
     ),
   }
 
-  const customNetworks = {
-    title: "",
-    component: () => (
-      <SettingButton
-        link="/settings/custom-networks"
-        label={t("settings.customNetworks")}
-        ariaLabel={t("settings.customNetworksSettings.ariaLabel")}
-        icon="continue"
-      />
-    ),
-  }
+  // FIXME currently allows users to add networks that can break the extension
+  // const customNetworks = {
+  //   title: "",
+  //   component: () => (
+  //     <SettingButton
+  //       link="/settings/custom-networks"
+  //       label={t("settings.customNetworks")}
+  //       ariaLabel={t("settings.customNetworksSettings.ariaLabel")}
+  //       icon="continue"
+  //     />
+  //   ),
+  // }
 
   const settings = Object.values({
     general: {
@@ -348,7 +349,7 @@ export default function Settings(): ReactElement {
       items: [
         hideSmallAssetBalance,
         unverifiedAssets,
-        customNetworks,
+        // customNetworks, // FIXME currently allows users to add networks that can break the extension //
         addCustomAsset,
         enableTestNetworks,
       ],

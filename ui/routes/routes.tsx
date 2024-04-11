@@ -3,7 +3,6 @@ import Wallet from "../pages/Wallet"
 import SignTransaction from "../pages/SignTransaction"
 import SignData from "../pages/SignData"
 import PersonalSign from "../pages/PersonalSign"
-import Overview from "../pages/Overview"
 import SingleAsset from "../pages/SingleAsset"
 import Earn from "../pages/Earn"
 import EarnDeposit from "../pages/EarnDeposit"
@@ -19,7 +18,6 @@ import SettingsAnalytics from "../pages/Settings/SettingsAnalytics"
 import SettingsConnectedWebsites from "../pages/Settings/SettingsConnectedWebsites"
 import HiddenDevPanel from "../components/HiddenDevPanel/HiddenDevPanel"
 import FeatureFlagsPanel from "../components/HiddenDevPanel/FeatureFlagsPanel"
-import NFTs from "../pages/NFTs"
 import Abilities from "../pages/Abilities"
 import SettingsCustomNetworks from "../pages/Settings/SettingsCustomNetworks"
 import NewCustomNetworkRequest from "../pages/NewCustomNetworkRequest"
@@ -86,13 +84,16 @@ const pageList: PageList[] = [
     hasTopBar: false,
     persistOnClose: true,
   },
-  {
-    path: "/portfolio",
-    Component: Overview,
-    hasTabBar: true,
-    hasTopBar: false,
-    persistOnClose: true,
-  },
+
+  // Will likely be added back to the tab nav in the future.
+  // {
+  //   path: "/portfolio",
+  //   Component: Overview,
+  //   hasTabBar: true,
+  //   hasTopBar: false,
+  //   persistOnClose: true,
+  // },
+
   {
     path: "/earn/deposit",
     Component: EarnDeposit,
@@ -170,13 +171,16 @@ const pageList: PageList[] = [
     hasTopBar: true,
     persistOnClose: true,
   },
-  {
-    path: "/nfts",
-    Component: NFTs,
-    hasTabBar: true,
-    hasTopBar: false,
-    persistOnClose: true,
-  },
+
+  // Will likely be added back to the tab nav in the future.
+  // {
+  //   path: "/nfts",
+  //   Component: NFTs,
+  //   hasTabBar: true,
+  //   hasTopBar: false,
+  //   persistOnClose: true,
+  // },
+
   {
     path: "/dapp-permission",
     Component: DAppPermissionRequest,

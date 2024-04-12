@@ -18,7 +18,6 @@ import SetPassword from "./SetPassword"
 import NewSeed, { NewSeedRoutes } from "./NewSeed"
 import InfoIntro from "./Intro"
 import ViewOnlyWallet from "./ViewOnlyWallet"
-import Ledger from "./Ledger/Ledger"
 import OnboardingRoutes from "./Routes"
 import RouteBasedContent from "../../../components/Onboarding/RouteBasedContent"
 import { useIsOnboarding } from "../../../hooks"
@@ -187,9 +186,11 @@ export default function Root(): ReactElement {
         <Route path={OnboardingRoutes.ADD_WALLET}>
           <AddWallet />
         </Route>
-        <Route path={OnboardingRoutes.LEDGER}>
-          <Ledger />
-        </Route>
+        {/** Does not currently exist
+         <Route path={OnboardingRoutes.LEDGER}>
+         <Ledger />
+         </Route>
+         */}
         <Route path={OnboardingRoutes.SET_PASSWORD}>
           <SetPassword />
         </Route>

@@ -1,6 +1,5 @@
 import React, { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { isLedgerSupported } from "@pelagus/pelagus-background/services/ledger"
 import OnboardingRoutes from "./Routes"
 import { intersperseWith } from "../../../utils/lists"
 import SharedButton from "../../../components/Shared/SharedButton"
@@ -75,7 +74,8 @@ export default function AddWalletOptions(): JSX.Element {
         label: t("options.ledger"),
         icon: "add_wallet/ledger.svg",
         url: OnboardingRoutes.LEDGER,
-        isAvailable: isLedgerSupported,
+        isAvailable:
+          false /** To make visible - add isLedgerSupported flag from "@pelagus/pelagus-background/services/ledger" */,
       },
       {
         label: t("options.readOnly"),

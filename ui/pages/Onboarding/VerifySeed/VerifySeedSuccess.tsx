@@ -6,6 +6,9 @@ import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/s
 import SharedButton from "../../../components/Shared/SharedButton"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import { OnboardingBox, OnboardingMessageHeader } from "../styles"
+import { SignerSourceTypes } from "../Tabbed/ImportPrivateKey"
+import { SignerImportSource } from "@pelagus/pelagus-background/services/keyring"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 
 function VerifySeedSuccess({
   mnemonic,
@@ -39,14 +42,16 @@ function VerifySeedSuccess({
         size="medium"
         type="primary"
         onClick={async () => {
-          await dispatch(
+          const { success } = (await dispatch(
             importKeyring({
+              type: SignerSourceTypes.keyring,
               mnemonic: mnemonic.join(" "),
-              source: "internal",
-              path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
+              source: SignerImportSource.internal,
+              path: selectedNetwork.derivationPath ?? "m/44'/60'/0'/0",
             })
-          )
-          history.push(nextPage)
+          )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
+
+          if (success) history.push(nextPage)
         }}
       >
         {t("successButton")}

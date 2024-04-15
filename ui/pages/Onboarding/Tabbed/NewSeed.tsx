@@ -23,6 +23,8 @@ import NewSeedReview from "./NewSeed/NewSeedReview"
 import NewSeedVerify from "./NewSeed/NewSeedVerify"
 import OnboardingRoutes from "./Routes"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import { SignerSourceTypes } from "./ImportPrivateKey"
+import { SignerImportSource } from "@pelagus/pelagus-background/services/keyring"
 
 const StepContainer = ({
   children,
@@ -83,9 +85,9 @@ export default function NewSeed(): ReactElement {
   const onVerifySuccess = async (verifiedMnemonic: string[]) => {
     const { success } = (await dispatch(
       importKeyring({
+        type: SignerSourceTypes.keyring,
         mnemonic: verifiedMnemonic.join(" "),
-        source: "internal",
-        path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
+        source: SignerImportSource.internal,
       })
     )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
 

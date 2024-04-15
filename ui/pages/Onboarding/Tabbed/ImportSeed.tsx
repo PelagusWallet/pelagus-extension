@@ -20,6 +20,8 @@ import {
 import OnboardingRoutes from "./Routes"
 import SharedSelect from "../../../components/Shared/SharedSelect"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import { SignerSourceTypes } from "./ImportPrivateKey"
+import { SignerImportSource } from "@pelagus/pelagus-background/services/keyring"
 
 type Props = {
   nextPage: string
@@ -70,9 +72,10 @@ export default function ImportSeed(props: Props): ReactElement {
 
       const { success } = (await dispatch(
         importKeyring({
+          type: SignerSourceTypes.keyring,
           mnemonic: plainRecoveryPhrase,
-          source: "import",
           path,
+          source: SignerImportSource.import,
         })
       )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
 

@@ -3,7 +3,12 @@ import Emittery from "emittery"
 
 import { setNewSelectedAccount, UIState } from "./ui"
 import { createBackgroundAsyncThunk } from "./utils"
-import { Keyring, KeyringMetadata } from "../services/keyring/index"
+import {
+  Keyring,
+  PrivateKey,
+  SignerImportMetadata,
+  SignerImportSource,
+} from "../services/keyring/index"
 
 type KeyringToVerify = {
   id: string
@@ -12,8 +17,9 @@ type KeyringToVerify = {
 
 export type KeyringsState = {
   keyrings: Keyring[]
+  privateKeys: PrivateKey[]
   keyringMetadata: {
-    [keyringId: string]: KeyringMetadata
+    [keyringId: string]: { source: SignerImportSource }
   }
   status: "locked" | "unlocked" | "uninitialized"
   keyringToVerify: KeyringToVerify
@@ -21,6 +27,7 @@ export type KeyringsState = {
 
 export const initialState: KeyringsState = {
   keyrings: [],
+  privateKeys: [],
   keyringMetadata: {},
   status: "uninitialized",
   keyringToVerify: null,
@@ -36,45 +43,33 @@ export type Events = {
   lockKeyrings: never
   generateNewKeyring: string | undefined
   deriveAddress: DeriveAddressData
-  importKeyring: ImportKeyring
-  exportPrivKey: string
 }
 
 export const emitter = new Emittery<Events>()
-
-interface ImportKeyring {
-  mnemonic: string
-  source: "internal" | "import"
-  path?: string
-}
 
 // Async thunk to bubble the importKeyring action from  store to emitter.
 export const importKeyring = createBackgroundAsyncThunk(
   "keyrings/importKeyring",
   async (
-    { mnemonic, source, path }: ImportKeyring,
+    signerRaw: SignerImportMetadata,
     { getState, dispatch, extra: { main } }
   ): Promise<{ success: boolean; errorMessage?: string }> => {
-    const newKeyringId = await main.importSigner({ mnemonic, path, source })
+    const address = await main.importSigner(signerRaw)
 
-    if (!newKeyringId) {
+    if (!address) {
       return {
         success: false,
         errorMessage: "Unexpected error during signer import",
       }
     }
 
-    const { keyrings, ui } = getState() as {
-      keyrings: KeyringsState
+    const { ui } = getState() as {
       ui: UIState
     }
-    // Set the selected account as the first address of the last added keyring,
-    // which will correspond to the last imported keyring, AKA this one. Note that
-    // this does rely on the KeyringService's behavior of pushing new keyrings to
-    // the end of the keyring list.
+
     dispatch(
       setNewSelectedAccount({
-        address: keyrings.keyrings.slice(-1)[0].addresses[0],
+        address,
         network: ui.selectedAccount.network,
       })
     )
@@ -92,11 +87,14 @@ const keyringsSlice = createSlice({
     updateKeyrings: (
       state,
       {
-        payload: { keyrings, keyringMetadata },
+        payload: { privateKeys, keyrings, keyringMetadata },
       }: {
         payload: {
+          privateKeys: PrivateKey[]
           keyrings: Keyring[]
-          keyringMetadata: { [keyringId: string]: KeyringMetadata }
+          keyringMetadata: {
+            [keyringId: string]: { source: SignerImportSource }
+          }
         }
       }
     ) => {
@@ -111,6 +109,7 @@ const keyringsSlice = createSlice({
       return {
         ...state,
         keyrings,
+        privateKeys,
         keyringMetadata,
       }
     },

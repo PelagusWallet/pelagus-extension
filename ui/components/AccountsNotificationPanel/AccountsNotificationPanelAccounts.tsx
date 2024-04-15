@@ -489,7 +489,6 @@ export default function AccountsNotificationPanelAccounts({
 
   const handleSetShard = (newShard: string) => {
     // This is for updating user-selected shard for new address
-    console.log(newShard)
     shard.current = newShard
   }
 

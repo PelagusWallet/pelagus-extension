@@ -215,9 +215,7 @@ const uiSlice = createSlice({
     setAccountsSignerSettings: (
       state,
       { payload }: { payload: AccountSignerSettings[] }
-    ) => {
-      return { ...state, accountSignerSettings: payload }
-    },
+    ) => ({ ...state, accountSignerSettings: payload }),
     setShowDefaultWalletBanner: (state, { payload }: { payload: boolean }) => {
       return {
         ...state,

@@ -197,6 +197,7 @@ import {
 import { isBuiltInNetworkBaseAsset } from "./redux-slices/utils/asset-utils"
 import { getPricePoint, getTokenPrices } from "./lib/prices"
 import localStorageShim from "./utils/local-storage-shim"
+import { SignerImportMetadata } from "./services/keyring"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -1996,16 +1997,8 @@ export default class Main extends BaseService<never> {
     return this.keyringService.exportPrivKey(address)
   }
 
-  async importSigner({
-    mnemonic,
-    path,
-    source,
-  }: {
-    mnemonic: string
-    path?: string
-    source: "import" | "internal"
-  }): Promise<string | null> {
-    return this.keyringService.importKeyring(mnemonic, source, path)
+  async importSigner(signerRaw: SignerImportMetadata): Promise<string | null> {
+    return this.keyringService.importKeyring(signerRaw)
   }
 
   async getActivityDetails(txHash: string): Promise<ActivityDetail[]> {

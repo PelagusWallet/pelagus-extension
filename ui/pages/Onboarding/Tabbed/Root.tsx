@@ -21,6 +21,7 @@ import ViewOnlyWallet from "./ViewOnlyWallet"
 import OnboardingRoutes from "./Routes"
 import RouteBasedContent from "../../../components/Onboarding/RouteBasedContent"
 import { useIsOnboarding } from "../../../hooks"
+import ImportPrivateKeyForm from "./ImportPrivateKeyForm"
 
 function Navigation({
   children,
@@ -196,6 +197,11 @@ export default function Root(): ReactElement {
         </Route>
         <Route path={OnboardingRoutes.IMPORT_SEED}>
           <ImportSeed nextPage={OnboardingRoutes.ONBOARDING_COMPLETE} />
+        </Route>
+        <Route path={OnboardingRoutes.IMPORT_PRIVATE_KEY}>
+          <ImportPrivateKeyForm
+            nextPage={OnboardingRoutes.ONBOARDING_COMPLETE}
+          />
         </Route>
         <Route path={OnboardingRoutes.NEW_SEED}>
           <NewSeed />

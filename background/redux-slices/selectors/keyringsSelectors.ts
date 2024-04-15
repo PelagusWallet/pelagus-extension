@@ -1,6 +1,6 @@
 import { createSelector, OutputSelector } from "@reduxjs/toolkit"
 import { RootState } from ".."
-import { Keyring } from "../../services/keyring"
+import { Keyring, PrivateKey, SignerImportSource } from "../../services/keyring"
 import { HexString } from "../../types"
 
 export const selectKeyringStatus = createSelector(
@@ -37,6 +37,14 @@ export const selectKeyringsByAddresses = createSelector(
     )
 )
 
+export const selectPrivateKeyWalletsByAddress = createSelector(
+  (state: RootState) => state.keyrings.privateKeys,
+  (privateKeys): { [address: HexString]: PrivateKey } =>
+    Object.fromEntries(
+      privateKeys.map((wallet) => [wallet.addresses[0], wallet])
+    )
+)
+
 export const selectSourcesByAddress = createSelector(
   (state: RootState) => state.keyrings.keyrings,
   (state: RootState) => state.keyrings.keyringMetadata,
@@ -44,7 +52,7 @@ export const selectSourcesByAddress = createSelector(
     keyrings,
     keyringMetadata
   ): {
-    [address: HexString]: "import" | "internal"
+    [address: HexString]: SignerImportSource
   } =>
     Object.fromEntries(
       keyrings
@@ -59,4 +67,9 @@ export const selectSourcesByAddress = createSelector(
           ])
         )
     )
+)
+
+export const selectIsWalletExists = createSelector(
+  (state: RootState) => state.keyrings.keyrings,
+  (keyrings) => (keyrings && keyrings.length ? true : false)
 )

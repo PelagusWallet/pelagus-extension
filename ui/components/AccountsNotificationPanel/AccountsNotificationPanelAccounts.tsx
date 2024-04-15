@@ -25,6 +25,7 @@ import {
   selectCurrentAccount,
   selectCurrentNetwork,
   CategorizedAccountTotals,
+  selectIsWalletExists,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useHistory } from "react-router-dom"
 import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
@@ -50,14 +51,51 @@ import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import EditSectionForm from "./EditSectionForm"
 import SigningButton from "./SigningButton"
-import { ONBOARDING_ROOT } from "../../pages/Onboarding/Tabbed/Routes"
+import OnboardingRoutes, {
+  ONBOARDING_ROOT,
+  PAGE_ROOT,
+} from "../../pages/Onboarding/Tabbed/Routes"
 import SharedSelect from "../Shared/SharedSelect"
 import SharedLoadingShip from "../Shared/SharedLoadingShip"
+import { isAccountSingular, isAccountWithSecrets } from "../../utils/accounts"
+import SharedORDivider from "../Shared/SharedORDivider"
 
 type WalletTypeInfo = {
   title: string
   icon: string
   category: string
+}
+
+const shouldAddHeader = (
+  existingAccountTypes: AccountType[],
+  currentAccountType: AccountType
+): boolean => {
+  // Ledger and read-only accounts have their own sections.
+  // Internal accounts, imported with mnemonic or private key are in the same section so we
+  // only need to add that header once when we encounter such an account for the first time.
+  switch (currentAccountType) {
+    case AccountType.Ledger:
+    case AccountType.ReadOnly:
+    case AccountType.Internal:
+      return true
+    case AccountType.Imported:
+      return !existingAccountTypes.includes(AccountType.Internal)
+    case AccountType.PrivateKey:
+      return !(
+        existingAccountTypes.includes(AccountType.Internal) ||
+        existingAccountTypes.includes(AccountType.Imported)
+      )
+    default:
+      throw Error("Unknown account type")
+  }
+}
+
+const sharedButtonStyle = {
+  width: "-webkit-fill-available",
+  height: "40px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 }
 
 function WalletTypeHeader({
@@ -95,6 +133,11 @@ function WalletTypeHeader({
     [AccountType.Imported]: {
       title: t("accounts.notificationPanel.import"),
       icon: "./images/imported@2x.png",
+      category: t("accounts.notificationPanel.category.others"),
+    },
+    [AccountType.PrivateKey]: {
+      title: t("accounts.notificationPanel.privateKey"),
+      icon: "./images/key-light.svg",
       category: t("accounts.notificationPanel.category.others"),
     },
     [AccountType.Internal]: {
@@ -145,7 +188,7 @@ function WalletTypeHeader({
   const sectionCustomName = signerSettings?.title
 
   const sectionTitle = useMemo(() => {
-    if (accountType === AccountType.ReadOnly) return title
+    if (isAccountSingular(accountType)) return title
 
     let networkName = "" // Only for Rootstock
     if (path === ROOTSTOCK.derivationPath) networkName = `(${ROOTSTOCK.name})`
@@ -159,11 +202,11 @@ function WalletTypeHeader({
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const [showEditMenu, setShowEditMenu] = useState(false)
   const [showShardMenu, setShowShardMenu] = useState(false)
-  const dropdownTogglerRef = useRef(null)
+  const isWalletExists = useBackgroundSelector(selectIsWalletExists)
 
   return (
     <>
-      {accountSigner.type !== "read-only" && (
+      {accountSigner.type !== AccountType.ReadOnly && (
         <SharedSlideUpMenu
           size="small"
           isOpen={showEditMenu}
@@ -202,31 +245,59 @@ function WalletTypeHeader({
         }}
       >
         <div className="menu-content">
-          <SharedSelect
-            options={shardOptions}
-            onChange={handleShardSelection}
-            defaultIndex={0}
-            label="Choose Shard"
-            width="100%"
-            align-self="center"
-          />
+          {isWalletExists ? (
+            <>
+              <SharedSelect
+                options={shardOptions}
+                onChange={handleShardSelection}
+                defaultIndex={0}
+                label="Choose Shard"
+                width="100%"
+                align-self="center"
+              />
+              <SharedButton
+                type="tertiary"
+                size="small"
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  width: "fit-content",
+                  marginLeft: "75%",
+                }}
+                onClick={() => {
+                  onClickAddAddress && onClickAddAddress()
+                  setShowShardMenu(false)
+                  dispatch(setShowingAddAccountModal(false))
+                }}
+              >
+                Confirm
+              </SharedButton>
+            </>
+          ) : (
+            <SharedButton
+              type="primary"
+              size="small"
+              style={{ ...sharedButtonStyle, marginTop: "20px" }}
+              onClick={() => {
+                window.open(`${ONBOARDING_ROOT}`)
+                window.close()
+              }}
+            >
+              Add Wallet
+            </SharedButton>
+          )}
 
+          <SharedORDivider />
           <SharedButton
-            type="tertiary"
+            type="primary"
             size="small"
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              width: "fit-content",
-              marginLeft: "75%",
-            }}
+            style={sharedButtonStyle}
             onClick={() => {
-              onClickAddAddress && onClickAddAddress()
-              setShowShardMenu(false)
-              dispatch(setShowingAddAccountModal(false))
+              window.open(`${PAGE_ROOT}${OnboardingRoutes.IMPORT_PRIVATE_KEY}`)
+              window.close()
             }}
           >
-            Confirm
+            Import from Private Key
           </SharedButton>
         </div>
       </SharedSlideUpMenu>
@@ -257,19 +328,29 @@ function WalletTypeHeader({
                 label: t("accounts.accountItem.editName"),
                 onClick: () => setShowEditMenu(true),
               },
-              {
-                key: "addWallet",
-                icon: "icons/s/add.svg",
-                label: t("accounts.notificationPanel.addWallet"),
-                onClick: () => {
-                  window.open(ONBOARDING_ROOT)
-                  window.close()
-                },
-              },
+              accountType !== AccountType.PrivateKey
+                ? {
+                    key: "addWallet",
+                    icon: "icons/s/add.svg",
+                    label: t("accounts.notificationPanel.addWallet"),
+                    onClick: () => {
+                      window.open(ONBOARDING_ROOT)
+                      window.close()
+                    },
+                  }
+                : undefined,
               onClickAddAddress && {
                 key: "addAddress",
                 onClick: () => {
                   if (areKeyringsUnlocked) {
+                    if (accountType === AccountType.PrivateKey) {
+                      window.open(
+                        `${PAGE_ROOT}${OnboardingRoutes.IMPORT_PRIVATE_KEY}`
+                      )
+                      window.close()
+                      return
+                    }
+
                     setSelectedAccountSigner(signerId ?? "")
                     setShowShardMenu(true)
                   } else {
@@ -308,7 +389,6 @@ function WalletTypeHeader({
         }
         .menu-content > :last-child {
           margin-bottom: 16px;
-          margin-right: 16px;
         }
         .wallet_title {
           display: flex;
@@ -465,6 +545,11 @@ export default function AccountsNotificationPanelAccounts({
       icon: "./images/imported@2x.png",
       category: t("accounts.notificationPanel.category.others"),
     },
+    [AccountType.PrivateKey]: {
+      title: t("accounts.notificationPanel.privateKey"),
+      icon: "./images/key-light.svg",
+      category: t("accounts.notificationPanel.category.others"),
+    },
     [AccountType.Internal]: {
       title: t("accounts.notificationPanel.internal"),
       icon: "./images/stars_grey.svg",
@@ -537,8 +622,9 @@ export default function AccountsNotificationPanelAccounts({
   const accountTypes = [
     AccountType.Internal,
     AccountType.Imported,
-    AccountType.ReadOnly,
+    AccountType.PrivateKey,
     AccountType.Ledger,
+    AccountType.ReadOnly,
   ]
 
   return (
@@ -635,18 +721,18 @@ export default function AccountsNotificationPanelAccounts({
           }
         }
 
+        const existingAccountTypes = accountTypes.filter(
+          (type) => (accountTotals[type]?.length ?? 0) > 0
+        )
+
         return (
           <>
-            {!(
-              accountType === AccountType.Imported &&
-              (accountTotals[AccountType.Internal]?.length ?? 0)
-            ) && (
+            {shouldAddHeader(existingAccountTypes, accountType) && (
               <div className="category_wrap simple_text">
                 <p className="category_title">
                   {walletTypeDetails[accountType].category}
                 </p>
-                {(accountType === AccountType.Imported ||
-                  accountType === AccountType.Internal) && (
+                {isAccountWithSecrets(accountType) && (
                   <SigningButton
                     onCurrentAddressChange={onCurrentAddressChange}
                   />
@@ -665,7 +751,9 @@ export default function AccountsNotificationPanelAccounts({
                       signerId={accountTotalsBySignerId[0].signerId}
                       setShard={handleSetShard}
                       onClickAddAddress={
-                        accountType === "imported" || accountType === "internal"
+                        accountType === "imported" ||
+                        accountType === "internal" ||
+                        accountType === "private-key"
                           ? () => {
                               console.log(`onClickAddress ${shard.current}`)
                               if (shard.current === "") {

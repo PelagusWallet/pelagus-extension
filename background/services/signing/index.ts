@@ -1,5 +1,8 @@
 import { StatusCodes, TransportStatusError } from "@ledgerhq/errors"
-import KeyringService, { KeyringAccountSigner } from "../keyring"
+import KeyringService, {
+  KeyringAccountSigner,
+  PrivateKeyAccountSigner,
+} from "../keyring"
 import LedgerService, { LedgerAccountSigner } from "../ledger"
 import {
   SignedTransaction,
@@ -53,6 +56,7 @@ export const ReadOnlyAccountSigner = { type: "read-only" } as const
  */
 export type AccountSigner =
   | typeof ReadOnlyAccountSigner
+  | PrivateKeyAccountSigner
   | KeyringAccountSigner
   | HardwareAccountSigner
 export type HardwareAccountSigner = LedgerAccountSigner
@@ -135,6 +139,7 @@ export default class SigningService extends BaseService<Events> {
           transactionWithNonce,
           accountSigner
         )
+      case "private-key":
       case "keyring":
         return this.keyringService.signTransaction(
           {
@@ -156,6 +161,7 @@ export default class SigningService extends BaseService<Events> {
   ): Promise<void> {
     if (signerType) {
       switch (signerType) {
+        case "private-key":
         case "keyring":
           await this.keyringService.hideAccount(address)
           break
@@ -259,6 +265,7 @@ export default class SigningService extends BaseService<Events> {
             accountSigner
           )
           break
+        case "private-key":
         case "keyring":
           signedData = await this.keyringService.signTypedData({
             typedData,
@@ -304,6 +311,7 @@ export default class SigningService extends BaseService<Events> {
             hexDataToSign
           )
           break
+        case "private-key":
         case "keyring":
           signedData = await this.keyringService.personalSign({
             signingData: hexDataToSign,

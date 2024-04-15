@@ -27,6 +27,7 @@
       "addAddress": "Add Address",
       "resetOrder": "Reset Order",
       "readOnly": "Read-only",
+      "privateKey": "Private key",
       "import": "Import",
       "internal": "Pelagus",
       "ledger": "Ledger",
@@ -346,6 +347,7 @@
         "newWalletTitle": "New wallet",
         "options": {
           "importSeed": "Import recovery phrase",
+          "importPrivateKey": "Import private key",
           "ledger": "Connect to Ledger",
           "readOnly": "Read-only address",
           "createNew": "Create new wallet"
@@ -360,6 +362,27 @@
             "phraseLengthError": "Must be a 12 or 24 word recovery phrase",
             "invalidPhraseError": "Invalid recovery phrase"
           }
+        },
+        "importPrivateKey": {
+          "title": "Import private key",
+          "subtitle": "Importing a private key does not associate it to a secret recovery phrase, but it’s still protected by the same password",
+          "inputLabel": "Paste private key string",
+          "submit": "Import account",
+          "errorImport": "Importing private key failed",
+          "privateKey": "Private key",
+          "password": "JSON file password",
+          "json": "JSON",
+          "browseFiles": "<span>Browse files</span> or drag and drop your {{type}} file",
+          "uploading": "Uploading...",
+          "uploadFail": "Upload failed, try again",
+          "wrongFile": "Wrong file, only {{type}} accepted",
+          "decrypt": "Decrypt file",
+          "decrypting": "Decrypting file",
+          "decryptingTime": "this may take up to 1 minute",
+          "finalize": "Finalize",
+          "completed": "Completed!",
+          "address": "address",
+          "wrongPassword": "Wrong password or incorrect file. Ensure file is correct and enter the password you used when encrypting it."
         },
         "viewOnly": {
           "title": "Read-only address",

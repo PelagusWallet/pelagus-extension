@@ -57,7 +57,7 @@ import OnboardingRoutes, {
 } from "../../pages/Onboarding/Tabbed/Routes"
 import SharedSelect from "../Shared/SharedSelect"
 import SharedLoadingShip from "../Shared/SharedLoadingShip"
-import { isAccountSingular, isAccountWithSecrets } from "../../utils/accounts"
+import { isAccountWithSecrets } from "../../utils/accounts"
 import SharedORDivider from "../Shared/SharedORDivider"
 
 type WalletTypeInfo = {
@@ -188,7 +188,7 @@ function WalletTypeHeader({
   const sectionCustomName = signerSettings?.title
 
   const sectionTitle = useMemo(() => {
-    if (isAccountSingular(accountType)) return title
+    if (accountType === AccountType.ReadOnly) return title
 
     let networkName = "" // Only for Rootstock
     if (path === ROOTSTOCK.derivationPath) networkName = `(${ROOTSTOCK.name})`

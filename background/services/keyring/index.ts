@@ -352,7 +352,30 @@ export default class KeyringService extends BaseService<Events> {
       }
 
       this.#keyrings.push(newKeyring)
-      const [address] = newKeyring.addAddressesSync(1)
+      //const [address] = newKeyring.addAddressesSync(1)
+
+      // FIXME temp solution for SDK v5
+      // create a new address until we find an address for the target shard
+      let address
+      let found = false
+      const DEFAULT_SHARD = "cyprus-1"
+      while (!found) {
+        address = newKeyring.addAddressesSync(1)[0]
+        const shardFromAddress = getShardFromAddress(address)
+        if (shardFromAddress !== undefined) {
+          if (shardFromAddress === DEFAULT_SHARD) {
+            found = true
+            break
+          }
+        }
+        this.#hiddenAccounts[address] = true // may want to reconsider this
+      }
+      if (address === undefined || address === null || address === "") {
+        throw new Error(
+          `Could not find address in given shard ${DEFAULT_SHARD}`
+        )
+      }
+      this.#hiddenAccounts[address] = false
 
       this.#keyringMetadata[newKeyring.id] = { source }
       await this.persistKeyrings()

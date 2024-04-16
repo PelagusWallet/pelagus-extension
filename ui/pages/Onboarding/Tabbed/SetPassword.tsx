@@ -17,6 +17,7 @@ import PasswordStrengthBar from "../../../components/Password/PasswordStrengthBa
 import PasswordInput from "../../../components/Shared/PasswordInput"
 import { WalletDefaultToggle } from "../../../components/Wallet/WalletToggleDefaultBanner"
 import OnboardingRoutes from "./Routes"
+import { validatePassword } from "../../../utils/passwordValidation"
 
 export default function SetPassword(): JSX.Element {
   const [password, setPassword] = useState("")
@@ -43,21 +44,11 @@ export default function SetPassword(): JSX.Element {
     }
   }, [history, areKeyringsUnlocked])
 
-  const validatePassword = (): boolean => {
-    if (password.length < 8) {
-      setPasswordErrorMessage(t("keyring.setPassword.error.characterCount"))
-      return false
-    }
-    if (password !== passwordConfirmation) {
-      setPasswordErrorMessage(t("keyring.setPassword.error.noMatch"))
-      return false
-    }
-    return true
-  }
   const dispatchCreatePassword = async () => {
-    const isValidPassword = validatePassword()
-
-    if (!isValidPassword) return
+    if (
+      !validatePassword(password, passwordConfirmation, setPasswordErrorMessage)
+    )
+      return
 
     await dispatch(createPassword(password)).then(() =>
       setTimeout(() => window.location.reload(), 0)

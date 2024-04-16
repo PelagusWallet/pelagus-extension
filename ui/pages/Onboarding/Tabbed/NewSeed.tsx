@@ -88,6 +88,7 @@ export default function NewSeed(): ReactElement {
         type: SignerSourceTypes.keyring,
         mnemonic: verifiedMnemonic.join(" "),
         source: SignerImportSource.internal,
+        path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
       })
     )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
 

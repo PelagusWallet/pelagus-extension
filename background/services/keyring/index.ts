@@ -77,6 +77,11 @@ interface Events extends ServiceLifecycleEvents {
   signedData: string
 }
 
+const isPrivateKey = (
+  signer: InternalSignerWithType
+): signer is InternalSignerPrivateKey =>
+  signer.type === SignerSourceTypes.privateKey
+
 export enum SignerImportSource {
   import = "import",
   internal = "internal",
@@ -545,8 +550,15 @@ export default class KeyringService extends BaseService<Events> {
 
   async exportPrivKey(address: string): Promise<string> {
     this.requireUnlocked()
-    const keyring = await this.#findKeyring(address)
-    const privKey = keyring.exportPrivateKey(
+    const signerWithType = this.#findSigner(address)
+    if (!signerWithType) {
+      logger.error(`Export private key for address ${address} failed`)
+      return ""
+    }
+
+    if (isPrivateKey(signerWithType)) return signerWithType.signer.privateKey
+
+    const privKey = signerWithType.signer.exportPrivateKey(
       address,
       "I solemnly swear that I am treating this private key material with great care."
     )

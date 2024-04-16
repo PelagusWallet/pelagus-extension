@@ -47,7 +47,7 @@ function VerifySeedSuccess({
               type: SignerSourceTypes.keyring,
               mnemonic: mnemonic.join(" "),
               source: SignerImportSource.internal,
-              path: selectedNetwork.derivationPath ?? "m/44'/60'/0'/0",
+              path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
             })
           )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
 

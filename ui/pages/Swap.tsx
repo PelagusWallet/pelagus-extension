@@ -617,6 +617,8 @@ export default function Swap(): ReactElement {
             margin-left: -1px;
             margin-top: -4px;
             z-index: 10;
+            background: white;
+            width: 100%;
           }
         `}
       </style>

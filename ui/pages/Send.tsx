@@ -299,6 +299,11 @@ export default function Send(): ReactElement {
             >
               Advanced
             </button>
+            {addressErrorMessage !== undefined ? (
+              <p className="error">{addressErrorMessage}</p>
+            ) : (
+              <></>
+            )}
             {advancedVisible && (
               <div>
                 <label style={{ paddingTop: "5px" }} htmlFor="nonce">
@@ -391,11 +396,6 @@ export default function Send(): ReactElement {
             ) : (
               <></>
             )}
-            {addressErrorMessage !== undefined ? (
-              <p className="error">{addressErrorMessage}</p>
-            ) : (
-              <></>
-            )}
           </div>
           <div className="send_footer standard_width_padded">
             <SharedButton
@@ -446,6 +446,8 @@ export default function Send(): ReactElement {
             margin-left: -1px;
             margin-top: -4px;
             z-index: 10;
+            background: white;
+            width: 100%;
           }
           .header {
             display: flex;

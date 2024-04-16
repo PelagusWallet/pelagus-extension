@@ -140,7 +140,7 @@ export default function WalletActivityListItem(props: Props): ReactElement {
                 {t("transactionTo")}
                 {` ${
                   activityViewDetails.recipient.name ??
-                  (activityViewDetails.recipient.address === undefined
+                  (!activityViewDetails.recipient.address
                     ? t("contractCreation")
                     : truncateAddress(activityViewDetails.recipient.address))
                 }`}
@@ -149,7 +149,7 @@ export default function WalletActivityListItem(props: Props): ReactElement {
               <div className="outcome" title={activity.from}>
                 {activity.type === "external-transfer"
                   ? "External"
-                  : ` ${truncateAddress(activity.from)}`}
+                  : ` ${truncateAddress(activity.from ?? "")}`}
               </div>
             )}
           </div>

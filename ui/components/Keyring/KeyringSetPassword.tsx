@@ -7,6 +7,7 @@ import SharedButton from "../Shared/SharedButton"
 import SharedBackButton from "../Shared/SharedBackButton"
 import PasswordStrengthBar from "../Password/PasswordStrengthBar"
 import PasswordInput from "../Shared/PasswordInput"
+import { validatePassword } from "../../utils/passwordValidation"
 
 export default function KeyringSetPassword(): ReactElement {
   const { t } = useTranslation("translation", {
@@ -27,18 +28,6 @@ export default function KeyringSetPassword(): ReactElement {
     }
   }, [history, areKeyringsUnlocked])
 
-  const validatePassword = (): boolean => {
-    if (password.length < 8) {
-      setPasswordErrorMessage(t("error.characterCount"))
-      return false
-    }
-    if (password !== passwordConfirmation) {
-      setPasswordErrorMessage(t("error.noMatch"))
-      return false
-    }
-    return true
-  }
-
   const handleInputChange = (
     f: (value: string) => void
   ): ((value: string) => void) => {
@@ -50,7 +39,9 @@ export default function KeyringSetPassword(): ReactElement {
   }
 
   const dispatchCreatePassword = (): void => {
-    if (validatePassword()) {
+    if (
+      validatePassword(password, passwordConfirmation, setPasswordErrorMessage)
+    ) {
       dispatch(createPassword(password))
     }
   }

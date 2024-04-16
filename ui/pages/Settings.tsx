@@ -76,8 +76,9 @@ function VersionLabel(): ReactElement {
         {t("settings.versionLabel", {
           version: process.env.VERSION ?? t("settings.unknownVersionOrCommit"),
         })}
-        {process.env.COMMIT_SHA?.slice(0, 7) ??
-          t("settings.unknownVersionOrCommit")}
+        {process.env.COMMIT_SHA
+          ? `<${process.env.COMMIT_SHA?.slice(0, 7)}>`
+          : ``}
       </button>
       <style jsx>
         {`

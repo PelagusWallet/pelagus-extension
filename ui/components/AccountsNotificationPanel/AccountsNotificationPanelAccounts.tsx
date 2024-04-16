@@ -279,6 +279,8 @@ function WalletTypeHeader({
               size="small"
               style={{ ...sharedButtonStyle, marginTop: "20px" }}
               onClick={() => {
+                setShowShardMenu(false)
+                dispatch(setShowingAddAccountModal(false))
                 window.open(`${ONBOARDING_ROOT}`)
                 window.close()
               }}

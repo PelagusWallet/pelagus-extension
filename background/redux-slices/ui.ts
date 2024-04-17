@@ -20,6 +20,7 @@ export const defaultSettings = {
   showAnalyticsNotification: false,
   showUnverifiedAssets: false,
   hideBanners: false,
+  showDefaultWalletBanner: true,
 }
 
 export type UIState = {
@@ -38,6 +39,7 @@ export type UIState = {
     showAnalyticsNotification: boolean
     showUnverifiedAssets: boolean
     hideBanners: boolean
+    showDefaultWalletBanner: boolean
   }
   snackbarMessage: string
   routeHistoryEntries?: Partial<Location>[]
@@ -58,6 +60,7 @@ export type Events = {
   newSelectedNetwork: EVMNetwork
   updateAnalyticsPreferences: Partial<AnalyticsPreferences>
   addCustomNetworkResponse: [string, boolean]
+  showDefaultWalletBanner: boolean
 }
 
 export const emitter = new Emittery<Events>()
@@ -215,6 +218,12 @@ const uiSlice = createSlice({
     ) => {
       return { ...state, accountSignerSettings: payload }
     },
+    setShowDefaultWalletBanner: (state, { payload }: { payload: boolean }) => {
+      return {
+        ...state,
+        settings: { ...state.settings, showDefaultWalletBanner: payload },
+      }
+    },
   },
 })
 
@@ -237,6 +246,7 @@ export const {
   setRouteHistoryEntries,
   setSlippageTolerance,
   setAccountsSignerSettings,
+  setShowDefaultWalletBanner,
 } = uiSlice.actions
 
 export default uiSlice.reducer
@@ -388,6 +398,13 @@ export const sendEvent = createBackgroundAsyncThunk(
   }
 )
 
+export const updateShowDefaultWalletBanner = createBackgroundAsyncThunk(
+  "ui/showDefaultWalletBanner",
+  async (newValue: boolean) => {
+    await emitter.emit("showDefaultWalletBanner", newValue)
+  }
+)
+
 export const selectUI = createSelector(
   (state: { ui: UIState }): UIState => state.ui,
   (uiState) => uiState
@@ -457,4 +474,8 @@ export const selectCollectAnalytics = createSelector(
 export const selectHideBanners = createSelector(
   selectSettings,
   (settings) => settings?.hideBanners
+)
+export const selectShowDefaultWalletBanner = createSelector(
+  selectSettings,
+  (settings) => settings.showDefaultWalletBanner
 )

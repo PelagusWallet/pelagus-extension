@@ -90,6 +90,7 @@ import {
   setShowAnalyticsNotification,
   setSelectedNetwork,
   setNewNetworkConnectError,
+  setShowDefaultWalletBanner,
 } from "./redux-slices/ui"
 import {
   estimatedFeesPerGas,
@@ -1790,6 +1791,15 @@ export default class Main extends BaseService<never> {
     )
 
     this.preferenceService.emitter.on(
+      "showDefaultWalletBanner",
+      async (isHiddenDefaultWalletBanner: boolean) => {
+        this.store.dispatch(
+          setShowDefaultWalletBanner(isHiddenDefaultWalletBanner)
+        )
+      }
+    )
+
+    this.preferenceService.emitter.on(
       "initializeSelectedAccount",
       async (dbAddressNetwork: AddressOnNetwork) => {
         if (dbAddressNetwork) {
@@ -1814,6 +1824,15 @@ export default class Main extends BaseService<never> {
       "updatedSignerSettings",
       (accountSignerSettings) => {
         this.store.dispatch(setAccountsSignerSettings(accountSignerSettings))
+      }
+    )
+
+    uiSliceEmitter.on(
+      "showDefaultWalletBanner",
+      async (isHiddenDefaultWalletBanner: boolean) => {
+        await this.preferenceService.setShowDefaultWalletBanner(
+          isHiddenDefaultWalletBanner
+        )
       }
     )
 

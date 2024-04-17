@@ -36,7 +36,7 @@ export function WalletDefaultToggle(): ReactElement {
 
   return (
     <>
-      <SharedTooltip width={200}>{t("tooltip")}</SharedTooltip>
+      <SharedTooltip width={145}>{t("tooltip")}</SharedTooltip>
       <div className="toggle">
         <SharedToggleButton
           onChange={(toggleValue) => toggleDefaultWallet(toggleValue)}

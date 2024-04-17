@@ -35,6 +35,7 @@ export interface Preferences {
     isEnabled: boolean
     hasDefaultOnBeenTurnedOn: boolean
   }
+  showDefaultWalletBanner: boolean
 }
 
 export class PreferenceDatabase extends Dexie {
@@ -320,6 +321,20 @@ export class PreferenceDatabase extends Dexie {
         })
     })
 
+    // Updates preferences with showDefaultWalletBanner flag
+    this.version(17).upgrade((tx) => {
+      return tx
+        .table("preferences")
+        .toCollection()
+        .modify((storedPreferences: Preferences) => {
+          const update: Partial<Preferences> = {
+            showDefaultWalletBanner: true,
+          }
+
+          Object.assign(storedPreferences, update)
+        })
+    })
+
     // This is the old version for populate
     // https://dexie.org/docs/Dexie/Dexie.on.populate-(old-version)
     // The this does not behave according the new docs, but works
@@ -334,6 +349,18 @@ export class PreferenceDatabase extends Dexie {
     // TBD: This will surely return a value because `getOrCreateDB` is called first
     // when the service is created. It runs the migration which writes the `DEFAULT_PREFERENCES`
     return this.preferences.reverse().first() as Promise<Preferences>
+  }
+
+  async setShowDefaultWalletBanner(newValue: boolean): Promise<void> {
+    await this.preferences
+      .toCollection()
+      .modify((storedPreferences: Preferences) => {
+        const update: Partial<Preferences> = {
+          showDefaultWalletBanner: newValue,
+        }
+
+        Object.assign(storedPreferences, update)
+      })
   }
 
   async upsertAnalyticsPreferences(

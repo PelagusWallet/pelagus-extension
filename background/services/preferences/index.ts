@@ -99,6 +99,7 @@ interface Events extends ServiceLifecycleEvents {
   updateAnalyticsPreferences: AnalyticsPreferences
   addressBookEntryModified: AddressBookEntry
   updatedSignerSettings: AccountSignerSettings[]
+  showDefaultWalletBanner: boolean
 }
 
 /*
@@ -263,5 +264,10 @@ export default class PreferenceService extends BaseService<Events> {
 
   async setSelectedAccount(addressNetwork: AddressOnNetwork): Promise<void> {
     return this.db.setSelectedAccount(addressNetwork)
+  }
+
+  async setShowDefaultWalletBanner(newValue: boolean): Promise<void> {
+    await this.db.setShowDefaultWalletBanner(newValue)
+    await this.emitter.emit("showDefaultWalletBanner", newValue)
   }
 }

@@ -97,7 +97,7 @@
         "characterCount": "Must be at least 8 characters",
         "characterMaxCount": "Must be at most 20 characters",
         "noMatch": "Passwords don’t match",
-        "invalidCharacters": "Must be letters and numbers only"
+        "invalidCharacters": "Password can only contain letters, numbers, and special characters"
       }
     },
     "unlock": {

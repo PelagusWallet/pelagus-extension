@@ -6,8 +6,10 @@ import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/s
 import SharedButton from "../../../components/Shared/SharedButton"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import { OnboardingBox, OnboardingMessageHeader } from "../styles"
-import { SignerSourceTypes } from "../Tabbed/ImportPrivateKey"
-import { SignerImportSource } from "@pelagus/pelagus-background/services/keyring"
+import {
+  SignerImportSource,
+  SignerSourceTypes,
+} from "@pelagus/pelagus-background/services/keyring"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 
 function VerifySeedSuccess({

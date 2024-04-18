@@ -22,7 +22,6 @@ import { FeatureFlags, isEnabled } from "../../features"
 import { AddressOnNetwork } from "../../accounts"
 import logger from "../../lib/logger"
 import { getShardFromAddress } from "../../redux-slices/selectors"
-import { SignerSourceTypes } from "@pelagus/pelagus-ui/pages/Onboarding/Tabbed/ImportPrivateKey"
 import { Wallet } from "ethers"
 
 export const MAX_KEYRING_IDLE_TIME = 60 * MINUTE
@@ -77,6 +76,11 @@ interface Events extends ServiceLifecycleEvents {
   signedData: string
 }
 
+export enum SignerSourceTypes {
+  privateKey = "privateKey",
+  keyring = "keyring",
+}
+
 const isPrivateKey = (
   signer: InternalSignerWithType
 ): signer is InternalSignerPrivateKey =>
@@ -97,15 +101,9 @@ type ImportMetadataHDKeyring = {
   source: SignerImportSource
   path?: string
 }
-type ImportMetadataJSONPrivateKey = {
-  type: SignerSourceTypes.jsonFile
-  jsonFile: string
-  password: string
-}
 export type SignerImportMetadata =
   | ImportMetadataPrivateKey
   | ImportMetadataHDKeyring
-  | ImportMetadataJSONPrivateKey
 
 type InternalSignerHDKeyring = {
   signer: HDKeyring
@@ -405,9 +403,6 @@ export default class KeyringService extends BaseService<Events> {
 
       if (signerMetadata.type === SignerSourceTypes.privateKey) {
         address = this.#importPrivateKey(signerMetadata.privateKey)
-      } else if (signerMetadata.type === SignerSourceTypes.jsonFile) {
-        const { jsonFile, password } = signerMetadata
-        address = await this.#importJSON(jsonFile, password)
       } else {
         const { mnemonic, source, path } = signerMetadata
         address = this.#importKeyring(mnemonic, source, path)
@@ -471,27 +466,6 @@ export default class KeyringService extends BaseService<Events> {
    */
   #importPrivateKey(privateKey: string): string {
     const newWallet = new Wallet(privateKey)
-    const normalizedAddress = normalizeEVMAddress(newWallet.address)
-
-    if (this.#findSigner(normalizedAddress)) {
-      return normalizedAddress
-    }
-
-    this.#privateKeys.push(newWallet)
-    this.#keyringMetadata[normalizedAddress] = {
-      source: SignerImportSource.import,
-    }
-    return normalizedAddress
-  }
-
-  /**
-   * Import private key with JSON file
-   * @param jsonFile - stringified JSON file
-   * @param password - string
-   * @returns string - address of imported or existing account
-   */
-  async #importJSON(jsonFile: string, password: string): Promise<string> {
-    const newWallet = await Wallet.fromEncryptedJson(jsonFile, password)
     const normalizedAddress = normalizeEVMAddress(newWallet.address)
 
     if (this.#findSigner(normalizedAddress)) {

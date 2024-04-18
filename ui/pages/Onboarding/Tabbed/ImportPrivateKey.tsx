@@ -2,24 +2,16 @@ import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../../../components/Shared/SharedButton"
 import { useBackgroundDispatch } from "../../../hooks"
-import SharedInput from "../../../components/Shared/SharedInput"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { SignerSourceTypes } from "@pelagus/pelagus-background/services/keyring"
 
 type Props = {
-  setIsImporting: (value: boolean) => void
   finalize: () => void
 }
 
-// TODO check this
-export enum SignerSourceTypes {
-  privateKey = "privateKey",
-  jsonFile = "jsonFile",
-  keyring = "keyring",
-}
-
 export default function ImportPrivateKey(props: Props): ReactElement {
-  const { setIsImporting, finalize } = props
+  const { finalize } = props
 
   const dispatch = useBackgroundDispatch()
 
@@ -37,11 +29,6 @@ export default function ImportPrivateKey(props: Props): ReactElement {
 
   const importWallet = useCallback(async () => {
     const trimmedPrivateKey = privateKey.toLowerCase().trim()
-
-    console.log("trimmedPrivateKey", trimmedPrivateKey)
-
-    setIsImporting(true)
-
     const { success } = (await dispatch(
       importKeyring({
         type: SignerSourceTypes.privateKey,
@@ -50,16 +37,12 @@ export default function ImportPrivateKey(props: Props): ReactElement {
     )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
 
     if (success) {
-      console.log("success")
       // dispatch(sendEvent(OneTimeAnalyticsEvent.ONBOARDING_FINISHED))
       finalize()
     } else {
-      console.log("fail")
-
-      setIsImporting(false)
       setErrorMessage(t("errorImport"))
     }
-  }, [dispatch, privateKey, setIsImporting, finalize, t])
+  }, [dispatch, privateKey, finalize, t])
 
   return (
     <>

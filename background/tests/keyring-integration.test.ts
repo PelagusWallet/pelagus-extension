@@ -6,12 +6,12 @@ import KeyringService, {
   MAX_KEYRING_IDLE_TIME,
   MAX_OUTSIDE_IDLE_TIME,
   SignerImportSource,
+  SignerSourceTypes,
 } from "../services/keyring"
 import { KeyringTypes } from "../types"
 import { EIP1559TransactionRequest } from "../networks"
 import { ETH, ETHEREUM } from "../constants"
 import logger from "../lib/logger"
-import { SignerSourceTypes } from "@pelagus/pelagus-ui/pages/Onboarding/Tabbed/ImportPrivateKey"
 
 const originalCrypto = global.crypto
 beforeEach(() => {

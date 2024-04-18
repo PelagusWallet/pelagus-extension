@@ -23,8 +23,10 @@ import NewSeedReview from "./NewSeed/NewSeedReview"
 import NewSeedVerify from "./NewSeed/NewSeedVerify"
 import OnboardingRoutes from "./Routes"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
-import { SignerSourceTypes } from "./ImportPrivateKey"
-import { SignerImportSource } from "@pelagus/pelagus-background/services/keyring"
+import {
+  SignerImportSource,
+  SignerSourceTypes,
+} from "@pelagus/pelagus-background/services/keyring"
 
 const StepContainer = ({
   children,

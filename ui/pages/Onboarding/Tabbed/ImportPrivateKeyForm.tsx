@@ -4,8 +4,6 @@ import OnboardingRoutes from "./Routes"
 import { useAreKeyringsUnlocked } from "../../../hooks"
 import { useTranslation } from "react-i18next"
 import ImportPrivateKey from "./ImportPrivateKey"
-import SharedPanelSwitcher from "../../../components/Shared/SharedPanelSwitcher"
-import ImportPrivateKeyJSON from "./ImportPrivateKeyJSON"
 
 type Props = {
   nextPage: string
@@ -15,9 +13,6 @@ export default function ImportPrivateKeyForm(props: Props): ReactElement {
 
   const areInternalSignersUnlocked = useAreKeyringsUnlocked(false)
   const history = useHistory()
-
-  const [isImporting, setIsImporting] = useState(false)
-  const [panelNumber, setPanelNumber] = useState(0)
 
   const { t } = useTranslation("translation", {
     keyPrefix: "onboarding.tabbed.addWallet.importPrivateKey",
@@ -48,26 +43,7 @@ export default function ImportPrivateKeyForm(props: Props): ReactElement {
           event.preventDefault()
         }}
       >
-        <div className="panel_wrapper">
-          <SharedPanelSwitcher
-            setPanelNumber={setPanelNumber}
-            panelNumber={panelNumber}
-            panelNames={[t("privateKey"), t("json")]}
-          />
-        </div>
-        {panelNumber === 0 ? (
-          <ImportPrivateKey
-            setIsImporting={setIsImporting}
-            finalize={finalize}
-          />
-        ) : null}
-        {panelNumber === 1 ? (
-          <ImportPrivateKeyJSON
-            setIsImporting={setIsImporting}
-            isImporting={isImporting}
-            finalize={finalize}
-          />
-        ) : null}
+        <ImportPrivateKey finalize={finalize} />
       </form>
       <style jsx>
         {`
@@ -114,14 +90,6 @@ export default function ImportPrivateKeyForm(props: Props): ReactElement {
             line-height: 24px;
             color: white;
             font-weight: 500;
-          }
-
-          .panel_wrapper {
-            margin-bottom: 16px;
-            --panel-switcher-border: var(--green-80);
-            --panel-switcher-primary: #fff;
-            --panel-switcher-secondary: var(--green-20);
-            width: 100%;
           }
         `}
       </style>

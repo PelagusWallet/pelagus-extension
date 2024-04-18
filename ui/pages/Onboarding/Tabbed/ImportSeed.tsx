@@ -1,4 +1,4 @@
-import React, { ReactElement, useCallback, useEffect, useState } from "react"
+import React, { ReactElement, useCallback, useState } from "react"
 import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { Redirect, useHistory } from "react-router-dom"
 import { isValidMnemonic } from "@ethersproject/hdnode"
@@ -20,8 +20,10 @@ import {
 import OnboardingRoutes from "./Routes"
 import SharedSelect from "../../../components/Shared/SharedSelect"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
-import { SignerSourceTypes } from "./ImportPrivateKey"
-import { SignerImportSource } from "@pelagus/pelagus-background/services/keyring"
+import {
+  SignerImportSource,
+  SignerSourceTypes,
+} from "@pelagus/pelagus-background/services/keyring"
 
 type Props = {
   nextPage: string

@@ -578,7 +578,6 @@ export default function AccountsNotificationPanelAccounts({
 
   const handleSetShard = (newShard: string) => {
     // This is for updating user-selected shard for new address
-    console.log(newShard)
     shard.current = newShard
   }
 
@@ -633,7 +632,7 @@ export default function AccountsNotificationPanelAccounts({
 
   return (
     <div className="switcher_wrap">
-      {accountTypes.map((accountType) => {
+      {accountTypes.map((accountType, switcherWrapIdx) => {
         const accountTypeTotals = accountTotals[accountType]
 
         // If there are no account totals for the given type, skip the section.
@@ -730,7 +729,7 @@ export default function AccountsNotificationPanelAccounts({
         )
 
         return (
-          <>
+          <div key={switcherWrapIdx}>
             {shouldAddHeader(existingAccountTypes, accountType) && (
               <div className="category_wrap simple_text">
                 <p className="category_title">
@@ -746,7 +745,7 @@ export default function AccountsNotificationPanelAccounts({
             {Object.values(accountTotalsByType).map(
               (accountTotalsBySignerId, idx) => {
                 return (
-                  <section key={accountType}>
+                  <section key={`${idx}-${accountType}`}>
                     <WalletTypeHeader
                       accountType={accountType}
                       walletNumber={idx + 1}
@@ -768,7 +767,16 @@ export default function AccountsNotificationPanelAccounts({
                                 dispatch(setSnackbarMessage("Invalid shard"))
                                 throw new Error("shard is invalid")
                               }
-                              if (selectedAccountSigner == "") {
+
+                              if (selectedAccountSigner === "private-key") {
+                                setSelectedAccountSigner(defaultSigner.current)
+                                dispatch(
+                                  deriveAddress({
+                                    signerId: defaultSigner.current,
+                                    shard: shard.current,
+                                  })
+                                )
+                              } else if (selectedAccountSigner == "") {
                                 for (const account in accountTotals) {
                                   const accountTotalsArray =
                                     accountTotals[
@@ -812,7 +820,7 @@ export default function AccountsNotificationPanelAccounts({
                       setSelectedAccountSigner={setSelectedAccountSigner}
                     />
                     <ul>
-                      {accountTotalsBySignerId.map((accountTotal) => {
+                      {accountTotalsBySignerId.map((accountTotal, idx) => {
                         const normalizedAddress = normalizeEVMAddress(
                           accountTotal.address
                         )
@@ -824,7 +832,7 @@ export default function AccountsNotificationPanelAccounts({
 
                         return (
                           <li
-                            key={normalizedAddress}
+                            key={`${idx}-${normalizedAddress}`}
                             // We use these event handlers in leiu of :hover so that we can prevent child hovering
                             // from affecting the hover state of this li.
                             onMouseOver={(e) => {
@@ -882,7 +890,7 @@ export default function AccountsNotificationPanelAccounts({
                 )
               }
             )}
-          </>
+          </div>
         )
       })}
       <footer>

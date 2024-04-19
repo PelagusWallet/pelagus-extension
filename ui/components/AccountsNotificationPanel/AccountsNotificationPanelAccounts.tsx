@@ -790,6 +790,12 @@ export default function AccountsNotificationPanelAccounts({
                                         selectedAccountAddress
                                     ) != undefined
                                   ) {
+                                    if (
+                                      accountTotalsArray[0].signerId ===
+                                      "private-key"
+                                    )
+                                      break
+
                                     defaultSigner.current =
                                       accountTotalsArray[0].signerId ?? ""
                                     break

@@ -441,13 +441,33 @@ export default class KeyringService extends BaseService<Events> {
       : new HDKeyring({ mnemonic })
 
     const existingKeyring = this.#keyrings.find((kr) => kr.id === newKeyring.id)
-
     if (existingKeyring) {
       const [address] = existingKeyring.getAddressesSync()
       return address
     }
+
     this.#keyrings.push(newKeyring)
-    const [address] = newKeyring.addAddressesSync(1)
+
+    // FIXME temp solution for SDK v5
+    // create a new address until we find an address for the target shard
+    let address
+    let found = false
+    const DEFAULT_SHARD = "cyprus-1"
+    while (!found) {
+      address = newKeyring.addAddressesSync(1)[0]
+      const shardFromAddress = getShardFromAddress(address)
+      if (
+        shardFromAddress !== undefined &&
+        shardFromAddress === DEFAULT_SHARD
+      ) {
+        found = true
+        break
+      }
+      this.#hiddenAccounts[address] = true // may want to reconsider this
+    }
+    if (address === undefined || address === null || address === "") {
+      throw new Error(`Could not find address in given shard ${DEFAULT_SHARD}`)
+    }
 
     // If address was previously imported as a private key then remove it
     if (this.#findPrivateKey(address)) {

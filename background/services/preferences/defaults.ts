@@ -32,6 +32,7 @@ const defaultPreferences: Preferences = {
     isEnabled: false,
     hasDefaultOnBeenTurnedOn: false,
   },
+  showDefaultWalletBanner: true,
 }
 
 export default defaultPreferences

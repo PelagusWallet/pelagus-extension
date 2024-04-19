@@ -1,8 +1,10 @@
 import { SECOND } from "@pelagus/pelagus-background/constants"
 import {
   selectDefaultWallet,
+  selectShowDefaultWalletBanner,
   setNewDefaultWalletValue,
   setSnackbarMessage,
+  updateShowDefaultWalletBanner,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
 import React, {
@@ -14,7 +16,7 @@ import React, {
 } from "react"
 import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
-import { useBackgroundSelector } from "../../hooks"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedToggleButton from "../Shared/SharedToggleButton"
 import SharedTooltip from "../Shared/SharedTooltip"
 
@@ -34,7 +36,7 @@ export function WalletDefaultToggle(): ReactElement {
 
   return (
     <>
-      <SharedTooltip width={200}>{t("tooltip")}</SharedTooltip>
+      <SharedTooltip width={145}>{t("tooltip")}</SharedTooltip>
       <div className="toggle">
         <SharedToggleButton
           onChange={(toggleValue) => toggleDefaultWallet(toggleValue)}
@@ -52,7 +54,12 @@ export function WalletDefaultToggle(): ReactElement {
 export default function WalletToggleDefaultBanner(): ReactElement {
   const { t } = useTranslation()
   const isDefaultWallet = useBackgroundSelector(selectDefaultWallet)
-  const [isHidden, setIsHidden] = useState(isDefaultWallet)
+  const showDefaultWalletBanner = useBackgroundSelector(
+    selectShowDefaultWalletBanner
+  )
+  const [isHidden, setIsHidden] = useState(
+    isDefaultWallet || !showDefaultWalletBanner
+  )
   const timeout = useRef<number | undefined>()
 
   const resetTimeout = useCallback(() => {
@@ -67,6 +74,12 @@ export default function WalletToggleDefaultBanner(): ReactElement {
     }
   }, [isDefaultWallet, resetTimeout])
 
+  const dispatch = useBackgroundDispatch()
+
+  const hideDefaultWalletBanner = async () => {
+    await dispatch(updateShowDefaultWalletBanner(false))
+    setIsHidden(true)
+  }
   return (
     <div
       className={classNames("default_toggle_container", {
@@ -75,6 +88,13 @@ export default function WalletToggleDefaultBanner(): ReactElement {
     >
       <div className="default_toggle">
         <div>
+          <button
+            type="button"
+            className="crossBtn"
+            onClick={hideDefaultWalletBanner}
+          >
+            &#10005;
+          </button>
           <span className="highlight">{t("shared.pelagus")} </span>
           {isDefaultWallet
             ? t("wallet.defaultToggle.isDefault")
@@ -108,6 +128,13 @@ export default function WalletToggleDefaultBanner(): ReactElement {
           transition: all 500ms;
         }
         .highlight {
+          color: var(--trophy-gold);
+        }
+        .crossBtn {
+          margin-right: 8px;
+        }
+
+        .crossBtn:hover {
           color: var(--trophy-gold);
         }
       `}</style>

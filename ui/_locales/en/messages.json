@@ -96,7 +96,8 @@
       "submitBtn": "Anchors Away!",
       "error": {
         "characterCount": "Must be at least 8 characters",
-        "noMatch": "Passwords don’t match"
+        "noMatch": "Passwords don’t match",
+        "invalidCharacters": "Password can only contain letters, numbers, and special characters"
       }
     },
     "unlock": {

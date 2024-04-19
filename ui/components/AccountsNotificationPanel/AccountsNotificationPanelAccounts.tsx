@@ -295,6 +295,8 @@ function WalletTypeHeader({
             size="small"
             style={sharedButtonStyle}
             onClick={() => {
+              setShowShardMenu(false)
+              dispatch(setShowingAddAccountModal(false))
               window.open(`${PAGE_ROOT}${OnboardingRoutes.IMPORT_PRIVATE_KEY}`)
               window.close()
             }}

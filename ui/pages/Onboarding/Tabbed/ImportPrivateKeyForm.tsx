@@ -1,9 +1,10 @@
 import React, { ReactElement, useState } from "react"
 import { Redirect, useHistory } from "react-router-dom"
 import OnboardingRoutes from "./Routes"
-import { useAreKeyringsUnlocked } from "../../../hooks"
+import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../../hooks"
 import { useTranslation } from "react-i18next"
 import ImportPrivateKey from "./ImportPrivateKey"
+import { keyringNextPage } from "@pelagus/pelagus-background/redux-slices/keyrings"
 
 type Props = {
   nextPage: string
@@ -13,6 +14,7 @@ export default function ImportPrivateKeyForm(props: Props): ReactElement {
 
   const areInternalSignersUnlocked = useAreKeyringsUnlocked(false)
   const history = useHistory()
+  const dispatch = useBackgroundDispatch()
 
   const { t } = useTranslation("translation", {
     keyPrefix: "onboarding.tabbed.addWallet.importPrivateKey",
@@ -20,7 +22,10 @@ export default function ImportPrivateKeyForm(props: Props): ReactElement {
 
   const finalize = () => history.push(nextPage)
 
-  if (!areInternalSignersUnlocked)
+  // FIXME temp fix
+  if (!areInternalSignersUnlocked) {
+    dispatch(keyringNextPage(OnboardingRoutes.IMPORT_PRIVATE_KEY))
+
     return (
       <Redirect
         to={{
@@ -29,6 +34,7 @@ export default function ImportPrivateKeyForm(props: Props): ReactElement {
         }}
       />
     )
+  }
 
   return (
     <section className="fadeIn">

@@ -8,6 +8,12 @@ export const selectKeyringStatus = createSelector(
   (status) => status
 )
 
+// FIXME temp fix
+export const selectKeyringNextPage = createSelector(
+  (state: RootState) => state.keyrings.nextPage,
+  (nextPage) => nextPage
+)
+
 export const selectKeyringByAddress = (
   address: string
 ): OutputSelector<

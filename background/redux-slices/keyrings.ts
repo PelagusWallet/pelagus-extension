@@ -9,6 +9,7 @@ import {
   SignerImportMetadata,
   SignerImportSource,
 } from "../services/keyring/index"
+import OnboardingRoutes from "@pelagus/pelagus-ui/pages/Onboarding/Tabbed/Routes"
 
 type KeyringToVerify = {
   id: string
@@ -23,6 +24,8 @@ export type KeyringsState = {
   }
   status: "locked" | "unlocked" | "uninitialized"
   keyringToVerify: KeyringToVerify
+  // FIXME temp fix
+  nextPage: string
 }
 
 export const initialState: KeyringsState = {
@@ -31,6 +34,8 @@ export const initialState: KeyringsState = {
   keyringMetadata: {},
   status: "uninitialized",
   keyringToVerify: null,
+  // FIXME temp fix
+  nextPage: OnboardingRoutes.IMPORT_SEED,
 }
 
 interface DeriveAddressData {
@@ -84,6 +89,11 @@ const keyringsSlice = createSlice({
   reducers: {
     keyringLocked: (state) => ({ ...state, status: "locked" }),
     keyringUnlocked: (state) => ({ ...state, status: "unlocked" }),
+    // FIXME temp fix
+    keyringNextPage: (state, { payload }) => ({
+      ...state,
+      nextPage: payload,
+    }),
     updateKeyrings: (
       state,
       {
@@ -123,6 +133,8 @@ const keyringsSlice = createSlice({
 export const {
   updateKeyrings,
   keyringLocked,
+  // FIXME temp fix
+  keyringNextPage,
   keyringUnlocked,
   setKeyringToVerify,
 } = keyringsSlice.actions

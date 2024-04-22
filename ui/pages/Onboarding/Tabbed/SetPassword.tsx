@@ -5,7 +5,10 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { Redirect, useHistory, useLocation } from "react-router-dom"
 import { Trans, useTranslation } from "react-i18next"
-import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  selectKeyringNextPage,
+  selectKeyringStatus,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   useBackgroundDispatch,
   useAreKeyringsUnlocked,
@@ -29,20 +32,17 @@ export default function SetPassword(): JSX.Element {
   const { state: { nextPage } = {} } = useLocation<{ nextPage?: string }>()
 
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
+  // FIXME temp fix
+  const keyringNextPage = useBackgroundSelector(selectKeyringNextPage)
 
   const dispatch = useBackgroundDispatch()
 
+  // FIXME temp fix
   useEffect(() => {
-    if (nextPage && areKeyringsUnlocked) {
-      history.replace(nextPage)
+    if (areKeyringsUnlocked) {
+      nextPage ? history.replace(nextPage) : history.replace(keyringNextPage)
     }
   }, [areKeyringsUnlocked, history, nextPage])
-
-  useLayoutEffect(() => {
-    if (areKeyringsUnlocked) {
-      history.push(OnboardingRoutes.IMPORT_SEED)
-    }
-  }, [history, areKeyringsUnlocked])
 
   const dispatchCreatePassword = async () => {
     if (

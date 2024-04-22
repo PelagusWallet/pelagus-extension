@@ -1,5 +1,8 @@
 import React, { ReactElement, useCallback, useState } from "react"
-import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import {
+  importKeyring,
+  keyringNextPage,
+} from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { Redirect, useHistory } from "react-router-dom"
 import { isValidMnemonic } from "@ethersproject/hdnode"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
@@ -92,7 +95,10 @@ export default function ImportSeed(props: Props): ReactElement {
     }
   }, [dispatch, recoveryPhrase, path, t, history, nextPage])
 
-  if (!areKeyringsUnlocked)
+  // FIXME temp fix
+  if (!areKeyringsUnlocked) {
+    dispatch(keyringNextPage(OnboardingRoutes.IMPORT_SEED))
+
     return (
       <Redirect
         to={{
@@ -101,6 +107,7 @@ export default function ImportSeed(props: Props): ReactElement {
         }}
       />
     )
+  }
 
   return (
     <section className="fadeIn">

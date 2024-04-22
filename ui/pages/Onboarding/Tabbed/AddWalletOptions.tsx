@@ -72,7 +72,7 @@ export default function AddWalletOptions(): JSX.Element {
       },
       {
         label: t("options.importPrivateKey"),
-        icon: "key-light.svg",
+        icon: "add_wallet/key-light.svg",
         url: OnboardingRoutes.IMPORT_PRIVATE_KEY,
         isAvailable: true,
       },

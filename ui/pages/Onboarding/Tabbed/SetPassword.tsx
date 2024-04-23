@@ -50,9 +50,7 @@ export default function SetPassword(): JSX.Element {
     )
       return
 
-    await dispatch(createPassword(password)).then(() =>
-      setTimeout(() => window.location.reload(), 0)
-    )
+    await dispatch(createPassword(password))
   }
 
   const handleInputChange = (

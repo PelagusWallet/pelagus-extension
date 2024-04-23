@@ -43,7 +43,7 @@ export default function KeyringUnlock({
 
   useEffect(() => {
     if (areKeyringsUnlocked) {
-      history.goBack()
+      handleBack()
       dispatch(setSnackbarMessage(t("snackbar")))
     }
   }, [history, areKeyringsUnlocked, dispatch, t, unlockSuccess])
@@ -65,8 +65,6 @@ export default function KeyringUnlock({
   }
 
   const handleBack = async () => {
-    await handleReject()
-
     // Find eligible path to navigate back to in order to prevent the user from getting stuck in a loop.
     // An eligible path is defined as any path that does not automatically redirect to the unlock page.
     const ineligiblePaths: string[] = ["/send", "/keyring/unlock"]
@@ -89,15 +87,13 @@ export default function KeyringUnlock({
     }
   }
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     dispatch(setShowingAccountsModal(false))
     dispatch(setShowingAddAccountModal(false))
 
-    if (isDappPopup) {
-      handleReject()
-    } else {
-      handleBack()
-    }
+    await handleReject()
+
+    if (!isDappPopup) handleBack()
   }
 
   return (

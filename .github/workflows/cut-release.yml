@@ -62,10 +62,33 @@ jobs:
       - name: install semver globally
         run: npm install -g semver
 
-      - name: Get Version for Branch
+      - name: Update Version
         run: |
+          jq --arg new_version "$(npx semver -i patch $(jq -r '.version' package.json | sed 's/^v//'))" '.version = $new_version' package.json > temp.json && mv temp.json package.json
           NEW_VERSION=$(jq -r '.version' package.json)
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Sync Versions
+        run: |
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-ui = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" ui/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" window-provider/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" ui/package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge-shared/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" window-provider/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" ui/package.json
+          STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')
+          yq eval -i ".version = \"${STRIPPED_VERSION}\"" manifest/manifest.json
 
       - name: Update version environment variable
         run: echo "VERSION=$(echo $VERSION | sed 's/\.[0-9]*$//')" >> $GITHUB_ENV

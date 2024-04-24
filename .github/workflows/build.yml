@@ -92,6 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          ref: ${{ inputs.branch }}
           fetch-depth: 0
           ssh-key: ${{ secrets.GH_PAT }}
 

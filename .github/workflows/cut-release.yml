@@ -34,7 +34,6 @@ jobs:
           gpg --list-keys "ci@dominantstrategies.io"
 
       - name: Install jq
-        if: ${{ inputs.update_version }}
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Set Repo Name in Camel Case
@@ -61,37 +60,15 @@ jobs:
           echo npm version $(npm -v)
 
       - name: install semver globally
-        if: ${{ inputs.update_version }}
         run: npm install -g semver
 
       - name: Update Version
-        if: ${{ inputs.update_version }}
         run: |
           jq --arg new_version "$(npx semver -i patch $(jq -r '.version' package.json | sed 's/^v//'))" '.version = $new_version' package.json > temp.json && mv temp.json package.json
           NEW_VERSION=$(jq -r '.version' package.json)
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-      - name: Update version environment variable
-        run: echo "VERSION=$(echo $VERSION | sed 's/\.[0-9]*$//')" >> $GITHUB_ENV
-
-      - name: Store version in branch variable
-        id: set-branch
-        run: echo "branch=${{ env.VERSION }}" >> $GITHUB_OUTPUT
-
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Release ${{ env.VERSION }}
-          branch: ${{ env.VERSION }}
-          create_branch: true
-          commit_user_name: ci-dominantstrategies
-          commit_user_email: ci@dominantstrategies.io
-
-      - uses: actions/checkout@v3
-        with:
-          ssh-key: ${{ secrets.GH_PAT }}
-
       - name: Sync Versions
-        if: ${{ inputs.update_version }}
         run: |
           yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" package.json
           yq eval -i ".dependencies.@pelagus/pelagus-ui = \"${{ env.VERSION }}\"" package.json
@@ -113,6 +90,66 @@ jobs:
           STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')
           yq eval -i ".version = \"${STRIPPED_VERSION}\"" manifest/manifest.json
 
+      - name: Store version in branch variable
+        id: set-branch
+        run: echo "branch=${{ env.VERSION }}" >> $GITHUB_OUTPUT
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Release ${{ env.VERSION }}
+          branch: ${{ env.VERSION }}
+          create_branch: true
+          commit_user_name: ci-dominantstrategies
+          commit_user_email: ci@dominantstrategies.io
+
+      - uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.GH_PAT }}
+
+      - name: Set Repo Name in Camel Case
+        run: |
+          repo_name=$(basename ${{ github.repository }})
+          if [ -n "${{ inputs.name_override }}" ]; then
+              repo_name=${{ inputs.name_override }}
+          fi
+          camel_case_name=$(echo $repo_name | awk -F- '{for(i=2; i<=NF; i++) $i=toupper(substr($i,1,1)) substr($i,2); }1' OFS="")
+          echo "CAMEL_CASE_REPO_NAME=$camel_case_name" >> $GITHUB_ENV
+
+      - name: Update Version
+        run: |
+          jq --arg new_version "$(npx semver -i minor $(jq -r '.version' package.json | sed 's/^v//'))" '.version = $new_version' package.json > temp.json && mv temp.json package.json
+          NEW_VERSION=$(jq -r '.version' package.json)
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Sync Versions
+        run: |
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-ui = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".dependencies.@pelagus/pelagus-background = \"${{ env.VERSION }}\"" ui/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" window-provider/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".dependencies.@tallyho/provider-bridge-shared = \"${{ env.VERSION }}\"" ui/package.json
+          yq eval -i ".dependencies.@tallyho/window-provider = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" provider-bridge-shared/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" window-provider/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" background/package.json
+          yq eval -i ".version = \"${{ env.VERSION }}\"" ui/package.json
+          STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')
+          yq eval -i ".version = \"${STRIPPED_VERSION}\"" manifest/manifest.json
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Rev'd main to Release ${{ env.VERSION }}
+          branch: ${{ inputs.branch }}
+          commit_user_name: ci-dominantstrategies
+          commit_user_email: ci@dominantstrategies.io
+
   deployReleaseCandidateTS:
     uses: ./.github/workflows/build.yml
     needs: cutReleaseCandidateTS
@@ -129,6 +166,6 @@ jobs:
       DAYLIGHT_API_KEY: ${{ secrets.DAYLIGHT_API_KEY }}
 
     with:
-      update_version_command: "jq --arg new_version \"$(npx semver -i minor $(jq -r '.version' package.json | sed 's/^v//'))\" '.version = $new_version' package.json > temp.json && mv temp.json package.json"
+      update_version_command: "jq --arg new_version \"$(npx semver -i patch $(jq -r '.version' package.json | sed 's/^v//'))\" '.version = $new_version' package.json > temp.json && mv temp.json package.json"
       update_version: true
       branch: ${{ needs.cutReleaseCandidateTS.outputs.branch }}

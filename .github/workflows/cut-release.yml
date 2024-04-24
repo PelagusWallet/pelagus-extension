@@ -90,6 +90,9 @@ jobs:
           STRIPPED_VERSION=$(echo "${{ env.VERSION }}" | tr -d '"' | sed -e 's/^v//' -e 's/-[^0-9.]*$//')
           yq eval -i ".version = \"${STRIPPED_VERSION}\"" manifest/manifest.json
 
+      - name: Update version environment variable
+        run: echo "VERSION=$(echo $VERSION | sed 's/\.[0-9]*$//')" >> $GITHUB_ENV
+
       - name: Store version in branch variable
         id: set-branch
         run: echo "branch=${{ env.VERSION }}" >> $GITHUB_OUTPUT

@@ -129,6 +129,6 @@ jobs:
       DAYLIGHT_API_KEY: ${{ secrets.DAYLIGHT_API_KEY }}
 
     with:
-      update_version_command: "jq --arg new_version \"$(npx semver -i patch $(jq -r '.version' package.json | sed 's/^v//'))\" '.version = $new_version' package.json > temp.json && mv temp.json package.json"
+      update_version_command: "jq --arg new_version \"$(npx semver -i minor $(jq -r '.version' package.json | sed 's/^v//'))\" '.version = $new_version' package.json > temp.json && mv temp.json package.json"
       update_version: true
       branch: ${{ needs.cutReleaseCandidateTS.outputs.branch }}

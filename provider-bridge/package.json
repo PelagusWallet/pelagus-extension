@@ -1,6 +1,6 @@
 {
   "name": "@tallyho/provider-bridge",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Pelagus, the community owned and operated Web3 wallet: provider bridge to connect the in-page provider with the background script.",
   "main": "index.ts",
   "repository": "git@github.com:PelagusWallet/pelagus-extension.git",
@@ -24,9 +24,9 @@
     "watch": "webpack --mode=development --watch"
   },
   "dependencies": {
-    "@tallyho/provider-bridge-shared": "0.5.0",
+    "@tallyho/provider-bridge-shared": "0.5.1",
     "webextension-polyfill": "^0.8.0",
-    "@pelagus/pelagus-background": "0.5.0"
+    "@pelagus/pelagus-background": "0.5.1"
   },
   "devDependencies": {
     "@types/webextension-polyfill": "^0.8.0"

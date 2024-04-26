@@ -39,7 +39,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           {t("send")}
         </SharedSquareButton>
       </div>
-      {NETWORKS_SUPPORTING_SWAPS.has(currentNetwork.chainID) ? (
+      {/* FIXME swap buttons are currently not needed, so we are removing them */}
+      {/* {NETWORKS_SUPPORTING_SWAPS.has(currentNetwork.chainID) ? (
         <div className="button_wrap">
           <SharedSquareButton
             icon="icons/s/swap.svg"
@@ -88,7 +89,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             </div>
           </SharedTooltip>
         </div>
-      )}
+      )} */}
       <div className="button_wrap">
         <SharedSquareButton
           icon="icons/s/receive.svg"

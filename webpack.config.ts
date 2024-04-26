@@ -48,6 +48,7 @@ const baseConfig: Configuration = {
   output: {
     // path: is set browser-specifically below
     filename: "[name].js",
+    hashFunction: "xxhash64",
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js", ".jsx"],

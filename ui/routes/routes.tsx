@@ -164,13 +164,16 @@ const pageList: PageList[] = [
     hasTopBar: true,
     persistOnClose: true,
   },
-  {
-    path: "/swap",
-    Component: Swap,
-    hasTabBar: true,
-    hasTopBar: true,
-    persistOnClose: true,
-  },
+
+  // Will likely be added back to available routes in the future.
+  // removing it so that the user does not accidentally go to this screen even with the disabled buttons
+  // {
+  //   path: "/swap",
+  //   Component: Swap,
+  //   hasTabBar: true,
+  //   hasTopBar: true,
+  //   persistOnClose: true,
+  // },
 
   // Will likely be added back to the tab nav in the future.
   // {

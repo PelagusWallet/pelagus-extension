@@ -227,7 +227,8 @@ export default function SingleAsset(): ReactElement {
                   >
                     {t("shared.send")}
                   </SharedButton>
-                  {NETWORKS_SUPPORTING_SWAPS.has(currentNetwork.chainID) ? (
+                  {/* FIXME swap buttons are currently not needed, so we are removing them */}
+                  {/* {NETWORKS_SUPPORTING_SWAPS.has(currentNetwork.chainID) ? (
                     <SharedButton
                       type="primary"
                       size="medium"
@@ -264,7 +265,7 @@ export default function SingleAsset(): ReactElement {
                         <div>{t("wallet.swapDisabledTwo")}</div>
                       </div>
                     </SharedTooltip>
-                  )}
+                  )} */}
                 </>
               )}
           </div>

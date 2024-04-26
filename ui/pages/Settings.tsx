@@ -154,59 +154,61 @@ export default function Settings(): ReactElement {
     dispatch(toggleHideBanners(!toggleValue))
   }
 
-  const hideSmallAssetBalance = {
-    title: t("settings.hideSmallAssetBalance", {
-      amount: 2,
-      sign: mainCurrencySign,
-    }),
-    component: () => (
-      <SharedToggleButton
-        onChange={(toggleValue) => toggleHideDustAssets(toggleValue)}
-        value={hideDust}
-      />
-    ),
-  }
+  // FIXME temporary solution to hide small asset balance
+  // const hideSmallAssetBalance = {
+  //   title: t("settings.hideSmallAssetBalance", {
+  //     amount: 2,
+  //     sign: mainCurrencySign,
+  //   }),
+  //   component: () => (
+  //     <SharedToggleButton
+  //       onChange={(toggleValue) => toggleHideDustAssets(toggleValue)}
+  //       value={hideDust}
+  //     />
+  //   ),
+  // }
 
-  const unverifiedAssets = {
-    title: "",
-    component: () => (
-      <div className="content">
-        <div className="left">
-          {t("settings.showUnverifiedAssets")}
-          <SharedTooltip width={190} customStyles={{ marginLeft: "4" }}>
-            <div className="tooltip">
-              <span>{t("settings.unverifiedAssets.tooltip.firstPart")}</span>
-              {isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET) && (
-                <span>{t("settings.unverifiedAssets.tooltip.secondPart")}</span>
-              )}
-            </div>
-          </SharedTooltip>
-        </div>
-        <SharedToggleButton
-          onChange={(toggleValue) => toggleShowUnverified(toggleValue)}
-          value={showUnverifiedAssets}
-        />
-        <style jsx>
-          {`
-            .content {
-              display: flex;
-              justify-content: space-between;
-              width: 336px;
-            }
-            .left {
-              display: flex;
-              align-items: center;
-            }
-            .tooltip {
-              display: flex;
-              flex-direction: column;
-              gap: 16px;
-            }
-          `}
-        </style>
-      </div>
-    ),
-  }
+  // FIXME temporary solution to hide unverified assets
+  // const unverifiedAssets = {
+  //   title: "",
+  //   component: () => (
+  //     <div className="content">
+  //       <div className="left">
+  //         {t("settings.showUnverifiedAssets")}
+  //         <SharedTooltip width={190} customStyles={{ marginLeft: "4" }}>
+  //           <div className="tooltip">
+  //             <span>{t("settings.unverifiedAssets.tooltip.firstPart")}</span>
+  //             {isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET) && (
+  //               <span>{t("settings.unverifiedAssets.tooltip.secondPart")}</span>
+  //             )}
+  //           </div>
+  //         </SharedTooltip>
+  //       </div>
+  //       <SharedToggleButton
+  //         onChange={(toggleValue) => toggleShowUnverified(toggleValue)}
+  //         value={showUnverifiedAssets}
+  //       />
+  //       <style jsx>
+  //         {`
+  //           .content {
+  //             display: flex;
+  //             justify-content: space-between;
+  //             width: 336px;
+  //           }
+  //           .left {
+  //             display: flex;
+  //             align-items: center;
+  //           }
+  //           .tooltip {
+  //             display: flex;
+  //             flex-direction: column;
+  //             gap: 16px;
+  //           }
+  //         `}
+  //       </style>
+  //     </div>
+  //   ),
+  // }
 
   const setAsDefault = {
     title: t("settings.setAsDefault"),
@@ -218,15 +220,16 @@ export default function Settings(): ReactElement {
     ),
   }
 
-  const enableTestNetworks = {
-    title: t("settings.enableTestNetworks"),
-    component: () => (
-      <SharedToggleButton
-        onChange={(toggleValue) => toggleShowTestNetworks(toggleValue)}
-        value={showTestNetworks}
-      />
-    ),
-  }
+  // FIXME temporary solution to hide testnet networks
+  // const enableTestNetworks = {
+  //   title: t("settings.enableTestNetworks"),
+  //   component: () => (
+  //     <SharedToggleButton
+  //       onChange={(toggleValue) => toggleShowTestNetworks(toggleValue)}
+  //       value={showTestNetworks}
+  //     />
+  //   ),
+  // }
 
   const langOptions = getAvalableLanguages()
   const langIdx = getLanguageIndex(getLanguage())
@@ -348,11 +351,11 @@ export default function Settings(): ReactElement {
     walletOptions: {
       title: t("settings.group.walletOptions"),
       items: [
-        hideSmallAssetBalance,
-        unverifiedAssets,
+        // hideSmallAssetBalance, // FIXME temporary solution to hide small asset balance
+        // unverifiedAssets, // FIXME temporary solution to hide unverified assets
         // customNetworks, // FIXME currently allows users to add networks that can break the extension //
         addCustomAsset,
-        enableTestNetworks,
+        // enableTestNetworks, // FIXME temporary solution to hide testnet networks
       ],
     },
     helpCenter: {

@@ -993,5 +993,11 @@
     "swap": "Swap",
     "earn": "Earn",
     "settings": "Settings"
+  },
+  "drawers": {
+    "selectNetwork": {
+      "title": "Select a network",
+      "toggleShowTestNetworks": "Show developer environments"
+    }
   }
 }

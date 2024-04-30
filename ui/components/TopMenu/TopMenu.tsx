@@ -9,18 +9,15 @@ import {
 } from "@pelagus/pelagus-background/features"
 import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
 import { useTranslation } from "react-i18next"
-import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProtocolSwitcher from "./TopMenuProtocolSwitcher"
 import TopMenuProfileButton from "./TopMenuProfileButton"
-
 import BonusProgramModal from "../BonusProgram/BonusProgramModal"
 import AccountsNotificationPanel from "../AccountsNotificationPanel/AccountsNotificationPanel"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import TopMenuConnectedDAppInfo from "./TopMenuConnectedDAppInfo"
-import TopMenuProtocolList from "./TopMenuProtocolList"
-
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import DAppConnection from "../DAppConnection/DAppConnection"
+import SelectNetworkDrawer from "../Drawers/SelectNetworkDrawer"
 
 export default function TopMenu(): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "topMenu" })
@@ -110,21 +107,12 @@ export default function TopMenu(): ReactElement {
           setIsBonusProgramOpen(false)
         }}
       />
-      <SharedSlideUpMenu
-        isOpen={isProtocolListOpen}
-        isScrollable
-        customStyles={{ display: "flex", flexDirection: "column" }}
-        close={() => {
-          setIsProtocolListOpen(false)
-        }}
-      >
-        <TopMenuProtocolList
-          onProtocolChange={(network) => {
-            dispatch(setSelectedNetwork(network))
-            setIsProtocolListOpen(false)
-          }}
-        />
-      </SharedSlideUpMenu>
+
+      <SelectNetworkDrawer
+        isProtocolListOpen={isProtocolListOpen}
+        setIsProtocolListOpen={setIsProtocolListOpen}
+      />
+
       <SharedSlideUpMenu
         isOpen={isNotificationsOpen}
         close={() => {

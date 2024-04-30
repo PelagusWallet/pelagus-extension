@@ -21,6 +21,18 @@ import {
   QUAI_LOCAL,
 } from "./currencies"
 
+// FIXME maybe delete
+// export const productionNetworkInfo = {
+//   [ETHEREUM.chainID]: i18n.t("protocol.mainnet"),
+//   [POLYGON.chainID]: i18n.t("protocol.l2"),
+//   [OPTIMISM.chainID]: i18n.t("protocol.l2"),
+//   [ARBITRUM_ONE.chainID]: i18n.t("protocol.l2"),
+//   [ROOTSTOCK.chainID]: i18n.t("protocol.beta"),
+//   [AVALANCHE.chainID]: i18n.t("protocol.avalanche"),
+//   [BINANCE_SMART_CHAIN.chainID]: i18n.t("protocol.compatibleChain"),
+//   [ARBITRUM_NOVA.chainID]: i18n.t("comingSoon"),
+// }
+
 export const ETHEREUM: EVMNetwork = {
   name: "Ethereum",
   baseAsset: ETH,
@@ -123,6 +135,8 @@ export const VALID_SHARDS_NAMES: Array<string> = [
   "Hydra 2",
   "Hydra 3",
 ]
+
+export const DISABLED_CHAINS_ID = [ARBITRUM_NOVA.chainID]
 
 export const DEFAULT_QUAI_TESTNET = {
   name: "Colosseum",
@@ -342,11 +356,19 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   isQuai: true,
 }
 
-export const DEFAULT_NETWORKS = [QUAI_NETWORK, QUAI_NETWORK_LOCAL]
+// FIXME consider how to properly separate testnet and mainnet in the wallet
+export const DEFAULT_NETWORKS = [QUAI_NETWORK]
+export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_LOCAL]
 
 export function isBuiltInNetwork(network: EVMNetwork): boolean {
   return DEFAULT_NETWORKS.some(
     (builtInNetwork) => builtInNetwork.chainID === network.chainID
+  )
+}
+
+export function isTestNetwork(network: EVMNetwork): boolean {
+  return DEFAULT_TEST_NETWORKS.some(
+    (testNetwork) => testNetwork.chainID === network.chainID
   )
 }
 

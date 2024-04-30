@@ -17,52 +17,35 @@ export default function TopMenuProtocolSwitcher({
       onClick={() => onClick?.()}
       data-testid="top_menu_network_switcher"
     >
-      <div className="icon_wrap">
-        <SharedNetworkIcon
-          key={currentNetwork.chainID}
-          size={18}
-          network={currentNetwork}
-        />
-      </div>
-      <div className="ellipsis" title={currentNetwork.name}>
-        {currentNetwork.name}
-      </div>
+      <SharedNetworkIcon
+        key={currentNetwork.chainID}
+        size={20}
+        network={currentNetwork}
+      />
       <span className="icon_chevron_down" />
       <style jsx>
         {`
           button {
-            color: var(--green-40);
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 9px;
             user-select: none;
-            white-space: nowrap;
-            max-width: 60%;
+            max-width: 72px;
+            width: 100%;
+            padding: 6px 13px 6px 10px;
+            border-radius: 35px;
+            background-color: var(--green-95);
+            box-sizing: border-box;
           }
-          button:hover {
-            color: var(--green-20);
-          }
+
           .icon_chevron_down {
             flex-shrink: 0;
             mask-image: url("./images/chevron_down.svg");
-            mask-size: 15px 8px;
-            width: 15px;
-            height: 8px;
-            margin-left: 7px;
-            margin-top: 2px;
+            mask-size: 11px 7px;
+            width: 11px;
+            height: 7px;
             background-color: var(--green-40);
-          }
-          button:hover .icon_chevron_down {
-            background-color: var(--green-20);
-          }
-          .icon_wrap {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            background-color: var(--green-95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 5px;
           }
         `}
       </style>

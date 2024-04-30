@@ -8,12 +8,9 @@ import {
   isEnabled,
 } from "@pelagus/pelagus-background/features"
 import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
-import { useTranslation } from "react-i18next"
 import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProtocolSwitcher from "./TopMenuProtocolSwitcher"
-import TopMenuProfileButton from "./TopMenuProfileButton"
 
-import BonusProgramModal from "../BonusProgram/BonusProgramModal"
 import AccountsNotificationPanel from "../AccountsNotificationPanel/AccountsNotificationPanel"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import TopMenuConnectedDAppInfo from "./TopMenuConnectedDAppInfo"
@@ -21,13 +18,12 @@ import TopMenuProtocolList from "./TopMenuProtocolList"
 
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import DAppConnection from "../DAppConnection/DAppConnection"
+import TopMenuProfileButtonGA from "./TopMenuProfileButtonGA"
+import SharedButton from "../Shared/SharedButton"
 
 export default function TopMenu(): ReactElement {
-  const { t } = useTranslation("translation", { keyPrefix: "topMenu" })
-
   const [isProtocolListOpen, setIsProtocolListOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
-  const [isBonusProgramOpen, setIsBonusProgramOpen] = useState(false)
   const [selectedAccountSigner, setSelectedAccountSigner] = useState("")
 
   const [isActiveDAppConnectionInfoOpen, setIsActiveDAppConnectionInfoOpen] =
@@ -104,12 +100,6 @@ export default function TopMenu(): ReactElement {
           isConnected={isConnectedToDApp}
         />
       ) : null}
-      <BonusProgramModal
-        isOpen={isBonusProgramOpen}
-        onClose={() => {
-          setIsBonusProgramOpen(false)
-        }}
-      />
       <SharedSlideUpMenu
         isOpen={isProtocolListOpen}
         isScrollable
@@ -142,41 +132,52 @@ export default function TopMenu(): ReactElement {
       )}
       <nav>
         <TopMenuProtocolSwitcher onClick={() => setIsProtocolListOpen(true)} />
-        <div className="profile_group">
+        <TopMenuProfileButtonGA
+          onClick={() => {
+            setIsNotificationsOpen(!isNotificationsOpen)
+          }}
+        />
+        <div className="dappAndSettingsWrapper">
           {isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (
-            <button
-              type="button"
-              aria-label={t("showCurrentDappConnection")}
-              className="connection_button"
+            <SharedButton
+              type="unstyled"
+              size="small"
               onClick={() => {
                 setIsActiveDAppConnectionInfoOpen(
                   !isActiveDAppConnectionInfoOpen
                 )
               }}
-            >
-              {isEnabled(FeatureFlags.SUPPORT_WALLET_CONNECT) &&
-              isConnectedToDApp ? (
-                <div className="connected-wc" />
-              ) : (
-                <div className="connection_img" />
-              )}
-            </button>
-          )}
-          {isDisabled(FeatureFlags.HIDE_TOKEN_FEATURES) && (
-            <button
-              type="button"
-              aria-label={t("rewardsProgram")}
-              className="gift_button"
-              onClick={() => {
-                setIsBonusProgramOpen(!isBonusProgramOpen)
+              style={{
+                padding: 0,
+                background: "var(--green-95)",
+                borderRadius: "50%",
               }}
-            />
+            >
+              {isConnectedToDApp ? (
+                <img
+                  src="./images/dappConnected.svg"
+                  alt="dapp connected icon"
+                />
+              ) : (
+                <img
+                  src="./images/dappNotConnected.svg"
+                  alt="dapp not connected icon"
+                />
+              )}
+            </SharedButton>
           )}
-          <TopMenuProfileButton
-            onClick={() => {
-              setIsNotificationsOpen(!isNotificationsOpen)
+          <SharedButton
+            type="unstyled"
+            size="small"
+            linkTo="/settings"
+            style={{
+              padding: 0,
+              background: "var(--green-95)",
+              borderRadius: "50%",
             }}
-          />
+          >
+            <img src="./images/topMenuSettings.svg" alt="settings" />
+          </SharedButton>
         </div>
       </nav>
 
@@ -185,50 +186,15 @@ export default function TopMenu(): ReactElement {
           nav {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-
-            padding: 0 16px 0 13px;
+            justify-content: center;
+            padding: 16px;
+            gap: 30px;
           }
-          .profile_group {
+
+          .dappAndSettingsWrapper {
             display: flex;
             align-items: center;
-            min-width: 0; // Allow the account address/name to collapse to an ellipsis.
-          }
-          button {
-            border-radius: 12px;
-            border: solid 3px var(--hunter-green);
-            width: 32px;
-            height: 32px;
-            margin-right: 2px;
-          }
-          .connection_button:hover .connection_img {
-            background-color: var(--success);
-          }
-          .connection_button {
-            width: 32px;
-            height: 32px;
-          }
-          .connection_img {
-            mask-image: url("./images/bolt@2x.png");
-            mask-repeat: no-repeat;
-            mask-position: center;
-            mask-size: cover;
-            mask-size: 35%;
-            width: 32px;
-            height: 32px;
-            background-color: var(
-              --${isConnectedToDApp ? "success" : "green-20"}
-            );
-          }
-          .connected-wc {
-            background: url("./images/connected-wc.svg") center / 24px no-repeat;
-            width: 32px;
-            height: 32px;
-          }
-          .gift_button {
-            background: url("./images/gift@2x.png") center no-repeat;
-            background-size: 24px 24px;
+            gap: 8px;
           }
         `}
       </style>

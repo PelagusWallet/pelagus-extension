@@ -1,4 +1,4 @@
-import { TEST_NETWORK_BY_CHAIN_ID } from "@pelagus/pelagus-background/constants"
+import React, { FormEventHandler, ReactElement, useRef, useState } from "react"
 import {
   isProbablyEVMAddress,
   normalizeEVMAddress,
@@ -14,15 +14,12 @@ import {
   selectCurrentNetwork,
   userValueDustThreshold,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { selectEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
 import {
   selectHideDust,
-  selectShowTestNetworks,
   setSnackbarMessage,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { HexString } from "@pelagus/pelagus-background/types"
-import React, { FormEventHandler, ReactElement, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
 import { updateAccountBalance } from "@pelagus/pelagus-background/redux-slices/accounts"
@@ -33,13 +30,11 @@ import SharedInput from "../../components/Shared/SharedInput"
 import SharedLink from "../../components/Shared/SharedLink"
 import SharedNetworkIcon from "../../components/Shared/SharedNetworkIcon"
 import SharedPageHeader from "../../components/Shared/SharedPageHeader"
-import SharedSlideUpMenu from "../../components/Shared/SharedSlideUpMenu"
 import SharedTooltip from "../../components/Shared/SharedTooltip"
-import { productionNetworkInfo } from "../../components/TopMenu/TopMenuProtocolList"
-import TopMenuProtocolListItem from "../../components/TopMenu/TopMenuProtocolListItem"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { useSetState } from "../../hooks/react-hooks"
 import { trimWithEllipsis } from "../../utils/textUtils"
+import SelectNetworkDrawer from "../../components/Drawers/SelectNetworkDrawer"
 
 const HELPDESK_CUSTOM_TOKENS_LINK =
   "https://pelaguswallet.notion.site/Adding-Custom-Tokens-2facd9b82b5f4685a7d4766caeb05a4c"
@@ -74,7 +69,6 @@ export default function SettingsAddCustomAsset(): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "settings.addCustomAssetSettings",
   })
-  const { t: sharedT } = useTranslation("translation")
 
   const history = useHistory()
 
@@ -97,17 +91,9 @@ export default function SettingsAddCustomAsset(): ReactElement {
 
   const dispatch = useBackgroundDispatch()
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
-  const allNetworks = useBackgroundSelector(selectEVMNetworks)
-  const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
-
-  const networks = allNetworks.filter(
-    (network) =>
-      !TEST_NETWORK_BY_CHAIN_ID.has(network.chainID) ||
-      (showTestNetworks && TEST_NETWORK_BY_CHAIN_ID.has(network.chainID))
-  )
 
   const [chosenNetwork, setChosenNetwork] = useState<EVMNetwork>(currentNetwork)
   const [isNetworkSelectOpen, setNetworkSelectOpen] = useState(false)
@@ -275,35 +261,18 @@ export default function SettingsAddCustomAsset(): ReactElement {
           text-align: left;
         }
       `}</style>
-      <SharedSlideUpMenu
-        isOpen={isNetworkSelectOpen}
-        isScrollable
-        customStyles={{ display: "flex", flexDirection: "column" }}
-        close={() => setNetworkSelectOpen(false)}
-      >
-        <div className="network_select">
-          <div className="network_select_title">{t("networkSelect.title")}</div>
-          <ul>
-            {networks.map((network) => (
-              <TopMenuProtocolListItem
-                key={network.chainID}
-                network={network}
-                isSelected={chosenNetwork.chainID === network.chainID}
-                onSelect={(selectedNetwork) => {
-                  setChosenNetwork(selectedNetwork)
-                  setNetworkSelectOpen(false)
-                  handleTokenInfoChange(tokenAddress, selectedNetwork)
-                }}
-                showSelectedText={false}
-                info={
-                  productionNetworkInfo[network.chainID] ||
-                  sharedT("protocol.compatibleChain")
-                }
-              />
-            ))}
-          </ul>
-        </div>
-      </SharedSlideUpMenu>
+
+      <SelectNetworkDrawer
+        isProtocolListOpen={isNetworkSelectOpen}
+        setIsProtocolListOpen={setNetworkSelectOpen}
+        onProtocolListItemSelect={(selectedNetwork) => {
+          setChosenNetwork(selectedNetwork)
+          setNetworkSelectOpen(false)
+          handleTokenInfoChange(tokenAddress, selectedNetwork)
+        }}
+        customCurrentSelectedNetwork={chosenNetwork}
+      />
+
       <style jsx>{`
         .network_select_input:hover {
           --icon-color: var(--green-5);

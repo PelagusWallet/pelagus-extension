@@ -8,17 +8,17 @@ import { useBackgroundSelector } from "../../hooks"
 import TopMenuProtocolListItemGA from "./TopMenuProtocolListItemGA"
 import { EVMNetwork, sameNetwork } from "@pelagus/pelagus-background/networks"
 import { selectShowTestNetworks } from "@pelagus/pelagus-background/redux-slices/ui"
-import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { selectProductionEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
 
 type TopMenuProtocolListGAProps = {
-  onProtocolChange: (network: EVMNetwork) => void
+  currentNetwork: EVMNetwork
+  onProtocolListItemSelect: (network: EVMNetwork) => void
 }
 
 export default function TopMenuProtocolListGA({
-  onProtocolChange,
+  currentNetwork,
+  onProtocolListItemSelect,
 }: TopMenuProtocolListGAProps): ReactElement {
-  const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
 
   // FIXME think about how to get testnets right
@@ -42,9 +42,9 @@ export default function TopMenuProtocolListGA({
         {networks.map((network) => (
           <TopMenuProtocolListItemGA
             key={network.name}
-            isSelected={sameNetwork(currentNetwork, network)}
             network={network}
-            onSelect={onProtocolChange}
+            isSelected={sameNetwork(currentNetwork, network)}
+            onSelect={onProtocolListItemSelect}
             isDisabled={DISABLED_CHAINS_ID.includes(network.chainID)}
           />
         ))}

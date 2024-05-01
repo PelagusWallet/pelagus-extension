@@ -31,7 +31,10 @@ export default function SharedToggleButtonGA({
       role="checkbox"
       aria-checked={isActive}
       disabled={isDisabled}
-      className={classNames("container", { is_active: isActive })}
+      className={classNames("container", {
+        is_active: isActive,
+        disabled: isDisabled,
+      })}
       onClick={handleToggleAction}
     >
       <div className="bulb" />
@@ -63,6 +66,11 @@ export default function SharedToggleButtonGA({
           }
           .is_active {
             background-color: var(--green-80);
+          }
+          .disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: var(--disabled);
           }
         `}
       </style>

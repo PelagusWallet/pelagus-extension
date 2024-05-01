@@ -18,6 +18,7 @@ import TopMenuConnectedDAppInfo from "./TopMenuConnectedDAppInfo"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import DAppConnection from "../DAppConnection/DAppConnection"
 import SelectNetworkDrawer from "../Drawers/SelectNetworkDrawer"
+import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 
 export default function TopMenu(): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "topMenu" })
@@ -111,6 +112,10 @@ export default function TopMenu(): ReactElement {
       <SelectNetworkDrawer
         isProtocolListOpen={isProtocolListOpen}
         setIsProtocolListOpen={setIsProtocolListOpen}
+        onProtocolListItemSelect={(network) => {
+          dispatch(setSelectedNetwork(network))
+          setIsProtocolListOpen(false)
+        }}
       />
 
       <SharedSlideUpMenu

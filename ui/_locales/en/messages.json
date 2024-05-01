@@ -997,7 +997,8 @@
   "drawers": {
     "selectNetwork": {
       "title": "Select a network",
-      "toggleShowTestNetworks": "Show developer environments"
+      "toggleShowTestNetworks": "Show developer environments",
+      "disabledToggleMessage": "Switch to the main network to disable the development environment"
     }
   }
 }

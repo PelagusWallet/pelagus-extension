@@ -999,6 +999,9 @@
       "title": "Select a network",
       "toggleShowTestNetworks": "Show developer environments",
       "disabledToggleMessage": "Switch to the main network to disable the development environment"
+    },
+    "dAppConnection": {
+      "title": "Dapp Connections"
     }
   }
 }

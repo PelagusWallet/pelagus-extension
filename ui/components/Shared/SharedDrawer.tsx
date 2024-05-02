@@ -23,23 +23,20 @@ interface SharedDrawerProps {
   fillAvailable?: boolean
 }
 
-export default function SharedDrawer(props: SharedDrawerProps) {
-  const {
-    isOpen = false,
-    title,
-    close,
-    showSearchBar,
-    children,
-    footer,
-    isDark,
-    isScrollable,
-    alwaysRenderChildren,
-    customStyles = {},
-    fillAvailable = false,
-  } = props
-
+export default function SharedDrawer({
+  isOpen = false,
+  title,
+  close,
+  showSearchBar,
+  children,
+  footer,
+  isDark,
+  isScrollable,
+  alwaysRenderChildren,
+  customStyles = {},
+  fillAvailable = false,
+}: SharedDrawerProps) {
   const sharedDrawerRef = useRef(null)
-
   useOnClickOutside(sharedDrawerRef, close)
 
   const visibleChildren = isOpen || alwaysRenderChildren ? children : <></>
@@ -74,15 +71,13 @@ export default function SharedDrawer(props: SharedDrawerProps) {
               icon="close.svg"
               width={14}
               height={14}
-              color="var(--green-20)"
-              hoverColor="#fff"
-              ariaLabel={tShared("close")}
-              onClick={(e) => {
-                close(e)
-              }}
+              onClick={close}
               customStyles={`
                 margin-right: 5px;
               `}
+              color="var(--green-20)"
+              hoverColor="var(--green-120)"
+              ariaLabel={tShared("close")}
             />
           </div>
           {/* FIXME create search bar component */}

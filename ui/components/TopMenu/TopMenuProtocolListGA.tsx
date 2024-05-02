@@ -20,21 +20,15 @@ export default function TopMenuProtocolListGA({
   onProtocolListItemSelect,
 }: TopMenuProtocolListGAProps): ReactElement {
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
-
-  // FIXME think about how to get testnets right
-  const testNetworks = DEFAULT_TEST_NETWORKS
   const productionNetworks = useBackgroundSelector(selectProductionEVMNetworks)
 
-  const builtinNetworks = useMemo(
-    () => productionNetworks.filter(isBuiltInNetwork),
-    [productionNetworks]
-  )
-
   const networks: EVMNetwork[] = useMemo(() => {
+    const builtinNetworks = productionNetworks.filter(isBuiltInNetwork)
+
     return showTestNetworks
-      ? [...builtinNetworks, ...testNetworks]
+      ? [...builtinNetworks, ...DEFAULT_TEST_NETWORKS]
       : builtinNetworks
-  }, [showTestNetworks, builtinNetworks])
+  }, [showTestNetworks, productionNetworks])
 
   return (
     <div className="networks-list">
@@ -49,7 +43,6 @@ export default function TopMenuProtocolListGA({
           />
         ))}
       </div>
-
       <style jsx>
         {`
           .networks-list {

@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useMemo } from "react"
+import React, { ReactElement, useMemo, useLayoutEffect } from "react"
 import { useTranslation } from "react-i18next"
 import SharedDrawer from "../Shared/SharedDrawer"
 import {
@@ -15,47 +15,43 @@ import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 
 interface SelectNetworkDrawerProps {
   isProtocolListOpen: boolean
-  setIsProtocolListOpen: (value: React.SetStateAction<boolean>) => void
+  onProtocolListClose: () => void
   onProtocolListItemSelect: (network: EVMNetwork) => void
   customCurrentSelectedNetwork?: EVMNetwork
 }
 
 export default function SelectNetworkDrawer({
   isProtocolListOpen,
-  setIsProtocolListOpen,
+  onProtocolListClose,
   onProtocolListItemSelect,
   customCurrentSelectedNetwork,
 }: SelectNetworkDrawerProps): ReactElement {
-  const dispatch = useBackgroundDispatch()
   const { t } = useTranslation("translation", {
     keyPrefix: "drawers.selectNetwork",
   })
 
-  const currentNetwork = customCurrentSelectedNetwork
-    ? customCurrentSelectedNetwork
-    : useBackgroundSelector(selectCurrentNetwork)
+  const dispatch = useBackgroundDispatch()
+  const currentNetwork =
+    customCurrentSelectedNetwork || useBackgroundSelector(selectCurrentNetwork)
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
-  const [isTestNetworksSwitchDisabled, setIsTestNetworksSwitchDisabled] =
-    useState<boolean>(false)
 
-  const toggleShowTestNetworks = (defaultWalletValue: boolean) =>
-    dispatch(toggleTestNetworks(defaultWalletValue))
+  const toggleShowTestNetworks = (toggleValue: boolean) =>
+    dispatch(toggleTestNetworks(toggleValue))
 
-  useMemo(
-    () =>
-      setIsTestNetworksSwitchDisabled(
-        isTestNetwork(currentNetwork) ? true : false
-      ),
+  const isTestNetworksSwitchDisabled = useMemo(
+    () => isTestNetwork(currentNetwork),
     [currentNetwork]
   )
+
+  useLayoutEffect(() => {
+    if (isTestNetwork(currentNetwork)) toggleShowTestNetworks(true)
+  }, [showTestNetworks])
 
   return (
     <SharedDrawer
       title={t("title")}
       isOpen={isProtocolListOpen}
-      close={() => {
-        setIsProtocolListOpen(false)
-      }}
+      close={onProtocolListClose}
     >
       <TopMenuProtocolListGA
         currentNetwork={currentNetwork}
@@ -67,7 +63,7 @@ export default function SelectNetworkDrawer({
           <SharedToggleButtonGA
             value={showTestNetworks}
             isDisabled={isTestNetworksSwitchDisabled}
-            onChange={(toggleValue) => toggleShowTestNetworks(toggleValue)}
+            onChange={toggleShowTestNetworks}
           />
         )}
       />

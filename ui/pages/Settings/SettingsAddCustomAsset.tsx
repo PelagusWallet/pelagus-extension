@@ -101,6 +101,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
 
   const requestIdRef = useRef(0)
 
+  const onProtocolListClose = () => setNetworkSelectOpen(false)
+
   const handleTokenInfoChange = async (
     addressLike: HexString,
     network: EVMNetwork
@@ -264,7 +266,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
 
       <SelectNetworkDrawer
         isProtocolListOpen={isNetworkSelectOpen}
-        setIsProtocolListOpen={setNetworkSelectOpen}
+        onProtocolListClose={onProtocolListClose}
         onProtocolListItemSelect={(selectedNetwork) => {
           setChosenNetwork(selectedNetwork)
           setNetworkSelectOpen(false)

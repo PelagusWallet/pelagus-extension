@@ -1,7 +1,7 @@
 import React, { ReactElement, useState, useEffect, useCallback } from "react"
 import { browser } from "@pelagus/pelagus-background"
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
-import { selectAllowedPages } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectAllowedPagesForAllAcccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   FeatureFlags,
   isDisabled,
@@ -12,7 +12,6 @@ import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProtocolSwitcher from "./TopMenuProtocolSwitcher"
 import AccountsNotificationPanel from "../AccountsNotificationPanel/AccountsNotificationPanel"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
-import TopMenuConnectedDAppInfo from "./TopMenuConnectedDAppInfo"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import DAppConnection from "../DAppConnection/DAppConnection"
 import SelectNetworkDrawer from "../Drawers/SelectNetworkDrawer"
@@ -30,12 +29,15 @@ export default function TopMenu(): ReactElement {
 
   const dispatch = useBackgroundDispatch()
 
-  const [currentPermission, setCurrentPermission] = useState<PermissionRequest>(
+  const [currentDAppInfo, setCurrentDAppInfo] = useState<PermissionRequest>(
     {} as PermissionRequest
   )
+  const [connectedAccountsToDApp, setConnectedAccountsToDApp] = useState<
+    PermissionRequest[]
+  >([])
   const [isConnectedToDApp, setIsConnectedToDApp] = useState(false)
   const allowedPages = useBackgroundSelector((state) =>
-    selectAllowedPages(state)
+    selectAllowedPagesForAllAcccounts(state)
   )
 
   const onProtocolListClose = () => setIsProtocolListOpen(false)
@@ -53,29 +55,33 @@ export default function TopMenu(): ReactElement {
 
     const { origin } = new URL(url)
 
-    const allowPermission = allowedPages.find(
+    const dAppInfo = allowedPages.find(
+      (permission) => permission.origin === origin
+    )
+    const connectedAccountsToDApp = allowedPages.filter(
       (permission) => permission.origin === origin
     )
 
-    if (allowPermission) {
-      setCurrentPermission(allowPermission)
+    if (dAppInfo) {
       setIsConnectedToDApp(true)
+      setCurrentDAppInfo(dAppInfo)
+      setConnectedAccountsToDApp(connectedAccountsToDApp)
     } else {
       setIsConnectedToDApp(false)
     }
-  }, [allowedPages, setCurrentPermission])
+  }, [allowedPages, setCurrentDAppInfo])
 
   useEffect(() => {
     initPermissionAndOrigin()
   }, [initPermissionAndOrigin])
 
   const deny = useCallback(async () => {
-    if (typeof currentPermission !== "undefined") {
+    if (typeof currentDAppInfo !== "undefined") {
       // Deletes all permissions corresponding to the currently selected
       // account and origin
       await Promise.all(
         allowedPages.map(async (permission) => {
-          if (permission.origin === currentPermission.origin) {
+          if (permission.origin === currentDAppInfo.origin) {
             return dispatch(
               denyOrRevokePermission({ ...permission, state: "deny" })
             )
@@ -84,23 +90,24 @@ export default function TopMenu(): ReactElement {
         })
       )
     }
-  }, [dispatch, currentPermission, allowedPages])
+  }, [dispatch, currentDAppInfo, allowedPages])
 
   return (
     <>
-      {isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) &&
-      isActiveDAppConnectionInfoOpen ? (
-        <TopMenuConnectedDAppInfo
-          title={currentPermission.title}
-          url={currentPermission.origin}
-          faviconUrl={currentPermission.faviconUrl}
-          close={() => {
+      {isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (
+        <DAppConnectionDrawer
+          dAppUrl={currentDAppInfo.origin}
+          dAppTitle={currentDAppInfo.title}
+          dAppFaviconUrl={currentDAppInfo.faviconUrl}
+          isConnectedToDApp={isConnectedToDApp}
+          connectedAccountsToDApp={connectedAccountsToDApp}
+          isDAppConnectionOpen={isActiveDAppConnectionInfoOpen}
+          setIsDAppConnectionOpen={() => {
             setIsActiveDAppConnectionInfoOpen(false)
           }}
-          disconnect={deny}
-          isConnected={isConnectedToDApp}
+          onDisconnectClick={deny}
         />
-      ) : null}
+      )}
 
       <SelectNetworkDrawer
         isProtocolListOpen={isProtocolListOpen}

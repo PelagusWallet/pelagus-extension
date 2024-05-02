@@ -46,3 +46,23 @@ export const selectAllowedPages = createSelector(
     return permissions
   }
 )
+
+export const selectAllowedPagesForAllAcccounts = createSelector(
+  (state: RootState) => getProviderBridgeState(state).allowed,
+  (allowed): PermissionRequest[] => {
+    // Return an array of all permissions for all accounts
+    const permissions: PermissionRequest[] = []
+
+    // Iterate over all chain IDs
+    Object.keys(allowed.evm).forEach((chainId) => {
+      // Iterate over all addresses in each chain
+      Object.keys(allowed.evm[chainId]).forEach((address) => {
+        // Iterate over all permissions for each address
+        Object.values(allowed.evm[chainId][address]).forEach((permission) => {
+          permissions.push(permission)
+        })
+      })
+    })
+    return permissions
+  }
+)

@@ -39,6 +39,7 @@ export default function SharedToggleButtonGA({
       verticalPosition="top"
       horizontalPosition="left"
       horizontalShift={30}
+      disabled={!isDisabled}
       IconComponent={() => (
         <button
           type="button"

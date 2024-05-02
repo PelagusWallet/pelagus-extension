@@ -38,6 +38,8 @@ export default function TopMenu(): ReactElement {
     selectAllowedPages(state)
   )
 
+  const onProtocolListClose = () => setIsProtocolListOpen(false)
+
   const initPermissionAndOrigin = useCallback(async () => {
     const { url } = await browser.tabs
       .query({
@@ -102,7 +104,7 @@ export default function TopMenu(): ReactElement {
 
       <SelectNetworkDrawer
         isProtocolListOpen={isProtocolListOpen}
-        setIsProtocolListOpen={setIsProtocolListOpen}
+        onProtocolListClose={onProtocolListClose}
         onProtocolListItemSelect={(network) => {
           dispatch(setSelectedNetwork(network))
           setIsProtocolListOpen(false)

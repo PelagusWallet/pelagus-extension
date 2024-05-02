@@ -1,9 +1,13 @@
 import React, { ReactElement } from "react"
 
-export default function SharedToggleSwitchRow(props: {
+type SharedToggleSwitchRowProps = {
   title: string
   component: () => ReactElement
-}): ReactElement {
+}
+
+export default function SharedToggleSwitchRow(
+  props: SharedToggleSwitchRowProps
+): ReactElement {
   const { title, component } = props
 
   return (

@@ -25,8 +25,15 @@ export default function SharedBackButton({
 
   const goBack = () => {
     if (isMemoryHistory(history)) {
-      const newLocation = path ?? history.entries.at(-2)?.pathname ?? "/"
+      const lastEntryPath = history.entries.at(-1)?.pathname
+      const secondLastEntryPath = history.entries.at(-2)?.pathname
 
+      if (lastEntryPath && lastEntryPath === "/") {
+        history.push("/", { isBack: true })
+        return
+      }
+
+      const newLocation = path ?? secondLastEntryPath ?? "/"
       history.push(newLocation, { isBack: true })
     } else {
       history.goBack()

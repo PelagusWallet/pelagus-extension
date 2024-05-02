@@ -122,7 +122,8 @@ export default function CommonAssetListItem(
                   state={assetAmount.asset}
                   iconClass="asset_icon_send"
                 />
-                {NETWORKS_SUPPORTING_SWAPS.has(selectedNetwork.chainID) ? (
+                {/* FIXME swap buttons are currently not needed, so we are removing them */}
+                {/* {NETWORKS_SUPPORTING_SWAPS.has(selectedNetwork.chainID) ? (
                   <SharedIconRouterLink
                     path="/swap"
                     state={{
@@ -159,7 +160,7 @@ export default function CommonAssetListItem(
                       <div>{t("swapDisabledTwo")}</div>
                     </div>
                   </SharedTooltip>
-                )}
+                )} */}
               </>
             )}
           </>

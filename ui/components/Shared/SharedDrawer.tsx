@@ -83,7 +83,13 @@ export default function SharedDrawer({
           {/* FIXME create search bar component */}
           {showSearchBar && <div className="drawer-search"></div>}
         </div>
-        <div className="drawer-body">{displayChildren}</div>
+        <div
+          className={classNames("drawer-body", {
+            fillAvailable: fillAvailable,
+          })}
+        >
+          {displayChildren}
+        </div>
         {footer && <div className="drawer-footer">{footer}</div>}
       </div>
       <style jsx>{`
@@ -167,6 +173,10 @@ export default function SharedDrawer({
           display: flex;
           flex-direction: column;
           gap: 24px;
+        }
+
+        .drawer-footer {
+          width: 100%;
         }
 
         .drawer-header-text {

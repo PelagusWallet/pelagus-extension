@@ -999,6 +999,15 @@
       "title": "Select a network",
       "toggleShowTestNetworks": "Show developer environments",
       "disabledToggleMessage": "Switch to the main network to disable the development environment"
+      "toggleShowTestNetworks": "Show developer environments"
+    },
+    "dAppConnection": {
+      "title": "Dapp Connections",
+      "disconnectButtonText": "Disconnect all accounts",
+      "youHave": "You have",
+      "accountsConnected": "accounts connected to this site",
+      "switchAccountBtnText": "Switch to this account",
+      "connectAccountBtnText": "Connected"
     }
   }
 }

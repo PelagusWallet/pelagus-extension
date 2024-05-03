@@ -68,6 +68,7 @@ export default function TopMenu(): ReactElement {
       setConnectedAccountsToDApp(connectedAccountsToDApp)
     } else {
       setIsConnectedToDApp(false)
+      setConnectedAccountsToDApp([])
     }
   }, [allowedPages, setCurrentDAppInfo])
 
@@ -77,17 +78,14 @@ export default function TopMenu(): ReactElement {
 
   const deny = useCallback(async () => {
     if (typeof currentDAppInfo !== "undefined") {
-      // Deletes all permissions corresponding to the currently selected
-      // account and origin
+      const permissionsToDeny = allowedPages.filter(
+        (permission) => permission.origin === currentDAppInfo.origin
+      )
+
       await Promise.all(
-        allowedPages.map(async (permission) => {
-          if (permission.origin === currentDAppInfo.origin) {
-            return dispatch(
-              denyOrRevokePermission({ ...permission, state: "deny" })
-            )
-          }
-          return undefined
-        })
+        permissionsToDeny.map((permission) =>
+          dispatch(denyOrRevokePermission({ ...permission, state: "deny" }))
+        )
       )
     }
   }, [dispatch, currentDAppInfo, allowedPages])
@@ -96,9 +94,7 @@ export default function TopMenu(): ReactElement {
     <>
       {isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (
         <DAppConnectionDrawer
-          dAppUrl={currentDAppInfo.origin}
-          dAppTitle={currentDAppInfo.title}
-          dAppFaviconUrl={currentDAppInfo.faviconUrl}
+          currentDAppInfo={currentDAppInfo}
           isConnectedToDApp={isConnectedToDApp}
           connectedAccountsToDApp={connectedAccountsToDApp}
           isDAppConnectionOpen={isActiveDAppConnectionInfoOpen}

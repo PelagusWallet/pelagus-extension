@@ -188,6 +188,10 @@ export default function SharedDrawer({
           background-color: var(--green-20);
         }
 
+        .drawer-footer {
+          width: 100%;
+        }
+
         .drawer-void-space {
           top: 0;
           left: 0;

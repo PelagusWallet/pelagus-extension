@@ -1001,7 +1001,12 @@
       "disabledToggleMessage": "Switch to the main network to disable the development environment"
     },
     "dAppConnection": {
-      "title": "Dapp Connections"
+      "title": "Dapp Connections",
+      "disconnectButtonText": "Disconnect all accounts",
+      "youHave": "You have",
+      "accountsConnected": "accounts connected to this site",
+      "switchAccountBtnText": "Switch to this account",
+      "connectAccountBtnText": "Connected"
     }
   }
 }

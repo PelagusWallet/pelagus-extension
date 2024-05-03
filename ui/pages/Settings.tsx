@@ -29,6 +29,7 @@ import SettingButton from "./Settings/SettingButton"
 import { useBackgroundSelector } from "../hooks"
 import SharedIcon from "../components/Shared/SharedIcon"
 import SharedTooltip from "../components/Shared/SharedTooltip"
+import SharedDrawer from "../components/Shared/SharedDrawer"
 
 const NUMBER_OF_CLICKS_FOR_DEV_PANEL = 15
 const FAQ_URL = "https://pelaguswallet.io"
@@ -83,12 +84,11 @@ function VersionLabel(): ReactElement {
       <style jsx>
         {`
           .version {
-            margin: 16px 0;
             color: var(--green-40);
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 500;
             margin: 0 auto;
-            padding: 16px 0px;
+            padding-top: 10px;
           }
         `}
       </style>
@@ -109,15 +109,15 @@ function SettingRow(props: {
       <style jsx>
         {`
           li {
-            padding-top: 16px;
+            padding-top: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
 
             color: var(--green-20);
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
           }
         `}
       </style>
@@ -127,6 +127,7 @@ function SettingRow(props: {
 
 export default function Settings(): ReactElement {
   const { t } = useTranslation()
+  const history = useHistory()
   const dispatch = useDispatch()
   const hideDust = useSelector(selectHideDust)
   const hideBanners = useSelector(selectHideBanners)
@@ -366,44 +367,52 @@ export default function Settings(): ReactElement {
 
   return (
     <section className="standard_width_padded">
-      <div className="menu">
-        <h1>{t("settings.mainMenu")}</h1>
-        <ul>
-          {settings.map(({ title, items }) => (
-            <div className="group" key={title}>
-              <span className="group_title">{title}</span>
-              {items.map((item, index) => {
-                const key = `${title}-${item.title}-${index}`
-                return (
-                  <SettingRow
-                    key={key}
-                    title={item.title}
-                    component={item.component}
-                  />
-                )
-              })}
-            </div>
-          ))}
-        </ul>
-      </div>
-      <div className="footer">
-        <div className="action_icons">
-          {FOOTER_ACTIONS.map(({ icon, linkTo }) => (
-            <SharedIcon
-              key={icon}
-              icon={`${icon}.svg`}
-              width={18}
-              color="var(--green-20)"
-              hoverColor="var(--trophy-gold)"
-              transitionHoverTime="0.2s"
-              onClick={() => {
-                window.open(linkTo, "_blank")?.focus()
-              }}
-            />
-          ))}
+      <SharedDrawer
+        title={t("settings.mainMenu")}
+        isOpen
+        close={() => history.push("/")}
+        fillAvailable
+        isScrollable
+      >
+        <div className="menu">
+          <ul>
+            {settings.map(({ title, items }) => (
+              <div className="group" key={title}>
+                <span className="group_title">{title}</span>
+                {items.map((item, index) => {
+                  const key = `${title}-${item.title}-${index}`
+                  return (
+                    <SettingRow
+                      key={key}
+                      title={item.title}
+                      component={item.component}
+                    />
+                  )
+                })}
+              </div>
+            ))}
+          </ul>
         </div>
-        <VersionLabel />
-      </div>
+        <div className="footer">
+          <div className="action_icons">
+            {FOOTER_ACTIONS.map(({ icon, linkTo }) => (
+              <SharedIcon
+                key={icon}
+                icon={`${icon}.svg`}
+                width={18}
+                color="var(--green-20)"
+                hoverColor="var(--trophy-gold)"
+                transitionHoverTime="0.2s"
+                onClick={() => {
+                  window.open(linkTo, "_blank")?.focus()
+                }}
+              />
+            ))}
+          </div>
+          <VersionLabel />
+        </div>
+      </SharedDrawer>
+
       <style jsx>
         {`
           section {
@@ -434,11 +443,8 @@ export default function Settings(): ReactElement {
           }
           .footer {
             width: 100vw;
-            margin-top: 20px;
             margin-left: -24px;
-            background-color: var(--green-95);
             text-align: center;
-            padding-top: 16px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -451,9 +457,10 @@ export default function Settings(): ReactElement {
           }
           .group {
             border-bottom: 1px solid var(--green-80);
-            margin-bottom: 24px;
-            padding-bottom: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
           }
+
           .group:last-child {
             border-bottom: none;
             padding: 0px;
@@ -464,8 +471,8 @@ export default function Settings(): ReactElement {
             font-family: "Segment";
             font-style: normal;
             font-weight: 400;
-            font-size: 16px;
-            line-height: 24px;
+            font-size: 12px;
+            line-height: 18px;
           }
         `}
       </style>

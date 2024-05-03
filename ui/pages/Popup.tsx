@@ -39,9 +39,9 @@ import pageList from "../routes/routes"
 import GlobalModal from "../components/GlobalModal/GlobalModal"
 
 const pagePreferences = Object.fromEntries(
-  pageList.map(({ path, hasTabBar, hasTopBar, persistOnClose }) => [
+  pageList.map(({ path, hasTopBar, persistOnClose }) => [
     path,
-    { hasTabBar, hasTopBar, persistOnClose },
+    { hasTopBar, persistOnClose },
   ])
 )
 
@@ -193,24 +193,17 @@ export function Main(): ReactElement {
                 >
                   <div>
                     <Switch location={transformedLocation}>
-                      {pageList.map(
-                        ({ path, Component, hasTopBar, hasTabBar }) => {
-                          return (
-                            <Route path={path} key={path}>
-                              <CorePage
-                                hasTopBar={hasTopBar}
-                                hasTabBar={hasTabBar}
-                              >
-                                <ErrorBoundary
-                                  FallbackComponent={ErrorFallback}
-                                >
-                                  <Component location={transformedLocation} />
-                                </ErrorBoundary>
-                              </CorePage>
-                            </Route>
-                          )
-                        }
-                      )}
+                      {pageList.map(({ path, Component, hasTopBar }) => {
+                        return (
+                          <Route path={path} key={path}>
+                            <CorePage hasTopBar={hasTopBar}>
+                              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                                <Component location={transformedLocation} />
+                              </ErrorBoundary>
+                            </CorePage>
+                          </Route>
+                        )
+                      })}
                     </Switch>
                   </div>
                 </CSSTransition>

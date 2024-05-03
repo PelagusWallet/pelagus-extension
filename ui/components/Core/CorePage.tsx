@@ -1,16 +1,14 @@
 import React, { ReactElement } from "react"
 import Snackbar from "../Snackbar/Snackbar"
-import TabBar from "../TabBar/TabBar"
 import TopMenu from "../TopMenu/TopMenu"
 
 interface Props {
   children: React.ReactNode
   hasTopBar?: boolean
-  hasTabBar?: boolean
 }
 
 export default function CorePage(props: Props): ReactElement {
-  const { children, hasTopBar, hasTabBar } = props
+  const { children, hasTopBar } = props
 
   return (
     <section>
@@ -19,7 +17,6 @@ export default function CorePage(props: Props): ReactElement {
         {children}
         <Snackbar />
       </main>
-      {hasTabBar ? <TabBar /> : <></>}
       <style jsx>
         {`
           section {

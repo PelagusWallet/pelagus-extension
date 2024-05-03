@@ -24,9 +24,9 @@ export default function SettingButton(props: {
         <style jsx>{`
           .action_name {
             color: var(--green-20);
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
           }
           .button_row {
             width: 336px;

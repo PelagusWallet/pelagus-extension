@@ -2,14 +2,29 @@ import React, { ReactElement, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import classNames from "classnames"
 import SharedDrawer from "../Shared/SharedDrawer"
-import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
+import { useBackgroundSelector } from "../../hooks"
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
-import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  getAllAccounts,
+  selectCurrentAccount,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { getShardFromAddress } from "@pelagus/pelagus-background/constants"
+import {
+  sameEVMAddress,
+  truncateAddress,
+} from "@pelagus/pelagus-background/lib/utils"
+import SharedIconGA from "../Shared/SharedIconGA"
+import ConnectionDAppGuideline from "../Shared/ConnectionDAppGuideline"
+
+type ListAccount = {
+  address: string
+  defaultAvatar: string
+  defaultName: string
+  shard: string
+} | null
 
 interface DAppConnectionDrawerProps {
-  dAppTitle: string
-  dAppUrl: string
-  dAppFaviconUrl: string
+  currentDAppInfo: PermissionRequest
   isDAppConnectionOpen: boolean
   setIsDAppConnectionOpen: (value: React.SetStateAction<boolean>) => void
   isConnectedToDApp: boolean
@@ -17,25 +32,24 @@ interface DAppConnectionDrawerProps {
   onDisconnectClick: () => Promise<void>
 }
 
+const capitalizeFirstLetter = (text: string): string =>
+  text.charAt(0).toUpperCase() + text.slice(1)
+
 export default function DAppConnectionDrawer({
-  dAppTitle,
-  dAppUrl,
-  dAppFaviconUrl,
+  currentDAppInfo,
   isDAppConnectionOpen,
   setIsDAppConnectionOpen,
   isConnectedToDApp,
   connectedAccountsToDApp,
   onDisconnectClick,
 }: DAppConnectionDrawerProps): ReactElement {
-  const dispatch = useBackgroundDispatch()
+  const { origin: dAppUrl, faviconUrl: dAppFaviconUrl } = currentDAppInfo
+
   const { t } = useTranslation("translation", {
-    keyPrefix: "topMenu.connectedDappInfo",
+    keyPrefix: "drawers.dAppConnection",
   })
-
   const allAccounts = useBackgroundSelector(getAllAccounts)
-
-  console.log("=== allAccounts", allAccounts)
-  console.log("=== connectedAccountsToDApp", connectedAccountsToDApp)
+  const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
 
   const filteredAccounts = useMemo(() => {
     return connectedAccountsToDApp.map((connectedAccount) => {
@@ -52,7 +66,7 @@ export default function DAppConnectionDrawer({
           address: filteredAccount.address,
           defaultAvatar: filteredAccount.defaultAvatar,
           defaultName: filteredAccount.defaultName,
-          network: filteredAccount.network.name,
+          shard: getShardFromAddress(filteredAccount.address),
         }
       } else {
         return null
@@ -60,155 +74,177 @@ export default function DAppConnectionDrawer({
     })
   }, [allAccounts, connectedAccountsToDApp])
 
+  const isAccountConnected = (account: ListAccount): boolean => {
+    return account &&
+      sameEVMAddress(account.address, currentSelectedAccount.address)
+      ? true
+      : false
+  }
+
   return (
-    <>
-      <SharedDrawer
-        title={t(`${isConnectedToDApp ? "dAppTitle" : "dappConnections"}`)}
-        isOpen={isDAppConnectionOpen}
-        close={() => {
-          setIsDAppConnectionOpen(false)
-        }}
-      >
-        <div
-          className={classNames("dAppInfo_wrap", {
-            visible: isConnectedToDApp,
-          })}
-        >
-          <div className="favicon" />
-          <div className="title text ellipsis" title={dAppTitle}>
-            {dAppTitle}
-          </div>
-          <div className="url text ellipsis" title={dAppUrl}>
-            {dAppUrl}
-          </div>
+    <SharedDrawer
+      title={t("title")}
+      isOpen={isDAppConnectionOpen}
+      close={() => {
+        setIsDAppConnectionOpen(false)
+      }}
+      footer={
+        filteredAccounts.length ? (
           <button
-            aria-label="disconnect"
             type="button"
-            className="disconnect_icon"
+            className="disconnect-btn"
+            aria-label={t("disconnectButtonText")}
             onClick={onDisconnectClick}
-          />
+          >
+            {t("disconnectButtonText")}
+          </button>
+        ) : null
+      }
+    >
+      <div className="dAppInfo-header-wrap">
+        <div className="dAppInfo-header-text">
+          {t("youHave")} {filteredAccounts.length} {t("accountsConnected")}
         </div>
+        {filteredAccounts.length > 0 ? (
+          <div className="dAppInfo-header-info">
+            <div className="info-favicon" />
+            <div className="info-url">{dAppUrl}</div>
+          </div>
+        ) : (
+          <ConnectionDAppGuideline isConnected={isConnectedToDApp} />
+        )}
+      </div>
+
+      {filteredAccounts.length > 0 && (
         <div className="accounts-list">
-          <h3>Connected Accounts:</h3>
-          <ul>
-            {filteredAccounts.map((account, index) => (
-              <li key={index}>
-                <div>
-                  <div>Address: {account?.address}</div>
-                  <div>Name: {account?.defaultName}</div>
-                  <div>Avatar: {account?.defaultAvatar}</div>
-                  <div>Network: {account?.network}</div>
+          {filteredAccounts.map((account, index) => (
+            <div key={index} className="connected-account-item">
+              <div className="left-side">
+                <SharedIconGA iconUrl={account?.defaultAvatar} />
+                <div className="account-info">
+                  <div className="name">{account?.defaultName}</div>
+                  <div className="details">
+                    {account && capitalizeFirstLetter(account?.shard)} •{" "}
+                    {account && truncateAddress(account.address)}
+                  </div>
                 </div>
-                <br />
-              </li>
-            ))}
-          </ul>
+              </div>
+
+              <div className="right-side">
+                <button
+                  type="button"
+                  className={classNames("account-action-btn", {
+                    selected: isAccountConnected(account),
+                  })}
+                >
+                  {isAccountConnected(account)
+                    ? `${t("connectAccountBtnText")}`
+                    : `${t("switchAccountBtnText")}`}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      </SharedDrawer>
+      )}
+
       <style jsx>{`
-        .bg {
-          width: 100%;
-          height: 100%;
-          border-radius: 16px;
-          background-color: rgba(0, 88, 179, 0.4);
-          position: fixed;
-          z-index: 99999;
-          top: 55px;
-          left: 0px;
-        }
-        .window {
-          width: 352px;
-          max-height: 90%;
-          box-shadow: 0 10px 12px rgba(0, 20, 19, 0.34),
-            0 14px 16px rgba(0, 20, 19, 0.24), 0 24px 24px rgba(0, 20, 19, 0.14);
-          border-radius: 8px;
-          background-color: var(--hunter-green);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin: 0 auto;
-          justify-content: space-between;
-          padding-bottom: 16px;
-        }
-        .content {
+        .dAppInfo-header-wrap {
           width: 100%;
           display: flex;
           flex-direction: column;
-          align-items: center;
+          gap: 8px;
         }
-        .icon_close {
-          mask-image: url("./images/close.svg");
-          mask-size: cover;
-          width: 12px;
-          height: 12px;
-          position: absolute;
-          right: 33px;
-          background-color: var(--green-20);
-          z-index: 1;
-          margin-top: 17px;
-        }
-        .void_space {
-          height: 100%;
-          width: 100%;
-          position: fixed;
-          top: 0;
-          left: 0;
-          z-index: -1;
-        }
-        h1 {
-          color: var(--${isConnectedToDApp ? "success" : "green-20"});
-          font-size: 16px;
+        .dAppInfo-header-text {
+          font-size: 12px;
           font-weight: 400;
-          line-height: 24px;
-          text-align: center;
+          line-height: 18px;
+          color: var(--green-20);
+          opacity: 60%;
         }
-        .favicon {
+        .dAppInfo-header-info {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+        }
+        .info-favicon {
           background: url("${dAppFaviconUrl === ""
             ? "./images/dapp_favicon_default@2x.png"
             : dAppFaviconUrl}");
           background-size: cover;
-          width: 48px;
-          height: 48px;
+          width: 16px;
+          height: 16px;
           border-radius: 12px;
-          margin-top: 5px;
           flex-shrink: 0;
         }
-        .title {
-          color: #fff;
+        .info-url {
+          font-size: 14px;
           font-weight: 500;
-          margin-top: 10px;
+          line-height: 20px;
         }
-        .url {
-          color: var(--green-40);
-          margin-top: 5px;
-        }
-        .text {
-          font-size: 16px;
-          width: calc(100% - 16px);
-          padding: 0 8px;
-          text-align: center;
-        }
-        .disconnect_icon {
-          background: url("./images/disconnect@2x.png");
-          background-size: cover;
-          width: 16px;
-          height: 18px;
-          margin: 16px 0 32px;
-        }
-        .dAppInfo_wrap {
+
+        .connected-account-item {
           width: 100%;
           display: flex;
-          flex-flow: column;
+          flex-direction: row;
           align-items: center;
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 250ms ease-out;
+          margin: 11px 0;
         }
-        .dAppInfo_wrap.visible {
-          max-height: 200px;
-          transition: max-height 250ms ease-in;
+        .left-side {
+          display: flex;
+          flex-grow: 1;
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+        }
+        .account-info {
+          display: flex;
+          flex-direction: column;
+          align-items: start;
+          justify-content: center;
+        }
+        .name {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+        }
+        .details {
+          font-size: 10px;
+          font-weight: 400;
+          line-height: 18px;
+        }
+
+        .account-action-btn {
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 18px;
+          border: 1px solid #d4d4d4;
+          border-radius: 176px;
+          text-align: center;
+          box-sizing: border-box;
+          padding: 4px 12px;
+        }
+        .account-action-btn.selected {
+          border: 1px solid #000000;
+          box-shadow: 0px 0px 0px 2px #00000033;
+        }
+
+        .disconnect-btn {
+          font-weight: 500;
+          line-height: 20px;
+          border: 1px solid var(--green-40);
+          border-radius: 4px;
+          width: 100%;
+          padding: 10px;
+          text-align: center;
+          box-sizing: border-box;
+          color: var(--green-40);
+        }
+        .disconnect-btn:hover {
+          border-color: var(--green-20);
+          color: var(--green-20);
         }
       `}</style>
-    </>
+    </SharedDrawer>
   )
 }

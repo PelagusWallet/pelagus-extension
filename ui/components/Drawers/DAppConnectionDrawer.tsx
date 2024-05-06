@@ -1,27 +1,12 @@
 import React, { ReactElement, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import classNames from "classnames"
 import SharedDrawer from "../Shared/SharedDrawer"
 import { useBackgroundSelector } from "../../hooks"
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
-import {
-  getAllAccounts,
-  selectCurrentAccount,
-} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { getShardFromAddress } from "@pelagus/pelagus-background/constants"
-import {
-  sameEVMAddress,
-  truncateAddress,
-} from "@pelagus/pelagus-background/lib/utils"
-import SharedIconGA from "../Shared/SharedIconGA"
 import ConnectionDAppGuideline from "../Shared/ConnectionDAppGuideline"
-
-type ListAccount = {
-  address: string
-  defaultAvatar: string
-  defaultName: string
-  shard: string
-} | null
+import DAppAccountsList from "../Shared/DAppAccountsList"
 
 interface DAppConnectionDrawerProps {
   currentDAppInfo: PermissionRequest
@@ -32,9 +17,6 @@ interface DAppConnectionDrawerProps {
   onDisconnectClick: () => Promise<void>
 }
 
-const capitalizeFirstLetter = (text: string): string =>
-  text.charAt(0).toUpperCase() + text.slice(1)
-
 export default function DAppConnectionDrawer({
   currentDAppInfo,
   isDAppConnectionOpen,
@@ -44,12 +26,10 @@ export default function DAppConnectionDrawer({
   onDisconnectClick,
 }: DAppConnectionDrawerProps): ReactElement {
   const { origin: dAppUrl, faviconUrl: dAppFaviconUrl } = currentDAppInfo
-
   const { t } = useTranslation("translation", {
     keyPrefix: "drawers.dAppConnection",
   })
   const allAccounts = useBackgroundSelector(getAllAccounts)
-  const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
 
   const filteredAccounts = useMemo(() => {
     return connectedAccountsToDApp.map((connectedAccount) => {
@@ -73,13 +53,6 @@ export default function DAppConnectionDrawer({
       }
     })
   }, [allAccounts, connectedAccountsToDApp])
-
-  const isAccountConnected = (account: ListAccount): boolean => {
-    return account &&
-      sameEVMAddress(account.address, currentSelectedAccount.address)
-      ? true
-      : false
-  }
 
   return (
     <SharedDrawer
@@ -116,35 +89,7 @@ export default function DAppConnectionDrawer({
       </div>
 
       {filteredAccounts.length > 0 && (
-        <div className="accounts-list">
-          {filteredAccounts.map((account, index) => (
-            <div key={index} className="connected-account-item">
-              <div className="left-side">
-                <SharedIconGA iconUrl={account?.defaultAvatar} />
-                <div className="account-info">
-                  <div className="name">{account?.defaultName}</div>
-                  <div className="details">
-                    {account && capitalizeFirstLetter(account?.shard)} •{" "}
-                    {account && truncateAddress(account.address)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="right-side">
-                <button
-                  type="button"
-                  className={classNames("account-action-btn", {
-                    selected: isAccountConnected(account),
-                  })}
-                >
-                  {isAccountConnected(account)
-                    ? `${t("connectAccountBtnText")}`
-                    : `${t("switchAccountBtnText")}`}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DAppAccountsList accountsList={filteredAccounts} />
       )}
 
       <style jsx>{`
@@ -158,7 +103,6 @@ export default function DAppConnectionDrawer({
           font-size: 12px;
           font-weight: 400;
           line-height: 18px;
-          color: var(--green-20);
           opacity: 60%;
         }
         .dAppInfo-header-info {

@@ -27,7 +27,6 @@ export default function ConnectionDAppGuideline({
       <SharedAccordion
         contentHeight={showWalletConnectInfo ? 298 : 242}
         style={{
-          width: "100%",
           borderRadius: 8,
           marginTop: 8,
           background: "var(--hunter-green)",

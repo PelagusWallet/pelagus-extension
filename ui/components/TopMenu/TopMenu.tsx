@@ -8,6 +8,7 @@ import {
   isEnabled,
 } from "@pelagus/pelagus-background/features"
 import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
+import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProtocolSwitcher from "./TopMenuProtocolSwitcher"
 import AccountsNotificationPanel from "../AccountsNotificationPanel/AccountsNotificationPanel"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -15,7 +16,6 @@ import TopMenuConnectedDAppInfo from "./TopMenuConnectedDAppInfo"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import DAppConnection from "../DAppConnection/DAppConnection"
 import SelectNetworkDrawer from "../Drawers/SelectNetworkDrawer"
-import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProfileButtonGA from "./TopMenuProfileButtonGA"
 import SharedButton from "../Shared/SharedButton"
 

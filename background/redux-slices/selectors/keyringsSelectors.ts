@@ -46,9 +46,11 @@ export const selectKeyringsByAddresses = createSelector(
 export const selectPrivateKeyWalletsByAddress = createSelector(
   (state: RootState) => state.keyrings.privateKeys,
   (privateKeys): { [address: HexString]: PrivateKey } =>
-    Object.fromEntries(
-      privateKeys.map((wallet) => [wallet.addresses[0], wallet])
-    )
+    !privateKeys
+      ? {}
+      : Object.fromEntries(
+          privateKeys.map((wallet) => [wallet.addresses[0], wallet])
+        )
 )
 
 export const selectSourcesByAddress = createSelector(

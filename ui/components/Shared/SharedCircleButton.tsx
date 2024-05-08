@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 
-const SIZE = 32
+const SIZE = 60
 const DEFAULT_COLORS: ColorDetails = {
   color: "var(--green-40)",
   hoverColor: "var(--gold-80)",
@@ -14,6 +14,8 @@ type ColorDetails = {
 type Props = {
   icon: string
   iconColor: ColorDetails
+  iconHeight?: string
+  iconWidth?: string
   textColor: ColorDetails
   disabled?: boolean
   size: number
@@ -22,10 +24,12 @@ type Props = {
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
 }
 
-export default function SharedSquareButton(props: Props): ReactElement {
+export default function SharedCircleButton(props: Props): ReactElement {
   const {
     icon,
     iconColor,
+    iconHeight,
+    iconWidth,
     textColor,
     size,
     ariaLabel,
@@ -44,13 +48,13 @@ export default function SharedSquareButton(props: Props): ReactElement {
       <div className="icon_wrap">
         <div className="icon" />
       </div>
-      <div className="text">{children}</div>
+      <div>{children}</div>
       <style jsx>
         {`
           button {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
-            line-height: 16px;
+            line-height: 20px;
             letter-spacing: 0.03em;
             color: ${textColor.color};
             transition: color 0.2s;
@@ -65,16 +69,13 @@ export default function SharedSquareButton(props: Props): ReactElement {
           }
           .disabled {
             color: var(--disabled);
-            cursor: default;
-          }
-          .content_wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
+            cursor: not-allowed;
           }
           .icon_wrap {
-            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
             width: ${size}px;
             height: ${size}px;
             background-color: ${disabled
@@ -90,9 +91,8 @@ export default function SharedSquareButton(props: Props): ReactElement {
             mask-repeat: no-repeat;
             mask-position: center;
             mask-size: cover;
-            width: ${size / 2}px;
-            height: ${size / 2}px;
-            margin: ${size / 4}px;
+            width: ${`${iconWidth}px` ?? "100%"};
+            height: ${`${iconHeight}px` ?? "100%"};
             background-color: var(--hunter-green);
           }
         `}
@@ -101,7 +101,7 @@ export default function SharedSquareButton(props: Props): ReactElement {
   )
 }
 
-SharedSquareButton.defaultProps = {
+SharedCircleButton.defaultProps = {
   iconColor: DEFAULT_COLORS,
   textColor: DEFAULT_COLORS,
   size: SIZE,

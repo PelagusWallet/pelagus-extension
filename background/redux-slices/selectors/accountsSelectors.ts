@@ -346,6 +346,7 @@ export type AccountTotal = AddressOnNetwork & {
   path: string | null
   accountSigner: AccountSigner
   name?: string
+  shortName?: string
   avatarURL?: string
   localizedTotalMainCurrencyAmount?: string
   balance?: string
@@ -472,6 +473,7 @@ function getNetworkAccountTotalsByCategory(
       }
       const shard = getShardFromAddress(address)
       let name = accountData.ens.name ?? accountData.defaultName
+      const shortName = accountData.ens.name ?? accountData.defaultName
       let balance = "0"
       if (accountData.balances.QUAI !== undefined) {
         balance = parseFloat(
@@ -481,6 +483,7 @@ function getNetworkAccountTotalsByCategory(
       name = `${name} (${shard})`
 
       return {
+        shortName,
         address,
         network,
         shortenedAddress,

@@ -21,15 +21,14 @@ import {
   wrapIfDisabled,
   wrapIfEnabled,
 } from "@pelagus/pelagus-background/features"
-import SharedToggleButton from "../components/Shared/SharedToggleButton"
 import SharedSelect from "../components/Shared/SharedSelect"
 import { getLanguageIndex, getAvalableLanguages } from "../_locales"
 import { getLanguage, setLanguage } from "../_locales/i18n"
 import SettingButton from "./Settings/SettingButton"
 import { useBackgroundSelector } from "../hooks"
 import SharedIcon from "../components/Shared/SharedIcon"
-import SharedTooltip from "../components/Shared/SharedTooltip"
 import SharedDrawer from "../components/Shared/SharedDrawer"
+import SharedToggleButtonGA from "../components/Shared/SharedToggleButtonGA"
 
 const NUMBER_OF_CLICKS_FOR_DEV_PANEL = 15
 const FAQ_URL = "https://pelaguswallet.io"
@@ -214,7 +213,7 @@ export default function Settings(): ReactElement {
   const setAsDefault = {
     title: t("settings.setAsDefault"),
     component: () => (
-      <SharedToggleButton
+      <SharedToggleButtonGA
         onChange={(toggleValue) => toggleDefaultWallet(toggleValue)}
         value={defaultWallet}
       />
@@ -310,7 +309,7 @@ export default function Settings(): ReactElement {
   const notificationBanner = {
     title: t("settings.showBanners"),
     component: () => (
-      <SharedToggleButton
+      <SharedToggleButtonGA
         onChange={(toggleValue) => toggleHideNotificationBanners(toggleValue)}
         value={!hideBanners}
       />
@@ -373,6 +372,26 @@ export default function Settings(): ReactElement {
         close={() => history.push("/")}
         fillAvailable
         isScrollable
+        footer={
+          <div className="footer">
+            <div className="action_icons">
+              {FOOTER_ACTIONS.map(({ icon, linkTo }) => (
+                <SharedIcon
+                  key={icon}
+                  icon={`${icon}.svg`}
+                  width={18}
+                  color="var(--green-20)"
+                  hoverColor="var(--trophy-gold)"
+                  transitionHoverTime="0.2s"
+                  onClick={() => {
+                    window.open(linkTo, "_blank")?.focus()
+                  }}
+                />
+              ))}
+            </div>
+            <VersionLabel />
+          </div>
+        }
       >
         <div className="menu">
           <ul>
@@ -392,24 +411,6 @@ export default function Settings(): ReactElement {
               </div>
             ))}
           </ul>
-        </div>
-        <div className="footer">
-          <div className="action_icons">
-            {FOOTER_ACTIONS.map(({ icon, linkTo }) => (
-              <SharedIcon
-                key={icon}
-                icon={`${icon}.svg`}
-                width={18}
-                color="var(--green-20)"
-                hoverColor="var(--trophy-gold)"
-                transitionHoverTime="0.2s"
-                onClick={() => {
-                  window.open(linkTo, "_blank")?.focus()
-                }}
-              />
-            ))}
-          </div>
-          <VersionLabel />
         </div>
       </SharedDrawer>
 

@@ -220,8 +220,8 @@ export default function AccountItemOptionsMenu({
             mask-image: url("./images/more_dots@2x.png");
             mask-repeat: no-repeat;
             mask-position: center;
-            background-color: var(--green-60);
-            mask-size: 20%;
+            background-color: var(--white);
+            mask-size: 15%;
             width: 4px;
             height: 20px;
             border: 10px solid transparent;

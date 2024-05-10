@@ -48,12 +48,12 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .networks-list-item.select {
-            background: var(--gold-20);
+            background: var(--green-95);
             margin: 0;
             padding-left: 24px;
             padding-right: 24px;
           }
-          
+
           .list-item-left {
             position: relative;
           }
@@ -73,7 +73,7 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .select .item-icon-wrap::before {
-            content: '';
+            content: "";
             position: absolute;
             left: -20px;
             top: 50%;
@@ -85,7 +85,7 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .item-title {
-            color: var(--green-5);
+            color: var(--white);
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;
@@ -95,7 +95,7 @@ export default function TopMenuProtocolListItemGA({
             cursor: default;
           }
           .disabled .item-title {
-            color var(--green-20);
+            color: var(--green-95);
           }
         `}
       </style>

@@ -17,8 +17,6 @@ import { NETWORKS_SUPPORTING_NFTS } from "@pelagus/pelagus-background/nfts"
 import {
   selectShowAnalyticsNotification,
   selectShowUnverifiedAssets,
-  selectShowingAccountsModal,
-  setShowingAccountsModal,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 import {
@@ -36,18 +34,14 @@ import OnboardingOpenClaimFlowBanner from "../components/Onboarding/OnboardingOp
 import WalletToggleDefaultBanner from "../components/Wallet/WalletToggleDefaultBanner"
 import WalletNoConnectionBanner from "../components/Wallet/WalletNoConnectionBanner"
 import WalletBanner from "../components/Wallet/Banner/WalletBanner"
-import WalletAnalyticsNotificationBanner from "../components/Wallet/WalletAnalyticsNotificationBanner"
 import NFTListCurrentWallet from "../components/NFTs/NFTListCurrentWallet"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
-import SharedSlideUpMenu from "../components/Shared/SharedSlideUpMenu"
-import AccountsNotificationPanel from "../components/AccountsNotificationPanel/AccountsNotificationPanel"
 
 export default function Wallet(): ReactElement {
   const { t } = useTranslation()
   const [panelNumber, setPanelNumber] = useState(0)
-  const [selectedAccountSigner, setSelectedAccountSigner] = useState("")
 
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
@@ -57,9 +51,6 @@ export default function Wallet(): ReactElement {
   const claimState = useBackgroundSelector((state) => state.claim)
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showUnverifiedAssets = useBackgroundSelector(selectShowUnverifiedAssets)
-  const isShowingAccountsModal = useBackgroundSelector(
-    selectShowingAccountsModal
-  )
 
   useEffect(() => {
     dispatch(
@@ -224,21 +215,6 @@ export default function Wallet(): ReactElement {
             )}
           </div>
         </div>
-
-        <SharedSlideUpMenu
-          isOpen={isShowingAccountsModal}
-          close={() => {
-            dispatch(setShowingAccountsModal(false))
-          }}
-        >
-          <AccountsNotificationPanel
-            onCurrentAddressChange={() =>
-              dispatch(setShowingAccountsModal(false))
-            }
-            setSelectedAccountSigner={setSelectedAccountSigner}
-            selectedAccountSigner={selectedAccountSigner}
-          />
-        </SharedSlideUpMenu>
       </div>
       <style jsx>
         {`

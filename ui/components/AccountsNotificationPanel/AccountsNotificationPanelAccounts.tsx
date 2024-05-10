@@ -38,6 +38,7 @@ import { resetClaimFlow } from "@pelagus/pelagus-background/redux-slices/claim"
 import { useTranslation } from "react-i18next"
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { isSameAccountSignerWithId } from "@pelagus/pelagus-background/utils/signing"
+import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import SharedButton from "../Shared/SharedButton"
 import {
   useBackgroundDispatch,
@@ -59,6 +60,9 @@ import SharedSelect from "../Shared/SharedSelect"
 import SharedLoadingShip from "../Shared/SharedLoadingShip"
 import { isAccountWithSecrets } from "../../utils/accounts"
 import SharedORDivider from "../Shared/SharedORDivider"
+import SelectAccountListItem from "../AccountItem/SelectAccountListItem"
+import AccountsSearchBar from "../AccountItem/AccountsSearchBar"
+import AccountNetworkTabs from "./AccountNetworkTabs"
 
 type WalletTypeInfo = {
   title: string
@@ -307,9 +311,6 @@ function WalletTypeHeader({
       </SharedSlideUpMenu>
       <header className="wallet_title">
         <h2 className="left">
-          <div className="icon_wrap">
-            <div className="icon" />
-          </div>
           {sectionTitle.length > 25
             ? `${sectionTitle.slice(0, 25)}...`
             : sectionTitle}
@@ -388,39 +389,26 @@ function WalletTypeHeader({
           width: 80%;
         }
         .menu-content > :first-child {
-          margin--left: 30px;
           margin: auto;
         }
         .menu-content > :last-child {
           margin-bottom: 16px;
         }
+
         .wallet_title {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
-          padding-top: 16px;
-          padding-right: 4px;
+          padding: 0 16px 8px 16px;
         }
+
         .wallet_title > h2 {
           color: var(--green-40);
-          font-size: 18px;
-          font-weight: 600;
-          line-height: 24px;
-          padding: 0px 12px 0px 24px;
-          margin: 8px 0px;
+          font-size: 16px;
+          font-weight: 500;
+          margin: 0;
         }
-        .icon_wrap {
-          background-color: var(--hunter-green);
-          margin: 0 7px 0 0;
-          border-radius: 4px;
-        }
-        .icon {
-          mask-image: url("${icon}");
-          mask-size: cover;
-          background-color: var(--trophy-gold);
-          width: 24px;
-          height: 24px;
-        }
+
         .icon_wallet {
           background: url("./images/wallet_kind_icon@2x.png") center no-repeat;
           background-size: cover;
@@ -472,6 +460,8 @@ export default function AccountsNotificationPanelAccounts({
   const [useCustomOrder, setUseCustomOrder] = useState<{
     [key: string]: boolean
   }>({})
+
+  const [searchAccountsValue, setSearchAccountsValue] = useState("")
 
   useEffect(() => {
     const savedUseOrder = localStorage.getItem("useCustomOrder")
@@ -632,15 +622,40 @@ export default function AccountsNotificationPanelAccounts({
 
   return (
     <div className="switcher_wrap">
+      <div className="account_actions_header">
+        {isEnabled(FeatureFlags.SUPPORT_CUSTOM_NETWORKS) && (
+          <AccountNetworkTabs selectedNetwork={selectedNetwork} />
+        )}
+        <AccountsSearchBar
+          searchAccountsValue={searchAccountsValue}
+          setSearchAccountsValue={setSearchAccountsValue}
+        />
+      </div>
+
       {accountTypes.map((accountType, switcherWrapIdx) => {
         const accountTypeTotals = accountTotals[accountType]
-
         // If there are no account totals for the given type, skip the section.
         if (accountTypeTotals === undefined || accountTypeTotals.length <= 0) {
           return <></>
         }
 
-        const accountTotalsByType = accountTypeTotals.reduce(
+        const filteredAccountTypeTotals = searchAccountsValue
+          ? accountTypeTotals?.filter(
+              (item: AccountTotal) =>
+                item.name
+                  ?.toLowerCase()
+                  .includes(searchAccountsValue.toLowerCase()) ||
+                item.address
+                  ?.toLowerCase()
+                  .includes(searchAccountsValue.toLowerCase()) ||
+                (item?.accountSigner?.type === "keyring" &&
+                  item.accountSigner?.shard
+                    ?.toLowerCase()
+                    .includes(searchAccountsValue.toLowerCase()))
+            )
+          : accountTypeTotals
+
+        const accountTotalsByType = filteredAccountTypeTotals.reduce(
           (acc, accountTypeTotal) => {
             if (accountTypeTotal.signerId) {
               acc[accountTypeTotal.signerId] ??= []
@@ -729,12 +744,9 @@ export default function AccountsNotificationPanelAccounts({
         )
 
         return (
-          <div key={switcherWrapIdx}>
+          <div key={switcherWrapIdx} className="switcherWrapIdx">
             {shouldAddHeader(existingAccountTypes, accountType) && (
               <div className="category_wrap simple_text">
-                <p className="category_title">
-                  {walletTypeDetails[accountType].category}
-                </p>
                 {isAccountWithSecrets(accountType) && (
                   <SigningButton
                     onCurrentAddressChange={onCurrentAddressChange}
@@ -875,9 +887,9 @@ export default function AccountsNotificationPanelAccounts({
                                 )
                               }}
                             >
-                              <SharedAccountItemSummary
+                              <SelectAccountListItem
                                 key={normalizedAddress}
-                                accountTotal={accountTotal}
+                                account={accountTotal}
                                 isSelected={isSelected}
                               >
                                 <AccountItemOptionsMenu
@@ -886,7 +898,7 @@ export default function AccountsNotificationPanelAccounts({
                                   moveAccountDown={moveAccountDown}
                                   signerId={accountTotalsBySignerId[0].signerId}
                                 />
-                              </SharedAccountItemSummary>
+                              </SelectAccountListItem>
                             </div>
                           </li>
                         )
@@ -899,64 +911,54 @@ export default function AccountsNotificationPanelAccounts({
           </div>
         )
       })}
-      <footer>
-        <SharedButton
-          type="tertiary"
-          size="medium"
-          iconSmall="add"
-          iconPosition="left"
-          onClick={() => dispatch(setShowingAddAccountModal(true))}
-        >
-          {t("accounts.notificationPanel.addAddress")}
-        </SharedButton>
-      </footer>
       <style jsx>
         {`
-          ul {
+          . ul {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             align-content: center;
-            margin-bottom: 8px;
           }
-          section:last-of-type {
-            margin-bottom: 16px;
-          }
+
           li {
             width: 100%;
             box-sizing: border-box;
-            padding: 8px 0px 8px 24px;
             cursor: pointer;
-          }
-          footer {
-            width: 100%;
-            height: 48px;
-            background-color: var(--hunter-green);
-            position: fixed;
-            bottom: 0px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 0px 12px;
-            box-sizing: border-box;
           }
           .switcher_wrap {
             height: 432px;
             overflow-y: scroll;
-            border-top: 1px solid var(--green-120);
           }
           .category_wrap {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             background-color: var(--hunter-green);
-            padding: 8px 10px 8px 24px;
           }
           .category_title {
             color: var(--green-60);
           }
           p {
             margin: 0;
+          }
+          .switcherWrapIdx {
+            padding-bottom: 16px;
+          }
+
+          .switcherWrapIdx:last-of-type {
+            padding-bottom: 0;
+          }
+
+          .account_actions_header {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            padding: 0 16px 16px 16px;
+            background: var(--hunter-green);
           }
         `}
       </style>

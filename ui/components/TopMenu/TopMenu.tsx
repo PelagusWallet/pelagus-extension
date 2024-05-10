@@ -11,10 +11,12 @@ import {
   denyDAppPermissions,
   denyDAppPermissionForAddress,
 } from "@pelagus/pelagus-background/redux-slices/dapp"
-import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
+import {
+  setSelectedNetwork,
+  setShowingAccountsModal,
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProtocolSwitcher from "./TopMenuProtocolSwitcher"
 import AccountsNotificationPanel from "../AccountsNotificationPanel/AccountsNotificationPanel"
-import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import DAppConnection from "../DAppConnection/DAppConnection"
 import SelectNetworkDrawer from "../Drawers/SelectNetworkDrawer"
@@ -24,7 +26,6 @@ import SharedButton from "../Shared/SharedButton"
 
 export default function TopMenu(): ReactElement {
   const [isProtocolListOpen, setIsProtocolListOpen] = useState(false)
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [selectedAccountSigner, setSelectedAccountSigner] = useState("")
 
   const [isActiveDAppConnectionInfoOpen, setIsActiveDAppConnectionInfoOpen] =
@@ -140,18 +141,11 @@ export default function TopMenu(): ReactElement {
         }}
       />
 
-      <SharedSlideUpMenu
-        isOpen={isNotificationsOpen}
-        close={() => {
-          setIsNotificationsOpen(false)
-        }}
-      >
-        <AccountsNotificationPanel
-          onCurrentAddressChange={() => setIsNotificationsOpen(false)}
-          setSelectedAccountSigner={setSelectedAccountSigner}
-          selectedAccountSigner={selectedAccountSigner}
-        />
-      </SharedSlideUpMenu>
+      <AccountsNotificationPanel
+        onCurrentAddressChange={() => dispatch(setShowingAccountsModal(false))}
+        setSelectedAccountSigner={setSelectedAccountSigner}
+        selectedAccountSigner={selectedAccountSigner}
+      />
       {isEnabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (
         <DAppConnection />
       )}
@@ -159,7 +153,7 @@ export default function TopMenu(): ReactElement {
         <TopMenuProtocolSwitcher onClick={() => setIsProtocolListOpen(true)} />
         <TopMenuProfileButtonGA
           onClick={() => {
-            setIsNotificationsOpen(!isNotificationsOpen)
+            dispatch(setShowingAccountsModal(true))
           }}
         />
         <div className="dappAndSettingsWrapper">

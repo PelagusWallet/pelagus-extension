@@ -21,6 +21,7 @@ interface SharedDrawerProps {
   alwaysRenderChildren?: boolean
   customStyles?: React.CSSProperties & Record<string, string>
   fillAvailable?: boolean
+  titleWithoutSidePaddings?: boolean
 }
 
 export default function SharedDrawer({
@@ -35,6 +36,7 @@ export default function SharedDrawer({
   alwaysRenderChildren,
   customStyles = {},
   fillAvailable = false,
+  titleWithoutSidePaddings = false,
 }: SharedDrawerProps) {
   const sharedDrawerRef = useRef(null)
   useOnClickOutside(sharedDrawerRef, close)
@@ -71,13 +73,13 @@ export default function SharedDrawer({
               icon="close.svg"
               width={14}
               height={14}
+              color="var(--white)"
+              hoverColor="var(--green-40)"
+              ariaLabel={tShared("close")}
               onClick={close}
               customStyles={`
                 margin-right: 5px;
               `}
-              color="var(--green-20)"
-              hoverColor="var(--green-120)"
-              ariaLabel={tShared("close")}
             />
           </div>
           {/* FIXME create search bar component */}
@@ -166,6 +168,7 @@ export default function SharedDrawer({
           display: flex;
           align-items: center;
           gap: 8px;
+          padding: ${titleWithoutSidePaddings ? "0 16px" : 0};
         }
 
         .drawer-body {
@@ -186,7 +189,7 @@ export default function SharedDrawer({
           font-weight: 500;
           line-height: 24px;
           text-align: start;
-          color: var(--green-20);
+          color: var(--white);
         }
 
         .drawer-header-close {
@@ -195,7 +198,7 @@ export default function SharedDrawer({
           z-index: 1;
           mask-size: cover;
           mask-image: url("./images/close.svg");
-          background-color: var(--green-20);
+          background-color: var(--white);
         }
 
         .drawer-footer {

@@ -755,6 +755,8 @@
   },
   "topMenu": {
     "showCurrentDappConnection": "Show current dApp connection",
+    "accountSelect": "Select an account",
+    "addQuaiaccount": "Add Quai account",
     "connectToWebsiteUsing": "Connect to website using:",
     "setPelagusAsDefault": "Set Pelagus as default",
     "setOtherAsDefault": "Set MetaMask/other wallet as default",
@@ -1008,6 +1010,9 @@
       "accountsConnected": "accounts connected to this site",
       "switchAccountBtnText": "Switch to this account",
       "disconnectAccountBtnText": "Disconnect"
+    },
+    "accountSearchBar": {
+      "placeholder": "Search accounts"
     }
   }
 }

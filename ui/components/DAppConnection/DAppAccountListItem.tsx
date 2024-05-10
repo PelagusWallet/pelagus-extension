@@ -60,7 +60,9 @@ export default function DAppAccountListItem({
           }}
         >
           {isSelected
-            ? `${t("disconnectAccountBtnText")}`
+            ? // FIXME due to problems with connection logic currently Connected
+              // then need to change to Disconnected (disconnectAccountBtnText)
+              `${t("connectedAccountBtnText")}`
             : `${t("switchAccountBtnText")}`}
         </button>
       </div>

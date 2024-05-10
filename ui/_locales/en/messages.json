@@ -1006,7 +1006,8 @@
       "youHave": "You have",
       "accountsConnected": "accounts connected to this site",
       "switchAccountBtnText": "Switch to this account",
-      "disconnectAccountBtnText": "Disconnect"
+      "disconnectAccountBtnText": "Disconnect",
+      "connectedAccountBtnText": "Connected"
     }
   }
 }

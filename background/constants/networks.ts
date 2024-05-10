@@ -411,8 +411,6 @@ export const TEST_NETWORK_BY_CHAIN_ID = new Set(
   [GOERLI].map((network) => network.chainID)
 )
 
-export const NETWORK_FOR_LEDGER_SIGNING = []
-
 // Networks that are not added to this struct will
 // not have an in-wallet Swap page
 export const CHAIN_ID_TO_0X_API_BASE: {

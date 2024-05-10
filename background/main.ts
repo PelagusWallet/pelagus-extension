@@ -35,7 +35,6 @@ import {
   TelemetryService,
   ServiceCreatorFunction,
   DoggoService,
-  LedgerService,
   SigningService,
   NFTsService,
   WalletConnectService,
@@ -128,12 +127,6 @@ import {
   emitter as earnSliceEmitter,
   setVaultsAsStale,
 } from "./redux-slices/earn"
-import {
-  removeDevice,
-  resetLedgerState,
-  setDeviceConnectionStatus,
-  setUsbDeviceCount,
-} from "./redux-slices/ledger"
 import { OPTIMISM, USD, getShardFromAddress } from "./constants"
 import { clearApprovalInProgress, clearSwapQuote } from "./redux-slices/0x-swap"
 import {
@@ -345,22 +338,13 @@ export default class Main extends BaseService<never> {
 
     const telemetryService = TelemetryService.create()
 
-    const ledgerService = LedgerService.create()
-
-    const signingService = SigningService.create(
-      keyringService,
-      ledgerService,
-      chainService
-    )
+    const signingService = SigningService.create(keyringService, chainService)
 
     const analyticsService = AnalyticsService.create(preferenceService)
 
     const nftsService = NFTsService.create(chainService)
 
-    const abilitiesService = AbilitiesService.create(
-      chainService,
-      ledgerService
-    )
+    const abilitiesService = AbilitiesService.create(chainService)
 
     const walletConnectService = isEnabled(FeatureFlags.SUPPORT_WALLET_CONNECT)
       ? WalletConnectService.create(
@@ -411,7 +395,6 @@ export default class Main extends BaseService<never> {
       await providerBridgeService,
       await doggoService,
       await telemetryService,
-      await ledgerService,
       await signingService,
       await analyticsService,
       await nftsService,
@@ -474,13 +457,6 @@ export default class Main extends BaseService<never> {
      * storage usage and (eventually) other statistics.
      */
     private telemetryService: TelemetryService,
-
-    /**
-     * A promise to the Ledger service, handling the communication
-     * with attached Ledger device according to ledgerjs examples and some
-     * tribal knowledge. ;)
-     */
-    private ledgerService: LedgerService,
 
     /**
      * A promise to the signing service which will route operations between the UI
@@ -723,7 +699,6 @@ export default class Main extends BaseService<never> {
       this.providerBridgeService.startService(),
       this.doggoService.startService(),
       this.telemetryService.startService(),
-      this.ledgerService.startService(),
       this.signingService.startService(),
       this.analyticsService.startService(),
       this.nftsService.startService(),
@@ -747,7 +722,6 @@ export default class Main extends BaseService<never> {
       this.providerBridgeService.stopService(),
       this.doggoService.stopService(),
       this.telemetryService.stopService(),
-      this.ledgerService.stopService(),
       this.signingService.stopService(),
       this.analyticsService.stopService(),
       this.nftsService.stopService(),
@@ -844,10 +818,6 @@ export default class Main extends BaseService<never> {
       await this.preferenceService.deleteAccountSignerSettings(signer)
     }
 
-    if (signer.type === "ledger" && lastAddressInAccount) {
-      this.store.dispatch(removeDevice(signer.deviceID))
-    }
-
     this.store.dispatch(removeActivities(address))
 
     // remove NFTs
@@ -865,57 +835,6 @@ export default class Main extends BaseService<never> {
     await this.signingService.removeAccount(address, signer.type)
 
     this.nameService.removeAccount(address)
-  }
-
-  async importLedgerAccounts(
-    accounts: Array<{
-      path: string
-      address: string
-    }>
-  ): Promise<void> {
-    const trackedNetworks = await this.chainService.getTrackedNetworks()
-    await Promise.all(
-      accounts.map(async ({ path, address }) => {
-        await this.ledgerService.saveAddress(path, address)
-
-        await Promise.all(
-          trackedNetworks.map(async (network) => {
-            const addressNetwork = {
-              address,
-              network,
-            }
-            await this.chainService.addAccountToTrack(addressNetwork)
-            this.abilitiesService.getNewAccountAbilities(address)
-
-            this.store.dispatch(loadAccount(addressNetwork))
-          })
-        )
-      })
-    )
-    this.store.dispatch(
-      setNewSelectedAccount({
-        address: accounts[0].address,
-        network:
-          await this.internalEthereumProviderService.getCurrentOrDefaultNetworkForOrigin(
-            TALLY_INTERNAL_ORIGIN
-          ),
-      })
-    )
-  }
-
-  async deriveLedgerAddress(
-    deviceID: string,
-    derivationPath: string
-  ): Promise<string> {
-    return this.signingService.deriveAddress({
-      type: "ledger",
-      deviceID,
-      path: derivationPath,
-    })
-  }
-
-  async connectLedger(): Promise<string | null> {
-    return this.ledgerService.refreshConnectedLedger()
   }
 
   async getAccountEthBalanceUncached(
@@ -1396,40 +1315,6 @@ export default class Main extends BaseService<never> {
     this.keyringService.emitter.on("address", (address) =>
       this.signingService.addTrackedAddress(address, "keyring")
     )
-
-    this.ledgerService.emitter.on("address", ({ address }) =>
-      this.signingService.addTrackedAddress(address, "ledger")
-    )
-  }
-
-  async connectLedgerService(): Promise<void> {
-    this.store.dispatch(resetLedgerState())
-
-    this.ledgerService.emitter.on("connected", ({ id, metadata }) => {
-      this.store.dispatch(
-        setDeviceConnectionStatus({
-          deviceID: id,
-          status: "available",
-          isArbitraryDataSigningEnabled: metadata.isArbitraryDataSigningEnabled,
-          displayDetails: metadata.displayDetails,
-        })
-      )
-    })
-
-    this.ledgerService.emitter.on("disconnected", ({ id }) => {
-      this.store.dispatch(
-        setDeviceConnectionStatus({
-          deviceID: id,
-          status: "disconnected",
-          isArbitraryDataSigningEnabled: false /* dummy */,
-          displayDetails: undefined,
-        })
-      )
-    })
-
-    this.ledgerService.emitter.on("usbDeviceCount", (usbDeviceCount) => {
-      this.store.dispatch(setUsbDeviceCount({ usbDeviceCount }))
-    })
   }
 
   async connectKeyringService(): Promise<void> {
@@ -2075,7 +1960,7 @@ export default class Main extends BaseService<never> {
                 This event is fired when any address on a network is added to the tracked list. 
                 
                 Note: this does not track recovery phrase(ish) import! But when an address is used 
-                on a network for the first time (read-only or recovery phrase/ledger/keyring).
+                on a network for the first time (read-only or recovery phrase/keyring).
                 `,
         }
       )

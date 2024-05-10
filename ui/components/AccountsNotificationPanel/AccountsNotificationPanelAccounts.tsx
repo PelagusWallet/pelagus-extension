@@ -38,7 +38,6 @@ import { resetClaimFlow } from "@pelagus/pelagus-background/redux-slices/claim"
 import { useTranslation } from "react-i18next"
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { isSameAccountSignerWithId } from "@pelagus/pelagus-background/utils/signing"
-import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import SharedButton from "../Shared/SharedButton"
 import {
   useBackgroundDispatch,
@@ -76,11 +75,9 @@ const shouldAddHeader = (
   existingAccountTypes: AccountType[],
   currentAccountType: AccountType
 ): boolean => {
-  // Ledger and read-only accounts have their own sections.
   // Internal accounts, imported with mnemonic or private key are in the same section so we
   // only need to add that header once when we encounter such an account for the first time.
   switch (currentAccountType) {
-    case AccountType.Ledger:
     case AccountType.ReadOnly:
     case AccountType.Internal:
       return true
@@ -150,11 +147,6 @@ function WalletTypeHeader({
       title: t("accounts.notificationPanel.internal"),
       icon: "./images/stars_grey.svg",
       category: t("accounts.notificationPanel.category.others"),
-    },
-    [AccountType.Ledger]: {
-      title: t("accounts.notificationPanel.ledger"),
-      icon: "./images/ledger_icon.svg",
-      category: t("accounts.notificationPanel.category.ledger"),
     },
   }
   const { title, icon } = walletTypeDetails[accountType]
@@ -591,16 +583,12 @@ export default function AccountsNotificationPanelAccounts({
     AccountType.Internal,
     AccountType.Imported,
     AccountType.PrivateKey,
-    AccountType.Ledger,
     AccountType.ReadOnly,
   ]
 
   return (
     <div className="switcher_wrap">
       <div className="account_actions_header">
-        {isEnabled(FeatureFlags.SUPPORT_CUSTOM_NETWORKS) && (
-          <AccountNetworkTabs selectedNetwork={selectedNetwork} />
-        )}
         <AccountsSearchBar
           searchAccountsValue={searchAccountsValue}
           setSearchAccountsValue={setSearchAccountsValue}

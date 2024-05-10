@@ -54,6 +54,8 @@ export default function DAppConnectionDrawer({
     })
   }, [allAccounts, connectedAccountsToDApp])
 
+  const numFilteredAccounts = filteredAccounts.length
+
   return (
     <SharedDrawer
       title={t("title")}
@@ -62,7 +64,7 @@ export default function DAppConnectionDrawer({
         setIsDAppConnectionOpen(false)
       }}
       footer={
-        filteredAccounts.length ? (
+        numFilteredAccounts ? (
           <button
             type="button"
             className="disconnect-btn"
@@ -76,9 +78,13 @@ export default function DAppConnectionDrawer({
     >
       <div className="dAppInfo-header-wrap">
         <div className="dAppInfo-header-text">
-          {t("youHave")} {filteredAccounts.length} {t("accountsConnected")}
+          {t("youHave")} {numFilteredAccounts}{" "}
+          {numFilteredAccounts === 1
+            ? t("oneConnectedAccount")
+            : t("multipleConnectedAccounts")}{" "}
+          {t("accountsConnected")}
         </div>
-        {filteredAccounts.length > 0 ? (
+        {numFilteredAccounts > 0 ? (
           <div className="dAppInfo-header-info">
             <div className="info-favicon" />
             <div className="info-url">{dAppUrl}</div>
@@ -88,7 +94,7 @@ export default function DAppConnectionDrawer({
         )}
       </div>
 
-      {filteredAccounts.length > 0 && (
+      {numFilteredAccounts > 0 && (
         <DAppAccountsList accountsList={filteredAccounts} />
       )}
 

@@ -363,8 +363,6 @@ function signerIdFor(accountSigner: AccountSigner): string | null {
       return "private-key"
     case "keyring":
       return accountSigner.keyringID
-    case "ledger":
-      return accountSigner.deviceID
     case "read-only":
       return null
     default:
@@ -377,7 +375,6 @@ export type CategorizedAccountTotals = { [key in AccountType]?: AccountTotal[] }
 const signerTypeToAccountType: Record<SignerType, AccountType> = {
   keyring: AccountType.Imported,
   "private-key": AccountType.PrivateKey,
-  ledger: AccountType.Ledger,
   "read-only": AccountType.ReadOnly,
 }
 
@@ -390,7 +387,6 @@ const getAccountType = (
 ): AccountType => {
   switch (true) {
     case signerTypeToAccountType[signer.type] === AccountType.ReadOnly:
-    case signerTypeToAccountType[signer.type] === AccountType.Ledger:
     case signerTypeToAccountType[signer.type] === AccountType.PrivateKey:
       return signerTypeToAccountType[signer.type]
     case addressSources[address] === SignerImportSource.import:

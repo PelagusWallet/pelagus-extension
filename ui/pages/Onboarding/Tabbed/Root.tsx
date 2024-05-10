@@ -187,11 +187,6 @@ export default function Root(): ReactElement {
         <Route path={OnboardingRoutes.ADD_WALLET}>
           <AddWallet />
         </Route>
-        {/** Does not currently exist
-         <Route path={OnboardingRoutes.LEDGER}>
-         <Ledger />
-         </Route>
-         */}
         <Route path={OnboardingRoutes.SET_PASSWORD}>
           <SetPassword />
         </Route>

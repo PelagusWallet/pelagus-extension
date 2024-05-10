@@ -20,40 +20,29 @@ type DerivationPath = {
 }
 
 export enum DefaultPathIndex {
-  ledgerLive,
   bip44,
   ethTestnet,
-  ledgerLegacy,
   rootstock,
   rootstockTestnet,
 }
 
 // TODO make this network specific
 const defaultDerivationPaths: Record<DefaultPathIndex, DerivationPath> = {
-  [DefaultPathIndex.ledgerLive]: {
-    value: "m/44'/1'/x'/0/0",
-    label: "ledger.derivationPaths.ledgerLive",
-  },
   [DefaultPathIndex.bip44]: {
     value: "m/44'/1'/0'/0",
-    label: "ledger.derivationPaths.bip44",
+    label: "derivationPaths.bip44",
   },
   [DefaultPathIndex.ethTestnet]: {
     value: "m/44'/1'/0'/0",
-    label: "ledger.derivationPaths.ethTestnet",
-  },
-  [DefaultPathIndex.ledgerLegacy]: {
-    value: "m/44'/1'/0'",
-    label: "ledger.derivationPaths.ledgerLegacy",
-    hideActiveValue: true,
+    label: "derivationPaths.ethTestnet",
   },
   [DefaultPathIndex.rootstock]: {
     value: "m/44'/137'/0'/0",
-    label: "ledger.derivationPaths.rsk",
+    label: "derivationPaths.rsk",
   },
   [DefaultPathIndex.rootstockTestnet]: {
     value: "m/44'/37310'/0'/0",
-    label: "ledger.derivationPaths.rskTestnet",
+    label: "derivationPaths.rskTestnet",
   },
 }
 

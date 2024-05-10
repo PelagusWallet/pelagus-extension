@@ -1,9 +1,7 @@
-import { StatusCodes, TransportStatusError } from "@ledgerhq/errors"
 import KeyringService, {
   KeyringAccountSigner,
   PrivateKeyAccountSigner,
 } from "../keyring"
-import LedgerService, { LedgerAccountSigner } from "../ledger"
 import {
   SignedTransaction,
   TransactionRequest,
@@ -58,8 +56,6 @@ export type AccountSigner =
   | typeof ReadOnlyAccountSigner
   | PrivateKeyAccountSigner
   | KeyringAccountSigner
-  | HardwareAccountSigner
-export type HardwareAccountSigner = LedgerAccountSigner
 
 export type SignerType = AccountSigner["type"]
 
@@ -70,15 +66,6 @@ type AddressHandler = {
 
 function getSigningErrorReason(err: unknown): SigningErrorReason {
   console.log(err)
-  if (err instanceof TransportStatusError) {
-    const transportError = err as Error & { statusCode: number }
-    switch (transportError.statusCode) {
-      case StatusCodes.CONDITIONS_OF_USE_NOT_SATISFIED:
-        return "userRejected"
-      default:
-    }
-  }
-
   return "genericError"
 }
 
@@ -96,18 +83,13 @@ export default class SigningService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     SigningService,
-    [Promise<KeyringService>, Promise<LedgerService>, Promise<ChainService>]
-  > = async (keyringService, ledgerService, chainService) => {
-    return new this(
-      await keyringService,
-      await ledgerService,
-      await chainService
-    )
+    [Promise<KeyringService>, Promise<ChainService>]
+  > = async (keyringService, chainService) => {
+    return new this(await keyringService, await chainService)
   }
 
   private constructor(
     private keyringService: KeyringService,
-    private ledgerService: LedgerService,
     private chainService: ChainService
   ) {
     super()
@@ -118,10 +100,6 @@ export default class SigningService extends BaseService<Events> {
   }
 
   async deriveAddress(signerID: AccountSigner): Promise<HexString> {
-    if (signerID.type === "ledger") {
-      return this.ledgerService.deriveAddress(signerID)
-    }
-
     if (signerID.type === "keyring") {
       return this.keyringService.deriveAddress(signerID)
     }
@@ -134,11 +112,6 @@ export default class SigningService extends BaseService<Events> {
     accountSigner: AccountSigner
   ): Promise<SignedTransaction> {
     switch (accountSigner.type) {
-      case "ledger":
-        return this.ledgerService.signTransaction(
-          transactionWithNonce,
-          accountSigner
-        )
       case "private-key":
       case "keyring":
         return this.keyringService.signTransaction(
@@ -165,9 +138,6 @@ export default class SigningService extends BaseService<Events> {
         case "keyring":
           await this.keyringService.hideAccount(address)
           break
-        case "ledger":
-          await this.ledgerService.removeAddress(address)
-          break
         case "read-only":
           break // no additional work here, just account removal below
         default:
@@ -187,12 +157,8 @@ export default class SigningService extends BaseService<Events> {
    * the required setup is expensive enough, the `from` address can be passed
    * in so that signers are only set up when the request applies to them.
    */
-  async prepareForSigningRequest(): Promise<void> {
-    // Refresh connected Ledger info indiscriminately. No real harm vs doing it
-    // only under certain circumstances, might even be more performant than
-    // testing whether the Ledger can sign for the requested `from` address.
-    // There is no longer ledger support.
-  }
+  // FIXME do nothing - remove this function
+  async prepareForSigningRequest(): Promise<void> {}
 
   async signTransaction(
     transactionRequest: TransactionRequest,
@@ -258,13 +224,6 @@ export default class SigningService extends BaseService<Events> {
       }
 
       switch (accountSigner.type) {
-        case "ledger":
-          signedData = await this.ledgerService.signTypedData(
-            typedData,
-            account.address,
-            accountSigner
-          )
-          break
         case "private-key":
         case "keyring":
           signedData = await this.keyringService.signTypedData({
@@ -305,12 +264,6 @@ export default class SigningService extends BaseService<Events> {
     try {
       let signedData
       switch (accountSigner.type) {
-        case "ledger":
-          signedData = await this.ledgerService.signMessage(
-            addressOnNetwork,
-            hexDataToSign
-          )
-          break
         case "private-key":
         case "keyring":
           signedData = await this.keyringService.personalSign({
@@ -330,19 +283,6 @@ export default class SigningService extends BaseService<Events> {
       })
       return signedData
     } catch (err) {
-      if (err instanceof TransportStatusError) {
-        const transportError = err as Error & { statusCode: number }
-        switch (transportError.statusCode) {
-          case StatusCodes.CONDITIONS_OF_USE_NOT_SATISFIED:
-            this.emitter.emit("personalSigningResponse", {
-              type: "error",
-              reason: "userRejected",
-            })
-            throw err
-          default:
-            break
-        }
-      }
       this.emitter.emit("personalSigningResponse", {
         type: "error",
         reason: "genericError",

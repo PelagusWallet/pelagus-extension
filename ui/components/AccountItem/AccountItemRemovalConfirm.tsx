@@ -10,7 +10,6 @@ import { setNewSelectedAccount } from "@pelagus/pelagus-background/redux-slices/
 import { useHistory } from "react-router-dom"
 import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
-import { selectLedgerDeviceByAddresses } from "@pelagus/pelagus-background/redux-slices/selectors/ledgerSelectors"
 
 import SharedButton from "../Shared/SharedButton"
 import SharedAccountItemSummary from "../Shared/SharedAccountItemSummary"
@@ -48,27 +47,10 @@ export default function AccountItemRemovalConfirm({
 
   const accountSigners = useBackgroundSelector(selectAccountSignersByAddress)
   const readOnlyAccount = typeof keyring === "undefined"
-  const lastAddressInKeyring = keyring?.addresses.length === 1
-
-  const ledgerDeviceByAddress = useBackgroundSelector(
-    selectLedgerDeviceByAddresses
-  )
+  const lastAddressInAccount = keyring?.addresses.length === 1
 
   const allAddresses = useBackgroundSelector(getAllAddresses)
-
-  const signer = accountSigners[address]
-
-  const lastAddressInLedger =
-    signer.type === "ledger" &&
-    !allAddresses.some(
-      (otherAddress: string) =>
-        address !== otherAddress &&
-        ledgerDeviceByAddress[otherAddress]?.id === signer.deviceID
-    )
-
   const lastAccountInTallyWallet = Object.keys(allAddresses).length === 1
-
-  const lastAddressInAccount = lastAddressInKeyring || lastAddressInLedger
 
   return (
     <div className="remove_address_option">

@@ -6,7 +6,7 @@ import { PermissionRequest } from "@tallyho/provider-bridge-shared"
 import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { getShardFromAddress } from "@pelagus/pelagus-background/constants"
 import ConnectionDAppGuideline from "../Shared/ConnectionDAppGuideline"
-import DAppAccountsList from "../Shared/DAppAccountsList"
+import DAppAccountsList from "../DAppConnection/DAppAccountsList"
 
 interface DAppConnectionDrawerProps {
   currentDAppInfo: PermissionRequest

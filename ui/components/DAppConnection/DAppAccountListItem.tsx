@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
-import SharedIconGA from "./SharedIconGA"
+import SharedIconGA from "../Shared/SharedIconGA"
 import { truncateAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { HexString } from "@pelagus/pelagus-background/types"
@@ -73,7 +73,7 @@ export default function DAppAccountListItem({
             margin: 11px 16px;
           }
           .connected-account-item.select {
-            background: var(--gold-20);
+            background: var(--green-95);
             margin: 0;
             padding: 11px 16px;
           }

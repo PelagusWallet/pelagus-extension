@@ -2,18 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 import { Ability, ABILITY_TYPES_ENABLED } from "../abilities"
 import { HexString, NormalizedEVMAddress } from "../types"
 import { KeyringsState } from "./keyrings"
-import { LedgerState } from "./ledger"
 import { createBackgroundAsyncThunk } from "./utils"
-
-const isLedgerAccount = (
-  ledger: LedgerState,
-  address: NormalizedEVMAddress
-): boolean =>
-  Object.values(ledger.devices)
-    .flatMap((device) =>
-      Object.values(device.accounts).flatMap((account) => account.address ?? "")
-    )
-    .includes(address)
 
 const isImportOrInternalAccount = (
   keyrings: KeyringsState,
@@ -169,15 +158,11 @@ export const initAbilities = createBackgroundAsyncThunk(
     address: NormalizedEVMAddress,
     { dispatch, getState, extra: { main } }
   ) => {
-    const { ledger, keyrings, abilities } = getState() as {
-      ledger: LedgerState
+    const { keyrings, abilities } = getState() as {
       keyrings: KeyringsState
       abilities: AbilitiesState
     }
-    if (
-      isImportOrInternalAccount(keyrings, address) ||
-      isLedgerAccount(ledger, address)
-    ) {
+    if (isImportOrInternalAccount(keyrings, address)) {
       await main.pollForAbilities(address)
       // Accounts for filter should be enabled after the first initialization.
       // The state of the filters after each reload should not refresh.

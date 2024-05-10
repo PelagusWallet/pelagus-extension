@@ -152,9 +152,6 @@ export const isSameAccountSignerWithId = (
     case "keyring":
       return signerB.keyringID === (signerA as typeof signerB).keyringID
 
-    case "ledger":
-      return signerB.deviceID === (signerA as typeof signerB).deviceID
-
     default:
       return false
   }

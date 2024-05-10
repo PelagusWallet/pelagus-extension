@@ -11,7 +11,6 @@ import { AbilitiesDatabase, getOrCreateDB } from "./db"
 import ChainService from "../chain"
 import { normalizeEVMAddress } from "../../lib/utils"
 import { Ability, AbilityRequirement } from "../../abilities"
-import LedgerService from "../ledger"
 import { HOUR } from "../../constants"
 import localStorageShim from "../../utils/local-storage-shim"
 
@@ -85,8 +84,7 @@ interface Events extends ServiceLifecycleEvents {
 export default class AbilitiesService extends BaseService<Events> {
   constructor(
     private db: AbilitiesDatabase,
-    private chainService: ChainService,
-    private ledgerService: LedgerService
+    private chainService: ChainService
   ) {
     super()
   }
@@ -96,13 +94,9 @@ export default class AbilitiesService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     ServiceLifecycleEvents,
     AbilitiesService,
-    [Promise<ChainService>, Promise<LedgerService>]
-  > = async (chainService, ledgerService) => {
-    return new this(
-      await getOrCreateDB(),
-      await chainService,
-      await ledgerService
-    )
+    [Promise<ChainService>]
+  > = async (chainService) => {
+    return new this(await getOrCreateDB(), await chainService)
   }
 
   protected override async internalStartService(): Promise<void> {
@@ -110,7 +104,7 @@ export default class AbilitiesService extends BaseService<Events> {
     await this.fetchAbilities()
   }
 
-  // Should only be called with ledger or imported accounts
+  // Should only be called with imported accounts
   async getNewAccountAbilities(address: string): Promise<void> {
     this.pollForAbilities(normalizeEVMAddress(address))
     this.emitter.emit("newAccount", address)

@@ -30,10 +30,8 @@
       "privateKey": "Private key",
       "import": "Import",
       "internal": "Pelagus",
-      "ledger": "Ledger",
       "category": {
         "readOnly": "Preview",
-        "ledger": "Hardware wallets",
         "others": "Imported & generated"
       },
       "signing": {
@@ -111,89 +109,6 @@
         "incorrect": "Incorrect password"
       },
       "snackbar": "Signing unlocked"
-    }
-  },
-  "ledger": {
-    "checkLedger": "Check Ledger",
-    "onlyRejectFromLedger": "Tx can only be Rejected from Ledger",
-    "onboarding": {
-      "connecting": "Connecting...",
-      "prepare": {
-        "continueButton": "Continue",
-        "tryAgainButton": "Try Again",
-        "subheadingWord1": "start",
-        "subheadingWord2": "retry",
-        "subheading": "Make sure you take these 3 steps before we {{subheadingWord}}",
-        "initialScreenHeader": "Before we get started",
-        "header": "Check your Ledger",
-        "noLedgerConnected": "No Ledger device is connected",
-        "multipleLedgersConnected": "Multiple Ledgers are connected",
-        "stepsExplainer": "Please follow the steps below and click on Try Again!",
-        "step1": "Plug in a single Ledger",
-        "step2": "Enter pin to unlock",
-        "step3": "Open Ethereum App",
-        "tip": "After clicking continue, select device and click connect"
-      },
-      "selectDevice": "Select the device",
-      "clickConnect": "Click connect",
-      "previous": "Previous",
-      "next": "Next",
-      "selectLedgeraccounts": "Select Ledger accounts",
-      "multipleLedgersDescriptor": "You can select as many as you want",
-      "connectSelectedLedger": "Connect selected",
-      "doneMessageOne": "Congratulations!",
-      "doneMessageTwo": "You can open Pelagus now.",
-      "onboardingSuccessful": "Selected accounts were successfully connected.",
-      "closeTab": "Close tab"
-    },
-    "connectionStatus": {
-      "availableButNoSigning": "Ledger is connected but cannot sign",
-      "readyToSign": "Ledger is ready to sign",
-      "disconnected": "Ledger is disconnected",
-      "wrongLedger": "Wrong Ledger connected",
-      "multipleLedgers": "Multiple ledgers connected",
-      "busy": "Ledger is busy"
-    },
-    "activation": {
-      "title": "Activate blind signing",
-      "helpMessage": "Take the following steps:",
-      "step1": "Open Ethereum app on Ledger",
-      "step2": "Navigate to Settings",
-      "step3": "Enable blind signing"
-    },
-    "busy": {
-      "title": "Ledger is busy",
-      "helpMessage": "Looks like your Ledger has another signature in progress.",
-      "step1": "Accept or Reject transaction on device",
-      "step2": "Refresh page"
-    },
-    "notConnected": {
-      "title": "Connect to Ledger",
-      "helpMessage": "Take the following steps:",
-      "step1": "Plug in Ledger",
-      "step2": "Enter PIN to unlock",
-      "step3": "Open Ethereum app"
-    },
-    "multipleLedgersConnected": {
-      "title": "Multiple Ledgers are connected",
-      "helpMessage": "Take the following steps:",
-      "step1": "Remove all Ledgers but one",
-      "step2": "Enter PIN to unlock",
-      "step3": "Open Ethereum app"
-    },
-    "wrongLedger": {
-      "title": "Wrong Ledger",
-      "helpMessage": "Looks like you are using the wrong Ledger.",
-      "connectLedger": "Connect the Ledger containing this account:",
-      "refresh": "Refresh the page"
-    },
-    "derivationPaths": {
-      "ledgerLive": "Ledger Live",
-      "bip44": "BIP 44 (Trezor, 🦊)",
-      "ethTestnet": "Ethereum Testnet",
-      "ledgerLegacy": "Ledger Legacy",
-      "rsk": "Rootstock",
-      "rskTestnet": "Rootstock Testnet"
     }
   },
   "networkFees": {
@@ -350,7 +265,6 @@
         "options": {
           "importSeed": "Import recovery phrase",
           "importPrivateKey": "Import private key",
-          "ledger": "Connect to Ledger",
           "readOnly": "Read-only address",
           "createNew": "Create new wallet"
         },
@@ -441,7 +355,6 @@
     "addWallet": {
       "addExistingAccount": "Add existing accounts",
       "importWallet": "Import recovery phrase",
-      "addLedger": "Connect to Ledger",
       "addReadOnly": "Read-only address",
       "addNewAccount": "Add new recovery phrase",
       "createNewWallet": "Create new wallet",
@@ -502,6 +415,12 @@
   },
   "readOnly": "Read-only",
   "readOnlyNotice": "Read-only mode",
+  "derivationPaths": {
+    "bip44": "BIP 44",
+    "ethTestnet": "Ethereum Testnet",
+    "rsk": "Rootstock",
+    "rskTestnet": "Rootstock Testnet"
+  },
   "settings": {
     "group": {
       "general": "General",

@@ -2,7 +2,6 @@ import React, { ReactElement } from "react"
 import { SignOperationType } from "@pelagus/pelagus-background/redux-slices/signing"
 import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
 import SignerKeyringFrame from "./SignerKeyring/SignerKeyringFrame"
-import SignerLedgerFrame from "./SignerLedger/SignerLedgerFrame"
 import SignerReadOnlyFrame from "./SignerReadOnly/SignerReadOnlyFrame"
 import { SignerFrameProps } from "."
 
@@ -25,8 +24,6 @@ export default function SignerFrame<T extends SignOperationType>(
     case "private-key":
     case "keyring":
       return <SignerKeyringFrame {...props} />
-    case "ledger":
-      return <SignerLedgerFrame {...props} />
     case "read-only":
       return <SignerReadOnlyFrame {...props} />
     default:

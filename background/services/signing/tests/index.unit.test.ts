@@ -1,7 +1,6 @@
 import sinon from "sinon"
 import {
   createKeyringService,
-  createLedgerService,
   createSigningService,
 } from "../../../tests/factories"
 import SigningService from "../index"
@@ -21,27 +20,6 @@ describe("Signing Service Unit", () => {
   })
 
   describe("deriveAddress", () => {
-    it("should use ledger service to derive from a ledger account", async () => {
-      const ledgerService = await createLedgerService()
-      await ledgerService.startService()
-      const deriveAddressStub = sandbox
-        .stub(ledgerService, "deriveAddress")
-        .callsFake(async () => "")
-
-      signingService = await createSigningService({
-        ledgerService: Promise.resolve(ledgerService),
-      })
-      await signingService.startService()
-
-      await signingService.deriveAddress({
-        type: "ledger",
-        deviceID: "foo",
-        path: "bar",
-      })
-
-      expect(deriveAddressStub.called).toBe(true)
-    })
-
     it("should use keyring service to derive from a keyring account", async () => {
       const keyringService = await createKeyringService()
       const deriveAddressStub = sandbox

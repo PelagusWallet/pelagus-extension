@@ -5,7 +5,6 @@ import {
   KeyringAccountSigner,
   PrivateKeyAccountSigner,
 } from "../../services/keyring"
-import { LedgerAccountSigner } from "../../services/ledger"
 import { AccountSigner, ReadOnlyAccountSigner } from "../../services/signing"
 import { HexString } from "../../types"
 import {
@@ -29,31 +28,10 @@ const getAllAddresses = createSelector(
 
 export const selectAccountSignersByAddress = createSelector(
   getAllAddresses,
-  (state: RootState) => state.ledger.devices,
   selectKeyringsByAddresses,
   selectPrivateKeyWalletsByAddress,
-  (
-    allAddresses,
-    ledgerDevices,
-    keyringsByAddress,
-    privateKeyWalletsByAddress
-  ) => {
+  (allAddresses, keyringsByAddress, privateKeyWalletsByAddress) => {
     const allAccountsSeen = new Set<string>()
-    const ledgerEntries = Object.values(ledgerDevices).flatMap((device) =>
-      Object.values(device.accounts).flatMap(
-        (account): [[HexString, LedgerAccountSigner]] | [] => {
-          if (account.address === null) return []
-
-          allAccountsSeen.add(account.address)
-          return [
-            [
-              account.address,
-              { type: "ledger", deviceID: device.id, path: account.path },
-            ],
-          ]
-        }
-      )
-    )
 
     const keyringEntries = Object.entries(keyringsByAddress)
       .map(
@@ -106,9 +84,6 @@ export const selectAccountSignersByAddress = createSelector(
     const entriesByPriority: [string, AccountSigner][] = [
       ...readOnlyEntries,
       ...privateKeyEntries,
-      ...ledgerEntries,
-      // Give priority to keyring over Ledger, if an address is signable by
-      // both.
       ...keyringEntries,
     ]
 

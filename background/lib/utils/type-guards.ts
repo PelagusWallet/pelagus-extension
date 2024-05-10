@@ -26,8 +26,6 @@ export function isDefined<T>(input: T | undefined): input is T {
  * @example
  *    private async doSomethingWithASigner(signer: AccountSigner): Promise<string> {
  *      switch (signer.type) {
- *        case "ledger":
- *          return "Got a ledger!"
  *        case "keyring":
  *          return "Got a keyring!"
  *        default:

@@ -4,9 +4,6 @@ import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useEffect } from "react"
 import { useHistory } from "react-router-dom"
 
-import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
-import { DisplayDetails } from "@pelagus/pelagus-background/services/ledger"
-import { HexString } from "@pelagus/pelagus-background/types"
 import { useBackgroundSelector } from "./redux-hooks"
 
 /**
@@ -51,55 +48,4 @@ export function useIsSignerLocked(signer: AccountSigner | null): boolean {
     : signer?.type === "keyring"
   const areKeyringsUnlocked = useAreKeyringsUnlocked(needsKeyrings)
   return needsKeyrings && !areKeyringsUnlocked
-}
-
-export type SigningLedgerState =
-  | {
-      state: "no-ledger-connected" | "busy" | "multiple-ledgers-connected"
-    }
-  | { state: "wrong-ledger-connected"; requiredAddress: HexString }
-  | {
-      state: "available"
-      arbitraryDataEnabled: boolean
-      displayDetails: DisplayDetails
-    }
-
-export function useSigningLedgerState(
-  signingAddress: HexString | undefined,
-  accountSigner: AccountSigner | null
-): SigningLedgerState | null {
-  return useBackgroundSelector((state) => {
-    if (signingAddress === undefined || accountSigner?.type !== "ledger") {
-      return null
-    }
-
-    const { deviceID } = accountSigner
-
-    const connectedDevices = Object.values(state.ledger.devices).filter(
-      (device) => device.status !== "disconnected"
-    )
-    if (connectedDevices.length === 0) return { state: "no-ledger-connected" }
-    if (state.ledger.usbDeviceCount > 1)
-      return { state: "multiple-ledgers-connected" }
-
-    const device = state.ledger.devices[deviceID]
-
-    switch (device.status) {
-      case "available":
-        return {
-          state: "available",
-          arbitraryDataEnabled: device.isArbitraryDataSigningEnabled ?? false,
-          displayDetails: device.displayDetails,
-        }
-      case "busy":
-        return { state: "busy" }
-      case "disconnected":
-        return {
-          state: "wrong-ledger-connected",
-          requiredAddress: signingAddress,
-        }
-      default:
-        return assertUnreachable(device.status)
-    }
-  })
 }

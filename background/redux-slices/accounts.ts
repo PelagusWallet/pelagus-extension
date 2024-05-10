@@ -29,7 +29,6 @@ export const enum AccountType {
   ReadOnly = "read-only",
   PrivateKey = "private-key",
   Imported = "imported",
-  Ledger = "ledger",
   Internal = "internal",
 }
 

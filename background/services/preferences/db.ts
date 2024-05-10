@@ -14,17 +14,12 @@ type SignerRecordId = `${AccountSignerWithId["type"]}/${string}`
 
 /**
  * Returns a unique id for an account signer
- * in the form of "signerType/someId" e.g. "ledger/deviceId"
+ * in the form of "signerType/someId"
  */
 const getSignerRecordId = (signer: AccountSignerWithId): SignerRecordId => {
-  switch (signer.type) {
-    case "keyring":
-      return `${signer.type}/${signer.keyringID}`
-    case "private-key":
-      return `${signer.type}/${signer.walletID}`
-    default:
-      return `${signer.type}/${signer.deviceID}`
-  }
+  if (signer.type === "keyring") return `${signer.type}/${signer.keyringID}`
+
+  return `${signer.type}/${signer.walletID}`
 }
 
 // The idea is to use this interface to describe the data structure stored in indexedDb

@@ -56,8 +56,6 @@ function AbilityCard({ ability }: { ability: Ability }): ReactElement {
 
   const timeDetails = getTimeDetails(ability)
 
-  // TODO Hotfix. Abilities are fetched for accounts that were loaded during Ledger onboarding but
-  // these accounts could be ignored by user and not imported to the app. Let's ignore these abilities.
   if (!accountsTotal[ability.address]) return <></>
 
   return (

@@ -4,7 +4,6 @@ export const ONBOARDING_ROOT = `${PAGE_ROOT}onboarding`
 const OnboardingRoutes = {
   ONBOARDING_START: "/onboarding",
   ADD_WALLET: "/onboarding/add-wallet",
-  LEDGER: "/onboarding/ledger",
   SET_PASSWORD: "/onboarding/set-password",
   IMPORT_SEED: "/onboarding/import-seed",
   IMPORT_PRIVATE_KEY: "/onboarding/import-private-key",

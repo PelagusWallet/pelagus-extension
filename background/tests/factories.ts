@@ -42,7 +42,6 @@ import {
   IndexingService,
   InternalEthereumProviderService,
   KeyringService,
-  LedgerService,
   NameService,
   PreferenceService,
   ProviderBridgeService,
@@ -109,18 +108,12 @@ export async function createIndexingService(overrides?: {
   )
 }
 
-export const createLedgerService = async (): Promise<LedgerService> => {
-  return LedgerService.create()
-}
-
 type CreateSigningServiceOverrides = {
   keyringService?: Promise<KeyringService>
-  ledgerService?: Promise<LedgerService>
   chainService?: Promise<ChainService>
 }
 
 type CreateAbilitiesServiceOverrides = {
-  ledgerService?: Promise<LedgerService>
   chainService?: Promise<ChainService>
 }
 
@@ -148,7 +141,6 @@ export const createSigningService = async (
 ): Promise<SigningService> => {
   return SigningService.create(
     overrides.keyringService ?? createKeyringService(),
-    overrides.ledgerService ?? createLedgerService(),
     overrides.chainService ?? createChainService()
   )
 }
@@ -156,10 +148,7 @@ export const createSigningService = async (
 export const createAbilitiesService = async (
   overrides: CreateAbilitiesServiceOverrides = {}
 ): Promise<AbilitiesService> => {
-  return AbilitiesService.create(
-    overrides.chainService ?? createChainService(),
-    overrides.ledgerService ?? createLedgerService()
-  )
+  return AbilitiesService.create(overrides.chainService ?? createChainService())
 }
 
 export const createInternalEthereumProviderService = async (

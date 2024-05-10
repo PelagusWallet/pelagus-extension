@@ -77,13 +77,6 @@ export default function AddWalletOptions(): JSX.Element {
         isAvailable: true,
       },
       {
-        label: t("options.ledger"),
-        icon: "add_wallet/ledger.svg",
-        url: OnboardingRoutes.LEDGER,
-        isAvailable:
-          false /** To make visible - add isLedgerSupported flag from "@pelagus/pelagus-background/services/ledger" */,
-      },
-      {
         label: t("options.readOnly"),
         icon: "add_wallet/preview.svg",
         url: OnboardingRoutes.VIEW_ONLY_WALLET,

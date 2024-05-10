@@ -2,13 +2,11 @@ import to2 from "./to-2"
 import to3 from "./to-3"
 import to4 from "./to-4"
 import to5 from "./to-5"
-import to6 from "./to-6"
 import to7 from "./to-7"
 import to8 from "./to-8"
 import to9 from "./to-9"
 import to10 from "./to-10"
 import to11 from "./to-11"
-import to12 from "./to-12"
 import to13 from "./to-13"
 import to14 from "./to-14"
 import to15 from "./to-15"
@@ -48,13 +46,11 @@ const allMigrations: { [targetVersion: string]: Migration } = {
   3: to3,
   4: to4,
   5: to5,
-  6: to6,
   7: to7,
   8: to8,
   9: to9,
   10: to10,
   11: to11,
-  12: to12,
   13: to13,
   14: to14,
   15: to15,

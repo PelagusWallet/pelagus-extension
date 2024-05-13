@@ -19,11 +19,6 @@ const allTabs: (TabInfo & { visible?: boolean })[] = [
 
   // Will likely be added back to the tab nav in the future.
   // {
-  //   path: "/nfts",
-  //   title: "tabs.nfts",
-  //   icon: "nfts",
-  // },
-  // {
   //   path: "/portfolio",
   //   title: "tabs.portfolio",
   //   icon: "portfolio",

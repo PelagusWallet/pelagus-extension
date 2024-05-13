@@ -175,15 +175,6 @@ const pageList: PageList[] = [
   //   persistOnClose: true,
   // },
 
-  // Will likely be added back to the tab nav in the future.
-  // {
-  //   path: "/nfts",
-  //   Component: NFTs,
-  //   hasTabBar: true,
-  //   hasTopBar: false,
-  //   persistOnClose: true,
-  // },
-
   {
     path: "/dapp-permission",
     Component: DAppPermissionRequest,

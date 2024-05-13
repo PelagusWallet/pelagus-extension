@@ -16,7 +16,6 @@ jobs:
       UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
       SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
       ZEROX_API_KEY: ${{ secrets.ZEROX_API_KEY }}
-      POAP_API_KEY: ${{ secrets.POAP_API_KEY }}
       DAYLIGHT_API_KEY: ${{ secrets.DAYLIGHT_API_KEY }}
     with:
       update_version_command: npm version prerelease --preid=pre --no-git-tag-version

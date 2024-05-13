@@ -10,7 +10,6 @@ import {
   getAssetsState,
   selectCurrentAccount,
   selectCurrentAccountBalances,
-  selectCurrentAccountNFTs,
   selectCurrentAccountSigner,
   selectCurrentNetwork,
   selectMainCurrencySymbol,
@@ -39,7 +38,6 @@ import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/sign
 import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
-import { NFTCached } from "@pelagus/pelagus-background/redux-slices/nfts"
 import { BigNumber } from "ethers"
 import SharedAssetInput from "../components/Shared/SharedAssetInput"
 import SharedBackButton from "../components/Shared/SharedBackButton"
@@ -67,8 +65,7 @@ export default function Send(): ReactElement {
     location.state ?? currentAccount.network.baseAsset
   )
 
-  const [assetType, setAssetType] = useState<"token" | "nft">("token")
-  const [selectedNFT, setSelectedNFT] = useState<NFTCached | null>(null)
+  const [assetType, setAssetType] = useState<"token">("token")
 
   const [nonce, setNonce] = useState<number>(0)
   const [maxFeePerGas, setMaxFeePerGas] = useState<BigNumber>(BigNumber.from(0))
@@ -128,13 +125,6 @@ export default function Send(): ReactElement {
   const dispatch = useBackgroundDispatch()
   const balanceData = useBackgroundSelector(selectCurrentAccountBalances)
   const mainCurrencySymbol = useBackgroundSelector(selectMainCurrencySymbol)
-  const nftCollections = useBackgroundSelector((state) => {
-    if (isEnabled(FeatureFlags.SUPPORT_NFT_SEND)) {
-      return selectCurrentAccountNFTs(state)
-    }
-
-    return []
-  })
 
   const fungibleAssetAmounts =
     // Only look at fungible assets that have a balance greater than zero.
@@ -259,19 +249,9 @@ export default function Send(): ReactElement {
                   setHasError(false)
                 }
               }}
-              onSelectNFT={(nft) => {
-                setSelectedNFT(nft)
-                setAssetType("nft")
-              }}
               selectedAsset={selectedAsset ?? undefined}
-              selectedNFT={(assetType === "nft" && selectedNFT) || undefined}
               amount={amount}
-              showMaxButton={assetType !== "nft"}
-              NFTCollections={
-                isEnabled(FeatureFlags.SUPPORT_NFT_SEND)
-                  ? nftCollections
-                  : undefined
-              }
+              showMaxButton
             />
             {
               assetType === "token" && !hasError && null

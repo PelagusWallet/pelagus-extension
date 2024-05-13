@@ -51,7 +51,6 @@
   },
   "assetInput": {
     "search": "Search by name or address",
-    "searchNFT": "Search NFT",
     "selectToken": "Select token",
     "error": {
       "invalidAmount": "Invalid amount",
@@ -166,64 +165,6 @@
       "express": "Express",
       "instant": "Instant",
       "custom": "Custom"
-    }
-  },
-  "nfts": {
-    "noTitle": "No title",
-    "type1": "NFTs",
-    "type2": "badges",
-    "noMatchingNFTs": "No {{type}} matching your filters",
-    "collectionHover": {
-      "close": "close",
-      "expand": "expand collection",
-      "view": "view details"
-    },
-    "preview": {
-      "owner": "Owner",
-      "floorPrice": "Floor price",
-      "send": "Send",
-      "viewOn": "View on",
-      "description": "Description",
-      "itemsCount": "Items in collection",
-      "creator": "Creator",
-      "properties": "Properties",
-      "refresh": "Refresh properties",
-      "rank": "Rank",
-      "rarityRank": "Rarity rank"
-    },
-    "units": {
-      "nft_one": "NFT",
-      "nft_other": "NFTs",
-      "badge_one": "Badge",
-      "badge_other": "Badges",
-      "collection_one": "Collection",
-      "collection_other": "Collections"
-    },
-    "header": {
-      "title": "Total NFTs floor price",
-      "addAccountCTA": "Add account",
-      "emptyTitle": "No NFTs here",
-      "emptyDesc": "Add more accounts to see your NFTs, you can also just add read-only accounts"
-    },
-    "emptyBannerTitle": {
-      "nfts": "Explore markets",
-      "badge": "Explore badges"
-    },
-    "networksBanner": "Not seeing NFTs from all your networks? Activate a network by switching to it on the Wallet tab.",
-    "filters": {
-      "title": "Filter collections",
-      "warning": "Changing filters here will affect your Portfolio page as well.",
-      "sortType": {
-        "priceDesc": "Floor price: Descending",
-        "priceAsc": "Floor price: Ascending",
-        "newestAdded": "Newest added",
-        "oldestAdded": "Oldest added",
-        "numberInOneCollection": "Number (in 1 collection)"
-      },
-      "sortTypeTitle": "Sort collection",
-      "collectionsTitle": "Show/hide collections",
-      "accountsTitle": "Show/hide accounts",
-      "noCollections": "No collections"
     }
   },
   "onboarding": {
@@ -378,16 +319,6 @@
     "accounts": "Accounts",
     "assets": "Assets",
     "networks": "Networks",
-    "nfts": "{{nfts}} in {{collections}} & {{badges}}",
-    "nftsTooltip": "NFTs here are shown based on your filters in the NFT page.",
-    "units": {
-      "nft": "<strong>1</strong> NFT",
-      "nft_other": "<strong>{{count}}</strong> NFTs",
-      "collection": "<strong>1</strong> Collection",
-      "collection_other": "<strong>{{count}}</strong> Collections",
-      "badge": "<strong>1</strong> Badge",
-      "badge_other": "<strong>{{count}}</strong> Badges"
-    },
     "tableHeader": {
       "asset": "Asset",
       "assets": "Assets",
@@ -750,7 +681,6 @@
     "sendToContractWarning": "This is a contract address, sending assets could result in loss of funds.",
     "pages": {
       "assets": "Assets",
-      "NFTs": "NFTs",
       "activity": "Activity"
     },
     "defaultToggle": {
@@ -896,7 +826,6 @@
         "SUPPORT_MULTIPLE_LANGUAGES": "Enable to choose language",
         "HIDE_TOKEN_FEATURES": "Hide token features",
         "SUPPORT_ACHIEVEMENTS_BANNER": "Enable achievements banner",
-        "SUPPORT_NFT_SEND": "Enable sending NFTs",
         "SUPPORT_ARBITRUM_NOVA": "Enable Arbitrum Nova network",
         "SUPPORT_SWAP_QUOTE_REFRESH": "Enable automatic swap quote updates",
         "SUPPORT_CUSTOM_NETWORKS": "Show custom network page on settings panel",
@@ -907,7 +836,6 @@
   },
   "tabs": {
     "wallet": "Wallet",
-    "nfts": "NFTs",
     "portfolio": "Portfolio",
     "swap": "Swap",
     "earn": "Earn",

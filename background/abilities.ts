@@ -5,11 +5,6 @@ type HoldERC20 = {
   address: string
 }
 
-type OwnNFT = {
-  type: "own"
-  nftAddress: string
-}
-
 type AllowList = {
   type: "allowList"
 }
@@ -18,7 +13,7 @@ type Unknown = {
   type: "unknown"
 }
 
-export type AbilityRequirement = HoldERC20 | OwnNFT | AllowList | Unknown
+export type AbilityRequirement = HoldERC20 | AllowList | Unknown
 
 export const ABILITY_TYPES_ENABLED = [
   "mint",

@@ -14,11 +14,6 @@ import {
   parseToFixedPointNumber,
 } from "@pelagus/pelagus-background/lib/fixed-point"
 import { EVMNetwork } from "@pelagus/pelagus-background/networks"
-import {
-  NFTCached,
-  NFTCollectionCached,
-} from "@pelagus/pelagus-background/redux-slices/nfts"
-import classNames from "classnames"
 import SharedButton from "./SharedButton"
 import SharedSlideUpMenu from "./SharedSlideUpMenu"
 import SharedAssetItem, {
@@ -27,9 +22,6 @@ import SharedAssetItem, {
 } from "./SharedAssetItem"
 import SharedAssetIcon from "./SharedAssetIcon"
 import PriceDetails from "./PriceDetails"
-import SharedPanelSwitcher from "./SharedPanelSwitcher"
-import noop from "../../utils/noop"
-import NFTCollectionAccordion from "../Send/NFTCollectionAccordion"
 
 // List of symbols we want to display first.  Lower array index === higher priority.
 // For now we just prioritize somewhat popular assets that we are able to load an icon for.
@@ -59,11 +51,9 @@ const symbolPriority = Object.fromEntries(
 interface SelectAssetMenuContentProps<AssetType extends AnyAsset> {
   currentNetwork: EVMNetwork
   assets: AnyAssetWithOptionalAmount<AssetType>[]
-  nfts: NFTCollectionCached[]
   setSelectedAssetAndClose: (
     asset: AnyAssetWithOptionalAmount<AssetType>
   ) => void
-  onSelectNFT?: (nft: NFTCached) => void
 }
 
 // Sorts an AnyAssetWithOptionalAmount by symbol, alphabetically, according to
@@ -126,13 +116,7 @@ function SelectAssetMenuContent<T extends AnyAsset>(
   props: SelectAssetMenuContentProps<T>
 ): ReactElement {
   const { t } = useTranslation()
-  const {
-    setSelectedAssetAndClose,
-    assets,
-    currentNetwork,
-    nfts: nftCollections,
-    onSelectNFT = noop,
-  } = props
+  const { setSelectedAssetAndClose, assets, currentNetwork } = props
   const [searchTerm, setSearchTerm] = useState("")
   const searchInput = useRef<HTMLInputElement | null>(null)
 
@@ -165,22 +149,12 @@ function SelectAssetMenuContent<T extends AnyAsset>(
     searchInput.current?.focus()
   }, [searchInput])
 
-  const shouldDisplayNFTs = nftCollections.length > 0
-  const [panelNumber, setPanelNumber] = useState(0)
+  const [panelNumber] = useState(0)
 
   return (
     <>
-      {shouldDisplayNFTs && (
-        <div className="panel_switcher">
-          <SharedPanelSwitcher
-            setPanelNumber={setPanelNumber}
-            panelNumber={panelNumber}
-            panelNames={["Tokens", "NFTs"]}
-          />
-        </div>
-      )}
       {panelNumber === 0 && (
-        <div className={classNames({ has_nfts: shouldDisplayNFTs })}>
+        <div>
           <div className="standard_width_padded center_horizontal">
             <div className="search_label">{t("shared.selectToken")}</div>
             <div className="search_wrap">
@@ -217,48 +191,11 @@ function SelectAssetMenuContent<T extends AnyAsset>(
           </ul>
         </div>
       )}
-      {panelNumber === 1 && (
-        <div className="standard_width_padded center_horizontal has_nfts">
-          <div className="search_wrap">
-            <input
-              type="text"
-              ref={searchInput}
-              className="search_input"
-              placeholder={t("assetInput.searchNFT")}
-              spellCheck={false}
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-            <span className="icon_search" />
-          </div>
-          <div className="nft_list">
-            {nftCollections.map((collection) => (
-              <NFTCollectionAccordion
-                key={collection.id}
-                collection={collection}
-                onSelectNFT={onSelectNFT}
-              />
-            ))}
-          </div>
-        </div>
-      )}
       <style jsx>
         {`
           .panel_switcher {
             width: 100%;
           }
-          .has_nfts > div {
-            margin-top: 16px;
-          }
-
-          .nft_list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow: scroll;
-            height: calc(100% - 96px);
-            width: 100%;
-          }
-
           .search_label {
             height: 20px;
             color: var(--green-60);
@@ -315,52 +252,10 @@ interface SelectedAssetButtonProps {
   asset: Asset
   isDisabled: boolean
   toggleIsAssetMenuOpen?: () => void
-  selectedNFT?: NFTCached
 }
 
 function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
-  const { asset, isDisabled, toggleIsAssetMenuOpen, selectedNFT } = props
-
-  if (selectedNFT) {
-    const { name, thumbnailURL } = selectedNFT
-    return (
-      <button
-        type="button"
-        disabled={isDisabled}
-        onClick={toggleIsAssetMenuOpen}
-      >
-        <img
-          width="56"
-          height="56"
-          src={thumbnailURL}
-          loading="lazy"
-          alt={name}
-        />
-        <span className="ellipsis">{name}</span>
-        <style jsx>{`
-          button {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            max-width: calc(100% - 32px);
-          }
-          img {
-            border-radius: 4px;
-            object-fit: cover;
-            object-position: center;
-          }
-          span {
-            font-family: "Segment";
-            font-style: normal;
-            font-weight: 500;
-            font-size: 16px;
-            line-height: 24px;
-            color: var(--white);
-          }
-        `}</style>
-      </button>
-    )
-  }
+  const { asset, isDisabled, toggleIsAssetMenuOpen } = props
 
   return (
     <button type="button" disabled={isDisabled} onClick={toggleIsAssetMenuOpen}>
@@ -418,9 +313,6 @@ interface SharedAssetInputProps<AssetType extends AnyAsset> {
   onBlur?: () => void
   onAmountChange?: (value: string, errorMessage: string | undefined) => void
   onErrorMessageChange?: (errorMessage: string) => void
-  NFTCollections?: NFTCollectionCached[]
-  onSelectNFT?: (nft: NFTCached) => void
-  selectedNFT?: NFTCached
 }
 
 function isSameAsset(asset1: Asset, asset2: Asset) {
@@ -467,9 +359,6 @@ export default function SharedAssetInput<T extends AnyAsset>(
     onFocus = () => {},
     onBlur = () => {},
     onErrorMessageChange = () => {},
-    NFTCollections,
-    onSelectNFT,
-    selectedNFT,
   } = props
   const [openAssetMenu, setOpenAssetMenu] = useState(false)
 
@@ -534,11 +423,6 @@ export default function SharedAssetInput<T extends AnyAsset>(
     [selectedAssetAndAmount, t]
   )
 
-  const handleSelectNFT = (nft: NFTCached) => {
-    setOpenAssetMenu(false)
-    onSelectNFT?.(nft)
-  }
-
   useEffect(() => {
     const error = getErrorMessage(amount) ?? ""
     setErrorMessage(error)
@@ -565,11 +449,10 @@ export default function SharedAssetInput<T extends AnyAsset>(
     onAmountChange?.(fixedPointString, getErrorMessage(fixedPointString))
   }
 
-  const displayedBalance = selectedNFT
-    ? 1
-    : selectedAssetAndAmount &&
-      hasAmounts(selectedAssetAndAmount) &&
-      selectedAssetAndAmount.localizedDecimalAmount
+  const displayedBalance =
+    selectedAssetAndAmount &&
+    hasAmounts(selectedAssetAndAmount) &&
+    selectedAssetAndAmount.localizedDecimalAmount
   return (
     <>
       <label
@@ -613,21 +496,15 @@ export default function SharedAssetInput<T extends AnyAsset>(
             currentNetwork={currentNetwork}
             assets={assetsAndAmounts}
             setSelectedAssetAndClose={setSelectedAssetAndClose}
-            onSelectNFT={handleSelectNFT}
-            nfts={NFTCollections ?? []}
           />
         )}
       </SharedSlideUpMenu>
-      <div
-        className="asset_wrap standard_width"
-        data-type={selectedNFT ? "nft" : "token"}
-      >
+      <div className="asset_wrap standard_width" data-type={"token"}>
         <div>
           {selectedAssetAndAmount?.asset.symbol ? (
             <SelectedAssetButton
               isDisabled={isDisabled || disableDropdown}
               asset={selectedAssetAndAmount.asset}
-              selectedNFT={selectedNFT}
               toggleIsAssetMenuOpen={toggleIsAssetMenuOpen}
             />
           ) : (
@@ -643,51 +520,49 @@ export default function SharedAssetInput<T extends AnyAsset>(
             </SharedButton>
           )}
         </div>
-        {!selectedNFT && (
-          <div className="input_amount_wrap">
-            <input
-              id={`asset_amount_input${inputId}`}
-              className="input_amount"
-              type="number"
-              step="any"
-              placeholder="0.0"
-              min="0"
-              disabled={isDisabled}
-              value={amount}
-              spellCheck={false}
-              onFocus={(e) => {
-                if (e.target === e.currentTarget) {
-                  onFocus()
-                }
-              }}
-              onBlur={(e) => {
-                if (e.target === e.currentTarget) {
-                  onBlur()
-                }
-              }}
-              onChange={(event) =>
-                onAmountChange?.(
-                  event.target.value,
-                  getErrorMessage(event.target.value)
-                )
+        <div className="input_amount_wrap">
+          <input
+            id={`asset_amount_input${inputId}`}
+            className="input_amount"
+            type="number"
+            step="any"
+            placeholder="0.0"
+            min="0"
+            disabled={isDisabled}
+            value={amount}
+            spellCheck={false}
+            onFocus={(e) => {
+              if (e.target === e.currentTarget) {
+                onFocus()
               }
-            />
-            {showPriceDetails &&
-              amount &&
-              selectedAsset &&
-              Number(amount) !== 0 &&
-              (!errorMessage ? (
-                <PriceDetails
-                  amountMainCurrency={amountMainCurrency}
-                  priceImpact={priceImpact}
-                  isLoading={!!isPriceDetailsLoading}
-                  mainCurrencySign={mainCurrencySign || ""}
-                />
-              ) : (
-                <div className="error_message">{errorMessage}</div>
-              ))}
-          </div>
-        )}
+            }}
+            onBlur={(e) => {
+              if (e.target === e.currentTarget) {
+                onBlur()
+              }
+            }}
+            onChange={(event) =>
+              onAmountChange?.(
+                event.target.value,
+                getErrorMessage(event.target.value)
+              )
+            }
+          />
+          {showPriceDetails &&
+            amount &&
+            selectedAsset &&
+            Number(amount) !== 0 &&
+            (!errorMessage ? (
+              <PriceDetails
+                amountMainCurrency={amountMainCurrency}
+                priceImpact={priceImpact}
+                isLoading={!!isPriceDetailsLoading}
+                mainCurrencySign={mainCurrencySign || ""}
+              />
+            ) : (
+              <div className="error_message">{errorMessage}</div>
+            ))}
+        </div>
         {errorMessage && !showPriceDetails && (
           <div className="error_message error_message_wrap">{errorMessage}</div>
         )}
@@ -724,13 +599,6 @@ export default function SharedAssetInput<T extends AnyAsset>(
             padding: 0px 16px;
             box-sizing: border-box;
             position: relative;
-          }
-          .asset_wrap[data-type="nft"] {
-            padding: 8px;
-          }
-          .asset_wrap[data-type="nft"] > div {
-            flex-grow: 1;
-            max-width: 100%;
           }
           // Using :global() to target child component
           label:hover ~ .asset_wrap > div > :global(button:hover) {

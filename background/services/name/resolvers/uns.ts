@@ -116,7 +116,6 @@ const isValidUNSDomainName = (s: string): boolean => {
       ".wallet",
       ".bitcoin",
       ".888",
-      ".nft",
       ".dao",
       ".zil",
       ".x",

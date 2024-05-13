@@ -36,7 +36,6 @@ import {
   ServiceCreatorFunction,
   DoggoService,
   SigningService,
-  NFTsService,
   WalletConnectService,
   AnalyticsService,
   getNoopService,
@@ -162,16 +161,6 @@ import {
   SmartContractFungibleAsset,
 } from "./assets"
 import { FeatureFlags, isEnabled } from "./features"
-import { NFTCollection } from "./nfts"
-import {
-  initializeNFTs,
-  updateNFTsCollections,
-  emitter as nftsSliceEmitter,
-  updateNFTs,
-  deleteNFTsForAddress,
-  updateIsReloading,
-  deleteTransferredNFTs,
-} from "./redux-slices/nfts"
 import AbilitiesService from "./services/abilities"
 import {
   setAbilitiesForAddress,
@@ -342,8 +331,6 @@ export default class Main extends BaseService<never> {
 
     const analyticsService = AnalyticsService.create(preferenceService)
 
-    const nftsService = NFTsService.create(chainService)
-
     const abilitiesService = AbilitiesService.create(chainService)
 
     const walletConnectService = isEnabled(FeatureFlags.SUPPORT_WALLET_CONNECT)
@@ -397,7 +384,6 @@ export default class Main extends BaseService<never> {
       await telemetryService,
       await signingService,
       await analyticsService,
-      await nftsService,
       await walletConnectService,
       await abilitiesService
     )
@@ -469,12 +455,6 @@ export default class Main extends BaseService<never> {
      * to events and dispatching to our analytics backend
      */
     private analyticsService: AnalyticsService,
-
-    /**
-     * A promise to the NFTs service which takes care of NFTs data, fetching, updating
-     * details and prices of NFTs for imported accounts.
-     */
-    private nftsService: NFTsService,
 
     /**
      * A promise to the Wallet Connect service which takes care of handling wallet connect
@@ -701,7 +681,6 @@ export default class Main extends BaseService<never> {
       this.telemetryService.startService(),
       this.signingService.startService(),
       this.analyticsService.startService(),
-      this.nftsService.startService(),
       this.walletConnectService.startService(),
       this.abilitiesService.startService(),
       this.startBalanceChecker(),
@@ -724,7 +703,6 @@ export default class Main extends BaseService<never> {
       this.telemetryService.stopService(),
       this.signingService.stopService(),
       this.analyticsService.stopService(),
-      this.nftsService.stopService(),
       this.walletConnectService.stopService(),
       this.abilitiesService.stopService(),
       clearInterval(this.balanceChecker),
@@ -746,7 +724,6 @@ export default class Main extends BaseService<never> {
     this.connectSigningService()
     this.connectWalletConnectService()
     this.connectAbilitiesService()
-    this.connectNFTsService()
 
     await this.connectChainService()
 
@@ -819,10 +796,6 @@ export default class Main extends BaseService<never> {
     }
 
     this.store.dispatch(removeActivities(address))
-
-    // remove NFTs
-    this.store.dispatch(deleteNFTsForAddress(address))
-    await this.nftsService.removeNFTsForAddress(address)
 
     // remove abilities
     if (signer.type !== AccountType.ReadOnly) {
@@ -1842,42 +1815,6 @@ export default class Main extends BaseService<never> {
   connectTelemetryService(): void {
     // Pass the redux store to the telemetry service so we can analyze its size
     this.telemetryService.connectReduxStore(this.store)
-  }
-
-  connectNFTsService(): void {
-    this.nftsService.emitter.on(
-      "initializeNFTs",
-      (collections: NFTCollection[]) => {
-        this.store.dispatch(initializeNFTs(collections))
-      }
-    )
-    this.nftsService.emitter.on(
-      "updateCollections",
-      (collections: NFTCollection[]) => {
-        this.store.dispatch(updateNFTsCollections(collections))
-      }
-    )
-    this.nftsService.emitter.on("updateNFTs", async (payload) => {
-      await this.store.dispatch(updateNFTs(payload))
-    })
-    this.nftsService.emitter.on("removeTransferredNFTs", async (payload) => {
-      this.store.dispatch(deleteTransferredNFTs(payload))
-    })
-    this.nftsService.emitter.on("isReloadingNFTs", async (payload) => {
-      this.store.dispatch(updateIsReloading(payload))
-    })
-    nftsSliceEmitter.on("fetchNFTs", ({ collectionID, account }) =>
-      this.nftsService.fetchNFTsFromCollection(collectionID, account)
-    )
-    nftsSliceEmitter.on("refetchNFTs", ({ collectionID, account }) =>
-      this.nftsService.refreshNFTsFromCollection(collectionID, account)
-    )
-    nftsSliceEmitter.on("fetchMoreNFTs", ({ collectionID, account }) =>
-      this.nftsService.fetchNFTsFromNextPage(collectionID, account)
-    )
-    nftsSliceEmitter.on("refetchCollections", () =>
-      this.nftsService.refreshCollections()
-    )
   }
 
   // eslint-disable-next-line class-methods-use-this

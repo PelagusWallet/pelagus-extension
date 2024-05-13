@@ -61,7 +61,7 @@ export interface NameResolver<ResolverType extends string> {
   ): Promise<AddressOnNetwork | undefined>
   /**
    * Given an address and network, attempt to resolve an avatar URI for that
-   * address. Note that avatar URIs can be EIP155 or ERC721 URNs, not just
+   * address. Note that avatar URIs can be EIP155 URNs, not just
    * URLs.
    *
    * Returns `undefined` if the avatar could not be resolved. Should return a

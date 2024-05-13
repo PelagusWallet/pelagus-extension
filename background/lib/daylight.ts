@@ -19,7 +19,6 @@ type Community = {
 
 export type DaylightAbilityRequirement =
   | TokenBalanceRequirement
-  | NFTRequirement
   | AllowListRequirement
 
 type TokenBalanceRequirement = {
@@ -28,13 +27,6 @@ type TokenBalanceRequirement = {
   address: string
   community?: Array<Community>
   minAmount?: number
-}
-
-type NFTRequirement = {
-  chain: string
-  type: "hasNftWithSpecificId"
-  address: string
-  id: string
 }
 
 type AllowListRequirement = {

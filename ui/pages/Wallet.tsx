@@ -13,7 +13,6 @@ import {
 } from "@pelagus/pelagus-background/features"
 import classNames from "classnames"
 import { useTranslation } from "react-i18next"
-import { NETWORKS_SUPPORTING_NFTS } from "@pelagus/pelagus-background/nfts"
 import {
   selectShowAnalyticsNotification,
   selectShowUnverifiedAssets,
@@ -34,7 +33,6 @@ import OnboardingOpenClaimFlowBanner from "../components/Onboarding/OnboardingOp
 import WalletToggleDefaultBanner from "../components/Wallet/WalletToggleDefaultBanner"
 import WalletNoConnectionBanner from "../components/Wallet/WalletNoConnectionBanner"
 import WalletBanner from "../components/Wallet/Banner/WalletBanner"
-import NFTListCurrentWallet from "../components/NFTs/NFTListCurrentWallet"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
@@ -60,19 +58,11 @@ export default function Wallet(): ReactElement {
     )
   }, [claimState, dispatch])
 
-  useEffect(() => {
-    // On network switch from top menu reset ui back to assets tab
-    if (!NETWORKS_SUPPORTING_NFTS.has(selectedNetwork.chainID)) {
-      setPanelNumber(0)
-    }
-  }, [selectedNetwork.chainID])
-
-  const { assetAmounts, unverifiedAssetAmounts, totalMainCurrencyValue } =
-    accountData ?? {
-      assetAmounts: [],
-      unverifiedAssetAmounts: [],
-      totalMainCurrencyValue: undefined,
-    }
+  const { assetAmounts, unverifiedAssetAmounts } = accountData ?? {
+    assetAmounts: [],
+    unverifiedAssetAmounts: [],
+    totalMainCurrencyValue: undefined,
+  }
 
   const currentAccountActivities = useBackgroundSelector(
     selectCurrentAccountActivities
@@ -83,11 +73,7 @@ export default function Wallet(): ReactElement {
     if (locationState) {
       const { goTo } = locationState as { goTo?: string }
       if (goTo === "activity-page") {
-        if (!NETWORKS_SUPPORTING_NFTS.has(selectedNetwork.chainID)) {
-          setPanelNumber(1)
-        } else {
-          setPanelNumber(2)
-        }
+        setPanelNumber(1)
       }
     }
   }, [history, selectedNetwork.chainID])
@@ -106,10 +92,6 @@ export default function Wallet(): ReactElement {
   )
 
   const panelNames = [t("wallet.pages.assets")]
-
-  if (NETWORKS_SUPPORTING_NFTS.has(selectedNetwork.chainID)) {
-    panelNames.push(t("wallet.pages.NFTs"))
-  }
 
   panelNames.push(t("wallet.pages.activity"))
 
@@ -156,9 +138,7 @@ export default function Wallet(): ReactElement {
           />
           <div
             className={classNames("panel standard_width", {
-              no_padding:
-                panelNumber === 1 &&
-                NETWORKS_SUPPORTING_NFTS.has(selectedNetwork.chainID),
+              no_padding: panelNumber === 1,
             })}
           >
             {panelNumber === 0 && (
@@ -203,14 +183,7 @@ export default function Wallet(): ReactElement {
                 )}
               </>
             )}
-            {panelNumber === 1 &&
-              NETWORKS_SUPPORTING_NFTS.has(selectedNetwork.chainID) && (
-                <NFTListCurrentWallet />
-              )}
-            {panelNumber ===
-              (NETWORKS_SUPPORTING_NFTS.has(selectedNetwork.chainID)
-                ? 2
-                : 1) && (
+            {panelNumber === 1 && (
               <WalletActivityList activities={currentAccountActivities ?? []} />
             )}
           </div>

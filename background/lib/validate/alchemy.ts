@@ -8,7 +8,6 @@ const alchemyAssetTransferJTD = {
     category: { enum: ["token", "internal", "external", "erc20", "erc1155"] },
     from: { type: "string", nullable: true },
     to: { type: "string", nullable: true },
-    erc721TokenId: { type: "string", nullable: true },
   },
   optionalProperties: {
     rawContract: {

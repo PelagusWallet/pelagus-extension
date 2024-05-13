@@ -11,14 +11,12 @@ import {
   alchemyTokenBalanceJTD,
   alchemyTokenMetadataJTD,
 } from "./lib/validate/alchemy"
-import { metadataJTD } from "./lib/validate/erc721"
 import { coingeckoPriceSchema } from "./lib/validate/prices"
 
 const ajvJTD = new AjvJTD({
   allErrors: true,
   code: { source: true, es5: true },
 })
-  .addSchema(metadataJTD, "isValidMetadata")
   .addSchema(alchemyGetAssetTransfersJTD, "isValidAlchemyAssetTransferResponse")
   .addSchema(alchemyTokenBalanceJTD, "isValidAlchemyTokenBalanceResponse")
   .addSchema(alchemyTokenMetadataJTD, "isValidAlchemyTokenMetadataResponse")

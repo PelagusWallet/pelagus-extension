@@ -179,38 +179,6 @@ function findAndReplaceYieldProtocolMetamaskOption(addedNode: Node): void {
   }
 }
 
-function findAndReplaceTofuNftMetamaskOption(addedNode: Node): void {
-  if (moreThanOneWalletInstalledAndPelagusIsNotDefault()) {
-    return
-  }
-
-  if (addedNode.textContent?.includes(METAMASK)) {
-    const metaMaskContainer = (addedNode as HTMLElement)?.children?.[0]
-      ?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]
-      ?.children?.[0]?.children?.[0] as HTMLElement
-
-    if (!metaMaskContainer) {
-      return
-    }
-
-    const textNode = metaMaskContainer.children[1]
-
-    if (!textNode || textNode.textContent !== METAMASK) {
-      return
-    }
-
-    textNode.innerHTML = textNode.innerHTML.replace(METAMASK, PELAGUS_NAME)
-
-    metaMaskContainer.removeChild(metaMaskContainer.children[0])
-    const pelagusIcon = document.createElement("img")
-    pelagusIcon.src = PELAGUS_ICON_URL
-    pelagusIcon.setAttribute("height", "45px")
-    pelagusIcon.setAttribute("width", "45px")
-    metaMaskContainer.appendChild(pelagusIcon)
-    metaMaskContainer.appendChild(metaMaskContainer.children[0])
-  }
-}
-
 function findAndReplaceAboardMetamaskOption(addedNode: Node): void {
   if (moreThanOneWalletInstalledAndPelagusIsNotDefault()) {
     return
@@ -493,7 +461,6 @@ const hostnameToHandler = {
   "uniswap.org": findAndReplaceUniswapInjectedOption,
   "gmx.io": findAndReplaceGMXMetamaskOption,
   "app.yieldprotocol.com": findAndReplaceYieldProtocolMetamaskOption,
-  "tofunft.com": findAndReplaceTofuNftMetamaskOption,
   "aboard.exchange": findAndReplaceAboardMetamaskOption,
   "traderjoexyz.com": findAndReplaceJoeMetamaskOption,
   "pancakeswap.finance": findAndReplacePancakeSwapInjectedOption,
@@ -505,7 +472,7 @@ const hostnameToHandler = {
 } as const
 
 export default function monitorForWalletConnectionPrompts(): void {
-  ; (
+  ;(
     Object.keys(hostnameToHandler) as Array<keyof typeof hostnameToHandler>
   ).forEach((hostname) => {
     if (

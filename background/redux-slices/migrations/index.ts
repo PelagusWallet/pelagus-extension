@@ -24,7 +24,6 @@ import to26 from "./to-26"
 import to27 from "./to-27"
 import to28 from "./to-28"
 import to29 from "./to-29"
-import to30 from "./to-30"
 import to31 from "./to-31"
 
 /**
@@ -68,7 +67,6 @@ const allMigrations: { [targetVersion: string]: Migration } = {
   27: to27,
   28: to28,
   29: to29,
-  30: to30,
   31: to31,
 }
 

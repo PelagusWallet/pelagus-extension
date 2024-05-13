@@ -5,7 +5,6 @@ import {
   alchemyTokenBalanceJTD,
   alchemyTokenMetadataJTD,
 } from "./alchemy"
-import { metadataJTD } from "./erc721"
 
 export const isValidAlchemyAssetTransferResponse: ValidateFunction<
   JTDDataType<typeof alchemyGetAssetTransfersJTD>
@@ -18,8 +17,6 @@ export const isValidAlchemyTokenBalanceResponse: ValidateFunction<
 export const isValidAlchemyTokenMetadataResponse: ValidateFunction<
   JTDDataType<typeof alchemyTokenMetadataJTD>
 >
-export const isValidMetadata: ValidateFunction<JTDDataType<typeof metadataJTD>>
-
 export const isValidSwapPriceResponse: ValidateFunction<
   JTDDataType<typeof swapPriceJTD>
 >

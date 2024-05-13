@@ -12,7 +12,6 @@ import OverviewAssetsTable from "../components/Overview/OverviewAssetsTable"
 import BalanceHeader from "../components/Overview/BalanceHeader"
 import NetworksChart from "../components/Overview/NetworksChart"
 import AccountList from "../components/Overview/AccountList"
-import NFTsPortfolioOverview from "../components/Overview/NFTsPortfolioOverview"
 import AbilitiesHeader from "../components/Overview/AbilitiesHeader"
 
 export default function Overview(): ReactElement {
@@ -43,7 +42,6 @@ export default function Overview(): ReactElement {
         accountsTotal={accountsTotal}
         networksCount={networksCount}
       />
-      <NFTsPortfolioOverview />
       <OverviewAssetsTable
         assets={combinedData.assets}
         initializationLoadingTimeExpired={initializationLoadingTimeExpired}

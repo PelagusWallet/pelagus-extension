@@ -19,7 +19,6 @@ export { default as DoggoService } from "./doggo"
 export { default as TelemetryService } from "./telemetry"
 export { default as SigningService } from "./signing"
 export { default as AnalyticsService } from "./analytics"
-export { default as NFTsService } from "./nfts"
 export { default as WalletConnectService } from "./wallet-connect"
 
 export function getNoopService<T>(): T {

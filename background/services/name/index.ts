@@ -1,6 +1,5 @@
 import { HexString, UNIXTime } from "../../types"
 import { normalizeAddressOnNetwork } from "../../lib/utils"
-import { getTokenMetadata } from "../../lib/erc721"
 import { storageGatewayURL } from "../../lib/storage-gateway"
 
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -366,43 +365,12 @@ export default class NameService extends BaseService<Events> {
       }
     }
 
-    if (avatarUri.match(/^eip155:1\/erc721:/)) {
+    if (avatarUri.match(/^eip155:1/)) {
       const normalizedAvatarUri = avatarUri.toLowerCase()
       // check if we've cached the resolved URL, otherwise hit the chain
       if (normalizedAvatarUri in this.cachedResolvedEIP155Avatars) {
         // TODO properly cache this with any other non-ENS NFT stuff we do
         return this.cachedResolvedEIP155Avatars[normalizedAvatarUri]
-      }
-
-      const provider = this.chainService.providerForNetwork(
-        addressOnNetwork.network
-      )
-
-      // these URIs look like eip155:1/erc721:0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6/2430
-      // check the spec for more details https://gist.github.com/Arachnid/9db60bd75277969ee1689c8742b75182
-      const [, , , erc721Address, nftID] = avatarUri.split(/[:/]/)
-      if (
-        provider !== undefined &&
-        erc721Address !== undefined &&
-        nftID !== undefined
-      ) {
-        const metadata = await getTokenMetadata(
-          provider,
-          erc721Address,
-          BigInt(nftID)
-        )
-
-        if (metadata !== undefined && metadata.image !== undefined) {
-          const { image } = metadata
-          const resolvedGateway = {
-            ...baseResolvedAvatar,
-            resolved: { avatar: storageGatewayURL(image) },
-          }
-
-          this.cachedResolvedEIP155Avatars[normalizedAvatarUri] =
-            resolvedGateway
-          return resolvedGateway
-        }
       }
     }
 

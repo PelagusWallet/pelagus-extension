@@ -96,11 +96,6 @@ export async function getAssetTransfers(
       return []
     })
     .map((transfer) => {
-      // TODO handle NFT asset lookup properly
-      if (transfer.erc721TokenId) {
-        return null
-      }
-
       // we don't care about 0-value transfers
       // TODO handle nonfungible assets properly
       // TODO handle assets with a contract address and no name

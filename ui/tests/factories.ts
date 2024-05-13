@@ -2,10 +2,6 @@ import { Ability } from "@pelagus/pelagus-background/abilities"
 import { ETHEREUM } from "@pelagus/pelagus-background/constants"
 import { normalizeEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { AccountState } from "@pelagus/pelagus-background/redux-slices/accounts"
-import {
-  NFTCached,
-  NFTCollectionCached,
-} from "@pelagus/pelagus-background/redux-slices/nfts"
 import { createAccountData } from "@pelagus/pelagus-background/tests/factories"
 
 export const TEST_ADDRESS = normalizeEVMAddress(
@@ -49,41 +45,6 @@ export const createAbility = (overrides: Partial<Ability> = {}): Ability => {
       address: "",
     },
     interestRank: 0,
-    ...overrides,
-  }
-}
-
-export const createNFT = (overrides: Partial<NFTCached> = {}): NFTCached => {
-  return {
-    id: "",
-    tokenId: "",
-    name: "",
-    description: "",
-    thumbnailURL: "",
-    previewURL: "",
-    transferDate: Date.now().toString(),
-    attributes: [],
-    collectionID: "",
-    contract: "",
-    owner: "0x208e94d5661a73360d9387d3ca169e5c130090cd",
-    isBadge: false,
-    chainID: ETHEREUM.chainID,
-    rarityRank: null,
-    ...overrides,
-  }
-}
-
-export const createNFTCollection = (
-  overrides: Partial<NFTCollectionCached> = {}
-): NFTCollectionCached => {
-  return {
-    id: "",
-    name: "",
-    owner: "0x208e94d5661a73360d9387d3ca169e5c130090cd",
-    hasBadges: false,
-    nfts: [],
-    hasNextPage: false,
-    chainID: ETHEREUM.chainID,
     ...overrides,
   }
 }

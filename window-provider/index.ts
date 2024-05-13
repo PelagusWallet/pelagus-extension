@@ -38,7 +38,6 @@ const impersonateMetamaskWhitelist = [
   "swapr.eth.link",
   "apex.exchange",
   "app.yieldprotocol.com",
-  "tofunft.com",
   "aboard.exchange",
   "portal.zksync.io",
   "blur.io",
@@ -132,12 +131,12 @@ export default class TallyWindowProvider extends EventEmitter {
           return
         }
 
-        ; ({ result } = event.data)
+        ;({ result } = event.data)
       } else if (
         isPortResponseEvent(event) &&
         isTallyInternalCommunication(event)
       ) {
-        ; ({ result } = event)
+        ;({ result } = event)
       } else {
         return
       }
@@ -201,9 +200,9 @@ export default class TallyWindowProvider extends EventEmitter {
         return
       }
 
-      ; ({ id, result } = event.data)
+      ;({ id, result } = event.data)
     } else if (isPortResponseEvent(event)) {
-      ; ({ id, result } = event)
+      ;({ id, result } = event)
     } else {
       return
     }

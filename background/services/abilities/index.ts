@@ -24,13 +24,6 @@ const normalizeDaylightRequirements = (
     }
   }
 
-  if (requirement.type === "hasNftWithSpecificId") {
-    return {
-      type: "own",
-      nftAddress: requirement.address,
-    }
-  }
-
   if (requirement.type === "onAllowlist") {
     return {
       type: "allowList",

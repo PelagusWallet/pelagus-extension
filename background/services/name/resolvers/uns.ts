@@ -116,7 +116,6 @@ const isValidUNSDomainName = (s: string): boolean => {
       ".wallet",
       ".bitcoin",
       ".888",
-      ".nft",
       ".dao",
       ".zil",
       ".x",
@@ -195,7 +194,7 @@ export default function unsResolver(): NameResolver<"UNS"> {
         return undefined
       }
       // modify the nft picture value and make it a correct avatar urn
-      avatarUrn = avatarUrn.replace(/^1\/(erc1155|erc721)/, "eip155:1/$1")
+      avatarUrn = avatarUrn.replace(/^1\/(erc1155)/, "eip155:1/$1")
 
       return {
         uri: avatarUrn,

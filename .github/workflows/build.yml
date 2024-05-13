@@ -41,9 +41,6 @@ on:
       ZEROX_API_KEY:
         description: 'needed for zerox'
         required: true
-      POAP_API_KEY:
-        description: 'needed for poap'
-        required: true
       DAYLIGHT_API_KEY:
         description: 'needed for daylight'
         required: true
@@ -152,7 +149,6 @@ jobs:
           SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
           ZEROX_API_KEY: ${{ secrets.ZEROX_API_KEY }}
           COMMIT_SHA: ${{ github.sha }}
-          POAP_API_KEY: ${{ secrets.POAP_API_KEY }}
           DAYLIGHT_API_KEY: ${{ secrets.DAYLIGHT_API_KEY }}
       - name: Upload build asset
         if: ${{ inputs.update_version }}

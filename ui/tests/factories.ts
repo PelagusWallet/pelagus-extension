@@ -1,4 +1,3 @@
-import { Ability } from "@pelagus/pelagus-background/abilities"
 import { ETHEREUM } from "@pelagus/pelagus-background/constants"
 import { normalizeEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { AccountState } from "@pelagus/pelagus-background/redux-slices/accounts"
@@ -25,26 +24,6 @@ export const createAccountState = (
       totalMainCurrencyValue: "",
       assets: [],
     },
-    ...overrides,
-  }
-}
-
-export const createAbility = (overrides: Partial<Ability> = {}): Ability => {
-  return {
-    type: "mint",
-    title: "Test Ability",
-    description: null,
-    abilityId: "",
-    slug: "",
-    linkUrl: "",
-    completed: false,
-    removedFromUi: false,
-    address: TEST_ADDRESS,
-    requirement: {
-      type: "hold",
-      address: "",
-    },
-    interestRank: 0,
     ...overrides,
   }
 }

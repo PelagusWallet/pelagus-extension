@@ -1,10 +1,7 @@
-import React, { ReactElement, useCallback } from "react"
+import React, { ReactElement } from "react"
 
 import { matchPath, useHistory, useLocation } from "react-router-dom"
-import {
-  selectCurrentNetwork,
-  selectOpenAbilityCount,
-} from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { NETWORKS_SUPPORTING_SWAPS } from "@pelagus/pelagus-background/constants/networks"
 import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { useTranslation } from "react-i18next"
@@ -24,31 +21,14 @@ const isTabSupportedByNetwork = (tab: TabInfo, network: EVMNetwork) => {
 export default function TabBar(): ReactElement {
   const location = useLocation()
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
-  const abilityCount = useBackgroundSelector(selectOpenAbilityCount)
 
   const history = useHistory()
   const { t } = useTranslation()
-
-  const noActiveTab = ["abilities"].some((pathName) =>
-    location.pathname.includes(pathName)
-  )
 
   const activeTab =
     tabs.find(({ path }) =>
       matchPath(location.pathname, { path, exact: false })
     ) ?? defaultTab
-
-  const hasNotifications = useCallback(
-    (path: string): boolean => {
-      switch (path) {
-        case "/portfolio":
-          return abilityCount > 0
-        default:
-          return false
-      }
-    },
-    [abilityCount]
-  )
 
   return (
     <nav aria-label="Main">
@@ -61,9 +41,7 @@ export default function TabBar(): ReactElement {
               icon={icon}
               title={t(title)}
               onClick={() => history.push(path)}
-              isActive={noActiveTab ? false : activeTab.path === path}
-              showNotifications={hasNotifications(path)}
-              disabled={t(title) == "Portfolio"}
+              isActive={activeTab.path === path}
             />
           )
         })}

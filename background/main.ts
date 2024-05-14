@@ -79,9 +79,7 @@ import {
   initializationLoadingTimeHitLimit,
   emitter as uiSliceEmitter,
   setDefaultWallet,
-  setNetworkConnectError,
   setSelectedAccount,
-  setNewSelectedAccount,
   setSnackbarMessage,
   setAccountsSignerSettings,
   toggleCollectAnalytics,
@@ -161,15 +159,6 @@ import {
   SmartContractFungibleAsset,
 } from "./assets"
 import { FeatureFlags, isEnabled } from "./features"
-import AbilitiesService from "./services/abilities"
-import {
-  setAbilitiesForAddress,
-  updateAbility,
-  addAccount as addAccountFilter,
-  deleteAccount as deleteAccountFilter,
-  deleteAbilitiesForAccount,
-  initAbilities,
-} from "./redux-slices/abilities"
 import { AddChainRequestData } from "./services/provider-bridge"
 import {
   AnalyticsEvent,
@@ -331,8 +320,6 @@ export default class Main extends BaseService<never> {
 
     const analyticsService = AnalyticsService.create(preferenceService)
 
-    const abilitiesService = AbilitiesService.create(chainService)
-
     const walletConnectService = isEnabled(FeatureFlags.SUPPORT_WALLET_CONNECT)
       ? WalletConnectService.create(
           providerBridgeService,
@@ -384,8 +371,7 @@ export default class Main extends BaseService<never> {
       await telemetryService,
       await signingService,
       await analyticsService,
-      await walletConnectService,
-      await abilitiesService
+      await walletConnectService
     )
   }
 
@@ -460,12 +446,7 @@ export default class Main extends BaseService<never> {
      * A promise to the Wallet Connect service which takes care of handling wallet connect
      * protocol and communication.
      */
-    private walletConnectService: WalletConnectService,
-
-    /**
-     * A promise to the Abilities service which takes care of fetching and storing abilities
-     */
-    private abilitiesService: AbilitiesService
+    private walletConnectService: WalletConnectService
   ) {
     super({
       initialLoadWaitExpired: {
@@ -682,7 +663,6 @@ export default class Main extends BaseService<never> {
       this.signingService.startService(),
       this.analyticsService.startService(),
       this.walletConnectService.startService(),
-      this.abilitiesService.startService(),
       this.startBalanceChecker(),
     ]
 
@@ -704,7 +684,6 @@ export default class Main extends BaseService<never> {
       this.signingService.stopService(),
       this.analyticsService.stopService(),
       this.walletConnectService.stopService(),
-      this.abilitiesService.stopService(),
       clearInterval(this.balanceChecker),
     ]
 
@@ -723,7 +702,6 @@ export default class Main extends BaseService<never> {
     this.connectTelemetryService()
     this.connectSigningService()
     this.connectWalletConnectService()
-    this.connectAbilitiesService()
 
     await this.connectChainService()
 
@@ -797,10 +775,6 @@ export default class Main extends BaseService<never> {
 
     this.store.dispatch(removeActivities(address))
 
-    // remove abilities
-    if (signer.type !== AccountType.ReadOnly) {
-      await this.abilitiesService.deleteAbilitiesForAccount(address)
-    }
     // remove dApp premissions
     this.store.dispatch(revokePermissionsForAddress(address))
     await this.providerBridgeService.revokePermissionsForAddress(address)
@@ -1142,7 +1116,6 @@ export default class Main extends BaseService<never> {
     })
 
     uiSliceEmitter.on("userActivityEncountered", (addressOnNetwork) => {
-      this.abilitiesService.refreshAbilities()
       this.chainService.markAccountActivity(addressOnNetwork)
     })
   }
@@ -1310,7 +1283,6 @@ export default class Main extends BaseService<never> {
           address,
           network,
         })
-        this.abilitiesService.getNewAccountAbilities(address)
       })
     })
 
@@ -1822,30 +1794,6 @@ export default class Main extends BaseService<never> {
     // TODO: here comes the glue between the UI and service layer
   }
 
-  connectAbilitiesService(): void {
-    this.abilitiesService.emitter.on("initAbilities", (address) => {
-      this.store.dispatch(initAbilities(address))
-    })
-    this.abilitiesService.emitter.on(
-      "updatedAbilities",
-      ({ address, abilities }) => {
-        this.store.dispatch(setAbilitiesForAddress({ address, abilities }))
-      }
-    )
-    this.abilitiesService.emitter.on("deleteAbilities", (address) => {
-      this.store.dispatch(deleteAbilitiesForAccount(address))
-    })
-    this.abilitiesService.emitter.on("updatedAbility", (ability) => {
-      this.store.dispatch(updateAbility(ability))
-    })
-    this.abilitiesService.emitter.on("newAccount", (address) => {
-      this.store.dispatch(addAccountFilter(address))
-    })
-    this.abilitiesService.emitter.on("deleteAccount", (address) => {
-      this.store.dispatch(deleteAccountFilter(address))
-    })
-  }
-
   async unlockKeyrings(password: string): Promise<boolean> {
     return this.keyringService.unlock(password)
   }
@@ -1991,38 +1939,6 @@ export default class Main extends BaseService<never> {
       logger.info("Error looking up Ethereum address: ", error)
       return undefined
     }
-  }
-
-  async pollForAbilities(address: NormalizedEVMAddress): Promise<void> {
-    return this.abilitiesService.pollForAbilities(address)
-  }
-
-  async markAbilityAsCompleted(
-    address: NormalizedEVMAddress,
-    abilityId: string
-  ): Promise<void> {
-    return this.abilitiesService.markAbilityAsCompleted(address, abilityId)
-  }
-
-  async markAbilityAsRemoved(
-    address: NormalizedEVMAddress,
-    abilityId: string
-  ): Promise<void> {
-    return this.abilitiesService.markAbilityAsRemoved(address, abilityId)
-  }
-
-  async reportAndRemoveAbility(
-    address: NormalizedEVMAddress,
-    abilitySlug: string,
-    abilityId: string,
-    reason: string
-  ): Promise<void> {
-    this.abilitiesService.reportAndRemoveAbility(
-      address,
-      abilitySlug,
-      abilityId,
-      reason
-    )
   }
 
   async removeEVMNetwork(chainID: string): Promise<void> {

@@ -8,7 +8,6 @@ import Earn from "../pages/Earn"
 import EarnDeposit from "../pages/EarnDeposit"
 import Menu from "../pages/Settings"
 import Send from "../pages/Send"
-import Swap from "../pages/Swap"
 import DAppPermissionRequest from "../pages/DAppConnectRequest"
 import KeyringUnlock from "../components/Keyring/KeyringUnlock"
 import KeyringSetPassword from "../components/Keyring/KeyringSetPassword"
@@ -18,7 +17,6 @@ import SettingsAnalytics from "../pages/Settings/SettingsAnalytics"
 import SettingsConnectedWebsites from "../pages/Settings/SettingsConnectedWebsites"
 import HiddenDevPanel from "../components/HiddenDevPanel/HiddenDevPanel"
 import FeatureFlagsPanel from "../components/HiddenDevPanel/FeatureFlagsPanel"
-import Abilities from "../pages/Abilities"
 import SettingsCustomNetworks from "../pages/Settings/SettingsCustomNetworks"
 import NewCustomNetworkRequest from "../pages/NewCustomNetworkRequest"
 import SettingsAddCustomAsset from "../pages/Settings/SettingsAddCustomAsset"
@@ -77,14 +75,6 @@ const pageList: PageList[] = [
     persistOnClose: true,
   },
 
-  // Will likely be added back to the tab nav in the future.
-  // {
-  //   path: "/portfolio",
-  //   Component: Overview,
-  //   hasTopBar: false,
-  //   persistOnClose: true,
-  // },
-
   {
     path: "/earn/deposit",
     Component: EarnDeposit,
@@ -130,12 +120,6 @@ const pageList: PageList[] = [
   {
     path: "/settings",
     Component: Menu,
-    hasTopBar: false,
-    persistOnClose: true,
-  },
-  {
-    path: "/abilities",
-    Component: Abilities,
     hasTopBar: false,
     persistOnClose: true,
   },

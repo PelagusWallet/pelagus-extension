@@ -1,5 +1,4 @@
 import { fetchJson } from "@ethersproject/web"
-import { ABILITY_TYPES, AbilityType } from "../abilities"
 import logger from "./logger"
 
 const DAYLIGHT_BASE_URL = "" // "https://api.daylight.xyz/v1"
@@ -45,7 +44,6 @@ type DaylightAbilityAction = {
 }
 
 export type DaylightAbility = {
-  type: AbilityType
   title: string
   description: string | null
   imageUrl: string | null
@@ -89,7 +87,6 @@ export const getDaylightAbilities = async (
   requestURL.searchParams.append("showOnly", "open")
   requestURL.searchParams.append("showOnly", "completed")
   requestURL.searchParams.append("showOnly", "expired")
-  ABILITY_TYPES.forEach((type) => requestURL.searchParams.append("type", type))
   requestURL.searchParams.set("markAsShown", "true")
 
   try {

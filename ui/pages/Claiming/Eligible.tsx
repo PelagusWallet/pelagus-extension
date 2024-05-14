@@ -59,10 +59,6 @@ export default function Eligible(): ReactElement {
     return <Redirect to="/onboarding/infoIntro" />
   }
 
-  if (Object.keys(accountData).length === 0) {
-    return <Redirect to="/portfolio" />
-  }
-
   function setStep(newStep: number) {
     dispatch(setClaimStep(newStep))
   }

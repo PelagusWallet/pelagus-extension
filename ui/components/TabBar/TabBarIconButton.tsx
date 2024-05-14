@@ -7,7 +7,7 @@ type TabBarIconButtonProps = {
   isActive: boolean
   showNotifications?: boolean
   onClick?: React.MouseEventHandler<HTMLButtonElement>
-  disabled: boolean
+  disabled?: boolean
 }
 
 export default function TabBarIconButton(
@@ -19,7 +19,7 @@ export default function TabBarIconButton(
     isActive,
     showNotifications = false,
     onClick,
-    disabled,
+    disabled = false,
   } = props
 
   return (

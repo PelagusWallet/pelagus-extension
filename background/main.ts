@@ -108,7 +108,7 @@ import {
 } from "./redux-slices/signing"
 
 import { SignTypedDataRequest, MessageSigningRequest } from "./utils/signing"
-import { OPTIMISM, USD, getShardFromAddress } from "./constants"
+import { OPTIMISM, getShardFromAddress } from "./constants"
 import { clearApprovalInProgress, clearSwapQuote } from "./redux-slices/0x-swap"
 import {
   AccountSigner,
@@ -1032,11 +1032,7 @@ export default class Main extends BaseService<never> {
           if (currentTransactionRequest?.network.chainID === OPTIMISM.chainID) {
             // If there is a currently pending transaction request on Optimism,
             // we need to update its L1 rollup fee as well as the current estimated fees per gas
-            const estimatedRollupFee =
-              await this.chainService.estimateL1RollupFeeForOptimism(
-                currentTransactionRequest.network,
-                currentTransactionRequest
-              )
+            const estimatedRollupFee = 0n
             const estimatedRollupGwei =
               await this.chainService.estimateL1RollupGasPrice(network)
 

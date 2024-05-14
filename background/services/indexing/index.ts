@@ -12,26 +12,12 @@ import {
   SmartContractFungibleAsset,
 } from "../../assets"
 import {
-  ARBITRUM_ONE,
-  AVALANCHE,
-  BINANCE_SMART_CHAIN,
-  BUILT_IN_NETWORK_BASE_ASSETS,
-  ETHEREUM,
-  FIAT_CURRENCIES,
   HOUR,
   MINUTE,
   NETWORK_BY_CHAIN_ID,
-  OPTIMISM,
-  POLYGON,
-  SECOND,
   getShardFromAddress,
 } from "../../constants"
-import { getPricePoint } from "../../lib/prices"
 
-import {
-  getUSDPriceForBaseAsset,
-  getUSDPriceForTokens,
-} from "../../lib/priceOracle"
 import {
   fetchAndValidateTokenList,
   mergeAssets,
@@ -75,29 +61,6 @@ interface Events extends ServiceLifecycleEvents {
   removeAssetData: SmartContractFungibleAsset
 }
 
-const getAssetsByAddress = (assets: SmartContractFungibleAsset[]) => {
-  const activeAssetsByAddress = assets.reduce((agg, t) => {
-    const newAgg = {
-      ...agg,
-    }
-    newAgg[t.contractAddress.toLowerCase()] = t
-    return newAgg
-  }, {} as { [address: string]: SmartContractFungibleAsset })
-
-  return activeAssetsByAddress
-}
-
-const getActiveAssetsByAddressForNetwork = (
-  network: EVMNetwork,
-  activeAssetsToTrack: SmartContractFungibleAsset[]
-) => {
-  const networkActiveAssets = activeAssetsToTrack.filter(
-    (asset) => asset.homeNetwork.chainID === network.chainID
-  )
-
-  return getAssetsByAddress(networkActiveAssets)
-}
-
 /**
  * IndexingService is responsible for pulling and maintaining all application-
  * level "indexing" data — things like fungible token balances and NFTs, as well
@@ -113,8 +76,6 @@ export default class IndexingService extends BaseService<Events> {
    * account had a transaction confirmed.
    */
   private scheduledTokenRefresh = false
-
-  private lastPriceAlarmTime = 0
 
   private cachedAssets: Record<EVMNetwork["chainID"], AnyAsset[]> =
     Object.fromEntries(
@@ -166,13 +127,6 @@ export default class IndexingService extends BaseService<Events> {
         },
         handler: () => this.handleBalanceRefresh(),
       },
-      prices: {
-        schedule: {
-          delayInMinutes: 1,
-          periodInMinutes: 10,
-        },
-        handler: () => this.handlePriceAlarm(),
-      },
     })
   }
 
@@ -185,8 +139,6 @@ export default class IndexingService extends BaseService<Events> {
     const tokenListLoad = this.fetchAndCacheTokenLists()
 
     this.chainService.emitter.once("serviceStarted").then(async () => {
-      this.handlePriceAlarm()
-
       const trackedNetworks = await this.chainService.getTrackedNetworks()
 
       // Push any assets we have cached in the db for all active networks
@@ -445,9 +397,6 @@ export default class IndexingService extends BaseService<Events> {
         // whenever a new account is added, get token balances from Alchemy's
         // default list and add any non-zero tokens to the tracking list
         const balances = await this.retrieveTokenBalances(addressOnNetwork)
-
-        // FIXME Refactor this to only update prices for tokens with balances.
-        this.handlePriceAlarm()
 
         // Every asset we have that hasn't already been balance checked and is
         // on the currently selected network should be checked once.
@@ -727,143 +676,6 @@ export default class IndexingService extends BaseService<Events> {
     }
 
     return customAsset
-  }
-
-  /**
-   * Loads prices for base network assets
-   */
-  private async getBaseAssetsPrices() {
-    try {
-      // TODO include user-preferred currencies
-      // get the prices of ETH and BTC vs major currencies
-      const basicPrices = await Promise.all(
-        [
-          ETHEREUM,
-          ARBITRUM_ONE,
-          OPTIMISM,
-          BINANCE_SMART_CHAIN,
-          POLYGON,
-          AVALANCHE,
-        ].map(async (network: EVMNetwork) => {
-          const provider = this.chainService.providerForNetworkOrThrow(network)
-          return getUSDPriceForBaseAsset(network, provider)
-        })
-      )
-
-      this.emitter.emit("prices", basicPrices)
-    } catch (e) {
-      logger.error(
-        "Error getting base asset prices",
-        BUILT_IN_NETWORK_BASE_ASSETS,
-        FIAT_CURRENCIES
-      )
-    }
-  }
-
-  /**
-   * Loads prices for all tracked assets except untrusted/custom network assets
-   */
-  private async getTrackedAssetsPrices() {
-    // get the prices of all assets to track and save them
-    const assetsToTrack = await this.db.getAssetsToTrack()
-    const trackedNetworks = await this.chainService.getTrackedNetworks()
-
-    const getAssetId = (asset: SmartContractFungibleAsset) =>
-      `${asset.homeNetwork.chainID}:${asset.contractAddress}`
-
-    const customAssets = await this.db.getActiveCustomAssetsByNetworks(
-      trackedNetworks
-    )
-
-    const customAssetsById = new Set(customAssets.map(getAssetId))
-
-    // Filter all assets based on supported networks
-    const activeAssetsToTrack = assetsToTrack.filter((asset) => {
-      // Skip custom assets
-      if (customAssetsById.has(getAssetId(asset))) {
-        return false
-      }
-
-      return trackedNetworks.some(
-        (network) => network.chainID === asset.homeNetwork.chainID
-      )
-    })
-    try {
-      // TODO only uses USD
-
-      const allActiveAssetsByAddress = getAssetsByAddress(activeAssetsToTrack)
-
-      const activeAssetsByNetwork = trackedNetworks
-        .map((network) => ({
-          activeAssetsByAddress: getActiveAssetsByAddressForNetwork(
-            network,
-            activeAssetsToTrack
-          ),
-          network,
-        }))
-        .filter(
-          ({ activeAssetsByAddress }) =>
-            Object.keys(activeAssetsByAddress).length > 0
-        )
-
-      // @TODO consider allSettled here
-      const activeAssetPricesByNetwork = await Promise.all(
-        activeAssetsByNetwork.map(
-          async ({ activeAssetsByAddress, network }) => {
-            const provider =
-              this.chainService.providerForNetworkOrThrow(network)
-
-            return getUSDPriceForTokens(
-              Object.values(activeAssetsByAddress),
-              network,
-              provider
-            )
-          }
-        )
-      )
-
-      const activeAssetPrices = activeAssetPricesByNetwork.flatMap(
-        (activeAssetPrice) => {
-          return Object.entries(activeAssetPrice)
-        }
-      )
-
-      const pricePoints = activeAssetPrices
-        .map(([contractAddress, unitPricePoint]) => {
-          const asset = allActiveAssetsByAddress[contractAddress.toLowerCase()]
-          if (asset) {
-            return getPricePoint(asset, unitPricePoint)
-          }
-          logger.warn(
-            "Discarding price from unknown asset",
-            contractAddress,
-            unitPricePoint
-          )
-          return null
-        })
-        .filter((pricePoint): pricePoint is PricePoint => pricePoint !== null)
-
-      this.emitter.emit("prices", pricePoints)
-    } catch (err) {
-      logger.error("Error getting token prices", activeAssetsToTrack, err)
-    }
-  }
-
-  private async handlePriceAlarm(): Promise<void> {
-    if (Date.now() < this.lastPriceAlarmTime + 5 * SECOND) {
-      // If this is quickly called multiple times (for example when
-      // using a network for the first time with a wallet loaded
-      // with many accounts) only fetch prices once.
-      return
-    }
-
-    this.lastPriceAlarmTime = Date.now()
-
-    // Avoid awaiting here so price fetching can happen in the background
-    // and the extension can go on doing whatever it needs to do while waiting
-    // for prices to come back.
-    this.getBaseAssetsPrices()
-    this.getTrackedAssetsPrices()
   }
 
   private async fetchAndCacheTokenLists(): Promise<void> {

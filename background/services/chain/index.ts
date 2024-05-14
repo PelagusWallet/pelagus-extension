@@ -1,6 +1,6 @@
 import { TransactionReceipt, TransactionResponse } from "@quais/providers"
-import { BigNumber, quais, utils } from "quais"
-import { Logger, UnsignedTransaction } from "quais/lib/utils"
+import { BigNumber, utils } from "quais"
+import { Logger } from "quais/lib/utils"
 import logger from "../../lib/logger"
 import getBlockPrices from "../../lib/gas"
 import { HexString, NormalizedEVMAddress, UNIXTime } from "../../types"
@@ -15,7 +15,6 @@ import {
   TransactionRequestWithNonce,
   SignedTransaction,
   toHexChainID,
-  NetworkBaseAsset,
   sameChainID,
 } from "../../networks"
 import {
@@ -49,7 +48,6 @@ import {
   ethersTransactionFromSignedTransaction,
   transactionFromEthersTransaction,
   ethersTransactionFromTransactionRequest,
-  unsignedTransactionFromEVMTransaction,
 } from "./utils"
 import { normalizeEVMAddress, sameEVMAddress } from "../../lib/utils"
 import type {
@@ -64,10 +62,6 @@ import SerialFallbackProvider, {
   makeSerialFallbackProvider,
 } from "./serial-fallback-provider"
 import AssetDataHelper from "./asset-data-helper"
-import {
-  OPTIMISM_GAS_ORACLE_ABI,
-  OPTIMISM_GAS_ORACLE_ADDRESS,
-} from "./utils/optimismGasPriceOracle"
 import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
@@ -545,14 +539,6 @@ export default class ChainService extends BaseService<Events> {
           ? await this.estimateL1RollupGasPrice(network)
           : 0n,
       estimatedRollupFee: 0n,
-    }
-
-    if (network.chainID === OPTIMISM.chainID) {
-      transactionRequest.estimatedRollupFee =
-        await this.estimateL1RollupFeeForOptimism(
-          network,
-          unsignedTransactionFromEVMTransaction(transactionRequest)
-        )
     }
 
     // Always estimate gas to decide whether the transaction will likely fail.
@@ -1327,34 +1313,6 @@ export default class ChainService extends BaseService<Events> {
     throw new Error(`Cannot estimate rollup gas for ${network.name}`)
   }
 
-  async estimateL1RollupFeeForOptimism(
-    network: EVMNetwork,
-    transaction: UnsignedTransaction | EnrichedEVMTransactionRequest
-  ): Promise<bigint> {
-    // Optimism-specific implementation
-    // https://community.optimism.io/docs/developers/build/transaction-fees/#displaying-fees-to-users
-    const unsignedRLPEncodedTransaction = utils.serializeTransaction({
-      to: transaction.to,
-      nonce: transaction.nonce,
-      gasLimit: transaction.gasLimit,
-      gasPrice: "gasPrice" in transaction ? transaction.gasPrice : undefined,
-      data: "data" in transaction ? transaction.data : undefined,
-      value: "value" in transaction ? transaction.value : undefined,
-    })
-
-    const provider = await this.providerForNetworkOrThrow(network)
-
-    const GasOracle = new quais.Contract(
-      OPTIMISM_GAS_ORACLE_ADDRESS,
-      OPTIMISM_GAS_ORACLE_ABI,
-      provider
-    )
-
-    const l1Fee = await GasOracle.getL1Fee(unsignedRLPEncodedTransaction)
-
-    return BigInt(l1Fee.toString())
-  }
-
   /**
    * Estimate the gas needed to make a transaction. Adds 10% as a safety net to
    * the base estimate returned by the provider.
@@ -2113,10 +2071,6 @@ export default class ChainService extends BaseService<Events> {
         "local"
       )
     }
-  }
-
-  async getNetworkBaseAssets(): Promise<NetworkBaseAsset[]> {
-    return this.db.getAllBaseAssets()
   }
 
   // Used to add non-default chains via wallet_addEthereumChain

@@ -17,13 +17,6 @@ const allTabs: (TabInfo & { visible?: boolean })[] = [
     icon: "wallet",
   },
 
-  // Will likely be added back to the tab nav in the future.
-  // {
-  //   path: "/portfolio",
-  //   title: "tabs.portfolio",
-  //   icon: "portfolio",
-  // },
-
   {
     path: "/earn",
     title: "tabs.earn",

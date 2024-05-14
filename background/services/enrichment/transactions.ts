@@ -280,14 +280,7 @@ export default async function resolveTransactionAnnotation(
 
   const { gasLimit, blockHash } = transaction
 
-  const additionalL1Gas =
-    network.chainID === OPTIMISM.chainID
-      ? await chainService.estimateL1RollupFeeForOptimism(
-          network,
-          unsignedTransactionFromEVMTransaction(transaction)
-        )
-      : 0n
-
+  const additionalL1Gas = 0n
   const gasFee: bigint = isEIP1559TransactionRequest(transaction)
     ? (transaction?.maxFeePerGas ?? 0n) * (gasLimit ?? 0n) + additionalL1Gas
     : (("gasPrice" in transaction && transaction?.gasPrice) || 0n) *

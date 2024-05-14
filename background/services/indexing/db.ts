@@ -4,7 +4,6 @@ import { TokenList } from "@uniswap/token-lists"
 import { AccountBalance } from "../../accounts"
 import { EVMNetwork } from "../../networks"
 import {
-  AnyAsset,
   FungibleAsset,
   NetworkSpecificAssetMetadata,
   PricePoint,
@@ -61,45 +60,6 @@ export type CachedTokenList = TokenListCitation & {
  */
 type CustomAsset = Omit<SmartContractFungibleAsset, "metadata"> & {
   metadata?: NetworkSpecificAssetMetadata & { removed?: boolean }
-}
-
-/*
- * A rough attempt at canonical IDs for assets. Doing this well is tough without
- * either centrally managed IDs, or going full semantic / ontology.
- */
-function assetID(asset: AnyAsset): string {
-  const id = `${asset.symbol}`
-  if (
-    !("contractAddress" in asset) ||
-    !("homeNetwork" in asset) ||
-    "coinType" in asset
-  ) {
-    return id
-  }
-  const network = asset.homeNetwork
-  return `${id}/${asset.contractAddress}/${network.family}/${network.name}`
-}
-
-/*
- * Normalize price points for consistent comparison and database indexing.
- */
-function normalizePricePoint(pricePoint: PricePoint): IndexedPricePoint {
-  // symbol/contractAddress/home-network-family/home-network-name
-  const asset1ID = assetID(pricePoint.pair[0])
-  const asset2ID = assetID(pricePoint.pair[1])
-  return asset1ID.localeCompare(asset2ID) > 0
-    ? {
-        ...pricePoint,
-        asset1ID,
-        asset2ID,
-      }
-    : {
-        time: pricePoint.time,
-        pair: [pricePoint.pair[1], pricePoint.pair[0]],
-        amounts: [pricePoint.amounts[1], pricePoint.amounts[0]],
-        asset1ID: asset2ID,
-        asset2ID: asset1ID,
-      }
 }
 
 function numberArrayCompare(arr1: number[], arr2: number[]) {

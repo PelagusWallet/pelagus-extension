@@ -130,55 +130,6 @@ function findAndReplaceGMXMetamaskOption(addedNode: Node): void {
   }
 }
 
-const findYieldProtocolMetamaskContainer = (node: Node): Element | undefined =>
-  // Container if user has not checked Terms of Service yet
-  (node as HTMLElement)?.children?.[0]?.children?.[1]?.children?.[4]
-    ?.children?.[0]?.children?.[0]?.children?.[0] ||
-  // Container if user has checked Terms of Service
-  (node as HTMLElement)?.children?.[0]?.children?.[1]?.children?.[2]
-    ?.children?.[0]?.children?.[0]?.children?.[0] ||
-  // Container right after user has checked Terms of service
-  // Its important that this check is last as it is the least specific
-  (node as HTMLElement)?.children?.[0]?.children?.[0]?.children?.[0]
-
-function findAndReplaceYieldProtocolMetamaskOption(addedNode: Node): void {
-  if (moreThanOneWalletInstalledAndPelagusIsNotDefault()) {
-    return
-  }
-
-  if (addedNode.textContent?.includes("Metamask")) {
-    const container = findYieldProtocolMetamaskContainer(addedNode)
-
-    if (!container) {
-      return
-    }
-    const metamaskText = container?.children?.[0]
-
-    if (
-      !metamaskText ||
-      (metamaskText as HTMLElement).innerText !== "Metamask"
-    ) {
-      return
-    }
-
-    metamaskText.innerHTML = metamaskText.innerHTML.replace(
-      "Metamask",
-      PELAGUS_NAME
-    )
-
-    const metamaskIcon = container?.children?.[2]
-
-    if (!metamaskIcon) {
-      return
-    }
-
-    metamaskIcon.removeChild(metamaskIcon.children[0])
-    const pelagusIcon = document.createElement("img")
-    pelagusIcon.src = PELAGUS_ICON_URL
-    metamaskIcon.appendChild(pelagusIcon)
-  }
-}
-
 function findAndReplaceAboardMetamaskOption(addedNode: Node): void {
   if (moreThanOneWalletInstalledAndPelagusIsNotDefault()) {
     return
@@ -460,7 +411,6 @@ function addpelagusButtonForWalletConnectModal(addedNode: Node): void {
 const hostnameToHandler = {
   "uniswap.org": findAndReplaceUniswapInjectedOption,
   "gmx.io": findAndReplaceGMXMetamaskOption,
-  "app.yieldprotocol.com": findAndReplaceYieldProtocolMetamaskOption,
   "aboard.exchange": findAndReplaceAboardMetamaskOption,
   "traderjoexyz.com": findAndReplaceJoeMetamaskOption,
   "pancakeswap.finance": findAndReplacePancakeSwapInjectedOption,

@@ -44,13 +44,6 @@ export default function WalletAssetListItem(props: Props): ReactElement {
           .asset_icon:hover {
             background-color: var(--trophy-gold);
           }
-          .asset_icon_earn {
-            width: 22px;
-            height: 22px;
-            mask-image: url("./images/earn_tab@2x.png");
-            margin-left: 10px;
-            margin-right: -5px;
-          }
           .asset_icon_gift {
             width: 22px;
             height: 22px;

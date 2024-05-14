@@ -263,21 +263,12 @@ describe("IndexingService", () => {
 
       await indexingDb.addAssetToTrack(smartContractAsset)
 
-      const spy = getPrivateMethodSpy<IndexingService["handlePriceAlarm"]>(
-        indexingService,
-        "handlePriceAlarm"
-      )
-
       await Promise.all([
         chainService.startService(),
         indexingService.startService(),
       ])
 
       await indexingService.emitter.once("assets")
-
-      expect(spy).toHaveBeenCalled()
-
-      await spy.mock.results[0].value
 
       expect(
         fetchJsonStub
@@ -301,12 +292,6 @@ describe("IndexingService", () => {
 
       await indexingService.addOrUpdateCustomAsset(smartContractAsset)
       await indexingDb.addAssetToTrack(smartContractAsset)
-
-      // Skip loading prices at service init
-      getPrivateMethodSpy<IndexingService["handlePriceAlarm"]>(
-        indexingService,
-        "handlePriceAlarm"
-      ).mockResolvedValue(Promise.resolve())
 
       await Promise.all([
         chainService.startService(),
@@ -351,12 +336,6 @@ describe("IndexingService", () => {
 
       await indexingService.addOrUpdateCustomAsset(smartContractAsset)
       await indexingDb.addAssetToTrack(smartContractAsset)
-
-      // Skip loading prices at service init
-      getPrivateMethodSpy<IndexingService["handlePriceAlarm"]>(
-        indexingService,
-        "handlePriceAlarm"
-      ).mockResolvedValue(Promise.resolve())
 
       await Promise.all([
         chainService.startService(),

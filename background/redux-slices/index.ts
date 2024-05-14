@@ -10,7 +10,6 @@ import transactionConstructionReducer from "./transaction-construction"
 import uiReducer from "./ui"
 import dappReducer from "./dapp"
 import signingReducer from "./signing"
-import earnReducer from "./earn"
 
 const mainReducer = combineReducers({
   account: accountsReducer,
@@ -23,7 +22,6 @@ const mainReducer = combineReducers({
   ui: uiReducer,
   dapp: dappReducer,
   signing: signingReducer,
-  earn: earnReducer,
 })
 
 export default mainReducer

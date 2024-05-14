@@ -15,8 +15,6 @@ import {
 import {
   decodeJSON,
   encodeJSON,
-  getEthereumNetwork,
-  isProbablyEVMAddress,
   normalizeEVMAddress,
   sameEVMAddress,
   wait,
@@ -112,10 +110,6 @@ import {
 } from "./redux-slices/signing"
 
 import { SignTypedDataRequest, MessageSigningRequest } from "./utils/signing"
-import {
-  emitter as earnSliceEmitter,
-  setVaultsAsStale,
-} from "./redux-slices/earn"
 import { OPTIMISM, USD, getShardFromAddress } from "./constants"
 import { clearApprovalInProgress, clearSwapQuote } from "./redux-slices/0x-swap"
 import {
@@ -934,10 +928,6 @@ export default class Main extends BaseService<never> {
       )
     })
 
-    earnSliceEmitter.on("earnDeposit", (message) => {
-      this.store.dispatch(setSnackbarMessage(message))
-    })
-
     this.chainService.emitter.on("transactionSendFailure", () => {
       this.store.dispatch(
         setSnackbarMessage("Transaction failed to broadcast.")
@@ -1655,8 +1645,6 @@ export default class Main extends BaseService<never> {
       await this.preferenceService.setSelectedAccount(addressNetwork)
 
       this.store.dispatch(clearSwapQuote())
-
-      this.store.dispatch(setVaultsAsStale())
 
       await this.chainService.markAccountActivity(addressNetwork)
 

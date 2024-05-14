@@ -16,13 +16,6 @@ const allTabs: (TabInfo & { visible?: boolean })[] = [
     title: "tabs.wallet",
     icon: "wallet",
   },
-
-  {
-    path: "/earn",
-    title: "tabs.earn",
-    icon: "earn",
-    visible: !isEnabled(FeatureFlags.HIDE_TOKEN_FEATURES),
-  },
   {
     path: "/settings",
     title: "tabs.settings",

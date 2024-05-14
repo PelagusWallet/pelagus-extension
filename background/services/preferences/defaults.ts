@@ -9,7 +9,6 @@ const defaultPreferences: Preferences = {
         "ipfs://bafybeigtlpxobme7utbketsaofgxqalgqzowhx24wlwwrtbzolgygmqorm"
       ).href, // the Pelagus community-curated list
       "https://gateway.ipfs.io/ipns/tokens.uniswap.org", // the Uniswap default list
-      "https://meta.yearn.finance/api/tokens/list", // the Yearn list
       "https://messari.io/tokenlist/messari-verified", // Messari-verified projects
       "https://wrapped.tokensoft.eth.limo", // Wrapped tokens
       "https://tokenlist.aave.eth.limo", // Aave-listed tokens and interest-bearing assets

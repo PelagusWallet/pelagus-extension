@@ -37,7 +37,6 @@ const impersonateMetamaskWhitelist = [
   "etherscan.io",
   "swapr.eth.link",
   "apex.exchange",
-  "app.yieldprotocol.com",
   "aboard.exchange",
   "portal.zksync.io",
   "blur.io",

@@ -26,7 +26,6 @@ import {
   POLYGON,
   USD,
 } from "../constants"
-import { DaylightAbility } from "../lib/daylight"
 import { normalizeEVMAddress } from "../lib/utils"
 import {
   AnyEVMTransaction,
@@ -450,36 +449,6 @@ export const createCompleteAssetAmount = (
     ...overrides,
   }
 }
-
-export const createDaylightAbility = (
-  overrides: Partial<DaylightAbility> = {}
-): DaylightAbility => ({
-  title: "Test ability!",
-  description: "Test description",
-  imageUrl: "./images/test.png",
-  openAt: null,
-  closeAt: null,
-  isClosed: false,
-  createdAt: "2023-02-20T17:24:25.000Z",
-  chain: "ethereum",
-  sourceId: "",
-  uid: getRandomStr(5),
-  slug: getRandomStr(5),
-  requirements: [
-    {
-      type: "onAllowlist",
-      chain: "ethereum",
-      addresses: ["0x208e94d5661a73360d9387d3ca169e5c130090cd"],
-    },
-  ],
-  action: {
-    linkUrl: "",
-    completedBy: [],
-  },
-  walletCompleted: false,
-  ...overrides,
-})
-
 /**
  * @param asset Any type of asset
  * @param price Price, e.g. 1.5 => 1.5$

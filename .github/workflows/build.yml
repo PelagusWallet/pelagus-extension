@@ -41,9 +41,6 @@ on:
       ZEROX_API_KEY:
         description: 'needed for zerox'
         required: true
-      DAYLIGHT_API_KEY:
-        description: 'needed for daylight'
-        required: true
 
 jobs:
   tag:
@@ -135,7 +132,6 @@ jobs:
         env:
           ALCHEMY_KEY: ${{ secrets.DEV_ALCHEMY_API_KEY || 'oV1Rtjh61hGa97X2MTqMY9kEUcpxP-6K' }}
           BLOCKNATIVE_API_KEY: ${{ secrets.DEV_BLOCKNATIVE_API_KEY || 'f60816ff-da02-463f-87a6-67a09c6d53fa' }}
-          DAYLIGHT_API_KEY: ${{ secrets.DAYLIGHT_API_KEY }}
           COMMIT_SHA: ${{ github.sha }}
       - name: Production build
         if: ${{ inputs.update_version }}
@@ -149,7 +145,6 @@ jobs:
           SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
           ZEROX_API_KEY: ${{ secrets.ZEROX_API_KEY }}
           COMMIT_SHA: ${{ github.sha }}
-          DAYLIGHT_API_KEY: ${{ secrets.DAYLIGHT_API_KEY }}
       - name: Upload build asset
         if: ${{ inputs.update_version }}
         uses: actions/upload-artifact@v3

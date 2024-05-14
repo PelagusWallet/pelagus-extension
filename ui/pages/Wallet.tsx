@@ -4,7 +4,6 @@ import {
   selectCurrentAccountBalances,
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { checkAlreadyClaimed } from "@pelagus/pelagus-background/redux-slices/claim"
 
 import {
   FeatureFlags,
@@ -31,7 +30,6 @@ import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
 import WalletAssetList from "../components/Wallet/WalletAssetList"
 import WalletActivityList from "../components/Wallet/WalletActivityList"
 import WalletAccountBalanceControl from "../components/Wallet/WalletAccountBalanceControl"
-import OnboardingOpenClaimFlowBanner from "../components/Onboarding/OnboardingOpenClaimFlowBanner"
 import WalletToggleDefaultBanner from "../components/Wallet/WalletToggleDefaultBanner"
 import WalletNoConnectionBanner from "../components/Wallet/WalletNoConnectionBanner"
 import WalletBanner from "../components/Wallet/Banner/WalletBanner"
@@ -51,20 +49,11 @@ export default function Wallet(): ReactElement {
 
   //  accountLoading, hasWalletErrorCode
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
-  const claimState = useBackgroundSelector((state) => state.claim)
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showUnverifiedAssets = useBackgroundSelector(selectShowUnverifiedAssets)
   const isShowingAccountsModal = useBackgroundSelector(
     selectShowingAccountsModal
   )
-
-  useEffect(() => {
-    dispatch(
-      checkAlreadyClaimed({
-        claimState,
-      })
-    )
-  }, [claimState, dispatch])
 
   const { assetAmounts, unverifiedAssetAmounts } = accountData ?? {
     assetAmounts: [],
@@ -134,9 +123,6 @@ export default function Wallet(): ReactElement {
         </div>
         {isEnabled(FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER) && (
           <WalletBanner />
-        )}
-        {!isEnabled(FeatureFlags.HIDE_TOKEN_FEATURES) && (
-          <OnboardingOpenClaimFlowBanner />
         )}
         <div className="section">
           <SharedPanelSwitcher

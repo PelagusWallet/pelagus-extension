@@ -34,7 +34,6 @@ import {
   ProviderBridgeService,
   TelemetryService,
   ServiceCreatorFunction,
-  DoggoService,
   SigningService,
   WalletConnectService,
   AnalyticsService,
@@ -44,7 +43,6 @@ import {
 import { HexString, KeyringTypes, NormalizedEVMAddress } from "./types"
 import { ChainIdWithError, SignedTransaction } from "./networks"
 import { AccountBalance, AddressOnNetwork, NameOnNetwork } from "./accounts"
-import { Eligible } from "./services/doggo/types"
 
 import rootReducer from "./redux-slices"
 import {
@@ -61,12 +59,6 @@ import {
   refreshAsset,
   removeAssetData,
 } from "./redux-slices/assets"
-import {
-  setEligibility,
-  setEligibilityLoading,
-  setReferrer,
-  setReferrerStats,
-} from "./redux-slices/claim"
 import {
   emitter as keyringSliceEmitter,
   keyringLocked,
@@ -131,7 +123,6 @@ import {
   SignatureResponse,
   TXSignatureResponse,
 } from "./services/signing"
-import { ReferrerStats } from "./services/doggo/db"
 import {
   migrateReduxState,
   REDUX_STATE_VERSION,
@@ -312,7 +303,6 @@ export default class Main extends BaseService<never> {
       internalEthereumProviderService,
       preferenceService
     )
-    const doggoService = DoggoService.create(chainService, indexingService)
 
     const telemetryService = TelemetryService.create()
 
@@ -367,7 +357,6 @@ export default class Main extends BaseService<never> {
       await nameService,
       await internalEthereumProviderService,
       await providerBridgeService,
-      await doggoService,
       await telemetryService,
       await signingService,
       await analyticsService,
@@ -419,11 +408,6 @@ export default class Main extends BaseService<never> {
      * knowledge.
      */
     private providerBridgeService: ProviderBridgeService,
-    /**
-     * A promise to the claim service, which saves the eligibility data
-     * for efficient storage and retrieval.
-     */
-    private doggoService: DoggoService,
     /**
      * A promise to the telemetry service, which keeps track of extension
      * storage usage and (eventually) other statistics.
@@ -658,7 +642,6 @@ export default class Main extends BaseService<never> {
       this.nameService.startService(),
       this.internalEthereumProviderService.startService(),
       this.providerBridgeService.startService(),
-      this.doggoService.startService(),
       this.telemetryService.startService(),
       this.signingService.startService(),
       this.analyticsService.startService(),
@@ -679,7 +662,6 @@ export default class Main extends BaseService<never> {
       this.nameService.stopService(),
       this.internalEthereumProviderService.stopService(),
       this.providerBridgeService.stopService(),
-      this.doggoService.stopService(),
       this.telemetryService.stopService(),
       this.signingService.stopService(),
       this.analyticsService.stopService(),
@@ -1550,39 +1532,6 @@ export default class Main extends BaseService<never> {
       }
     )
 
-    this.providerBridgeService.emitter.on(
-      "setClaimReferrer",
-      async (referral: string) => {
-        const isAddress = isProbablyEVMAddress(referral)
-        const network = getEthereumNetwork()
-        const ensName = isAddress
-          ? (
-              await this.nameService.lookUpName({
-                address: referral,
-                network,
-              })
-            )?.resolved?.nameOnNetwork?.name
-          : referral
-        const address = isAddress
-          ? referral
-          : (
-              await this.nameService.lookUpEthereumAddress({
-                name: referral,
-                network,
-              })
-            )?.resolved?.addressOnNetwork?.address
-
-        if (typeof address !== "undefined") {
-          this.store.dispatch(
-            setReferrer({
-              address,
-              ensName,
-            })
-          )
-        }
-      }
-    )
-
     providerBridgeSliceEmitter.on("grantPermission", async (permission) => {
       this.analyticsService.sendAnalyticsEvent(AnalyticsEvent.DAPP_CONNECTED, {
         origin: permission.origin,
@@ -1706,17 +1655,10 @@ export default class Main extends BaseService<never> {
       await this.preferenceService.setSelectedAccount(addressNetwork)
 
       this.store.dispatch(clearSwapQuote())
-      this.store.dispatch(setEligibilityLoading())
-      this.doggoService.getEligibility(addressNetwork.address)
 
       this.store.dispatch(setVaultsAsStale())
 
       await this.chainService.markAccountActivity(addressNetwork)
-
-      const referrerStats = await this.doggoService.getReferrerStats(
-        addressNetwork
-      )
-      this.store.dispatch(setReferrerStats(referrerStats))
 
       this.providerBridgeService.notifyContentScriptsAboutAddressChange(
         addressNetwork.address
@@ -1749,39 +1691,6 @@ export default class Main extends BaseService<never> {
     uiSliceEmitter.on("refreshBackgroundPage", async () => {
       window.location.reload()
     })
-  }
-
-  async connectDoggoService(): Promise<void> {
-    this.doggoService.emitter.on(
-      "newEligibility",
-      async (eligibility: Eligible) => {
-        await this.store.dispatch(setEligibility(eligibility))
-      }
-    )
-
-    this.doggoService.emitter.on(
-      "newReferral",
-      async (
-        referral: {
-          referrer: AddressOnNetwork
-        } & ReferrerStats
-      ) => {
-        const { referrer, referredUsers, bonusTotal } = referral
-        const { selectedAccount } = this.store.getState().ui
-
-        if (
-          normalizeEVMAddress(referrer.address) ===
-          normalizeEVMAddress(selectedAccount.address)
-        ) {
-          this.store.dispatch(
-            setReferrerStats({
-              referredUsers,
-              bonusTotal,
-            })
-          )
-        }
-      }
-    )
   }
 
   connectTelemetryService(): void {

@@ -38,7 +38,6 @@ export enum EarnStages {
   Live = "Live",
 }
 
-export * from "./assets"
 export * from "./currencies"
 export * from "./networks"
 export * from "./base-assets"

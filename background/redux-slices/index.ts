@@ -9,7 +9,6 @@ import swapReducer from "./0x-swap"
 import transactionConstructionReducer from "./transaction-construction"
 import uiReducer from "./ui"
 import dappReducer from "./dapp"
-import claimReducer from "./claim"
 import signingReducer from "./signing"
 import earnReducer from "./earn"
 
@@ -23,7 +22,6 @@ const mainReducer = combineReducers({
   transactionConstruction: transactionConstructionReducer,
   ui: uiReducer,
   dapp: dappReducer,
-  claim: claimReducer,
   signing: signingReducer,
   earn: earnReducer,
 })

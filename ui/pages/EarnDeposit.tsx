@@ -9,7 +9,6 @@ import {
   approveApprovalTarget,
   AvailableVault,
   checkApprovalTargetApproval,
-  claimVaultRewards,
   clearSignature,
   inputAmount,
   permitVaultDeposit,
@@ -24,7 +23,6 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/earn"
 
 import { fromFixedPointNumber } from "@pelagus/pelagus-background/lib/fixed-point"
-import { DOGGO } from "@pelagus/pelagus-background/constants"
 import { HexString } from "@pelagus/pelagus-background/types"
 
 import { useHistory, useLocation } from "react-router-dom"
@@ -141,15 +139,6 @@ export default function EarnDeposit(): ReactElement {
   if (typeof vault === "undefined") {
     return <></>
   }
-
-  const pendingRewards = fromFixedPointNumber(
-    {
-      amount: vaultData?.pendingRewards || 0n,
-      decimals: DOGGO.decimals,
-    },
-    2
-  )
-
   const userDeposited = fromFixedPointNumber(
     {
       amount: vaultData?.userDeposited || 0n,
@@ -199,10 +188,6 @@ export default function EarnDeposit(): ReactElement {
     )
     setDeposited(false)
     setWithdrawalSlideupVisible(false)
-  }
-
-  const claimRewards = async () => {
-    dispatch(claimVaultRewards(vault))
   }
 
   const handleAmountChange = (
@@ -291,16 +276,6 @@ export default function EarnDeposit(): ReactElement {
                 : "Unknown"}
             </div>
           </li>
-          <li className="row">
-            <div className="label">Rewards</div>
-            <div className="rewards_wrap">
-              <div className="rewards">
-                <img className="lock" src="./images/lock@2.png" alt="Locked" />
-                DOGGO
-              </div>
-              <div className="otherReward"> + {vault.asset.symbol}</div>
-            </div>
-          </li>
           <li className="row no_padding">
             <div className="accordion_wrap">
               <SharedAccordion
@@ -310,7 +285,7 @@ export default function EarnDeposit(): ReactElement {
             </div>
           </li>
         </ul>
-        {!isVaultDataStale && (deposited || pendingRewards > 0) ? (
+        {deposited && !isVaultDataStale ? (
           <div className="wrapper">
             <li className="row">
               <div className="label">Deposited amount</div>
@@ -318,20 +293,6 @@ export default function EarnDeposit(): ReactElement {
                 {userDeposited}
                 <span className="token">{vault?.asset.symbol}</span>
               </div>
-            </li>
-            <div className="divider" />
-            <li className="row">
-              <div className="label">Available rewards</div>
-              <div className="amount">
-                {pendingRewards}
-                <span className="token">DOGGO</span>
-              </div>
-            </li>
-            <li className="row claim">
-              <button className="row" onClick={claimRewards} type="button">
-                <div className="receive_icon" />
-                Claim rewards
-              </button>
             </li>
           </div>
         ) : (

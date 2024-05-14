@@ -38,7 +38,6 @@ import SharedAssetInput from "../components/Shared/SharedAssetInput"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedActivityHeader from "../components/Shared/SharedActivityHeader"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
-import SwapRewardsCard from "../components/Swap/SwapRewardsCard"
 import SharedIcon from "../components/Shared/SharedIcon"
 import SharedBanner from "../components/Shared/SharedBanner"
 import ReadOnlyNotice from "../components/Shared/ReadOnlyNotice"
@@ -49,7 +48,6 @@ import {
   getOwnedSellAssetAmounts,
 } from "../utils/swap"
 import { useOnMount, usePrevious, useInterval } from "../hooks/react-hooks"
-import SharedLoadingDoggo from "../components/Shared/SharedLoadingDoggo"
 import SharedBackButton from "../components/Shared/SharedBackButton"
 
 const REFRESH_QUOTE_INTERVAL = 10 * SECOND
@@ -495,19 +493,6 @@ export default function Swap(): ReactElement {
                 }}
                 label={t("swap.to")}
               />
-              <div className="loading_wrapper">
-                {loadingQuote && sellAsset && buyAsset && (
-                  <SharedLoadingDoggo
-                    size={54}
-                    message={t("swap.loadingQuote")}
-                  />
-                )}
-              </div>
-            </div>
-            <div className="settings_wrap">
-              {!isEnabled(FeatureFlags.HIDE_SWAP_REWARDS) ? (
-                <SwapRewardsCard />
-              ) : null}
             </div>
             <div className="footer standard_width_padded">
               {quoteAppliesToCurrentAssets && quote?.needsApproval ? (
@@ -571,11 +556,6 @@ export default function Swap(): ReactElement {
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;
-          }
-
-          .loading_wrapper {
-            min-height: 73.5px;
-            margin: 16px 0 32px;
           }
 
           .footer {

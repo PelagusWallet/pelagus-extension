@@ -19,10 +19,6 @@ const tokenIcons = {
     "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
     "ipfs://bafybeib53hx56um4xexwtaqjo3u3ridppnpblfucqdbotwlqcadlfyc2a4",
   ],
-  DOGGOETH: [
-    "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
-    "https://avatars.githubusercontent.com/u/77035304?s=200&v=4",
-  ],
 }
 
 export default tokenIcons

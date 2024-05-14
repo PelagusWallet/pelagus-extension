@@ -44,8 +44,6 @@ import {
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import { EVMNetwork, sameNetwork } from "../../networks"
 import { NETWORK_BY_CHAIN_ID, TEST_NETWORK_BY_CHAIN_ID } from "../../constants"
-import { DOGGO } from "../../constants/assets"
-import { FeatureFlags, isEnabled } from "../../features"
 import { AccountSigner, SignerType } from "../../services/signing"
 import { assertUnreachable } from "../../lib/utils/type-guards"
 import { SignerImportSource } from "../../services/keyring"
@@ -68,11 +66,7 @@ export const userValueDustThreshold = 2
 const shouldForciblyDisplayAsset = (
   assetAmount: CompleteAssetAmount<AnyAsset>
 ) => {
-  const isDoggo =
-    !isEnabled(FeatureFlags.HIDE_TOKEN_FEATURES) &&
-    assetAmount.asset.symbol === DOGGO.symbol
-
-  return isDoggo || isNetworkBaseAsset(assetAmount.asset)
+  return isNetworkBaseAsset(assetAmount.asset)
 }
 
 export function determineAssetDisplayAndVerify(
@@ -149,14 +143,6 @@ const computeCombinedAssetAmountsData = (
       return fullyEnrichedAssetAmount
     })
     .sort((asset1, asset2) => {
-      // Always sort DOGGO above everything.
-      if (asset1.asset.symbol === DOGGO.symbol) {
-        return -1
-      }
-      if (asset2.asset.symbol === DOGGO.symbol) {
-        return 1
-      }
-
       const leftIsBaseAsset = isNetworkBaseAsset(asset1.asset)
       const rightIsBaseAsset = isNetworkBaseAsset(asset2.asset)
 

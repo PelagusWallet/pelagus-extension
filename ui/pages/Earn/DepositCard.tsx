@@ -5,7 +5,6 @@ import {
   APRData,
   AvailableVault,
 } from "@pelagus/pelagus-background/redux-slices/earn"
-import { DOGGO } from "@pelagus/pelagus-background/constants"
 import SharedAssetIcon from "../../components/Shared/SharedAssetIcon"
 import SharedSkeletonLoader from "../../components/Shared/SharedSkeletonLoader"
 
@@ -34,13 +33,7 @@ export default function EarnDepositedCard({
     },
     4
   )
-  const availableRewards = fromFixedPointNumber(
-    {
-      amount: vault.pendingRewards,
-      decimals: DOGGO.decimals,
-    },
-    2
-  )
+
   return (
     <li>
       <Link
@@ -92,13 +85,6 @@ export default function EarnDepositedCard({
             <span className="amount">
               {userDepositedAmount}{" "}
               <span className="symbol">{asset?.symbol}</span>
-            </span>
-          </li>
-          <li className="info">
-            <span className="amount_type">Available rewards</span>
-            <span className="amount">
-              {availableRewards.toFixed(2)}{" "}
-              <span className="symbol">DOGGO</span>
             </span>
           </li>
           <style jsx>{`

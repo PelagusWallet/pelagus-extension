@@ -11,7 +11,6 @@ import Send from "../pages/Send"
 import DAppPermissionRequest from "../pages/DAppConnectRequest"
 import KeyringUnlock from "../components/Keyring/KeyringUnlock"
 import KeyringSetPassword from "../components/Keyring/KeyringSetPassword"
-import Eligible from "../pages/Claiming/Eligible"
 import SettingsExportLogs from "../pages/Settings/SettingsExportLogs"
 import SettingsAnalytics from "../pages/Settings/SettingsAnalytics"
 import SettingsConnectedWebsites from "../pages/Settings/SettingsConnectedWebsites"
@@ -134,12 +133,6 @@ const pageList: PageList[] = [
     Component: DAppPermissionRequest,
     hasTopBar: false,
     persistOnClose: false,
-  },
-  {
-    path: "/eligible",
-    Component: Eligible,
-    hasTopBar: false,
-    persistOnClose: true,
   },
   {
     path: "/dev/feature-flags",

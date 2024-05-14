@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 
-type SharedLoadingDoggoProps = {
+type SharedLoadingShipProps = {
   size: number
   message?: string
   padding?: React.CSSProperties["padding"]
@@ -14,7 +14,7 @@ export default function SharedLoadingShip({
   padding = "0",
   margin = "0",
   animated: animate = true,
-}: SharedLoadingDoggoProps): ReactElement {
+}: SharedLoadingShipProps): ReactElement {
   return (
     <div data-testid="loading_ship">
       <img

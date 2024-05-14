@@ -41,7 +41,6 @@ import { TALLY_INTERNAL_ORIGIN } from "../internal-ethereum-provider/constants"
 type Events = ServiceLifecycleEvents & {
   requestPermission: PermissionRequest
   initializeAllowedPages: PermissionMap
-  setClaimReferrer: string
   /**
    * Contains the Wallet Connect URI required to pair/connect
    */
@@ -182,21 +181,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
       }
     } else if (event.request.method.startsWith("tally_")) {
       switch (event.request.method) {
-        case "tally_setClaimReferrer":
-          if (origin !== WEBSITE_ORIGIN) {
-            logger.warn(
-              `invalid WEBSITE_ORIGIN ${WEBSITE_ORIGIN} when using a custom 'tally_...' method`
-            )
-            return
-          }
-
-          if (typeof event.request.params[0] !== "string") {
-            logger.warn(`invalid 'tally_setClaimReferrer' request`)
-            return
-          }
-
-          this.emitter.emit("setClaimReferrer", String(event.request.params[0]))
-          break
         case "tally_walletConnectInit": {
           const [wcUri] = event.request.params
           if (typeof wcUri === "string") {

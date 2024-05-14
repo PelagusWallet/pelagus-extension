@@ -1,5 +1,4 @@
 export { default as getCurveLPTokenPrice } from "./getCurveLPTokenPrice"
-export { default as getDoggoPrice } from "./getDoggoPrice"
 export { default as getLPTokenValue } from "./getLPTokenValue"
 export { default as getPoolAPR } from "./getPoolAPR"
 export { default as getTokenPrice } from "./getTokenPrice"

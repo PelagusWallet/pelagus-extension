@@ -4,8 +4,6 @@ import { HexString } from "../../types"
 import { AssetsState } from "../assets"
 import { getContract, getCurrentTimestamp } from "../utils/contract-utils"
 import VAULT_ABI from "../../lib/vault"
-import { DOGGO } from "../../constants"
-import getDoggoPrice from "./getDoggoPrice"
 import getTokenPrice from "./getTokenPrice"
 import { sameEVMAddress } from "../../lib/utils"
 import { fetchWithTimeout } from "../../utils/fetching"
@@ -29,7 +27,6 @@ function getYearlyRewardsValue(
   periodsPerYear: BigNumber
 ) {
   const rewardsRemainingValue = huntingGroundRemainingRewards
-    .div(BigNumber.from("10").pow(DOGGO.decimals))
     .mul(rewardTokenPrice)
     .div(BigNumber.from("10").pow(10))
   const totalYearlyRewardsValue = rewardsRemainingValue.mul(periodsPerYear)
@@ -115,13 +112,8 @@ const getPoolAPR = async ({
     remainingPeriodSeconds > 0
       ? secondsInAYear.div(remainingPeriodSeconds)
       : BigNumber.from(0)
-  // What is the value of single reward token in USD bigint with 10 decimals
-  const rewardTokenPrice = await getDoggoPrice(assets, mainCurrencySymbol)
-  // The doggo price is not available before DAO vote, we will return approximate values
-  // The values are in USD with 10 decimals, e.g. 1_000_000_000n = $0.1
 
   const [percentageAPR, lowEstimateAPR, midEstimateAPR, highEstimateAPR] = [
-    rewardTokenPrice,
     DOGGO_LOW_PRICE_ESTIMATE,
     DOGGO_MID_PRICE_ESTIMATE,
     DOGGO_HIGH_PRICE_ESTIMATE,
@@ -138,15 +130,7 @@ const getPoolAPR = async ({
     const totalEstimateAPR = estimateAPR + yearnVaultAPYPercent
     return totalEstimateAPR
   })
-  if (rewardTokenPrice === 0n) {
-    return {
-      totalAPR: undefined,
-      yearnAPY: `${numberFormatter(yearnVaultAPYPercent, 1)}%`,
-      low: `${numberFormatter(lowEstimateAPR, 1)}%`,
-      mid: `${numberFormatter(midEstimateAPR, 1)}%`,
-      high: `${numberFormatter(highEstimateAPR, 1)}%`,
-    }
-  }
+
   return {
     totalAPR: `${numberFormatter(percentageAPR, 1)}%`,
     yearnAPY: `${numberFormatter(yearnVaultAPYPercent, 1)}%`,

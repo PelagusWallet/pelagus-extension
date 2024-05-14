@@ -34,31 +34,6 @@ const DISTRIBUTOR_ABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "Claimed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
         name: "previousOwner",
@@ -73,67 +48,6 @@ const DISTRIBUTOR_ABI = [
     ],
     name: "OwnershipTransferred",
     type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes32[]",
-        name: "merkleProof",
-        type: "bytes32[]",
-      },
-    ],
-    name: "claim",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes32[]",
-        name: "merkleProof",
-        type: "bytes32[]",
-      },
-      {
-        internalType: "address",
-        name: "communityRef",
-        type: "address",
-      },
-    ],
-    name: "claimWithCommunityCode",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
   },
   {
     inputs: [],
@@ -163,25 +77,6 @@ const DISTRIBUTOR_ABI = [
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-    ],
-    name: "isClaimed",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
       },
     ],
     stateMutability: "view",

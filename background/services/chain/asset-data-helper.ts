@@ -19,7 +19,7 @@ import {
   getTokenBalances,
 } from "../../lib/erc20"
 import { FeatureFlags, isEnabled } from "../../features"
-import { DOGGO, FORK, getShardFromAddress } from "../../constants"
+import { FORK, getShardFromAddress } from "../../constants"
 
 interface ProviderManager {
   providerForNetwork(network: EVMNetwork): SerialFallbackProvider | undefined
@@ -110,8 +110,6 @@ export default class AssetDataHelper {
         "0xf4d2888d29D722226FafA5d9B24F9164c092421E", // LOOKS
         "0x85Eee30c52B0b379b046Fb0F85F4f3Dc3009aFEC", // KEEP
         "0xCb08717451aaE9EF950a2524E33B6DCaBA60147B", // crvTETH
-        "0x9Dbb61D8977c28B4821e21bc17124E98327cF002", // DOGGOETH
-        DOGGO.contractAddress, // DOGGO
         "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
       ]
       const balances = tokens.map(async (token) => {

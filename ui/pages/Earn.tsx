@@ -4,7 +4,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/earn"
 import { formatCurrencyAmount } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { selectMainCurrencySymbol } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { DOGGO, EarnStages } from "@pelagus/pelagus-background/constants"
+import { EarnStages } from "@pelagus/pelagus-background/constants"
 import { fromFixedPointNumber } from "@pelagus/pelagus-background/lib/fixed-point"
 
 import React, { ReactElement, useEffect, useState } from "react"
@@ -53,7 +53,7 @@ export default function Earn(): ReactElement {
   const userPendingRewards = vaultsWithLockedValues
     ?.map((item) => {
       return fromFixedPointNumber(
-        { amount: item.pendingRewards, decimals: DOGGO.decimals },
+        { amount: item.pendingRewards, decimals: 18 },
         2
       )
     })

@@ -273,7 +273,6 @@ export const initialVaults: AvailableVault[] = [
   },
   {
     network: QUAI_NETWORK,
-    icons: tokenIcons.DOGGOETH,
     vaultAddress: "0x041BE32B10eC4740387a42Bd82703798A9303753",
     yearnVault: "0x9A39f31DD5EDF5919A5C0c2433cE053fAD2E0336",
     duration: 2592000,
@@ -562,24 +561,6 @@ export const vaultDeposit = createBackgroundAsyncThunk(
       dispatch(currentlyDepositing(false))
       dispatch(dispatch(depositError(true)))
     }
-  }
-)
-
-export const claimVaultRewards = createBackgroundAsyncThunk(
-  "earn/clamRewards",
-  async (vault: AvailableVault, { dispatch }) => {
-    const provider = getProvider()
-    const signer = provider.getSigner()
-
-    const vaultContract = new ethers.Contract(
-      vault.vaultAddress,
-      VAULT_ABI,
-      signer
-    )
-    const tx = await vaultContract.functions["getReward()"]()
-    const response = signer.sendTransaction(tx)
-    await tx.wait(response)
-    dispatch(updateVaults([vault]))
   }
 )
 

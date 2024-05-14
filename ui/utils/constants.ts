@@ -14,8 +14,6 @@ import {
 import { NetworkFeeTypeChosen } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { i18n } from "../_locales/i18n"
 
-export const doggoTokenDecimalDigits = 18
-
 export const blockExplorer = {
   [ETHEREUM.chainID]: { title: "Etherscan", url: "https://etherscan.io" },
   [ROOTSTOCK.chainID]: { title: "RSKExplorer", url: "https://explorer.rsk.co" },

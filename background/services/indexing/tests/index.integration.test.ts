@@ -146,7 +146,7 @@ describe("IndexingService", () => {
                 address: "0x1000000000000000000000000000000000000000",
                 name: "Some Token",
                 decimals: 18,
-                symbol: "DOGGO",
+                symbol: "ETH",
                 logoURI: "/logo.svg",
                 tags: ["earn"],
               },

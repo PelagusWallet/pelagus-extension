@@ -578,12 +578,6 @@
     "swapRewardsTeaser": "Swap rewards coming soon",
     "continueSwap": "Continue Swap",
     "loadingQuote": "Fetching price",
-    "rewards": {
-      "header": "Swap rewards for community",
-      "body": "This week, 240,000 DOGGO tokens will be equally shared as Swap Rewards.",
-      "tooltip": "Pelagus rewards its users that use swap every week. A council decides weekly prizes and who is eligible.",
-      "detailButton": "Details"
-    },
     "error": {
       "noSellAsset": "Attempting to approve transfer without a sell asset.",
       "noApprovalTarget": "Attempting to approve transfer without an approval target.",

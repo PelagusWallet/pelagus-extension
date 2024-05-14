@@ -34,7 +34,6 @@ import {
   sameEVMAddress,
 } from "@pelagus/pelagus-background/lib/utils"
 import { clearSignature } from "@pelagus/pelagus-background/redux-slices/earn"
-import { resetClaimFlow } from "@pelagus/pelagus-background/redux-slices/claim"
 import { useTranslation } from "react-i18next"
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { isSameAccountSignerWithId } from "@pelagus/pelagus-background/utils/signing"
@@ -837,7 +836,6 @@ export default function AccountsNotificationPanelAccounts({
                                 }
                               }}
                               onClick={() => {
-                                dispatch(resetClaimFlow())
                                 updateCurrentAccount(
                                   normalizedAddress,
                                   accountTotal.signerId ?? ""

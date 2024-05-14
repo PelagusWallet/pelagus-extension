@@ -150,7 +150,7 @@ export default function SetPassword(): JSX.Element {
     <section className="fadeIn">
       <header>
         <img
-          alt="Secure doggo"
+          alt="Secure pelagus"
           width="80"
           height="80"
           src="./images/pelagus_chest.png"

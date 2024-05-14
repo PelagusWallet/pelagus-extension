@@ -6,7 +6,6 @@ import {
   SwappableAsset,
 } from "@pelagus/pelagus-background/assets"
 
-import DoggoAssetListItem from "./AssetListItem/DoggoAssetListItem"
 import CommonAssetListItem from "./AssetListItem/CommonAssetListItem"
 
 type Props = {
@@ -24,19 +23,13 @@ export default function WalletAssetListItem(props: Props): ReactElement {
     onUnverifiedAssetWarningClick,
   } = props
 
-  const isDoggoAsset = assetAmount.asset.symbol === "DOGGO"
-
   return (
     <li>
-      {isDoggoAsset ? (
-        <DoggoAssetListItem assetAmount={assetAmount} />
-      ) : (
-        <CommonAssetListItem
-          assetAmount={assetAmount}
-          initializationLoadingTimeExpired={initializationLoadingTimeExpired}
-          onUnverifiedAssetWarningClick={onUnverifiedAssetWarningClick}
-        />
-      )}
+      <CommonAssetListItem
+        assetAmount={assetAmount}
+        initializationLoadingTimeExpired={initializationLoadingTimeExpired}
+        onUnverifiedAssetWarningClick={onUnverifiedAssetWarningClick}
+      />
       <style jsx global>
         {`
           .asset_icon {

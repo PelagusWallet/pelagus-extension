@@ -7,7 +7,6 @@ interface PropsWithMediumIcon {
     | "dashboard"
     | "developer"
     | "disconnect"
-    | "earn"
     | "export"
     | "eye-off"
     | "eye-on"

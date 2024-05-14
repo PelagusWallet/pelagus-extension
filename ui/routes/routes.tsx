@@ -4,8 +4,6 @@ import SignTransaction from "../pages/SignTransaction"
 import SignData from "../pages/SignData"
 import PersonalSign from "../pages/PersonalSign"
 import SingleAsset from "../pages/SingleAsset"
-import Earn from "../pages/Earn"
-import EarnDeposit from "../pages/EarnDeposit"
 import Menu from "../pages/Settings"
 import Send from "../pages/Send"
 import DAppPermissionRequest from "../pages/DAppConnectRequest"
@@ -71,19 +69,6 @@ const pageList: PageList[] = [
     path: "/personal-sign",
     Component: PersonalSign,
     hasTopBar: false,
-    persistOnClose: true,
-  },
-
-  {
-    path: "/earn/deposit",
-    Component: EarnDeposit,
-    hasTopBar: true,
-    persistOnClose: true,
-  },
-  {
-    path: "/earn",
-    Component: Earn,
-    hasTopBar: true,
     persistOnClose: true,
   },
   {

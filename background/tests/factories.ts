@@ -47,7 +47,6 @@ import {
   ProviderBridgeService,
   SigningService,
 } from "../services"
-import AbilitiesService from "../services/abilities"
 import {
   PriorityQueuedTxToRetrieve,
   QueuedTxToRetrieve,
@@ -113,10 +112,6 @@ type CreateSigningServiceOverrides = {
   chainService?: Promise<ChainService>
 }
 
-type CreateAbilitiesServiceOverrides = {
-  chainService?: Promise<ChainService>
-}
-
 type CreateProviderBridgeServiceOverrides = {
   internalEthereumProviderService?: Promise<InternalEthereumProviderService>
   preferenceService?: Promise<PreferenceService>
@@ -143,12 +138,6 @@ export const createSigningService = async (
     overrides.keyringService ?? createKeyringService(),
     overrides.chainService ?? createChainService()
   )
-}
-
-export const createAbilitiesService = async (
-  overrides: CreateAbilitiesServiceOverrides = {}
-): Promise<AbilitiesService> => {
-  return AbilitiesService.create(overrides.chainService ?? createChainService())
 }
 
 export const createInternalEthereumProviderService = async (
@@ -465,7 +454,6 @@ export const createCompleteAssetAmount = (
 export const createDaylightAbility = (
   overrides: Partial<DaylightAbility> = {}
 ): DaylightAbility => ({
-  type: "mint",
   title: "Test ability!",
   description: "Test description",
   imageUrl: "./images/test.png",

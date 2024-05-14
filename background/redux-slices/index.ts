@@ -6,7 +6,6 @@ import activitiesReducer from "./activities"
 import keyringsReducer from "./keyrings"
 import networksReducer from "./networks"
 import swapReducer from "./0x-swap"
-import abilitiesReducer from "./abilities"
 import transactionConstructionReducer from "./transaction-construction"
 import uiReducer from "./ui"
 import dappReducer from "./dapp"
@@ -27,7 +26,6 @@ const mainReducer = combineReducers({
   claim: claimReducer,
   signing: signingReducer,
   earn: earnReducer,
-  abilities: abilitiesReducer,
 })
 
 export default mainReducer

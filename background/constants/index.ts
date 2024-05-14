@@ -31,13 +31,6 @@ export const COMMUNITY_MULTISIG_ADDRESS_BY_CHAINID: {
   [chainID: string]: string
 } = {}
 
-export enum EarnStages {
-  ComingSoon = "ComingSoon",
-  Deploying = "Deploying",
-  PartialyLive = "PartialyLive",
-  Live = "Live",
-}
-
 export * from "./currencies"
 export * from "./networks"
 export * from "./base-assets"

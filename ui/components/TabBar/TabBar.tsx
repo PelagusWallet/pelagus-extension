@@ -51,6 +51,7 @@ export default function TabBar(): ReactElement {
   )
 
   return (
+    <>
     <nav aria-label="Main">
       {tabs
         .filter((tab) => isTabSupportedByNetwork(tab, selectedNetwork))
@@ -67,7 +68,11 @@ export default function TabBar(): ReactElement {
             />
           )
         })}
-      <style jsx>
+    </nav>
+    <div >
+      FOR USE WITH IRON AGE TESTNET ONLY
+    </div>
+    <style jsx>
         {`
           nav {
             width: 100%;
@@ -81,8 +86,23 @@ export default function TabBar(): ReactElement {
             box-shadow: 0 0 5px rgba(0, 20, 19, 0.5);
             z-index: 10;
           }
+          div {
+            width: 100%;
+            height: 25px;
+            background-color: red;
+            display: flex;
+            justify-content: space-around;
+            box-sizing: border-box;
+            align-items: center;
+            text-align: center;
+            flex-shrink: 0;
+            z-index: 10;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+          }
         `}
       </style>
-    </nav>
+    </>
   )
 }

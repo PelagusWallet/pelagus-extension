@@ -1,7 +1,7 @@
 {
-  "name": "Pelagus",
+  "name": "Pelagus (Iron Age)",
   "version": "0.5.4",
-  "description": "The community owned and operated Quai Web3 wallet.",
+  "description": "The community owned and operated Quai Iron Age Testnet wallet (Deprecated).",
   "homepage_url": "https://pelaguswallet.io",
   "author": "https://pelaguswallet.io",
   "manifest_version": 3,
@@ -47,7 +47,7 @@
     "128": "icon-128.png"
   },
   "action": {
-    "default_title": "Pelagus",
+    "default_title": "Pelagus (Iron Age)",
     "default_popup": "popup.html"
   },
   "permissions": [

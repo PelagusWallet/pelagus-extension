@@ -5,7 +5,6 @@ import {
   AccountType,
   DEFAULT_ACCOUNT_NAMES,
   CompleteAssetAmount,
-  AccountData,
 } from "../accounts"
 import { AssetsState, selectAssetPricePoint } from "../assets"
 import {
@@ -50,7 +49,6 @@ import { FeatureFlags, isEnabled } from "../../features"
 import { AccountSigner, SignerType } from "../../services/signing"
 import { assertUnreachable } from "../../lib/utils/type-guards"
 import { SignerImportSource } from "../../services/keyring"
-import { HexString } from "../../types"
 
 // TODO What actual precision do we want here? Probably more than 2
 // TODO decimals? Maybe it's configurable?

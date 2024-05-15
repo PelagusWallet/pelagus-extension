@@ -33,9 +33,7 @@ import {
   TelemetryService,
   ServiceCreatorFunction,
   SigningService,
-  WalletConnectService,
   AnalyticsService,
-  getNoopService,
 } from "./services"
 
 import { HexString, KeyringTypes, NormalizedEVMAddress } from "./types"
@@ -301,15 +299,6 @@ export default class Main extends BaseService<never> {
 
     const analyticsService = AnalyticsService.create(preferenceService)
 
-    const walletConnectService = isEnabled(FeatureFlags.SUPPORT_WALLET_CONNECT)
-      ? WalletConnectService.create(
-          providerBridgeService,
-          internalEthereumProviderService,
-          preferenceService,
-          chainService
-        )
-      : getNoopService<WalletConnectService>()
-
     let savedReduxState = {}
     // Setting READ_REDUX_CACHE to false will start the extension with an empty
     // initial state, which can be useful for development
@@ -350,8 +339,7 @@ export default class Main extends BaseService<never> {
       await providerBridgeService,
       await telemetryService,
       await signingService,
-      await analyticsService,
-      await walletConnectService
+      await analyticsService
     )
   }
 
@@ -415,13 +403,7 @@ export default class Main extends BaseService<never> {
      * A promise to the analytics service which will be responsible for listening
      * to events and dispatching to our analytics backend
      */
-    private analyticsService: AnalyticsService,
-
-    /**
-     * A promise to the Wallet Connect service which takes care of handling wallet connect
-     * protocol and communication.
-     */
-    private walletConnectService: WalletConnectService
+    private analyticsService: AnalyticsService
   ) {
     super({
       initialLoadWaitExpired: {
@@ -630,7 +612,6 @@ export default class Main extends BaseService<never> {
       this.telemetryService.startService(),
       this.signingService.startService(),
       this.analyticsService.startService(),
-      this.walletConnectService.startService(),
       this.startBalanceChecker(),
     ]
 
@@ -650,7 +631,6 @@ export default class Main extends BaseService<never> {
       this.telemetryService.stopService(),
       this.signingService.stopService(),
       this.analyticsService.stopService(),
-      this.walletConnectService.stopService(),
       clearInterval(this.balanceChecker),
     ]
 
@@ -668,7 +648,6 @@ export default class Main extends BaseService<never> {
     this.connectEnrichmentService()
     this.connectTelemetryService()
     this.connectSigningService()
-    this.connectWalletConnectService()
 
     await this.connectChainService()
 
@@ -1674,11 +1653,6 @@ export default class Main extends BaseService<never> {
   connectTelemetryService(): void {
     // Pass the redux store to the telemetry service so we can analyze its size
     this.telemetryService.connectReduxStore(this.store)
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  connectWalletConnectService(): void {
-    // TODO: here comes the glue between the UI and service layer
   }
 
   async unlockKeyrings(password: string): Promise<boolean> {

@@ -6,7 +6,9 @@ import { PermissionRequest } from "@tallyho/provider-bridge-shared"
 import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { getShardFromAddress } from "@pelagus/pelagus-background/constants"
 import ConnectionDAppGuideline from "../Shared/ConnectionDAppGuideline"
-import DAppAccountsList from "../DAppConnection/DAppAccountsList"
+import DAppAccountsList, {
+  ListAccount,
+} from "../DAppConnection/DAppAccountsList"
 
 interface DAppConnectionDrawerProps {
   currentDAppInfo: PermissionRequest
@@ -32,26 +34,34 @@ export default function DAppConnectionDrawer({
   const allAccounts = useBackgroundSelector(getAllAccounts)
 
   const filteredAccounts = useMemo(() => {
-    return connectedAccountsToDApp.map((connectedAccount) => {
-      const { accountAddress, chainID } = connectedAccount
-      const filteredAccount = allAccounts.find(
-        (account) =>
-          account !== "loading" &&
-          account.address === accountAddress &&
-          account.network.chainID === chainID
-      )
+    const uniqueAccounts = new Set()
+    return connectedAccountsToDApp.reduce(
+      (acc: ListAccount[], connectedAccount) => {
+        const { accountAddress, chainID } = connectedAccount
+        const filteredAccount = allAccounts.find(
+          (account) =>
+            account !== "loading" &&
+            account.address === accountAddress &&
+            account.network.chainID === chainID
+        )
 
-      if (filteredAccount && filteredAccount !== "loading") {
-        return {
-          address: filteredAccount.address,
-          defaultAvatar: filteredAccount.defaultAvatar,
-          defaultName: filteredAccount.defaultName,
-          shard: getShardFromAddress(filteredAccount.address),
+        if (
+          filteredAccount &&
+          filteredAccount !== "loading" &&
+          !uniqueAccounts.has(accountAddress)
+        ) {
+          uniqueAccounts.add(accountAddress)
+          acc.push({
+            address: filteredAccount.address,
+            defaultAvatar: filteredAccount.defaultAvatar,
+            defaultName: filteredAccount.defaultName,
+            shard: getShardFromAddress(filteredAccount.address),
+          })
         }
-      } else {
-        return null
-      }
-    })
+        return acc
+      },
+      []
+    )
   }, [allAccounts, connectedAccountsToDApp])
 
   const numFilteredAccounts = filteredAccounts.length

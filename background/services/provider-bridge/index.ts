@@ -41,10 +41,6 @@ import { TALLY_INTERNAL_ORIGIN } from "../internal-ethereum-provider/constants"
 type Events = ServiceLifecycleEvents & {
   requestPermission: PermissionRequest
   initializeAllowedPages: PermissionMap
-  /**
-   * Contains the Wallet Connect URI required to pair/connect
-   */
-  walletConnectInit: string
 }
 
 export type AddChainRequestData = ValidatedAddEthereumChainParameter & {
@@ -181,16 +177,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
       }
     } else if (event.request.method.startsWith("tally_")) {
       switch (event.request.method) {
-        case "tally_walletConnectInit": {
-          const [wcUri] = event.request.params
-          if (typeof wcUri === "string") {
-            await this.emitter.emit("walletConnectInit", wcUri)
-          } else {
-            logger.warn(`invalid 'tally_walletConnectInit' request`)
-          }
-
-          break
-        }
         default:
           logger.debug(
             `Unknown method ${event.request.method} in 'ProviderBridgeService'`

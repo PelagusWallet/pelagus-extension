@@ -15,7 +15,6 @@ import {
   isTallyAccountPayload,
 } from "@tallyho/provider-bridge-shared"
 import { EventEmitter } from "events"
-import monitorForWalletConnectionPrompts from "./wallet-connection-handlers"
 
 // TODO: we don't want to impersonate MetaMask everywhere to not break existing integrations,
 //       so let's do this only on the websites that need this feature
@@ -180,7 +179,6 @@ export default class TallyWindowProvider extends EventEmitter {
      * The request function should always have a provider object set.
      */
     this.request = this.request.bind(this)
-    monitorForWalletConnectionPrompts()
     this.transport.addEventListener(internalListener)
     this.transport.addEventListener(this.internalBridgeListener.bind(this))
   }

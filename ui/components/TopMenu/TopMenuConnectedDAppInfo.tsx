@@ -1,10 +1,7 @@
-import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import classNames from "classnames"
 import React, { ReactElement, useCallback, useState } from "react"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import SharedAccordion from "../Shared/SharedAccordion"
-import SharedLink from "../Shared/SharedLink"
-import SharedPanelSwitcher from "../Shared/SharedPanelSwitcher"
 import { WalletDefaultToggle } from "../Wallet/WalletToggleDefaultBanner"
 
 function ConnectionDAppGuideline({
@@ -15,16 +12,12 @@ function ConnectionDAppGuideline({
   const { t } = useTranslation("translation", {
     keyPrefix: "topMenu.connectedDappInfo",
   })
-  const showWalletConnectInfo = isEnabled(FeatureFlags.SUPPORT_WALLET_CONNECT)
   const { t: tShared } = useTranslation("translation", { keyPrefix: "shared" })
-  const [currentPanel, setCurrentPanel] = useState(
-    showWalletConnectInfo ? 0 : 1
-  )
 
   return (
     <>
       <SharedAccordion
-        contentHeight={showWalletConnectInfo ? 298 : 242}
+        contentHeight={242}
         style={{
           width: 320,
           borderRadius: 8,
@@ -39,75 +32,33 @@ function ConnectionDAppGuideline({
         headerElement={<div className="title">{t("guideline.title")}</div>}
         contentElement={
           <div className="content_wrap">
-            {showWalletConnectInfo && (
-              <SharedPanelSwitcher
-                panelNames={["Wallet Connect", "Injected Wallet"]}
-                panelNumber={currentPanel}
-                setPanelNumber={setCurrentPanel}
-              />
-            )}
             <div className="panel_wrap">
-              {currentPanel === 0 && (
-                // Wallet connect guidelines
-                <div className="wallet_connect_info">
-                  <div className="learn_more">
-                    <img
-                      height="52"
-                      alt="Pelagus - Wallet Connect"
-                      src="/images/tally_wc.png"
-                    />
-                    <p>
-                      <Trans
-                        t={t}
-                        i18nKey="walletConnectInfo"
-                        components={{
-                          url: <SharedLink url="#" />,
-                        }}
-                      />
-                    </p>
-                  </div>
+              <ol className="steps">
+                <li>
+                  <span className="wallet_toggle_wrap">
+                    {t("guideline.step1")}
+                    <WalletDefaultToggle />
+                  </span>
+                </li>
+                <li>{t("guideline.step2")}</li>
+                <li>{t("guideline.step3")}</li>
+              </ol>
+              <div className="list_wrap">
+                <span className="item">
+                  <img src="./images/pelagus_icon_xs.png" alt="Pelagus token" />
+                  {tShared("pelagus")}
+                </span>
+                <span className="item">
                   <img
-                    width="100%"
-                    alt={t("walletConnectHint")}
-                    src="/images/wallet_connect_guideline.png"
+                    src="./images/icons/s/arrow-right.svg"
+                    alt="Arrow right"
                   />
-                </div>
-              )}
-
-              {currentPanel === 1 && (
-                // Injected wallet guidelines
-                <>
-                  <ol className="steps">
-                    <li>
-                      <span className="wallet_toggle_wrap">
-                        {t("guideline.step1")}
-                        <WalletDefaultToggle />
-                      </span>
-                    </li>
-                    <li>{t("guideline.step2")}</li>
-                    <li>{t("guideline.step3")}</li>
-                  </ol>
-                  <div className="list_wrap">
-                    <span className="item">
-                      <img
-                        src="./images/pelagus_icon_xs.png"
-                        alt="Pelagus token"
-                      />
-                      {tShared("pelagus")}
-                    </span>
-                    <span className="item">
-                      <img
-                        src="./images/icons/s/arrow-right.svg"
-                        alt="Arrow right"
-                      />
-                      {tShared("injected")}
-                    </span>
-                    <span className="item">
-                      <span className="fox">🦊</span> {tShared("metaMask")}
-                    </span>
-                  </div>
-                </>
-              )}
+                  {tShared("injected")}
+                </span>
+                <span className="item">
+                  <span className="fox">🦊</span> {tShared("metaMask")}
+                </span>
+              </div>
             </div>
           </div>
         }
@@ -126,7 +77,7 @@ function ConnectionDAppGuideline({
           justify-content: space-between;
         }
         .panel_wrap {
-          padding: ${showWalletConnectInfo ? "16px 8px" : "0 8px 16px"};
+          padding: 0 8px 16px;
         }
         .wallet_connect_info p {
           margin: 0;

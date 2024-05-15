@@ -6,7 +6,6 @@ const ETH: NetworkBaseAsset = {
   symbol: "ETH",
   decimals: 18,
   metadata: {
-    coinGeckoID: "ethereum",
     tokenLists: [],
   },
 }
@@ -15,7 +14,6 @@ const ARBITRUM_ONE_ETH: NetworkBaseAsset = {
   ...ETH,
   chainID: "42161",
   metadata: {
-    coinGeckoID: "ethereum",
     tokenLists: [],
   },
 }
@@ -24,7 +22,6 @@ const ARBITRUM_NOVA_ETH: NetworkBaseAsset = {
   ...ETH,
   chainID: "42170",
   metadata: {
-    coinGeckoID: "ethereum",
     tokenLists: [],
   },
 }
@@ -33,7 +30,6 @@ const OPTIMISTIC_ETH: NetworkBaseAsset = {
   ...ETH,
   chainID: "10",
   metadata: {
-    coinGeckoID: "ethereum",
     tokenLists: [],
   },
 }
@@ -42,7 +38,6 @@ const GOERLI_ETH: NetworkBaseAsset = {
   ...ETH,
   chainID: "5",
   metadata: {
-    coinGeckoID: "ethereum",
     tokenLists: [],
   },
 }
@@ -53,7 +48,6 @@ const RBTC: NetworkBaseAsset = {
   symbol: "RBTC",
   decimals: 18,
   metadata: {
-    coinGeckoID: "rootstock",
     tokenLists: [],
   },
 }
@@ -64,7 +58,6 @@ const MATIC: NetworkBaseAsset = {
   symbol: "MATIC",
   decimals: 18,
   metadata: {
-    coinGeckoID: "matic-network",
     tokenLists: [],
     websiteURL: "https://polygon.technology/",
   },
@@ -76,7 +69,6 @@ const AVAX: NetworkBaseAsset = {
   symbol: "AVAX",
   decimals: 18,
   metadata: {
-    coinGeckoID: "avalanche-2",
     tokenLists: [],
     websiteURL: "https://avax.network/",
   },
@@ -88,7 +80,6 @@ const BNB: NetworkBaseAsset = {
   symbol: "BNB",
   decimals: 18,
   metadata: {
-    coinGeckoID: "binancecoin",
     tokenLists: [],
     websiteURL: "https://bnbchain.org",
   },
@@ -100,7 +91,6 @@ const QUAI: NetworkBaseAsset = {
   symbol: "QUAI",
   decimals: 18,
   metadata: {
-    coinGeckoID: "",
     tokenLists: [],
     websiteURL: "https://qu.ai/",
   },
@@ -112,7 +102,6 @@ const QUAI_LOCAL: NetworkBaseAsset = {
   symbol: "QUAI",
   decimals: 18,
   metadata: {
-    coinGeckoID: "",
     tokenLists: [],
     websiteURL: "https://qu.ai/",
   },

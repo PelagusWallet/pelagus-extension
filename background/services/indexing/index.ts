@@ -24,10 +24,9 @@ import {
   OPTIMISM,
   POLYGON,
   SECOND,
-  USD,
   getShardFromAddress,
 } from "../../constants"
-import { getPrices, getTokenPrices, getPricePoint } from "../../lib/prices"
+import { getPricePoint } from "../../lib/prices"
 
 import {
   getUSDPriceForBaseAsset,
@@ -723,7 +722,6 @@ export default class IndexingService extends BaseService<Events> {
         await this.addOrUpdateCustomAsset(customAsset)
         this.emitter.emit("refreshAsset", customAsset)
         // TODO if we still don't have anything, use a contract read + a
-        // CoinGecko lookup
         await this.addAssetToTrack(customAsset)
       }
     }
@@ -738,45 +736,24 @@ export default class IndexingService extends BaseService<Events> {
     try {
       // TODO include user-preferred currencies
       // get the prices of ETH and BTC vs major currencies
-      const baseAssets = await this.chainService.getNetworkBaseAssets()
-      let basicPrices = await getPrices(baseAssets, FIAT_CURRENCIES)
+      const basicPrices = await Promise.all(
+        [
+          ETHEREUM,
+          ARBITRUM_ONE,
+          OPTIMISM,
+          BINANCE_SMART_CHAIN,
+          POLYGON,
+          AVALANCHE,
+        ].map(async (network: EVMNetwork) => {
+          const provider = this.chainService.providerForNetworkOrThrow(network)
+          return getUSDPriceForBaseAsset(network, provider)
+        })
+      )
 
-      if (basicPrices.length === 0) {
-        basicPrices = await Promise.all(
-          [
-            ETHEREUM,
-            ARBITRUM_ONE,
-            OPTIMISM,
-            BINANCE_SMART_CHAIN,
-            POLYGON,
-            AVALANCHE,
-          ].map(async (network: EVMNetwork) => {
-            const provider =
-              this.chainService.providerForNetworkOrThrow(network)
-            return getUSDPriceForBaseAsset(network, provider)
-          })
-        )
-      }
-
-      // kick off db writes and event emission, don't wait for the promises to
-      // settle
-      const measuredAt = Date.now()
-      basicPrices.forEach((pricePoint) => {
-        this.db
-          .savePriceMeasurement(pricePoint, measuredAt, "coingecko")
-          .catch((err) =>
-            logger.error(
-              "Error saving price point",
-              err,
-              pricePoint,
-              measuredAt
-            )
-          )
-      })
       this.emitter.emit("prices", basicPrices)
     } catch (e) {
       logger.error(
-        "Error getting base asset prices from coingecko",
+        "Error getting base asset prices",
         BUILT_IN_NETWORK_BASE_ASSETS,
         FIAT_CURRENCIES
       )
@@ -829,21 +806,10 @@ export default class IndexingService extends BaseService<Events> {
             Object.keys(activeAssetsByAddress).length > 0
         )
 
-      const measuredAt = Date.now()
-
       // @TODO consider allSettled here
       const activeAssetPricesByNetwork = await Promise.all(
         activeAssetsByNetwork.map(
           async ({ activeAssetsByAddress, network }) => {
-            const coingeckoTokenPrices = await getTokenPrices(
-              Object.keys(activeAssetsByAddress),
-              USD,
-              network
-            )
-            if (Object.keys(coingeckoTokenPrices).length) {
-              return coingeckoTokenPrices
-            }
-
             const provider =
               this.chainService.providerForNetworkOrThrow(network)
 
@@ -866,13 +832,7 @@ export default class IndexingService extends BaseService<Events> {
         .map(([contractAddress, unitPricePoint]) => {
           const asset = allActiveAssetsByAddress[contractAddress.toLowerCase()]
           if (asset) {
-            const pricePoint = getPricePoint(asset, unitPricePoint)
-            this.db
-              .savePriceMeasurement(pricePoint, measuredAt, "coingecko")
-              .catch(() =>
-                logger.error("Error saving price point", pricePoint, measuredAt)
-              )
-            return pricePoint
+            return getPricePoint(asset, unitPricePoint)
           }
           logger.warn(
             "Discarding price from unknown asset",
@@ -885,11 +845,7 @@ export default class IndexingService extends BaseService<Events> {
 
       this.emitter.emit("prices", pricePoints)
     } catch (err) {
-      logger.error(
-        "Error getting token prices from coingecko",
-        activeAssetsToTrack,
-        err
-      )
+      logger.error("Error getting token prices", activeAssetsToTrack, err)
     }
   }
 

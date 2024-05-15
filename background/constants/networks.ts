@@ -38,7 +38,6 @@ export const ETHEREUM: EVMNetwork = {
   baseAsset: ETH,
   chainID: "1",
   family: "EVM",
-  coingeckoPlatformID: "ethereum",
 }
 
 export const ROOTSTOCK: EVMNetwork = {
@@ -47,7 +46,6 @@ export const ROOTSTOCK: EVMNetwork = {
   chainID: "30",
   derivationPath: "m/44'/137'/0'/0",
   family: "EVM",
-  coingeckoPlatformID: "rootstock",
 }
 
 export const POLYGON: EVMNetwork = {
@@ -55,7 +53,6 @@ export const POLYGON: EVMNetwork = {
   baseAsset: MATIC,
   chainID: "137",
   family: "EVM",
-  coingeckoPlatformID: "polygon-pos",
 }
 
 export const ARBITRUM_ONE: EVMNetwork = {
@@ -63,7 +60,6 @@ export const ARBITRUM_ONE: EVMNetwork = {
   baseAsset: ARBITRUM_ONE_ETH,
   chainID: "42161",
   family: "EVM",
-  coingeckoPlatformID: "arbitrum-one",
 }
 
 export const AVALANCHE: EVMNetwork = {
@@ -71,7 +67,6 @@ export const AVALANCHE: EVMNetwork = {
   baseAsset: AVAX,
   chainID: "43114",
   family: "EVM",
-  coingeckoPlatformID: "avalanche",
 }
 
 export const BINANCE_SMART_CHAIN: EVMNetwork = {
@@ -79,7 +74,6 @@ export const BINANCE_SMART_CHAIN: EVMNetwork = {
   baseAsset: BNB,
   chainID: "56",
   family: "EVM",
-  coingeckoPlatformID: "binance-smart-chain",
 }
 
 export const ARBITRUM_NOVA: EVMNetwork = {
@@ -87,7 +81,6 @@ export const ARBITRUM_NOVA: EVMNetwork = {
   baseAsset: ARBITRUM_NOVA_ETH,
   chainID: "42170",
   family: "EVM",
-  coingeckoPlatformID: "arbitrum-nova",
 }
 
 export const OPTIMISM: EVMNetwork = {
@@ -95,7 +88,6 @@ export const OPTIMISM: EVMNetwork = {
   baseAsset: OPTIMISTIC_ETH,
   chainID: "10",
   family: "EVM",
-  coingeckoPlatformID: "optimistic-ethereum",
 }
 
 export const GOERLI: EVMNetwork = {
@@ -103,7 +95,6 @@ export const GOERLI: EVMNetwork = {
   baseAsset: GOERLI_ETH,
   chainID: "5",
   family: "EVM",
-  coingeckoPlatformID: "ethereum",
 }
 
 export const ZK_SYNC: EVMNetwork = {
@@ -381,7 +372,6 @@ export const FORK: EVMNetwork = {
   baseAsset: ETH,
   chainID: process.env.MAINNET_FORK_CHAIN_ID ?? "42", // placeholder
   family: "EVM",
-  coingeckoPlatformID: "ethereum",
 }
 
 export const EIP_1559_COMPLIANT_CHAIN_IDS = new Set(
@@ -428,33 +418,6 @@ export const CHAIN_ID_TO_0X_API_BASE: {
 export const NETWORKS_SUPPORTING_SWAPS = new Set(
   Object.keys(CHAIN_ID_TO_0X_API_BASE)
 )
-
-// Taken from https://api.coingecko.com/api/v3/asset_platforms
-export const CHAIN_ID_TO_COINGECKO_PLATFORM_ID: {
-  [chainId: string]: string
-} = {
-  "250": "fantom",
-  "122": "fuse",
-  "361": "theta",
-  "199": "bittorent",
-  "106": "velas",
-  "128": "huobi-token",
-  "96": "bitkub-chain",
-  "333999": "polis-chain",
-  "321": "kucoin-community-chain",
-  "1285": "moonriver",
-  "25": "cronos",
-  "10000": "smartbch",
-  "1313161554": "aurora",
-  "88": "tomochain",
-  "1088": "metis-andromeda",
-  "2001": "milkomeda-cardano",
-  "9001": "evmos",
-  "288": "boba",
-  "42220": "celo",
-  "1284": "moonbeam",
-  "66": "okex-chain",
-}
 
 /**
  * Method list, to describe which rpc method calls on which networks

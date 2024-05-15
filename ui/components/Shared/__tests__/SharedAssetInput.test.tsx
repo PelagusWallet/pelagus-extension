@@ -12,7 +12,6 @@ const asset: FungibleAsset = {
   name: "Fake token",
   decimals: 2,
   metadata: {
-    coinGeckoID: "fake",
     tokenLists: [
       {
         name: "",
@@ -35,7 +34,6 @@ const assetsAndAmounts = [
       name: "Test token",
       decimals: 2,
       metadata: {
-        coinGeckoID: "test",
         tokenLists: [
           {
             name: "",
@@ -55,7 +53,6 @@ const assetsAndAmounts = [
       name: "Unverified token",
       decimals: 2,
       metadata: {
-        coinGeckoID: "test",
         tokenLists: [],
         websiteURL: "",
         verified: false,

@@ -34,13 +34,6 @@ export type PriceMeasurement = IndexedPricePoint & {
    * PricePoint purportis to represent.
    */
   retrievedAt: number
-
-  /*
-   * An attempt to keep loose track of price data sources. It's unclear whether
-   * we'll need more than a simple string down the road.
-   */
-  dataSource: "coingecko"
-
   /*
    * An optional exchange identifier.
    */
@@ -242,21 +235,6 @@ export class IndexingDatabase extends Dexie {
       assetsToTrack:
         "&[contractAddress+homeNetwork.name],symbol,contractAddress,homeNetwork.family,homeNetwork.chainID,homeNetwork.name",
     })
-  }
-
-  async savePriceMeasurement(
-    pricePoint: PricePoint,
-    retrievedAt: number,
-    dataSource: PriceMeasurement["dataSource"],
-    exchange?: string
-  ): Promise<void> {
-    const measurement = {
-      ...normalizePricePoint(pricePoint),
-      retrievedAt,
-      dataSource,
-      exchange,
-    }
-    await this.prices.add(measurement)
   }
 
   async getLatestAccountBalance(

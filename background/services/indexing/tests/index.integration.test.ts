@@ -66,17 +66,13 @@ describe("IndexingService", () => {
   let preferenceService: PreferenceService
 
   beforeEach(async () => {
-    fetchJsonStub
-      .withArgs(
-        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,matic-network,rootstock,avalanche-2,binancecoin&include_last_updated_at=true&vs_currencies=usd"
-      )
-      .resolves({
-        "matic-network": { usd: 1.088, last_updated_at: 1675123143 },
-        ethereum: { usd: 1569.14, last_updated_at: 1675123142 },
-        "avalanche-2": { usd: 19.76, last_updated_at: 1675123166 },
-        binancecoin: { usd: 307.31, last_updated_at: 1675123138 },
-        rootstock: { usd: 22837, last_updated_at: 1675123110 },
-      })
+    fetchJsonStub.resolves({
+      "matic-network": { usd: 1.088, last_updated_at: 1675123143 },
+      ethereum: { usd: 1569.14, last_updated_at: 1675123142 },
+      "avalanche-2": { usd: 19.76, last_updated_at: 1675123166 },
+      binancecoin: { usd: 307.31, last_updated_at: 1675123138 },
+      rootstock: { usd: 22837, last_updated_at: 1675123110 },
+    })
 
     preferenceService = await createPreferenceService()
 

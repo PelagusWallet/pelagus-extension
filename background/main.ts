@@ -137,8 +137,6 @@ import { AccountSignerWithId } from "./signing"
 import { AnalyticsPreferences } from "./services/preferences/types"
 import {
   AnyAssetMetadata,
-  assetAmountToDesiredDecimals,
-  convertAssetAmountViaPricePoint,
   isSmartContractFungibleAsset,
   SmartContractAsset,
   SmartContractFungibleAsset,
@@ -151,7 +149,6 @@ import {
   OneTimeAnalyticsEvent,
 } from "./lib/posthog"
 import { isBuiltInNetworkBaseAsset } from "./redux-slices/utils/asset-utils"
-import { getPricePoint, getTokenPrices } from "./lib/prices"
 import localStorageShim from "./utils/local-storage-shim"
 import { SignerImportMetadata } from "./services/keyring"
 
@@ -1866,38 +1863,13 @@ export default class Main extends BaseService<never> {
       addressOnNetwork,
       cachedAsset
     )
-    let priceData: any
-    try {
-      priceData = await getTokenPrices([contractAddress], USD, network)
-    } catch (error) {
-      return {
-        ...assetData,
-        balance: Number.parseFloat(
-          utils.formatUnits(assetData.amount, assetData.asset.decimals)
-        ),
-        mainCurrencyAmount: undefined,
-        exists: !!cachedAsset,
-      }
-    }
-
-    const convertedAssetAmount =
-      contractAddress in priceData
-        ? convertAssetAmountViaPricePoint(
-            assetData,
-            getPricePoint(assetData.asset, priceData[contractAddress])
-          )
-        : undefined
-
-    const mainCurrencyAmount = convertedAssetAmount
-      ? assetAmountToDesiredDecimals(convertedAssetAmount, 2)
-      : undefined
 
     return {
       ...assetData,
       balance: Number.parseFloat(
         utils.formatUnits(assetData.amount, assetData.asset.decimals)
       ),
-      mainCurrencyAmount,
+      mainCurrencyAmount: undefined,
       exists: !!cachedAsset,
     }
   }

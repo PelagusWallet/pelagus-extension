@@ -11,7 +11,6 @@ describe("Asset utils", () => {
         symbol: "TST",
         decimals: 18,
         metadata: {
-          coinGeckoID: "test",
           tokenLists: [],
           websiteURL: "",
         },
@@ -25,7 +24,6 @@ describe("Asset utils", () => {
         symbol: "TST",
         decimals: 18,
         metadata: {
-          coinGeckoID: "test",
           tokenLists: [
             {
               name: "",

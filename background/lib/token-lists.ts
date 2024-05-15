@@ -64,14 +64,6 @@ export async function fetchAndValidateTokenList(
   }
 }
 
-export async function fetchAndValidateTokenLists(
-  urls: string[]
-): Promise<TokenListAndReference[]> {
-  return (await Promise.allSettled(urls.map(fetchAndValidateTokenList)))
-    .filter((l) => l.status === "fulfilled")
-    .map((l) => (l as PromiseFulfilledResult<TokenListAndReference>).value)
-}
-
 function tokenListToFungibleAssetsForNetwork(
   network: EVMNetwork,
   { url: tokenListURL, tokenList }: TokenListAndReference

@@ -50,8 +50,8 @@ if (!window.walletRouter) {
           // eslint-disable-next-line no-nested-ternary
           ...(window.ethereum
             ? // let's use the providers that has already been registered
-            // This format is used by coinbase wallet
-            Array.isArray(window.ethereum.providers)
+              // This format is used by coinbase wallet
+              Array.isArray(window.ethereum.providers)
               ? [...window.ethereum.providers, window.ethereum]
               : [window.ethereum]
             : []),
@@ -67,14 +67,11 @@ if (!window.walletRouter) {
           !shouldSetPelagus &&
           this.currentProvider === this.pelagusProvider
         ) {
-          this.currentProvider = this.lastInjectedProvider ?? this.pelagusProvider
+          this.currentProvider =
+            this.lastInjectedProvider ?? this.pelagusProvider
         }
 
-        if (
-          shouldReload &&
-          (window.location.href.includes("app.uniswap.org") ||
-            window.location.href.includes("galxe.com"))
-        ) {
+        if (shouldReload && window.location.href.includes("galxe.com")) {
           setTimeout(() => {
             window.location.reload()
           }, 1000)
@@ -89,7 +86,7 @@ if (!window.walletRouter) {
           }
         )
       },
-      setSelectedProvider() { },
+      setSelectedProvider() {},
       addProvider(newProvider: WalletProvider) {
         if (!this.providers.includes(newProvider)) {
           this.providers.push(newProvider)
@@ -139,8 +136,7 @@ Object.defineProperty(window, "ethereum", {
           // as a workaround we need to remove this list for uniswap so the actual provider change can work after reload.
           // The same is true for `galaxy.eco`
           if (
-            (window.location.href.includes("app.uniswap.org") ||
-              window.location.href.includes("kwenta.io") ||
+            (window.location.href.includes("kwenta.io") ||
               window.location.href.includes("galxe.com")) &&
             prop === "providers"
           ) {

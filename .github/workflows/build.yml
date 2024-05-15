@@ -26,9 +26,6 @@ on:
       GPG_KEY_ID:
         description: 'needed for gpg key'
         required: true
-      ALCHEMY_API_KEY:
-        description: 'needed for alchemy'
-        required: true
       BLOCKNATIVE_API_KEY:
         description: 'needed for blocknative'
         required: true
@@ -130,7 +127,6 @@ jobs:
           echo 'USE_ANALYTICS_SOURCE="BETA"' >> .env
           yarn build
         env:
-          ALCHEMY_KEY: ${{ secrets.DEV_ALCHEMY_API_KEY || 'oV1Rtjh61hGa97X2MTqMY9kEUcpxP-6K' }}
           BLOCKNATIVE_API_KEY: ${{ secrets.DEV_BLOCKNATIVE_API_KEY || 'f60816ff-da02-463f-87a6-67a09c6d53fa' }}
           COMMIT_SHA: ${{ github.sha }}
       - name: Production build
@@ -139,7 +135,6 @@ jobs:
           echo 'USE_ANALYTICS_SOURCE="PROD"' >> .env
           yarn build
         env:
-          ALCHEMY_KEY: ${{ secrets.ALCHEMY_API_KEY }}
           BLOCKNATIVE_API_KEY: ${{ secrets.BLOCKNATIVE_API_KEY }}
           UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
           SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}

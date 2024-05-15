@@ -7,10 +7,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
-import {
-  ALCHEMY_SUPPORTED_CHAIN_IDS,
-  CurrentShardToExplorer,
-} from "@pelagus/pelagus-background/constants"
+import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import WalletActivityDetails from "./WalletActivityDetails"
@@ -80,9 +77,7 @@ export default function WalletActivityList({
   if (!activities || activities.length === 0)
     return (
       <span>
-        {ALCHEMY_SUPPORTED_CHAIN_IDS.has(network.chainID)
-          ? t("historicalActivityExplainer")
-          : t("defaultHistoricalActivityExplainer")}
+        {t("defaultHistoricalActivityExplainer")}
         <style jsx>{`
           span {
             width: 316px;

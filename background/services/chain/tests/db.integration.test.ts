@@ -69,9 +69,6 @@ describe("Chain Database ", () => {
       network: OPTIMISM,
     })
     it("should correctly persist transactions to indexedDB", async () => {
-      await db.addOrUpdateTransaction(addTransactionEth, "alchemy")
-      await db.addOrUpdateTransaction(addTransactionOpt, "alchemy")
-
       const getEthTransaction = await db.getTransaction(
         addTransactionEth.network,
         addTransactionEth.hash
@@ -86,9 +83,6 @@ describe("Chain Database ", () => {
       expect(getOptTransaction?.hash).toEqual(addTransactionOpt.hash)
     })
     it("should correctly update transactions in indexedDB", async () => {
-      await db.addOrUpdateTransaction(addTransactionEth, "alchemy")
-      await db.addOrUpdateTransaction(addTransactionOpt, "alchemy")
-
       expect(addTransactionEth.gasPrice).toEqual(40300000000n)
       expect(addTransactionOpt.gasPrice).toEqual(40300000000n)
 
@@ -116,8 +110,6 @@ describe("Chain Database ", () => {
         gasPrice: 40400000000n,
       })
 
-      await db.addOrUpdateTransaction(updateEth, "alchemy")
-      await db.addOrUpdateTransaction(updateOpt, "alchemy")
       expect(updateEth.gasPrice).toEqual(40400000000n)
       expect(updateOpt.gasPrice).toEqual(40400000000n)
     })
@@ -151,11 +143,6 @@ describe("Chain Database ", () => {
       const savedTransaction4 = createAnyEVMTransaction({
         network: OPTIMISM,
       })
-
-      await db.addOrUpdateTransaction(savedTransaction1, "alchemy")
-      await db.addOrUpdateTransaction(savedTransaction2, "alchemy")
-      await db.addOrUpdateTransaction(savedTransaction3, "alchemy")
-      await db.addOrUpdateTransaction(savedTransaction4, "alchemy")
 
       const allTransactions = await db.getAllSavedTransactionHashes()
 
@@ -255,11 +242,6 @@ describe("Chain Database ", () => {
         network: OPTIMISM,
         blockHash: null,
       })
-
-      await db.addOrUpdateTransaction(pendingEthTx1, "alchemy")
-      await db.addOrUpdateTransaction(pendingEthTx2, "alchemy")
-      await db.addOrUpdateTransaction(completeEthTx, "alchemy")
-      await db.addOrUpdateTransaction(pendingOptimismTx1, "alchemy")
 
       const ethPendingTransactions = await db.getNetworkPendingTransactions(
         ETHEREUM

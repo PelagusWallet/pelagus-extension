@@ -319,9 +319,6 @@ describe("IndexingService", () => {
 
       const account = createAddressOnNetwork()
 
-      const provider = chainService.providerForNetworkOrThrow(ETHEREUM)
-      provider.supportsAlchemy = true
-
       jest
         .spyOn(chainService, "getAccountsToTrack")
         .mockResolvedValue([account])
@@ -371,9 +368,6 @@ describe("IndexingService", () => {
       ])
 
       const account = createAddressOnNetwork()
-
-      const provider = chainService.providerForNetworkOrThrow(ETHEREUM)
-      provider.supportsAlchemy = false
 
       jest
         .spyOn(chainService, "getAccountsToTrack")

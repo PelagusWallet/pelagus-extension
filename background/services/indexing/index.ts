@@ -968,22 +968,17 @@ export default class IndexingService extends BaseService<Events> {
           globalThis.main.SetShard(shard)
         }
 
-        const provider = this.chainService.providerForNetworkOrThrow(network)
-
         const loadBaseAccountBalance =
           this.chainService.getLatestBaseAccountBalance(addressOnNetwork)
 
         /**
-         * When the provider supports alchemy we can use alchemy_getTokenBalances
-         * to query all erc20 token balances without specifying which assets we
-         * need to check. When it does not, we try checking balances for every asset
+         * We try checking balances for every asset
          * we've seen in the network.
          */
-        const assetsToCheck = provider.supportsAlchemy
-          ? []
-          : // This doesn't pass assetsToTrack stored in the db as
-            // it assumes they've already been cached
-            this.getCachedAssets(network).filter(isSmartContractFungibleAsset)
+        const assetsToCheck =
+          // This doesn't pass assetsToTrack stored in the db as
+          // it assumes they've already been cached
+          this.getCachedAssets(network).filter(isSmartContractFungibleAsset)
 
         const loadTokenBalances = this.retrieveTokenBalances(
           addressOnNetwork,

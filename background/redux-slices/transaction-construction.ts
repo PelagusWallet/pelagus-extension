@@ -298,7 +298,6 @@ const transactionSlice = createSlice({
       }: { payload: { estimatedFeesPerGas: BlockPrices; network: EVMNetwork } }
     ) => {
       if (network.chainID === OPTIMISM.chainID) {
-        // @TODO change up how we do block estimates since alchemy only gives us an `instant` estimate for optimism.
         const optimismBlockEstimate = makeBlockEstimate(
           INSTANT,
           estimatedFeesPerGas

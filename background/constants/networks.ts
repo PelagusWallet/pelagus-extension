@@ -429,12 +429,6 @@ export const NETWORKS_SUPPORTING_SWAPS = new Set(
   Object.keys(CHAIN_ID_TO_0X_API_BASE)
 )
 
-export const ALCHEMY_SUPPORTED_CHAIN_IDS = new Set(
-  [ETHEREUM, POLYGON, ARBITRUM_ONE, OPTIMISM, GOERLI].map(
-    (network) => network.chainID
-  )
-)
-
 // Taken from https://api.coingecko.com/api/v3/asset_platforms
 export const CHAIN_ID_TO_COINGECKO_PLATFORM_ID: {
   [chainId: string]: string
@@ -463,18 +457,15 @@ export const CHAIN_ID_TO_COINGECKO_PLATFORM_ID: {
 }
 
 /**
- * Method list, to describe which rpc method calls on which networks should
- * prefer alchemy provider over the generic ones.
+ * Method list, to describe which rpc method calls on which networks
  *
  * The method names can be full or the starting parts of the method name.
- * This allows us to use "namespaces" for providers eg `alchemy_...` or `qn_...`
+ * This allows us to use "namespaces" for providers eg `qn_...`
  *
  * The structure is network specific with an extra `everyChain` option.
- * The methods in this array will be directed towards alchemy on every network.
  */
 export const RPC_METHOD_PROVIDER_ROUTING = {
   everyChain: [
-    "alchemy_", // alchemy specific api calls start with this
     "quai_sendRawTransaction", // broadcast should always go to alchemy
     "quai_subscribe", // generic http providers do not support this, but dapps need this
     "quai_estimateGas", // just want to be safe, when setting up a transaction

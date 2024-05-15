@@ -6,7 +6,6 @@ import path from "path"
 import { schema } from "@uniswap/token-lists"
 
 import { swapPriceJTD, swapQuoteJTD } from "./lib/validate/0x-swap"
-import { coingeckoPriceSchema } from "./lib/validate/prices"
 
 const ajvJTD = new AjvJTD({
   allErrors: true,
@@ -19,9 +18,7 @@ const ajvJSON = new AjvJSON({
   allErrors: true,
   code: { source: true },
   formats: { "date-time": true, uri: true },
-})
-  .addSchema(coingeckoPriceSchema, "isValidCoinGeckoPriceResponse")
-  .addSchema(schema, "isValidUniswapTokenListResponse")
+}).addSchema(schema, "isValidUniswapTokenListResponse")
 
 const jtdModuleCode = standaloneCode(ajvJTD).replace(
   '/*# sourceURL="https://uniswap.org/tokenlist.schema.json" */',

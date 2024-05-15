@@ -8,7 +8,6 @@ import {
   FungibleAsset,
   UnitPricePoint,
   AnyAsset,
-  CoinGeckoAsset,
   isSmartContractFungibleAsset,
 } from "../../assets"
 import {
@@ -114,7 +113,7 @@ export function isBuiltInNetworkBaseAsset(
 export function getBuiltInNetworkBaseAsset(
   symbol: string,
   chainID: string
-): (NetworkBaseAsset & Required<CoinGeckoAsset>) | undefined {
+): NetworkBaseAsset | undefined {
   return BUILT_IN_NETWORK_BASE_ASSETS.find(
     (asset) => asset.symbol === symbol && asset.chainID === chainID
   )

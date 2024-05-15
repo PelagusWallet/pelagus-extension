@@ -176,9 +176,8 @@ function SelectAssetMenuContent<T extends AnyAsset>(
               return (
                 <SharedAssetItem
                   key={
-                    asset.metadata?.coinGeckoID ??
                     asset.symbol +
-                      ("contractAddress" in asset ? asset.contractAddress : "")
+                    ("contractAddress" in asset ? asset.contractAddress : "")
                   }
                   assetAndAmount={assetWithOptionalAmount}
                   onClick={() =>

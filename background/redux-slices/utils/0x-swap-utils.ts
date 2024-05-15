@@ -1,13 +1,11 @@
 import { PricePoint, SwappableAsset } from "../../assets"
-import { USD } from "../../constants"
 import {
   convertFixedPointNumber,
   fixedPointNumberToString,
   parseToFixedPointNumber,
 } from "../../lib/fixed-point"
-import { getPricePoint, getTokenPrices } from "../../lib/prices"
 import { EVMNetwork } from "../../networks"
-import { AssetsState, selectAssetPricePoint, SingleAssetState } from "../assets"
+import { AssetsState, selectAssetPricePoint } from "../assets"
 import {
   AssetMainCurrencyAmount,
   enrichAssetAmountWithMainCurrencyValues,
@@ -46,27 +44,7 @@ export async function getAssetPricePoint(
   assets: AssetsState,
   network: EVMNetwork
 ): Promise<PricePoint | undefined> {
-  const assetPricesNetworks = assets
-    .filter(
-      (assetItem) =>
-        "contractAddress" in assetItem &&
-        assetItem.contractAddress &&
-        assetItem.symbol === asset.symbol
-    )
-    .map((assetItem) => {
-      const { contractAddress } = assetItem as SingleAssetState & {
-        contractAddress: string
-      }
-      return contractAddress
-    })
-
-  const [unitPricePoint] = Object.values(
-    await getTokenPrices(assetPricesNetworks, USD, network)
-  )
-
-  return unitPricePoint === undefined
-    ? undefined
-    : getPricePoint(asset, unitPricePoint)
+  return undefined
 }
 
 export async function getAssetAmount(
@@ -109,7 +87,6 @@ export async function getAssetAmount(
 /**
  * If the tokenToEthRate of a is less than 0.1
  * we will probably not get information about the price of the asset.
- * The goal is to reduce the number of price requests sent to CoinGecko.
  */
 export async function checkCurrencyAmount(
   tokenToEthRate: number,

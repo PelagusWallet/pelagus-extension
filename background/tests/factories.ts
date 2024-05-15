@@ -408,7 +408,6 @@ export const createNetworkBaseAsset = (
   const symbol = getRandomStr(3)
   const asset: NetworkBaseAsset = {
     metadata: {
-      coinGeckoID: "ethereum",
       logoURL: "http://example.com/foo.png",
       tokenLists: [],
     },

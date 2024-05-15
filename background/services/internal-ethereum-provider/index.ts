@@ -175,7 +175,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
     origin: string
   ): Promise<unknown> {
     switch (method) {
-      // supported alchemy methods: https://docs.alchemy.com/alchemy/apis/ethereum
       case "quai_signTypedData":
       case "quai_signTypedData_v1":
       case "quai_signTypedData_v3":
@@ -286,7 +285,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         )
       case "eth_accounts":
       case "quai_accounts": {
-        // This is a special method, because Alchemy provider DO support it, but always return null (because they do not store keys.)
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
       }

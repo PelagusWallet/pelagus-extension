@@ -1,8 +1,3 @@
-import {
-  getAssetTransfers as getAlchemyAssetTransfers,
-  getTokenBalances as getAlchemyTokenBalances,
-  getTokenMetadata as getAlchemyTokenMetadata,
-} from "../../lib/alchemy"
 import SerialFallbackProvider from "./serial-fallback-provider"
 import {
   AssetTransfer,
@@ -83,9 +78,6 @@ export default class AssetDataHelper {
     }
 
     try {
-      if (provider.supportsAlchemy) {
-        return await getAlchemyTokenBalances(provider, addressOnNetwork)
-      }
       return await getTokenBalances(
         addressOnNetwork,
         smartContractAddresses || [],
@@ -142,66 +134,10 @@ export default class AssetDataHelper {
       return undefined
     }
 
-    if (provider.supportsAlchemy) {
-      return getAlchemyTokenMetadata(provider, tokenSmartContract)
-    }
-
     return getERC20Metadata(provider, tokenSmartContract)
   }
 
-  /**
-   * Best-effort fetch of asset transfers from the current provider. May return
-   * an empty list if the current provider does not support lookup of assets.
-   */
-  async getAssetTransfers(
-    addressOnNetwork: AddressOnNetwork,
-    startBlock: number,
-    endBlock?: number,
-    incomingOnly = false
-  ): Promise<AssetTransfer[]> {
-    const provider = this.providerTracker.providerForNetwork(
-      addressOnNetwork.network
-    )
-    if (typeof provider === "undefined") {
-      return []
-    }
-
-    try {
-      if (provider.supportsAlchemy) {
-        const promises = [
-          getAlchemyAssetTransfers(
-            provider,
-            addressOnNetwork,
-            "incoming",
-            startBlock,
-            endBlock
-          ),
-        ]
-        if (!incomingOnly) {
-          promises.push(
-            getAlchemyAssetTransfers(
-              provider,
-              addressOnNetwork,
-              "outgoing",
-              startBlock,
-              endBlock
-            )
-          )
-        }
-        return (await Promise.all(promises)).flat()
-      }
-    } catch (error) {
-      logger.warn(
-        "Problem resolving asset transfers via Alchemy helper; network may " +
-          "not support it.",
-        error
-      )
-
-      // Rethrow as consumers like ChainService need the exception to manage
-      // retries. Eventually we may want retries to be handled here.
-      throw error
-    }
-
+  async getAssetTransfers(): Promise<AssetTransfer[]> {
     return []
   }
 }

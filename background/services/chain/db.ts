@@ -23,7 +23,7 @@ import {
 } from "../../constants"
 
 export type Transaction = AnyEVMTransaction & {
-  dataSource: "alchemy" | "local"
+  dataSource: "local"
   firstSeen: UNIXTime
 }
 

@@ -1,6 +1,4 @@
 import {
-  AlchemyProvider,
-  AlchemyWebSocketProvider,
   EventType,
   JsonRpcProvider,
   Listener,
@@ -11,11 +9,8 @@ import {
   WebSocketProvider as QuaisWebSocketProvider,
 } from "@quais/providers"
 import { utils } from "ethers"
-import { getNetwork } from "@ethersproject/networks"
 import {
   SECOND,
-  ALCHEMY_SUPPORTED_CHAIN_IDS,
-  RPC_METHOD_PROVIDER_ROUTING,
   ShardFromRpcUrl,
   setProviderForShard,
   NETWORK_BY_CHAIN_ID,
@@ -24,10 +19,6 @@ import logger from "../../lib/logger"
 import { AnyEVMTransaction } from "../../networks"
 import { AddressOnNetwork } from "../../accounts"
 import { transactionFromEthersTransaction } from "./utils"
-import {
-  ALCHEMY_KEY,
-  transactionFromAlchemyWebsocketTransaction,
-} from "../../lib/alchemy"
 
 // Back off by this amount as a base, exponentiated by attempts and jittered.
 const BASE_BACKOFF_MS = 600
@@ -111,25 +102,7 @@ function isConnectingWebSocketProvider(provider: JsonRpcProvider): boolean {
 }
 
 /**
- * Return the decision whether a given RPC call should be routed to the alchemy provider
- * or the generic provider.
- *
- * Checking whether is alchemy supported is a non concern for this function!
- *
- * @param chainID string chainID to handle chain specific routings
- * @param method the current RPC method
- * @returns true | false whether the method on a given network should be routed to alchemy or can be sent over the generic provider
- */
-function alchemyOrDefaultProvider(chainID: string, method: string): boolean {
-  return (
-    RPC_METHOD_PROVIDER_ROUTING.everyChain.some((m: string) =>
-      method.startsWith(m)
-    ) ||
-    (RPC_METHOD_PROVIDER_ROUTING[Number(chainID)] ?? []).some((m: string) =>
-      method.startsWith(m)
-    )
-  )
-}
+ * Return the decision whether a given RPC call should be routed to the generic provider.
 
 /**
  * The SerialFallbackProvider is an Ethers JsonRpcProvider that can fall back
@@ -147,7 +120,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   // Functions that will create and initialize a new provider, in priority
   // order.
   public providerCreators: Array<{
-    type: "alchemy" | "generic" | "Quai"
+    type: "generic" | "Quai"
     shard?: string
     rpcUrl?: string
     creator: () =>
@@ -164,8 +137,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   private backoffUrlsToTime: Map<string, number>
 
   private urlsReadyForReconnect: Map<string, boolean>
-
-  private alchemyProvider: JsonRpcProvider | undefined
 
   /**
    * This object holds all messages that are either being sent to a provider
@@ -189,12 +160,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       | QuaisWebSocketProvider,
     index: number
   ) => void
-
-  private alchemyProviderCreator:
-    | (() => WebSocketProvider | JsonRpcProvider)
-    | undefined
-
-  supportsAlchemy = false
 
   /**
    * Since our architecture follows a pattern of using distinct provider instances
@@ -252,7 +217,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     // clashing with Ethers's own `network` stuff.
     private chainID: string,
     providerCreators: Array<{
-      type: "alchemy" | "generic" | "Quai"
+      type: "generic" | "Quai"
       shard?: string
       rpcUrl?: string
       creator: () =>
@@ -271,19 +236,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
 
     this.currentProvider = firstProvider
 
-    const alchemyProviderCreator = providerCreators.find(
-      (creator) => creator.type === "alchemy"
-    )
-
-    if (alchemyProviderCreator) {
-      this.supportsAlchemy = true
-      this.alchemyProviderCreator = alchemyProviderCreator.creator
-      this.alchemyProvider = this.alchemyProviderCreator()
-    }
-
     setInterval(() => {
       this.attemptToReconnectToPrimaryProvider()
-      this.attemptToReconnectToAlchemyProvider()
     }, PRIMARY_PROVIDER_RECONNECT_INTERVAL)
 
     setInterval(() => {
@@ -345,25 +299,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
         return await waitAnd(WAIT_BEFORE_SEND_AGAIN, async () =>
           this.routeRpcCall(messageId)
         )
-      }
-
-      if (
-        // Force some methods to be handled by alchemy if we're on an alchemy supported chain
-        this.alchemyProvider &&
-        alchemyOrDefaultProvider(this.cachedChainId, method)
-      ) {
-        if (this.alchemyProvider) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const result = await this.alchemyProvider.send(method, params)
-          delete this.messagesToSend[messageId]
-          return result
-        }
-        if (/^alchemy_|^eth_subscribe$/.test(method)) {
-          delete this.messagesToSend[messageId]
-          throw new Error(
-            `Calling ${method} is not supported on ${this.currentProvider.network.name}`
-          )
-        }
       }
 
       const result = await this.currentProvider.send(method, params)
@@ -622,33 +557,24 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       return
     }
 
-    const alchemySubscription =
-      await this.alchemySubscribeFullPendingTransactions(
-        { address, network },
-        handler
-      )
-
-    if (alchemySubscription === "unsupported") {
-      // Fall back on a standard pending transaction subscription if the
-      // Alchemy version is unsupported.
-      this.on("pending", async (transactionHash: unknown) => {
-        try {
-          if (typeof transactionHash === "string") {
-            const transaction = transactionFromEthersTransaction(
-              await this.getTransaction(transactionHash),
-              network
-            )
-
-            handler(transaction)
-          }
-        } catch (innerError) {
-          logger.error(
-            `Error handling incoming pending transaction hash: ${transactionHash}`,
-            innerError
+    // Fall back on a standard pending transaction subscription if the
+    this.on("pending", async (transactionHash: unknown) => {
+      try {
+        if (typeof transactionHash === "string") {
+          const transaction = transactionFromEthersTransaction(
+            await this.getTransaction(transactionHash),
+            network
           )
+
+          handler(transaction)
         }
-      })
-    }
+      } catch (innerError) {
+        logger.error(
+          `Error handling incoming pending transaction hash: ${transactionHash}`,
+          innerError
+        )
+      }
+    })
   }
 
   /**
@@ -940,18 +866,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     return true
   }
 
-  private async attemptToReconnectToAlchemyProvider(): Promise<void> {
-    if (
-      this.alchemyProvider &&
-      this.alchemyProviderCreator &&
-      isClosedOrClosingWebSocketProvider(this.alchemyProvider)
-    ) {
-      // Always reconnect without resubscribing - since subscriptions
-      // should live on the currentProvider
-      this.alchemyProvider = this.alchemyProviderCreator()
-    }
-  }
-
   private async attemptToReconnectToPrimaryProvider(): Promise<unknown> {
     // Check if backoff timer is ready
     if (
@@ -1071,76 +985,12 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     }
     return false
   }
-
-  /**
-   * Attempts to subscribe to pending transactions in an Alchemy-specific
-   * way. Returns `subscribed` if the subscription succeeded, or `unsupported`
-   * if the underlying provider did not support Alchemy-specific subscriptions.
-   */
-  private async alchemySubscribeFullPendingTransactions(
-    { address, network }: AddressOnNetwork,
-    handler: (pendingTransaction: AnyEVMTransaction) => void
-  ): Promise<"subscribed" | "unsupported"> {
-    try {
-      await this.subscribe(
-        "filteredNewFullPendingTransactionsSubscriptionID",
-        [
-          "alchemy_pendingTransactions",
-          { fromAddress: address, toAddress: address },
-        ],
-        async (result: unknown) => {
-          // TODO use proper provider string
-          // handle incoming transactions for an account
-          try {
-            const transaction = transactionFromAlchemyWebsocketTransaction(
-              result,
-              network
-            )
-
-            handler(transaction)
-          } catch (error) {
-            logger.error(
-              `Error handling incoming pending transaction: ${result}`,
-              error
-            )
-          }
-        }
-      )
-
-      return "subscribed"
-    } catch (error) {
-      const errorString = String(error)
-      if (errorString.match(/is unsupported on/i)) {
-        return "unsupported"
-      }
-
-      throw error
-    }
-  }
 }
 
 export function makeSerialFallbackProvider(
   chainID: string,
   rpcUrls: string[]
 ): SerialFallbackProvider {
-  const alchemyProviderCreators = ALCHEMY_SUPPORTED_CHAIN_IDS.has(chainID)
-    ? [
-        {
-          type: "alchemy" as const,
-          creator: () =>
-            new AlchemyProvider(getNetwork(Number(chainID)), ALCHEMY_KEY),
-        },
-        {
-          type: "alchemy" as const,
-          creator: () =>
-            new AlchemyWebSocketProvider(
-              getNetwork(Number(chainID)),
-              ALCHEMY_KEY
-            ),
-        },
-      ]
-    : []
-
   const genericProviders = NETWORK_BY_CHAIN_ID[chainID].isQuai
     ? rpcUrls.map((rpcUrl) => ({
         type: "Quai" as const,
@@ -1184,9 +1034,5 @@ export function makeSerialFallbackProvider(
         rpcUrl,
       }))
 
-  return new SerialFallbackProvider(chainID, [
-    // Prefer alchemy as the primary provider when available
-    ...genericProviders,
-    ...alchemyProviderCreators,
-  ])
+  return new SerialFallbackProvider(chainID, [...genericProviders])
 }

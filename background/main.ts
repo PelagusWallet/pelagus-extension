@@ -495,9 +495,6 @@ export default class Main extends BaseService<never> {
       const { balances } = currentAccountState
       for (const assetSymbol in balances) {
         const { asset } = balances[assetSymbol].assetAmount
-        if (balances[assetSymbol].dataSource == "alchemy") {
-          continue
-        }
         let newBalance = BigInt(0)
         if (isSmartContractFungibleAsset(asset)) {
           if (
@@ -568,9 +565,6 @@ export default class Main extends BaseService<never> {
     const { balances } = currentAccountState
     for (const assetSymbol in balances) {
       const { asset } = balances[assetSymbol].assetAmount
-      if (balances[assetSymbol].dataSource == "alchemy") {
-        continue
-      }
       let newBalance = BigInt(0)
       if (isSmartContractFungibleAsset(asset)) {
         if (
@@ -1142,7 +1136,6 @@ export default class Main extends BaseService<never> {
             }
 
             // Network base assets with smart contract addresses from some networks
-            // e.g. Optimism, Polygon might have been retrieved through alchemy as
             // token balances but they should not be handled here as they would
             // not be correctly treated as base assets
             if (

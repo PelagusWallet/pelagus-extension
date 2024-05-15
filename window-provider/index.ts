@@ -53,7 +53,6 @@ const impersonateMetamaskWhitelist = [
   "ankr.com",
   "mint.xencrypto.io",
   "bscscan.com",
-  "alchemy.com",
   "cow.fi",
   "tally.xyz",
   "kyberswap.com",

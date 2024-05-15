@@ -12,7 +12,6 @@ jobs:
       GH_PAT: ${{ secrets.GH_PAT }}
       GPG_PRIVATE_KEY2: ${{ secrets.GPG_PRIVATE_KEY2 }}
       GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-      ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
       BLOCKNATIVE_API_KEY: ${{ secrets.BLOCKNATIVE_API_KEY }}
       UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
       SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}

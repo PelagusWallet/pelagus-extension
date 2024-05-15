@@ -6,20 +6,12 @@ import path from "path"
 import { schema } from "@uniswap/token-lists"
 
 import { swapPriceJTD, swapQuoteJTD } from "./lib/validate/0x-swap"
-import {
-  alchemyGetAssetTransfersJTD,
-  alchemyTokenBalanceJTD,
-  alchemyTokenMetadataJTD,
-} from "./lib/validate/alchemy"
 import { coingeckoPriceSchema } from "./lib/validate/prices"
 
 const ajvJTD = new AjvJTD({
   allErrors: true,
   code: { source: true, es5: true },
 })
-  .addSchema(alchemyGetAssetTransfersJTD, "isValidAlchemyAssetTransferResponse")
-  .addSchema(alchemyTokenBalanceJTD, "isValidAlchemyTokenBalanceResponse")
-  .addSchema(alchemyTokenMetadataJTD, "isValidAlchemyTokenMetadataResponse")
   .addSchema(swapPriceJTD, "isValidSwapPriceResponse")
   .addSchema(swapQuoteJTD, "isValidSwapQuoteResponse")
 

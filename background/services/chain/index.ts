@@ -1660,12 +1660,7 @@ export default class ChainService extends BaseService<Events> {
       )
     }
 
-    const assetTransfers = await this.assetData.getAssetTransfers(
-      addressOnNetwork,
-      Number(startBlock),
-      Number(endBlock),
-      incomingOnly
-    )
+    const assetTransfers = await this.assetData.getAssetTransfers()
 
     await this.db.recordAccountAssetTransferLookup(
       addressOnNetwork,
@@ -1856,7 +1851,7 @@ export default class ChainService extends BaseService<Events> {
    */
   public async saveTransaction(
     transaction: AnyEVMTransaction,
-    dataSource: "local" | "alchemy"
+    dataSource: "local"
   ): Promise<void> {
     // Merge existing data into the updated transaction data. This handles
     // cases where an existing transaction has been enriched by e.g. a receipt,

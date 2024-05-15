@@ -35,7 +35,6 @@ export type TokenListAndReference = {
  * Note that the metadata is entirely optional.
  */
 export type AssetMetadata = {
-  coinGeckoID?: string
   logoURL?: string
   websiteURL?: string
   tokenLists?: TokenListCitation[]
@@ -66,16 +65,6 @@ export type Asset = {
   symbol: string
   name: string
   metadata?: AssetMetadata
-}
-
-/**
- * An asset whose metadata comes from CoinGecko and includes an associated
- * asset id in CoinGecko's records.
- */
-export type CoinGeckoAsset = Asset & {
-  metadata?: Asset["metadata"] & {
-    coinGeckoID: string
-  }
 }
 
 /*

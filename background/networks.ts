@@ -2,7 +2,7 @@ import { TransactionRequest as EthersTransactionRequest } from "@quais/abstract-
 import { Transaction } from "@quais/transactions"
 import { Slip44CoinType } from "./constants/coin-types"
 import { HexString, UNIXTime } from "./types"
-import type { CoinGeckoAsset, FungibleAsset } from "./assets"
+import type { FungibleAsset } from "./assets"
 import type {
   EnrichedEIP1559TransactionRequest,
   EnrichedEIP1559TransactionSignatureRequest,
@@ -20,12 +20,11 @@ export type NetworkFamily = "EVM"
 
 // Should be structurally compatible with FungibleAsset or much code will
 // likely explode.
-export type NetworkBaseAsset = FungibleAsset &
-  CoinGeckoAsset & {
-    contractAddress?: string
-    coinType?: Slip44CoinType
-    chainID: string
-  }
+export type NetworkBaseAsset = FungibleAsset & {
+  contractAddress?: string
+  coinType?: Slip44CoinType
+  chainID: string
+}
 
 /**
  * Represents a cryptocurrency network; these can potentially be L1 or L2.
@@ -33,10 +32,9 @@ export type NetworkBaseAsset = FungibleAsset &
 export type Network = {
   // Considered a primary key; two Networks should never share a name.
   name: string
-  baseAsset: NetworkBaseAsset & CoinGeckoAsset
+  baseAsset: NetworkBaseAsset
   family: NetworkFamily
   chainID?: string
-  coingeckoPlatformID?: string
   derivationPath?: string
 }
 

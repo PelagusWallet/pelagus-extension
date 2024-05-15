@@ -60,7 +60,6 @@ const validTransactionRequests: {
       chainID: "0",
       baseAsset: ETH,
       family: "EVM",
-      coingeckoPlatformID: "ethereum",
     },
   },
 }

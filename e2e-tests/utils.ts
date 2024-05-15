@@ -43,8 +43,6 @@ export const test = base.extend<WalletTestFixtures>({
       route.fulfill({ json: { status: 1 } })
     )
 
-    await background.waitForResponse(/api\.coingecko\.com/i)
-
     // // for manifest v3:
     // let [background] = context.serviceWorkers();
     // if (!background)

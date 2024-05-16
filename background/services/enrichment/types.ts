@@ -23,8 +23,7 @@ export type BaseTransactionAnnotation = {
   /**
    * In some cases, a transaction may have internal calls that can be described
    * by annotations; these are represented as subannotations. One good example
-   * are transactions that may have multiple embedded token transfers, such as
-   * swaps with complex routing.
+   * are transactions that may have multiple embedded token transfers
    */
   subannotations?: TransactionAnnotation[]
   /**
@@ -70,15 +69,6 @@ export type AssetTransfer = BaseTransactionAnnotation & {
   sender: EnrichedAddressOnNetwork
 }
 
-export type AssetSwap = BaseTransactionAnnotation & {
-  type: "asset-swap"
-  fromAssetAmount: AnyAssetAmount<FungibleAsset> & AssetDecimalAmount
-  toAssetAmount: AnyAssetAmount<FungibleAsset> & AssetDecimalAmount
-  estimatedPriceImpact: number
-  sources: { name: string; proportion: number }[]
-  swapContractInfo?: EnrichedAddressOnNetwork
-}
-
 export type ExternalTransfer = BaseTransactionAnnotation & {
   type: "external-transfer"
   assetAmount?: AnyAssetAmount & AssetDecimalAmount
@@ -91,7 +81,6 @@ export type TransactionAnnotation =
   | ContractInteraction
   | AssetApproval
   | AssetTransfer
-  | AssetSwap
   | ExternalTransfer
 
 export type EnrichedEVMTransaction = AnyEVMTransaction & {

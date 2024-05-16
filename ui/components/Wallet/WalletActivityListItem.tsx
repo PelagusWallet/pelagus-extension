@@ -284,12 +284,6 @@ export default function WalletActivityListItem(props: Props): ReactElement {
             width: 12px;
             height: 12px;
           }
-          .icon_swap_asset {
-            background: url("./images/swap_asset.svg");
-            background-size: 12px 12px;
-            width: 12px;
-            height: 12px;
-          }
           .right {
             display: flex;
             justify-content: space-between;

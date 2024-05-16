@@ -56,10 +56,6 @@ export function resolveTransactionSignatureDetails({
   request,
   accountSigner,
 }: SignOperation<TransactionRequest>): ResolvedSignatureDetails {
-  const annotation = isEnrichedEVMTransactionRequest(request)
-    ? request.annotation
-    : undefined
-
   return {
     signer: accountSigner,
     signingAddress: { address: request.from, network: request.network },
@@ -69,7 +65,6 @@ export function resolveTransactionSignatureDetails({
     ),
     signActionCreator: () => signTransaction({ request, accountSigner }),
     rejectActionCreator: rejectTransactionSignature,
-    redirectToActivityPage: annotation?.type === "asset-swap",
   }
 }
 export function resolveDataSignatureDetails({

@@ -8,20 +8,17 @@ import {
   isUnverifiedAssetByUser,
 } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { NETWORKS_SUPPORTING_SWAPS } from "@pelagus/pelagus-background/constants"
 import {
   isSmartContractFungibleAsset,
   SmartContractFungibleAsset,
   SwappableAsset,
 } from "@pelagus/pelagus-background/assets"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
-import SharedLoadingSpinner from "../../Shared/SharedLoadingSpinner"
 import SharedAssetIcon from "../../Shared/SharedAssetIcon"
 import styles from "./styles"
 import SharedIconRouterLink from "../../Shared/SharedIconRouterLink"
 import { useBackgroundSelector } from "../../../hooks"
 import { trimWithEllipsis } from "../../../utils/textUtils"
-import SharedTooltip from "../../Shared/SharedTooltip"
 import AssetVerifyToggler from "../UnverifiedAsset/AssetVerifyToggler"
 import SharedIcon from "../../Shared/SharedIcon"
 
@@ -122,45 +119,6 @@ export default function CommonAssetListItem(
                   state={assetAmount.asset}
                   iconClass="asset_icon_send"
                 />
-                {/* FIXME swap buttons are currently not needed, so we are removing them */}
-                {/* {NETWORKS_SUPPORTING_SWAPS.has(selectedNetwork.chainID) ? (
-                  <SharedIconRouterLink
-                    path="/swap"
-                    state={{
-                      symbol: assetAmount.asset.symbol,
-                      contractAddress,
-                    }}
-                    iconClass="asset_icon_swap"
-                  />
-                ) : (
-                  <SharedTooltip
-                    type="dark"
-                    width={180}
-                    height={48}
-                    horizontalPosition="left"
-                    verticalPosition="bottom"
-                    horizontalShift={42}
-                    verticalShift={16}
-                    IconComponent={() => (
-                      <div className="button_wrap">
-                        <SharedIconRouterLink
-                          path="/swap"
-                          disabled
-                          state={{
-                            symbol: assetAmount.asset.symbol,
-                            contractAddress,
-                          }}
-                          iconClass="asset_icon_swap"
-                        />
-                      </div>
-                    )}
-                  >
-                    <div className="centered_tooltip">
-                      <div>{t("swapDisabledOne")}</div>
-                      <div>{t("swapDisabledTwo")}</div>
-                    </div>
-                  </SharedTooltip>
-                )} */}
               </>
             )}
           </>

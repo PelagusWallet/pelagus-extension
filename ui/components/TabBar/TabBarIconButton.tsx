@@ -10,6 +10,7 @@ type TabBarIconButtonProps = {
   disabled?: boolean
 }
 
+// REFACTOR remove
 export default function TabBarIconButton(
   props: TabBarIconButtonProps
 ): ReactElement {

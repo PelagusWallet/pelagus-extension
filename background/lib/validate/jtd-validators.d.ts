@@ -1,13 +1,5 @@
 import { JTDDataType, ValidateFunction } from "ajv/dist/jtd"
-import { swapPriceJTD, swapQuoteJTD } from "./0x-swap"
 
-export const isValidSwapPriceResponse: ValidateFunction<
-  JTDDataType<typeof swapPriceJTD>
->
-
-export const isValidSwapQuoteResponse: ValidateFunction<
-  JTDDataType<typeof swapQuoteJTD>
->
 
 /**
  * Helper type that can extract the concrete TypeScript type that a JTD

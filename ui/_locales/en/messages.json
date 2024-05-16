@@ -546,12 +546,6 @@
       "authorizeDeposit": "Authorize Deposit",
       "signMessage": "Sign {{messageType}}",
       "confirmButtonLabel": "Confirm"
-    },
-    "swap": {
-      "title": "Swap assets",
-      "balanceChange": "Balance change",
-      "daoFee": "DAO fee",
-      "exchangeRoute": "Exchange route"
     }
   },
   "addNewChain": {
@@ -565,25 +559,6 @@
     "cancel": "Reject",
     "warnAlreadyExistsHeader": "Network already added to Pelagus.",
     "warnAlreadyExistsBody": "You can switch to it from Network dropdown"
-  },
-  "swap": {
-    "title": "Swap Assets",
-    "from": "Swap from:",
-    "to": "Swap to:",
-    "sellAsset": "You pay",
-    "buyAsset": "You receive",
-    "approveAsset": "Approve Asset",
-    "waitingForApproval": "Waiting for approval transaction...",
-    "switchAssets": "Switch Assets",
-    "swapRewardsTeaser": "Swap rewards coming soon",
-    "continueSwap": "Continue Swap",
-    "loadingQuote": "Fetching price",
-    "error": {
-      "noSellAsset": "Attempting to approve transfer without a sell asset.",
-      "noApprovalTarget": "Attempting to approve transfer without an approval target.",
-      "nonContractAsset": "Attempting to approve transfer of a non-contract asset."
-    },
-    "reviewSwap": "Review swap"
   },
   "switchWallet": {
     "title": "Want to use another wallet instead?",
@@ -637,7 +612,6 @@
       "tokenReceived": "Received",
       "tokenSent": "Send",
       "infiniteApproval": "Infinite",
-      "tokenSwapped": "Swap",
       "transactionFailed": "Failed",
       "transactionDropped": "Dropped",
       "transactionPending": "Processing...",
@@ -746,13 +720,11 @@
       "flags": {
         "USE_MAINNET_FORK": "Use mainnet fork",
         "HIDE_IMPORT_DERIVATION_PATH": "Hide import derivation path",
-        "HIDE_SWAP_REWARDS": "Hide swap rewards",
         "USE_UPDATED_SIGNING_UI": "Use updated signing UI",
         "SUPPORT_MULTIPLE_LANGUAGES": "Enable to choose language",
         "HIDE_TOKEN_FEATURES": "Hide token features",
         "SUPPORT_ACHIEVEMENTS_BANNER": "Enable achievements banner",
         "SUPPORT_ARBITRUM_NOVA": "Enable Arbitrum Nova network",
-        "SUPPORT_SWAP_QUOTE_REFRESH": "Enable automatic swap quote updates",
         "SUPPORT_CUSTOM_NETWORKS": "Show custom network page on settings panel",
         "SUPPORT_CUSTOM_RPCS": "Enable adding custom RPCs",
         "SUPPORT_UNVERIFIED_ASSET": "Enable assets verification"

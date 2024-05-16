@@ -17,11 +17,6 @@
     },
     "hideSmallAssetBalance": ""
   },
-  "swap": {
-    "transactionSettings": {
-      "estimatedFee": "Примерная комиссия сети"
-    }
-  },
   "wallet": {
     "assetAmount": "Актив / Количество"
   }

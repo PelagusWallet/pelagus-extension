@@ -35,10 +35,6 @@ export default function SharedActivityIcon({
           background: url("./images/activity_approve@2x.png");
           background-size: cover;
         }
-        .asset-swap {
-          background: url("./images/activity_swap@2x.png");
-          background-size: cover;
-        }
         .contract-interaction {
           background: url("./images/activity_contract_interaction@2x.png");
           background-size: cover;

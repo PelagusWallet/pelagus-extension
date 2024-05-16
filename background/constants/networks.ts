@@ -401,23 +401,8 @@ export const TEST_NETWORK_BY_CHAIN_ID = new Set(
   [GOERLI].map((network) => network.chainID)
 )
 
-// Networks that are not added to this struct will
-// not have an in-wallet Swap page
-export const CHAIN_ID_TO_0X_API_BASE: {
-  [chainID: string]: string | undefined
-} = {
-  [ETHEREUM.chainID]: "api.0x.org",
-  [POLYGON.chainID]: "polygon.api.0x.org",
-  [OPTIMISM.chainID]: "optimism.api.0x.org",
-  [GOERLI.chainID]: "goerli.api.0x.org",
-  [ARBITRUM_ONE.chainID]: "arbitrum.api.0x.org",
-  [AVALANCHE.chainID]: "avalanche.api.0x.org",
-  [BINANCE_SMART_CHAIN.chainID]: "bsc.api.0x.org",
-}
-
-export const NETWORKS_SUPPORTING_SWAPS = new Set(
-  Object.keys(CHAIN_ID_TO_0X_API_BASE)
-)
+// REFACTOR delete in chain support
+export const NETWORKS_SUPPORTING_SWAPS = new Set(Object.keys({}))
 
 /**
  * Method list, to describe which rpc method calls on which networks

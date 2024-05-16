@@ -1,26 +1,13 @@
 import React, { ReactElement } from "react"
 
 import { matchPath, useHistory, useLocation } from "react-router-dom"
-import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { NETWORKS_SUPPORTING_SWAPS } from "@pelagus/pelagus-background/constants/networks"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { useTranslation } from "react-i18next"
 import TabBarIconButton from "./TabBarIconButton"
-import tabs, { defaultTab, TabInfo } from "../../utils/tabs"
-import { useBackgroundSelector } from "../../hooks"
+import tabs, { defaultTab } from "../../utils/tabs"
 
-const isTabSupportedByNetwork = (tab: TabInfo, network: EVMNetwork) => {
-  switch (tab.path) {
-    case "/swap":
-      return NETWORKS_SUPPORTING_SWAPS.has(network.chainID)
-    default:
-      return true
-  }
-}
-
+// REFACTOR remove
 export default function TabBar(): ReactElement {
   const location = useLocation()
-  const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
 
   const history = useHistory()
   const { t } = useTranslation()
@@ -32,19 +19,17 @@ export default function TabBar(): ReactElement {
 
   return (
     <nav aria-label="Main">
-      {tabs
-        .filter((tab) => isTabSupportedByNetwork(tab, selectedNetwork))
-        .map(({ path, title, icon }) => {
-          return (
-            <TabBarIconButton
-              key={path}
-              icon={icon}
-              title={t(title)}
-              onClick={() => history.push(path)}
-              isActive={activeTab.path === path}
-            />
-          )
-        })}
+      {tabs.map(({ path, title, icon }) => {
+        return (
+          <TabBarIconButton
+            key={path}
+            icon={icon}
+            title={t(title)}
+            onClick={() => history.push(path)}
+            isActive={activeTab.path === path}
+          />
+        )
+      })}
       <style jsx>
         {`
           nav {

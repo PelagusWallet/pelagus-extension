@@ -109,7 +109,6 @@ import {
 
 import { SignTypedDataRequest, MessageSigningRequest } from "./utils/signing"
 import { OPTIMISM, getShardFromAddress } from "./constants"
-import { clearApprovalInProgress, clearSwapQuote } from "./redux-slices/0x-swap"
 import {
   AccountSigner,
   SignatureResponse,
@@ -656,8 +655,6 @@ export default class Main extends BaseService<never> {
     this.store.dispatch(
       clearTransactionState(TransactionConstructionStatus.Idle)
     )
-
-    this.store.dispatch(clearApprovalInProgress())
 
     this.connectPopupMonitor()
   }
@@ -1608,8 +1605,6 @@ export default class Main extends BaseService<never> {
 
     uiSliceEmitter.on("newSelectedAccount", async (addressNetwork) => {
       await this.preferenceService.setSelectedAccount(addressNetwork)
-
-      this.store.dispatch(clearSwapQuote())
 
       await this.chainService.markAccountActivity(addressNetwork)
 

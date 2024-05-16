@@ -5,7 +5,6 @@ import assetsReducer from "./assets"
 import activitiesReducer from "./activities"
 import keyringsReducer from "./keyrings"
 import networksReducer from "./networks"
-import swapReducer from "./0x-swap"
 import transactionConstructionReducer from "./transaction-construction"
 import uiReducer from "./ui"
 import dappReducer from "./dapp"
@@ -17,7 +16,6 @@ const mainReducer = combineReducers({
   activities: activitiesReducer,
   keyrings: keyringsReducer,
   networks: networksReducer,
-  swap: swapReducer,
   transactionConstruction: transactionConstructionReducer,
   ui: uiReducer,
   dapp: dappReducer,

@@ -3,12 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to use'
+        description: "Branch to use"
         required: true
-        default: 'main'
+        default: "main"
 
 jobs:
-
   cutReleaseCandidateTS:
     runs-on: ubuntu-latest
     outputs:
@@ -29,7 +28,7 @@ jobs:
           # Configure Git with CI account details
           git config --global user.name "ci-dominantstrategies"
           git config --global user.email "ci@dominantstrategies.io"
-          
+
           # Optionally, check that the GPG key is correctly configured for signing
           gpg --list-keys "ci@dominantstrategies.io"
 
@@ -55,7 +54,7 @@ jobs:
           cache: "yarn"
 
       - name: Log Node and Npm Versions
-        run:  |
+        run: |
           echo node version $(node -v)
           echo npm version $(npm -v)
 
@@ -162,9 +161,8 @@ jobs:
       GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
       UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
       SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
-      ZEROX_API_KEY: ${{ secrets.ZEROX_API_KEY }}
 
     with:
-      update_version_command: "jq --arg new_version \"$(npx semver -i patch $(jq -r '.version' package.json | sed 's/^v//'))\" '.version = $new_version' package.json > temp.json && mv temp.json package.json"
+      update_version_command: 'jq --arg new_version "$(npx semver -i patch $(jq -r ''.version'' package.json | sed ''s/^v//''))" ''.version = $new_version'' package.json > temp.json && mv temp.json package.json'
       update_version: true
       branch: ${{ needs.cutReleaseCandidateTS.outputs.branch }}

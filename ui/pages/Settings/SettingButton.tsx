@@ -18,12 +18,12 @@ export default function SettingButton(props: {
         <SharedIcon
           icon={`icons/s/${icon}.svg`}
           width={16}
-          color="var(--green-20)"
+          color="var(--white)"
           ariaLabel={ariaLabel}
         />
         <style jsx>{`
           .action_name {
-            color: var(--green-20);
+            color: var(--white);
             font-size: 16px;
             font-weight: 500;
             line-height: 20px;
@@ -36,7 +36,7 @@ export default function SettingButton(props: {
             display: flex;
           }
           .button_row:hover > .action_name {
-            color: var(--green-5);
+            color: var(--green-40);
           }
         `}</style>
       </div>

@@ -25,7 +25,7 @@ export default function SelectAccountListItem({
       <div className="left-side">
         <SharedIconGA iconUrl={account?.avatarURL} />
         <div className="account-info">
-          <div className="name">{account?.name}</div>
+          <div className="name">{account?.shortName}</div>
           <div className="details">
             {account?.accountSigner?.type === "keyring" &&
               `${account?.accountSigner?.shard} • `}

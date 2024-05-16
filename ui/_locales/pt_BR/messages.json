@@ -49,16 +49,6 @@
     "mainMenu": "Definições",
     "setAsDefault": "Usar Pelagus como sua carteira padrão"
   },
-  "swap": {
-    "error": {
-      "noApprovalTarget": "Tentativa de aprovação de transferência sem um alvo de aprovação.",
-      "noSellAsset": "Tentativa de aprovar a transferência sem um ativo de venda.",
-      "nonContractAsset": "Tentativa de aprovar a transferência de um ativo sem contrato."
-    },
-    "from": "Trocar a partir de:",
-    "title": "Trocar Ativos",
-    "to": "Trocar para:"
-  },
   "wallet": {
     "assetAmount": "Ativo / Quantidade",
     "receive": "Receber",

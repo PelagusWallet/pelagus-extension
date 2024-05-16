@@ -25,7 +25,6 @@ interface PropsWithMediumIcon {
     | "notif-correct"
     | "notif-wrong"
     | "search"
-    | "swap"
     | "switch"
     | "wallet"
     | "discord"
@@ -59,7 +58,6 @@ interface PropsWithSmallIcon {
     | "refresh"
     | "send"
     | "settings"
-    | "swap"
   iconMedium?: never
 }
 

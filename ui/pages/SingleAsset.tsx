@@ -18,7 +18,6 @@ import { useTranslation } from "react-i18next"
 import {
   CurrentShardToExplorer,
   DEFAULT_NETWORKS_BY_CHAIN_ID,
-  NETWORKS_SUPPORTING_SWAPS,
 } from "@pelagus/pelagus-background/constants"
 import {
   isUntrustedAsset,
@@ -65,12 +64,6 @@ export default function SingleAsset(): ReactElement {
         case "external-transfer":
         case "asset-approval":
           return activity.assetSymbol === symbol
-        case "asset-swap":
-          return (
-            // TODO: this should recognize both assets of the swap but it is
-            // ignored right now as swaps are recognized as contract interactions
-            activity.assetSymbol === symbol
-          )
         case "contract-interaction":
         case "contract-deployment":
         default:
@@ -227,45 +220,6 @@ export default function SingleAsset(): ReactElement {
                   >
                     {t("shared.send")}
                   </SharedButton>
-                  {/* FIXME swap buttons are currently not needed, so we are removing them */}
-                  {/* {NETWORKS_SUPPORTING_SWAPS.has(currentNetwork.chainID) ? (
-                    <SharedButton
-                      type="primary"
-                      size="medium"
-                      iconSmall="swap"
-                      linkTo={{
-                        pathname: "/swap",
-                        state: asset,
-                      }}
-                    >
-                      {t("shared.swap")}
-                    </SharedButton>
-                  ) : (
-                    <SharedTooltip
-                      type="dark"
-                      width={180}
-                      height={48}
-                      horizontalPosition="center"
-                      verticalPosition="bottom"
-                      customStyles={{ marginLeft: "0" }}
-                      horizontalShift={94}
-                      IconComponent={() => (
-                        <SharedButton
-                          type="primary"
-                          size="medium"
-                          isDisabled
-                          iconSmall="swap"
-                        >
-                          {t("shared.swap")}
-                        </SharedButton>
-                      )}
-                    >
-                      <div className="centered_tooltip">
-                        <div>{t("wallet.swapDisabledOne")}</div>
-                        <div>{t("wallet.swapDisabledTwo")}</div>
-                      </div>
-                    </SharedTooltip>
-                  )} */}
                 </>
               )}
           </div>

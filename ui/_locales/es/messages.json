@@ -95,16 +95,6 @@
   "shared": {
     "cancelBtn": "Cancelar"
   },
-  "swap": {
-    "error": {
-      "noApprovalTarget": "Intentando aprobar la transferencia sin un objetivo de aprobación.",
-      "noSellAsset": "Intentando aprobar la transferencia sin un activo de venta.",
-      "nonContractAsset": "Intentar aprobar la transferencia de un activo no contractual."
-    },
-    "from": "Intercambiar desde :",
-    "title": "Intercambiar Activos",
-    "to": "Cambiar a :"
-  },
   "toggle": {
     "collapse": "Colapsar",
     "viewAll": "Ver todo"

@@ -36,16 +36,6 @@
     "mainMenu": "设置",
     "setAsDefault": "使用 Pelagus 作为您的默认钱包"
   },
-  "swap": {
-    "error": {
-      "noApprovalTarget": "试图在没有批准目标的情况下批准转让。",
-      "noSellAsset": "尝试在没有出售资产的情况下批准转让。",
-      "nonContractAsset": "试图批准非合同资产的转让。"
-    },
-    "from": "换自：",
-    "title": "交换资产",
-    "to": "换成："
-  },
   "wallet": {
     "assetAmount": "资产/金额",
     "receive": "收到",

@@ -349,14 +349,6 @@ export default async function resolveTransactionAnnotation(
         : // Don't replace prepopulated annotations.
           txAnnotation
 
-    // For prepopulated swap annotations, resolve the swap contract info.
-    if (txAnnotation.type === "asset-swap") {
-      txAnnotation = {
-        ...txAnnotation,
-        swapContractInfo: contractInfo,
-      }
-    }
-
     if (
       transaction.input === null ||
       transaction.input === "0x" ||

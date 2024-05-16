@@ -1,26 +1,16 @@
 import { Provider } from "@ethersproject/abstract-provider"
 import { fetchJson } from "@ethersproject/web"
 import logger from "./logger"
-import Blocknative, {
-  BlocknativeNetworkIds,
-} from "../third-party-data/blocknative"
 import { BlockPrices, EVMNetwork } from "../networks"
 import {
   ARBITRUM_ONE,
   BINANCE_SMART_CHAIN,
-  CHAIN_ID_TO_RPC_URLS,
   EIP_1559_COMPLIANT_CHAIN_IDS,
   ETHEREUM,
   POLYGON,
   QUAI_NETWORK,
 } from "../constants/networks"
 import { gweiToWei } from "./utils"
-
-// We can't use destructuring because webpack has to replace all instances of
-// `process.env` variables in the bundled output
-const BLOCKNATIVE_API_KEY = process.env.BLOCKNATIVE_API_KEY // eslint-disable-line prefer-destructuring
-
-let blocknative: Blocknative
 
 type PolygonFeeDetails = {
   maxPriorityFee: number // gwei
@@ -151,24 +141,6 @@ export default async function getBlockPrices(
   network: EVMNetwork,
   provider: Provider
 ): Promise<BlockPrices> {
-  // if BlockNative is configured and we're on mainnet, prefer their gas service
-  if (
-    typeof BLOCKNATIVE_API_KEY !== "undefined" &&
-    network.chainID === ETHEREUM.chainID
-  ) {
-    try {
-      if (!blocknative) {
-        blocknative = Blocknative.connect(
-          BLOCKNATIVE_API_KEY,
-          BlocknativeNetworkIds.ethereum.mainnet
-        )
-      }
-      return await blocknative.getBlockPrices()
-    } catch (err) {
-      logger.error("Error getting block prices from BlockNative", err)
-    }
-  }
-
   const [currentBlock, feeData] = await Promise.all([
     provider.getBlock("latest"),
     provider.getFeeData(),
@@ -203,7 +175,7 @@ export default async function getBlockPrices(
         currentBlock.number
       )
     } catch (err) {
-      logger.error("Error getting gas price from BlockNative", err)
+      logger.error("Error getting gas price", err)
     }
   }
 

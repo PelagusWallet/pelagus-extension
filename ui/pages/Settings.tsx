@@ -113,7 +113,7 @@ function SettingRow(props: {
             justify-content: space-between;
             align-items: center;
 
-            color: var(--green-20);
+            color: var(--white);
             font-size: 16px;
             font-weight: 500;
             line-height: 20px;
@@ -380,8 +380,8 @@ export default function Settings(): ReactElement {
                   key={icon}
                   icon={`${icon}.svg`}
                   width={18}
-                  color="var(--green-20)"
-                  hoverColor="var(--trophy-gold)"
+                  color="var(--white)"
+                  hoverColor="var(--green-40)"
                   transitionHoverTime="0.2s"
                   onClick={() => {
                     window.open(linkTo, "_blank")?.focus()
@@ -430,7 +430,7 @@ export default function Settings(): ReactElement {
             flex-direction: column;
           }
           h1 {
-            color: var(--green-20);
+            color: var(--white);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;
@@ -457,7 +457,7 @@ export default function Settings(): ReactElement {
             gap: 24px;
           }
           .group {
-            border-bottom: 1px solid var(--green-80);
+            border-bottom: 1px solid var(--white);
             margin-bottom: 20px;
             padding-bottom: 20px;
           }

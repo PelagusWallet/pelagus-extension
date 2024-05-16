@@ -2,7 +2,6 @@ import React, { ReactElement } from "react"
 import { TransactionSignatureSummaryProps } from "./TransactionSignatureSummaryProps"
 import TransferSummary from "./TransferSummary"
 import SpendApprovalSummary from "./SpendApprovalSummary"
-import SwapAssetSummary from "./SwapAssetSummary"
 import TransactionSignatureSummaryDefault from "./TransactionSignatureSummaryDefault"
 import ContractInteractionSummary from "./ContractInteractionSummary"
 
@@ -16,13 +15,6 @@ export default function TransactionSignatureSummary({
   annotation,
 }: TransactionSignatureSummaryProps): ReactElement {
   switch (annotation?.type) {
-    case "asset-swap":
-      return (
-        <SwapAssetSummary
-          transactionRequest={transactionRequest}
-          annotation={annotation}
-        />
-      )
     case "asset-approval":
       return (
         <SpendApprovalSummary

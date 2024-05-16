@@ -71,12 +71,6 @@ export default function useActivityViewDetails(
             ? t("infiniteApproval")
             : activity.value,
       }
-    case "asset-swap":
-      return {
-        ...baseDetails,
-        icon: "asset-swap",
-        label: t("tokenSwapped"),
-      }
     case "external-transfer":
       return {
         ...baseDetails,

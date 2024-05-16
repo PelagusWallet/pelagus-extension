@@ -96,16 +96,6 @@
   "shared": {
     "cancelBtn": "取消"
   },
-  "swap": {
-    "error": {
-      "noApprovalTarget": "嘗試允許傳輸但尚未指定一個已獲准目標。",
-      "noSellAsset": "嘗試允許傳輸但尚未指定售出資產。",
-      "nonContractAsset": "嘗試允許傳輸一項非合約資產。"
-    },
-    "from": "支付：",
-    "title": "轉換資產",
-    "to": "收到："
-  },
   "toggle": {
     "collapse": "展開",
     "viewAll": "查看全部"

@@ -2,9 +2,8 @@ name: Build Dev
 on:
   pull_request:
     types: [closed]
-    branches: [ "main" ]
+    branches: ["main"]
 jobs:
-
   buildDeployDev:
     uses: ./.github/workflows/build.yml
     secrets:
@@ -13,7 +12,6 @@ jobs:
       GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
       UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
       SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
-      ZEROX_API_KEY: ${{ secrets.ZEROX_API_KEY }}
     with:
       update_version_command: npm version prerelease --preid=pre --no-git-tag-version
       update_version: false

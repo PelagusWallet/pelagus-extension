@@ -5,14 +5,10 @@ import { writeFileSync } from "fs"
 import path from "path"
 import { schema } from "@uniswap/token-lists"
 
-import { swapPriceJTD, swapQuoteJTD } from "./lib/validate/0x-swap"
-
 const ajvJTD = new AjvJTD({
   allErrors: true,
   code: { source: true, es5: true },
 })
-  .addSchema(swapPriceJTD, "isValidSwapPriceResponse")
-  .addSchema(swapQuoteJTD, "isValidSwapQuoteResponse")
 
 const ajvJSON = new AjvJSON({
   allErrors: true,

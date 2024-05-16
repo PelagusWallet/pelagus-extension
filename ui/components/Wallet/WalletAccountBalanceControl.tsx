@@ -44,8 +44,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         {t("receive")}
       </SharedCircleButton>
 
-      {/** TODO Add condition with NETWORKS_SUPPORTING_SWAPS.has(currentNetwork.chainID) for convert btn when feature will be ready */}
-
       <SharedTooltip
         type="dark"
         width={150}

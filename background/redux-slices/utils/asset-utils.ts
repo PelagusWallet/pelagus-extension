@@ -377,7 +377,7 @@ export function isUnverifiedAssetByUser(asset: AnyAsset | undefined): boolean {
 
 /**
  * Assets that are untrusted and have not been verified by the user
- * should not be swapped or sent.
+ * should not be sent.
  */
 export function canBeUsedForTransaction(asset: AnyAsset): boolean {
   if (!isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET)) {

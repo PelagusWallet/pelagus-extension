@@ -676,8 +676,12 @@ export const getTotalBalanceForOverview = createSelector(
 
 export const getAllAccounts = createSelector(getAccountState, (account) => {
   return account
-    ? Object.values(account.accountsData.evm).flatMap((chainAddresses) =>
-        Object.values(chainAddresses)
-      )
+    ? [
+        ...new Set(
+          Object.values(account.accountsData.evm).flatMap((chainAddresses) =>
+            Object.values(chainAddresses)
+          )
+        ),
+      ]
     : []
 })

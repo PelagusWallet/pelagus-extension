@@ -46,6 +46,13 @@ export const DEFAULT_ACCOUNT_NAMES = [
 
 const availableDefaultNames = [...DEFAULT_ACCOUNT_NAMES]
 
+export type ListAccount = {
+  address: string
+  defaultAvatar: string
+  defaultName: string
+  shard: string
+}
+
 export type AccountData = {
   address: HexString
   network: Network

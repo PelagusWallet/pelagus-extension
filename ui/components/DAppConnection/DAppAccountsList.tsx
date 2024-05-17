@@ -7,21 +7,16 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import DAppAccountListItem from "./DAppAccountListItem"
-
-// FIXME
-export type ListAccount = {
-  address: string
-  defaultAvatar: string
-  defaultName: string
-  shard: string
-} | null
+import { ListAccount } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 type DAppAccountsListProps = {
   accountsList: ListAccount[]
+  onDisconnectAddressClick: (address: string) => Promise<void>
 }
 
 export default function DAppAccountsList({
   accountsList,
+  onDisconnectAddressClick,
 }: DAppAccountsListProps): ReactElement {
   const dispatch = useBackgroundDispatch()
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
@@ -43,19 +38,16 @@ export default function DAppAccountsList({
     )
   }
 
-  // FIXME add logic/fix connection bugs
-  const onAccountDAppDisconnectClick = () => {}
-
   return (
     <div className="dApp-accounts-list">
       <div className="dApp-accounts-list-wrapper">
         {accountsList.map((account) => (
           <DAppAccountListItem
-            key={account?.address}
+            key={account.address}
             account={account}
             isSelected={isAccountConnected(account)}
             onSwitchClick={onSwitchAccountClick}
-            onDisconnect={onAccountDAppDisconnectClick}
+            onDisconnect={onDisconnectAddressClick}
           />
         ))}
       </div>

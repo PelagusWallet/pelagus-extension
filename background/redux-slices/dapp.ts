@@ -1,6 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import {
+  DenyPermissionRequest,
+  PermissionRequest,
+} from "@tallyho/provider-bridge-shared"
 import { createBackgroundAsyncThunk } from "./utils"
 import { keyPermissionsByChainIdAddressOrigin } from "../services/provider-bridge/utils"
 import { QUAI_NETWORK } from "../constants"
@@ -28,6 +31,8 @@ export type Events = {
   requestPermission: PermissionRequest
   grantPermission: PermissionRequest
   denyOrRevokePermission: PermissionRequest
+  denyDAppPermissions: PermissionRequest[]
+  denyDAppPermissionForAddress: DenyPermissionRequest
 }
 
 export const emitter = new Emittery<Events>()
@@ -46,6 +51,25 @@ export const denyOrRevokePermission = createBackgroundAsyncThunk(
   "dapp-permission/permissionDenyOrRevoke",
   async (permission: PermissionRequest) => {
     await emitter.emit("denyOrRevokePermission", permission)
+    return permission
+  }
+)
+
+export const denyDAppPermissions = createBackgroundAsyncThunk(
+  "dapp-permission/denyDAppPermissions",
+  async (permissions: PermissionRequest[]) => {
+    await emitter.emit("denyDAppPermissions", permissions)
+    return permissions
+  }
+)
+
+export const denyDAppPermissionForAddress = createBackgroundAsyncThunk(
+  "dapp-permission/denyDAppPermissionForAddress",
+  async ({ permission, accountAddress }: DenyPermissionRequest) => {
+    await emitter.emit("denyDAppPermissionForAddress", {
+      permission,
+      accountAddress,
+    })
     return permission
   }
 )
@@ -145,6 +169,55 @@ const dappSlice = createSlice({
               immerState.allowed.evm[chainID][permission.accountAddress] =
                 withoutOriginToRemove
             }
+          })
+        }
+      )
+      .addCase(
+        denyDAppPermissionForAddress.fulfilled,
+        (
+          immerState,
+          { payload: permission }: { payload: PermissionRequest }
+        ) => {
+          const updatedPermissionRequests = { ...immerState.permissionRequests }
+          delete updatedPermissionRequests[permission.origin]
+
+          Object.keys(immerState.allowed.evm).forEach((chainID) => {
+            if (immerState.allowed.evm[chainID]?.[permission.accountAddress]) {
+              if (
+                immerState.allowed.evm[chainID][permission.accountAddress][
+                  permission.origin
+                ]
+              ) {
+                delete immerState.allowed.evm[chainID][
+                  permission.accountAddress
+                ][permission.origin]
+              }
+            }
+          })
+        }
+      )
+      .addCase(
+        denyDAppPermissions.fulfilled,
+        (
+          immerState,
+          { payload: permissions }: { payload: PermissionRequest[] }
+        ) => {
+          permissions.forEach((permission) => {
+            const updatedPermissionRequests = {
+              ...immerState.permissionRequests,
+            }
+            delete updatedPermissionRequests[permission.origin]
+
+            Object.keys(immerState.allowed.evm).forEach((chainID) => {
+              if (
+                immerState.allowed.evm[chainID]?.[permission.accountAddress]
+              ) {
+                const { [permission.origin]: _, ...withoutOriginToRemove } =
+                  immerState.allowed.evm[chainID][permission.accountAddress]
+                immerState.allowed.evm[chainID][permission.accountAddress] =
+                  withoutOriginToRemove
+              }
+            })
           })
         }
       )

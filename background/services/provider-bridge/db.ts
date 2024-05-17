@@ -135,6 +135,13 @@ export class ProviderBridgeServiceDatabase extends Dexie {
       .delete()
   }
 
+  async deletePermissionByOriginAndChain(
+    origin: string,
+    chainID: string
+  ): Promise<number> {
+    return this.dAppPermissions.where({ origin, chainID }).delete()
+  }
+
   async deletePermissionByAddress(accountAddress: string): Promise<number> {
     return this.dAppPermissions.where({ accountAddress }).delete()
   }

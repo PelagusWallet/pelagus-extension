@@ -440,6 +440,48 @@ export default class ProviderBridgeService extends BaseService<Events> {
     this.notifyContentScriptsAboutAddressChange()
   }
 
+  async denyDAppPermission(permission: PermissionRequest): Promise<void> {
+    if (!permission.accountAddress || permission.state !== "deny") {
+      console.error("Invalid state received when denying permission.")
+      return
+    }
+
+    await this.db.deletePermissionByOriginAndChain(
+      permission.origin,
+      permission.chainID
+    )
+
+    if (this.#pendingPermissionsRequests[permission.origin]) {
+      this.#pendingPermissionsRequests[permission.origin]("Time to move on")
+      delete this.#pendingPermissionsRequests[permission.origin]
+    }
+
+    this.notifyContentScriptsAboutAddressChange()
+  }
+
+  async denyDAppPermissionForAddress(
+    permission: PermissionRequest,
+    address: string
+  ): Promise<void> {
+    if (!permission.accountAddress || permission.state !== "deny") {
+      console.error("Invalid state received when denying permission.")
+      return
+    }
+
+    await this.db.deletePermission(
+      permission.origin,
+      address,
+      permission.chainID
+    )
+
+    if (this.#pendingPermissionsRequests[permission.origin]) {
+      this.#pendingPermissionsRequests[permission.origin]("Time to move on")
+      delete this.#pendingPermissionsRequests[permission.origin]
+    }
+
+    this.notifyContentScriptsAboutAddressChange()
+  }
+
   async revokePermissionsForAddress(revokeAddress: string): Promise<void> {
     await this.db.deletePermissionByAddress(revokeAddress)
     this.notifyContentScriptsAboutAddressChange()

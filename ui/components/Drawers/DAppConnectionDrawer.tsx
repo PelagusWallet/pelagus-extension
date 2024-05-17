@@ -6,9 +6,11 @@ import { PermissionRequest } from "@tallyho/provider-bridge-shared"
 import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { getShardFromAddress } from "@pelagus/pelagus-background/constants"
 import ConnectionDAppGuideline from "../Shared/ConnectionDAppGuideline"
-import DAppAccountsList, {
+import DAppAccountsList from "../DAppConnection/DAppAccountsList"
+import {
+  AccountData,
   ListAccount,
-} from "../DAppConnection/DAppAccountsList"
+} from "@pelagus/pelagus-background/redux-slices/accounts"
 
 interface DAppConnectionDrawerProps {
   currentDAppInfo: PermissionRequest
@@ -16,7 +18,8 @@ interface DAppConnectionDrawerProps {
   setIsDAppConnectionOpen: (value: React.SetStateAction<boolean>) => void
   isConnectedToDApp: boolean
   connectedAccountsToDApp: PermissionRequest[]
-  onDisconnectClick: () => Promise<void>
+  onDisconnectAddressClick: (address: string) => Promise<void>
+  onDisconnectAllAddressesClick: () => Promise<void>
 }
 
 export default function DAppConnectionDrawer({
@@ -25,7 +28,8 @@ export default function DAppConnectionDrawer({
   setIsDAppConnectionOpen,
   isConnectedToDApp,
   connectedAccountsToDApp,
-  onDisconnectClick,
+  onDisconnectAddressClick,
+  onDisconnectAllAddressesClick,
 }: DAppConnectionDrawerProps): ReactElement {
   const { origin: dAppUrl, faviconUrl: dAppFaviconUrl } = currentDAppInfo
   const { t } = useTranslation("translation", {
@@ -34,7 +38,6 @@ export default function DAppConnectionDrawer({
   const allAccounts = useBackgroundSelector(getAllAccounts)
 
   const filteredAccounts = useMemo(() => {
-    const uniqueAccounts = new Set()
     return connectedAccountsToDApp.reduce(
       (acc: ListAccount[], connectedAccount) => {
         const { accountAddress, chainID } = connectedAccount
@@ -43,21 +46,16 @@ export default function DAppConnectionDrawer({
             account !== "loading" &&
             account.address === accountAddress &&
             account.network.chainID === chainID
-        )
+        ) as AccountData
 
-        if (
-          filteredAccount &&
-          filteredAccount !== "loading" &&
-          !uniqueAccounts.has(accountAddress)
-        ) {
-          uniqueAccounts.add(accountAddress)
+        if (filteredAccount)
           acc.push({
             address: filteredAccount.address,
             defaultAvatar: filteredAccount.defaultAvatar,
             defaultName: filteredAccount.defaultName,
             shard: getShardFromAddress(filteredAccount.address),
           })
-        }
+
         return acc
       },
       []
@@ -79,7 +77,7 @@ export default function DAppConnectionDrawer({
             type="button"
             className="disconnect-btn"
             aria-label={t("disconnectButtonText")}
-            onClick={onDisconnectClick}
+            onClick={onDisconnectAllAddressesClick}
           >
             {t("disconnectButtonText")}
           </button>
@@ -103,9 +101,11 @@ export default function DAppConnectionDrawer({
           <ConnectionDAppGuideline isConnected={isConnectedToDApp} />
         )}
       </div>
-
       {numFilteredAccounts > 0 && (
-        <DAppAccountsList accountsList={filteredAccounts} />
+        <DAppAccountsList
+          accountsList={filteredAccounts}
+          onDisconnectAddressClick={onDisconnectAddressClick}
+        />
       )}
 
       <style jsx>{`

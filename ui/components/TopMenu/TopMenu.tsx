@@ -7,7 +7,10 @@ import {
   isDisabled,
   isEnabled,
 } from "@pelagus/pelagus-background/features"
-import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
+import {
+  denyDAppPermissions,
+  denyDAppPermissionForAddress,
+} from "@pelagus/pelagus-background/redux-slices/dapp"
 import { setSelectedNetwork } from "@pelagus/pelagus-background/redux-slices/ui"
 import TopMenuProtocolSwitcher from "./TopMenuProtocolSwitcher"
 import AccountsNotificationPanel from "../AccountsNotificationPanel/AccountsNotificationPanel"
@@ -76,19 +79,41 @@ export default function TopMenu(): ReactElement {
     initPermissionAndOrigin()
   }, [initPermissionAndOrigin])
 
-  const deny = useCallback(async () => {
-    if (typeof currentDAppInfo !== "undefined") {
-      const permissionsToDeny = allowedPages.filter(
-        (permission) => permission.origin === currentDAppInfo.origin
-      )
+  const disconnectAllAddressesFromDApp = useCallback(async () => {
+    if (typeof currentDAppInfo === "undefined") return
 
-      await Promise.all(
-        permissionsToDeny.map((permission) =>
-          dispatch(denyOrRevokePermission({ ...permission, state: "deny" }))
-        )
+    const permissionsToDeny: PermissionRequest[] = allowedPages
+      .filter((permission) => permission.origin === currentDAppInfo.origin)
+      .map((permission) => ({
+        ...permission,
+        state: "deny" as "deny",
+      }))
+
+    await Promise.all(
+      permissionsToDeny.map(() =>
+        dispatch(denyDAppPermissions(permissionsToDeny))
       )
-    }
+    )
   }, [dispatch, currentDAppInfo, allowedPages])
+
+  const disconnectAddressFromDApp = useCallback(
+    async (address: string) => {
+      if (typeof currentDAppInfo === "undefined") return
+
+      const permissionToDeny = allowedPages.find(
+        (permission) => permission.accountAddress === address
+      )
+      if (!permissionToDeny) return
+
+      await dispatch(
+        denyDAppPermissionForAddress({
+          permission: { ...permissionToDeny, state: "deny" },
+          accountAddress: address,
+        })
+      )
+    },
+    [dispatch, currentDAppInfo, allowedPages]
+  )
 
   return (
     <>
@@ -101,7 +126,8 @@ export default function TopMenu(): ReactElement {
           setIsDAppConnectionOpen={() => {
             setIsActiveDAppConnectionInfoOpen(false)
           }}
-          onDisconnectClick={deny}
+          onDisconnectAddressClick={disconnectAddressFromDApp}
+          onDisconnectAllAddressesClick={disconnectAllAddressesFromDApp}
         />
       )}
 

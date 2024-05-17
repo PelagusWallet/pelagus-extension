@@ -1781,6 +1781,41 @@ export default class Main extends BaseService<never> {
         )
       }
     )
+
+    providerBridgeSliceEmitter.on(
+      "denyDAppPermissions",
+      async (permissions: PermissionRequest[]) => {
+        await Promise.all(
+          permissions.map(async (permission) => {
+            await Promise.all(
+              this.chainService.supportedNetworks.map(async (network) => {
+                await this.providerBridgeService.denyDAppPermission({
+                  ...permission,
+                  chainID: network.chainID,
+                })
+              })
+            )
+          })
+        )
+      }
+    )
+
+    providerBridgeSliceEmitter.on(
+      "denyDAppPermissionForAddress",
+      async ({ permission, accountAddress }) => {
+        await Promise.all(
+          this.chainService.supportedNetworks.map(async (network) => {
+            await this.providerBridgeService.denyDAppPermissionForAddress(
+              {
+                ...permission,
+                chainID: network.chainID,
+              },
+              accountAddress
+            )
+          })
+        )
+      }
+    )
   }
 
   async connectPreferenceService(): Promise<void> {

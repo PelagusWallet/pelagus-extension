@@ -8,6 +8,11 @@ export type PermissionRequest = {
   accountAddress: string
 }
 
+export type DenyPermissionRequest = {
+  permission: PermissionRequest
+  accountAddress: string
+}
+
 export type WindowResponseEvent = {
   origin: string
   source: unknown

@@ -4,7 +4,7 @@ import SharedIconGA from "../Shared/SharedIconGA"
 import { truncateAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { HexString } from "@pelagus/pelagus-background/types"
-import { ListAccount } from "./DAppAccountsList"
+import { ListAccount } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 const capitalizeFirstLetter = (text: string): string =>
   text.charAt(0).toUpperCase() + text.slice(1)
@@ -36,12 +36,12 @@ export default function DAppAccountListItem({
       })}
     >
       <div className="left-side">
-        <SharedIconGA iconUrl={account?.defaultAvatar} />
+        <SharedIconGA iconUrl={account.defaultAvatar} />
         <div className="account-info">
-          <div className="name">{account?.defaultName}</div>
+          <div className="name">{account.defaultName}</div>
           <div className="details">
-            {account && capitalizeFirstLetter(account?.shard)} •{" "}
-            {account && truncateAddress(account.address)}
+            {capitalizeFirstLetter(account.shard)} •{" "}
+            {truncateAddress(account.address)}
           </div>
         </div>
       </div>
@@ -49,20 +49,17 @@ export default function DAppAccountListItem({
       <div className="right-side">
         <button
           type="button"
-          disabled={isSelected}
           className={classNames("account-action-btn", {
             selected: isSelected,
           })}
           onClick={() => {
             isSelected
-              ? account && onDisconnect(account.address)
-              : account && onSwitchClick(account.address)
+              ? onDisconnect(account.address)
+              : onSwitchClick(account.address)
           }}
         >
           {isSelected
-            ? // FIXME due to problems with connection logic currently Connected
-              // then need to change to Disconnected (disconnectAccountBtnText)
-              `${t("connectedAccountBtnText")}`
+            ? `${t("disconnectAccountBtnText")}`
             : `${t("switchAccountBtnText")}`}
         </button>
       </div>

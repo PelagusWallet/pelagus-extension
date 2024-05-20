@@ -86,7 +86,6 @@ import {
   rejectTransactionSignature,
   transactionSigned,
   clearCustomGas,
-  updateRollupEstimates,
 } from "./redux-slices/transaction-construction"
 import { selectDefaultNetworkFeeSettings } from "./redux-slices/selectors/transactionConstructionSelectors"
 import { allAliases } from "./redux-slices/utils"
@@ -108,7 +107,7 @@ import {
 } from "./redux-slices/signing"
 
 import { SignTypedDataRequest, MessageSigningRequest } from "./utils/signing"
-import { OPTIMISM, getShardFromAddress } from "./constants"
+import { getShardFromAddress } from "./constants"
 import {
   AccountSigner,
   SignatureResponse,
@@ -138,7 +137,6 @@ import {
   SmartContractAsset,
   SmartContractFungibleAsset,
 } from "./assets"
-import { FeatureFlags, isEnabled } from "./features"
 import { AddChainRequestData } from "./services/provider-bridge"
 import {
   AnalyticsEvent,
@@ -1023,21 +1021,6 @@ export default class Main extends BaseService<never> {
     this.chainService.emitter.on(
       "blockPrices",
       async ({ blockPrices, network }) => {
-        if (network.chainID === OPTIMISM.chainID) {
-          const { transactionRequest: currentTransactionRequest } =
-            this.store.getState().transactionConstruction
-          if (currentTransactionRequest?.network.chainID === OPTIMISM.chainID) {
-            // If there is a currently pending transaction request on Optimism,
-            // we need to update its L1 rollup fee as well as the current estimated fees per gas
-            const estimatedRollupFee = 0n
-            const estimatedRollupGwei =
-              await this.chainService.estimateL1RollupGasPrice(network)
-
-            this.store.dispatch(
-              updateRollupEstimates({ estimatedRollupFee, estimatedRollupGwei })
-            )
-          }
-        }
         this.store.dispatch(
           estimatedFeesPerGas({ estimatedFeesPerGas: blockPrices, network })
         )

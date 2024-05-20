@@ -3,7 +3,7 @@ import ChainService, {
   PriorityQueuedTxToRetrieve,
   QueuedTxToRetrieve,
 } from ".."
-import { ETHEREUM, MINUTE, OPTIMISM, POLYGON, SECOND } from "../../../constants"
+import { MINUTE, QUAI_NETWORK, SECOND } from "../../../constants"
 import { EVMNetwork } from "../../../networks"
 import * as gas from "../../../lib/gas"
 import {
@@ -63,7 +63,7 @@ describe("Chain Service", () => {
       const partialTransactionRequest: EnrichedEIP1559TransactionSignatureRequest =
         {
           from: "0x0d18b6e68ec588149f2fc20b76ff70b1cfb28882",
-          network: ETHEREUM,
+          network: QUAI_NETWORK,
           nonce: 1,
           maxPriorityFeePerGas: 1n,
           maxFeePerGas: 2n,
@@ -75,7 +75,7 @@ describe("Chain Service", () => {
       )
 
       await chainService.populatePartialTransactionRequest(
-        ETHEREUM,
+        QUAI_NETWORK,
         partialTransactionRequest,
         { maxFeePerGas: 100n, maxPriorityFeePerGas: 1000n }
       )
@@ -83,8 +83,8 @@ describe("Chain Service", () => {
       expect(stub.callCount).toBe(1)
 
       await chainService.populatePartialTransactionRequest(
-        POLYGON,
-        { ...partialTransactionRequest, network: POLYGON },
+        QUAI_NETWORK,
+        { ...partialTransactionRequest, network: QUAI_NETWORK },
         { maxFeePerGas: 100n, maxPriorityFeePerGas: 1000n }
       )
 
@@ -95,7 +95,7 @@ describe("Chain Service", () => {
       const partialTransactionRequest: EnrichedLegacyTransactionSignatureRequest =
         {
           from: "0x0d18b6e68ec588149f2fc20b76ff70b1cfb28882",
-          network: OPTIMISM,
+          network: QUAI_NETWORK,
           nonce: 1,
           gasPrice: 1_000n,
         }
@@ -106,7 +106,7 @@ describe("Chain Service", () => {
       )
 
       await chainService.populatePartialTransactionRequest(
-        OPTIMISM,
+        QUAI_NETWORK,
         partialTransactionRequest,
         { maxFeePerGas: 100n, maxPriorityFeePerGas: 1000n }
       )
@@ -117,7 +117,7 @@ describe("Chain Service", () => {
 
   describe("markNetworkActivity", () => {
     beforeEach(async () => {
-      sandbox.stub(chainService, "supportedNetworks").value([ETHEREUM])
+      sandbox.stub(chainService, "supportedNetworks").value([QUAI_NETWORK])
 
       await chainService.startService()
     })
@@ -131,15 +131,15 @@ describe("Chain Service", () => {
 
       const lastUserActivity = (
         chainService as unknown as ChainServiceExternalized
-      ).lastUserActivityOnNetwork[ETHEREUM.chainID]
+      ).lastUserActivityOnNetwork[QUAI_NETWORK.chainID]
 
       jest.advanceTimersByTime(100)
 
-      chainService.markNetworkActivity(ETHEREUM.chainID)
+      chainService.markNetworkActivity(QUAI_NETWORK.chainID)
 
       expect(lastUserActivity).toBeLessThan(
         (chainService as unknown as ChainServiceExternalized)
-          .lastUserActivityOnNetwork[ETHEREUM.chainID]
+          .lastUserActivityOnNetwork[QUAI_NETWORK.chainID]
       )
 
       jest.useRealTimers()
@@ -149,19 +149,20 @@ describe("Chain Service", () => {
       // Set last activity time to 10 minutes ago
       ;(
         chainService as unknown as ChainServiceExternalized
-      ).lastUserActivityOnNetwork[ETHEREUM.chainID] = Date.now() - 10 * MINUTE
+      ).lastUserActivityOnNetwork[QUAI_NETWORK.chainID] =
+        Date.now() - 10 * MINUTE
       const getBlockPricesStub = sandbox
         .stub(gas, "default")
         .callsFake(async () => createBlockPrices())
 
-      await chainService.markNetworkActivity(ETHEREUM.chainID)
+      await chainService.markNetworkActivity(QUAI_NETWORK.chainID)
       expect(getBlockPricesStub.called).toEqual(true)
     })
   })
 
   describe("markAccountActivity", () => {
     beforeEach(async () => {
-      sandbox.stub(chainService, "supportedNetworks").value([ETHEREUM])
+      sandbox.stub(chainService, "supportedNetworks").value([QUAI_NETWORK])
       await chainService.startService()
     })
 
@@ -175,14 +176,14 @@ describe("Chain Service", () => {
         .callsFake(async () => {})
 
       chainService.markAccountActivity(
-        createAddressOnNetwork({ network: ETHEREUM })
+        createAddressOnNetwork({ network: QUAI_NETWORK })
       )
 
-      expect(stub.calledWith(ETHEREUM.chainID)).toEqual(true)
+      expect(stub.calledWith(QUAI_NETWORK.chainID)).toEqual(true)
     })
 
     it("should call loadRecentAssetTransfers if the NETWORK_POLLING_TIMEOUT has been exceeded", async () => {
-      const account = createAddressOnNetwork({ network: ETHEREUM })
+      const account = createAddressOnNetwork({ network: QUAI_NETWORK })
 
       // Set last activity time to 10 minutes ago
       ;(
@@ -196,7 +197,7 @@ describe("Chain Service", () => {
         .callsFake(async () => {})
 
       await chainService.markAccountActivity(
-        createAddressOnNetwork({ network: ETHEREUM })
+        createAddressOnNetwork({ network: QUAI_NETWORK })
       )
       expect(stub.called).toEqual(true)
     })
@@ -211,7 +212,7 @@ describe("Chain Service", () => {
           chainService as unknown as ChainServiceExternalized,
           "getNetworksToTrack"
         )
-        .resolves([ETHEREUM, POLYGON])
+        .resolves([QUAI_NETWORK])
 
       const resolvesWithPolygon = sinon.promise()
 
@@ -222,20 +223,20 @@ describe("Chain Service", () => {
         )
         .onFirstCall()
         .callsFake(() => {
-          activeNetworksMock.push(ETHEREUM)
-          return Promise.resolve(ETHEREUM)
+          activeNetworksMock.push(QUAI_NETWORK)
+          return Promise.resolve(QUAI_NETWORK)
         })
         .onSecondCall()
         .returns(resolvesWithPolygon as Promise<EVMNetwork>)
 
       setTimeout(() => {
-        activeNetworksMock.push(POLYGON)
-        resolvesWithPolygon.resolve(POLYGON)
+        activeNetworksMock.push(QUAI_NETWORK)
+        resolvesWithPolygon.resolve(QUAI_NETWORK)
       }, 30)
 
       await chainService.getTrackedNetworks()
 
-      expect(activeNetworksMock).toEqual([ETHEREUM, POLYGON])
+      expect(activeNetworksMock).toEqual([QUAI_NETWORK])
     })
   })
   describe("Queued Transaction Retrieve", () => {
@@ -346,7 +347,7 @@ describe("Chain Service", () => {
         allHashesToAdd.forEach((hashes) =>
           hashes.forEach((txHash, idx) =>
             chainServiceExternalized.queueTransactionHashToRetrieve(
-              ETHEREUM,
+              QUAI_NETWORK,
               txHash,
               Date.now(),
               idx < PRIORITY_MAX_COUNT ? 1 : 0

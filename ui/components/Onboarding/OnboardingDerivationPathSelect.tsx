@@ -19,32 +19,9 @@ type DerivationPath = {
   hideActiveValue?: boolean
 }
 
-export enum DefaultPathIndex {
-  bip44,
-  ethTestnet,
-  rootstock,
-  rootstockTestnet,
-}
+export enum DefaultPathIndex {}
 
-// TODO make this network specific
-const defaultDerivationPaths: Record<DefaultPathIndex, DerivationPath> = {
-  [DefaultPathIndex.bip44]: {
-    value: "m/44'/1'/0'/0",
-    label: "derivationPaths.bip44",
-  },
-  [DefaultPathIndex.ethTestnet]: {
-    value: "m/44'/1'/0'/0",
-    label: "derivationPaths.ethTestnet",
-  },
-  [DefaultPathIndex.rootstock]: {
-    value: "m/44'/137'/0'/0",
-    label: "derivationPaths.rsk",
-  },
-  [DefaultPathIndex.rootstockTestnet]: {
-    value: "m/44'/37310'/0'/0",
-    label: "derivationPaths.rskTestnet",
-  },
-}
+const defaultDerivationPaths: Record<DefaultPathIndex, DerivationPath> = {}
 
 const initialCustomPath = {
   coinType: "0",

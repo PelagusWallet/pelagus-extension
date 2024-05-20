@@ -1,5 +1,5 @@
 import PreferenceService from ".."
-import { POLYGON } from "../../../constants"
+import { QUAI_NETWORK } from "../../../constants"
 import DEFAULT_PREFERENCES from "../defaults"
 
 describe("Preference Service Integration", () => {
@@ -22,7 +22,7 @@ describe("Preference Service Integration", () => {
       )
       const newAccount = {
         address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        network: POLYGON,
+        network: QUAI_NETWORK,
       }
       await preferenceService.setSelectedAccount(newAccount)
       expect(await preferenceService.getSelectedAccount()).toEqual(newAccount)

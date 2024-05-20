@@ -20,8 +20,6 @@
     "testEnvironment": "jsdom"
   },
   "keywords": [
-    "ethereum",
-    "bitcoin",
     "cryptocurrency",
     "wallet",
     "web3",
@@ -29,7 +27,6 @@
   ],
   "scripts": {
     "start": "run-p -n -l devtools \"dev {@}\" --",
-    "generate:validators": "ts-node background/generate-validators.ts",
     "build": "webpack --mode=production",
     "dev": "patch-package && webpack --mode=development --watch",
     "devtools": "redux-devtools --hostname=localhost --port=8000",

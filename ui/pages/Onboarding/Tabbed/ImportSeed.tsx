@@ -12,9 +12,6 @@ import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
 import { langEs as es } from "@quais/wordlists/lib/lang-es"
 import SharedButton from "../../../components/Shared/SharedButton"
-import OnboardingDerivationPathSelect, {
-  DefaultPathIndex,
-} from "../../../components/Onboarding/OnboardingDerivationPathSelect"
 import {
   useBackgroundDispatch,
   useBackgroundSelector,
@@ -122,14 +119,6 @@ export default function ImportSeed(props: Props): ReactElement {
           importWallet()
         }}
       >
-        {!isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH) && (
-          <div className="select_wrapper">
-            <OnboardingDerivationPathSelect
-              defaultPath={DefaultPathIndex.bip44}
-              onChange={setPath}
-            />
-          </div>
-        )}
         <div className="input_wrap">
           <div
             id="recovery_phrase"

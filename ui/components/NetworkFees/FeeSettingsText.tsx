@@ -15,18 +15,8 @@ import {
   selectTransactionMainCurrencyPricePoint,
 } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
-import {
-  ARBITRUM_ONE,
-  BINANCE_SMART_CHAIN,
-  isBuiltInNetwork,
-  OPTIMISM,
-  ROOTSTOCK,
-} from "@pelagus/pelagus-background/constants"
-import {
-  EVMNetwork,
-  isEIP1559EnrichedTransactionRequest,
-  isEIP1559TransactionRequest,
-} from "@pelagus/pelagus-background/networks"
+import { isBuiltInNetwork } from "@pelagus/pelagus-background/constants"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { useTranslation } from "react-i18next"
 import {
   PricePoint,
@@ -78,36 +68,11 @@ const estimateGweiAmount = (options: {
   network: EVMNetwork
   transactionData?: EnrichedEVMTransactionRequest
 }): string => {
-  const { network, networkSettings, baseFeePerGas, transactionData } = options
-  let estimatedSpendPerGas =
+  const { networkSettings, baseFeePerGas } = options
+  const estimatedSpendPerGas =
     baseFeePerGas + networkSettings.values.maxPriorityFeePerGas
 
-  if (
-    transactionData &&
-    !isEIP1559EnrichedTransactionRequest(transactionData) &&
-    network.chainID === OPTIMISM.chainID
-  ) {
-    estimatedSpendPerGas =
-      (networkSettings.values.gasPrice || estimatedSpendPerGas) +
-      transactionData.estimatedRollupGwei
-  }
-
-  let desiredDecimals = 0
-
-  if (ROOTSTOCK.chainID === network.chainID) {
-    estimatedSpendPerGas = networkSettings.values.gasPrice ?? 0n
-    desiredDecimals = 2
-  }
-
-  if (network.chainID === ARBITRUM_ONE.chainID) {
-    estimatedSpendPerGas = baseFeePerGas
-    desiredDecimals = 2
-  }
-
-  if (network.chainID === BINANCE_SMART_CHAIN.chainID) {
-    estimatedSpendPerGas = networkSettings.values.gasPrice ?? 0n
-    desiredDecimals = 2
-  }
+  const desiredDecimals = 0
 
   const estimatedSpendPerGasInGwei = weiToGwei(estimatedSpendPerGas ?? 0n)
   const decimalLength = heuristicDesiredDecimalsForUnitPrice(
@@ -160,12 +125,7 @@ export default function FeeSettingsText({
   if (typeof estimatedFeesPerGas === "undefined")
     return <div>{t("networkFees.unknownFee")}</div>
 
-  const estimatedRollupFee =
-    transactionData &&
-    transactionData.network.chainID === OPTIMISM.chainID &&
-    !isEIP1559TransactionRequest(transactionData)
-      ? transactionData.estimatedRollupFee
-      : 0n
+  const estimatedRollupFee = 0n
 
   const gweiValue = `${estimatedGweiAmount} Gwei`
   const dollarValue = getFeeDollarValue(

@@ -1,5 +1,5 @@
 import { createSmartContractAsset } from "../../../tests/factories"
-import { ETH, OPTIMISTIC_ETH } from "../../../constants"
+import { QUAI } from "../../../constants"
 import { isSameAsset, isUnverifiedAssetByUser } from "../asset-utils"
 import { NetworkBaseAsset } from "../../../networks"
 
@@ -38,7 +38,7 @@ describe("Asset utils", () => {
     })
 
     test("should return false if is a base asset", () => {
-      expect(isUnverifiedAssetByUser(ETH)).toBeFalsy()
+      expect(isUnverifiedAssetByUser(QUAI)).toBeFalsy()
     })
 
     test("should return false if an asset is undefined", () => {
@@ -81,12 +81,10 @@ describe("Asset utils", () => {
         chainID: "1088",
       }
 
-      expect(isSameAsset(smartContractAsset, ETH)).toBe(false)
-      expect(isSameAsset(ETH, undefined)).toBe(false)
-      expect(isSameAsset(OPTIMISTIC_ETH, ETH)).toBe(false)
-      expect(isSameAsset(ETH, ETH)).toBe(true)
-      expect(isSameAsset(ETH, ETH)).toBe(true)
-      expect(isSameAsset(baseAsset, ETH)).toBe(false)
+      expect(isSameAsset(smartContractAsset, QUAI)).toBe(false)
+      expect(isSameAsset(QUAI, undefined)).toBe(false)
+      expect(isSameAsset(QUAI, QUAI)).toBe(true)
+      expect(isSameAsset(baseAsset, QUAI)).toBe(false)
       expect(isSameAsset(baseAsset, { ...baseAsset, chainID: "999" })).toBe(
         false
       )

@@ -2,7 +2,6 @@ import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-gu
 import { MessageSigningRequest } from "@pelagus/pelagus-background/utils/signing"
 import React, { ReactElement } from "react"
 import EIP191Info from "../../../SignData/EIP191Info"
-import EIP4361Info from "../../../SignData/EIP4361Info"
 import DataSignatureDetails from "."
 
 export type MessageDataSignatureDetailsProps = {
@@ -13,15 +12,6 @@ export default function MessageDataSignatureDetails({
   messageRequest,
 }: MessageDataSignatureDetailsProps): ReactElement {
   switch (messageRequest.messageType) {
-    case "eip4361":
-      return (
-        <DataSignatureDetails
-          requestingSource={messageRequest.signingData.domain}
-          excludeTitle
-        >
-          <EIP4361Info signingData={messageRequest.signingData} excludeHeader />
-        </DataSignatureDetails>
-      )
     case "eip191":
       return (
         <DataSignatureDetails>
@@ -34,6 +24,6 @@ export default function MessageDataSignatureDetails({
         </DataSignatureDetails>
       )
     default:
-      return assertUnreachable(messageRequest)
+      return assertUnreachable(messageRequest as never)
   }
 }

@@ -1,6 +1,5 @@
 import Dexie, { Collection, DexieOptions, IndexableTypeArray } from "dexie"
 
-import { result } from "lodash"
 import { UNIXTime } from "../../types"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import {
@@ -15,10 +14,8 @@ import {
   BASE_ASSETS,
   CHAIN_ID_TO_RPC_URLS,
   DEFAULT_NETWORKS,
-  GOERLI,
   isBuiltInNetwork,
   NETWORK_BY_CHAIN_ID,
-  POLYGON,
 } from "../../constants"
 
 export type Transaction = AnyEVMTransaction & {
@@ -102,29 +99,6 @@ export class ChainDatabase extends Dexie {
 
     this.version(2).stores({
       migrations: null,
-    })
-
-    this.version(3).upgrade((tx) => {
-      tx.table("accountsToTrack")
-        .toArray()
-        .then((accounts) => {
-          const addresses = new Set<string>()
-
-          accounts.forEach(({ address }) => addresses.add(address))
-          ;[...addresses].forEach((address) => {
-            tx.table("accountsToTrack").put({
-              network: POLYGON,
-              address,
-            })
-          })
-        })
-    })
-
-    this.version(4).upgrade((tx) => {
-      tx.table("accountsToTrack")
-        .where("network.chainID")
-        .equals(GOERLI.chainID)
-        .delete()
     })
 
     this.chainTransactions.hook(

@@ -6,103 +6,7 @@ import {
 import logger from "../lib/logger"
 import { EVMNetwork } from "../networks"
 import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
-import {
-  ARBITRUM_NOVA_ETH,
-  ARBITRUM_ONE_ETH,
-  AVAX,
-  BNB,
-  ETH,
-  GOERLI_ETH,
-  MATIC,
-  OPTIMISTIC_ETH,
-  RBTC,
-  ZK_SYNC_ETH,
-  QUAI,
-  QUAI_LOCAL,
-} from "./currencies"
-
-// FIXME maybe delete
-// export const productionNetworkInfo = {
-//   [ETHEREUM.chainID]: i18n.t("protocol.mainnet"),
-//   [POLYGON.chainID]: i18n.t("protocol.l2"),
-//   [OPTIMISM.chainID]: i18n.t("protocol.l2"),
-//   [ARBITRUM_ONE.chainID]: i18n.t("protocol.l2"),
-//   [ROOTSTOCK.chainID]: i18n.t("protocol.beta"),
-//   [AVALANCHE.chainID]: i18n.t("protocol.avalanche"),
-//   [BINANCE_SMART_CHAIN.chainID]: i18n.t("protocol.compatibleChain"),
-//   [ARBITRUM_NOVA.chainID]: i18n.t("comingSoon"),
-// }
-
-export const ETHEREUM: EVMNetwork = {
-  name: "Ethereum",
-  baseAsset: ETH,
-  chainID: "1",
-  family: "EVM",
-}
-
-export const ROOTSTOCK: EVMNetwork = {
-  name: "Rootstock",
-  baseAsset: RBTC,
-  chainID: "30",
-  derivationPath: "m/44'/137'/0'/0",
-  family: "EVM",
-}
-
-export const POLYGON: EVMNetwork = {
-  name: "Polygon",
-  baseAsset: MATIC,
-  chainID: "137",
-  family: "EVM",
-}
-
-export const ARBITRUM_ONE: EVMNetwork = {
-  name: "Arbitrum",
-  baseAsset: ARBITRUM_ONE_ETH,
-  chainID: "42161",
-  family: "EVM",
-}
-
-export const AVALANCHE: EVMNetwork = {
-  name: "Avalanche",
-  baseAsset: AVAX,
-  chainID: "43114",
-  family: "EVM",
-}
-
-export const BINANCE_SMART_CHAIN: EVMNetwork = {
-  name: "BNB Chain",
-  baseAsset: BNB,
-  chainID: "56",
-  family: "EVM",
-}
-
-export const ARBITRUM_NOVA: EVMNetwork = {
-  name: "Arbitrum Nova",
-  baseAsset: ARBITRUM_NOVA_ETH,
-  chainID: "42170",
-  family: "EVM",
-}
-
-export const OPTIMISM: EVMNetwork = {
-  name: "Optimism",
-  baseAsset: OPTIMISTIC_ETH,
-  chainID: "10",
-  family: "EVM",
-}
-
-export const GOERLI: EVMNetwork = {
-  name: "Goerli",
-  baseAsset: GOERLI_ETH,
-  chainID: "5",
-  family: "EVM",
-}
-
-export const ZK_SYNC: EVMNetwork = {
-  name: "zkSync Era",
-  baseAsset: ZK_SYNC_ETH,
-  chainID: "324",
-  family: "EVM",
-}
+import { QUAI, QUAI_LOCAL } from "./currencies"
 
 export const VALID_SHARDS: Array<string> = [
   "cyprus-1",
@@ -126,8 +30,6 @@ export const VALID_SHARDS_NAMES: Array<string> = [
   "Hydra 2",
   "Hydra 3",
 ]
-
-export const DISABLED_CHAINS_ID = [ARBITRUM_NOVA.chainID]
 
 export const DEFAULT_QUAI_TESTNET = {
   name: "Colosseum",
@@ -367,43 +269,21 @@ export const DEFAULT_NETWORKS_BY_CHAIN_ID = new Set(
   DEFAULT_NETWORKS.map((network) => network.chainID)
 )
 
-export const FORK: EVMNetwork = {
-  name: "Ethereum",
-  baseAsset: ETH,
-  chainID: process.env.MAINNET_FORK_CHAIN_ID ?? "42", // placeholder
-  family: "EVM",
-}
-
 export const EIP_1559_COMPLIANT_CHAIN_IDS = new Set(
-  [ETHEREUM, POLYGON, GOERLI, AVALANCHE, QUAI_NETWORK, QUAI_NETWORK_LOCAL].map(
-    (network) => network.chainID
-  )
+  [QUAI_NETWORK, QUAI_NETWORK_LOCAL].map((network) => network.chainID)
 )
 
 export const CHAINS_WITH_MEMPOOL = new Set(
-  [
-    ETHEREUM,
-    POLYGON,
-    AVALANCHE,
-    GOERLI,
-    BINANCE_SMART_CHAIN,
-    QUAI_NETWORK,
-    QUAI_NETWORK_LOCAL,
-  ].map((network) => network.chainID)
+  [QUAI_NETWORK, QUAI_NETWORK_LOCAL].map((network) => network.chainID)
 )
 
 export const NETWORK_BY_CHAIN_ID = {
   [QUAI_NETWORK.chainID]: QUAI_NETWORK,
   [QUAI_NETWORK_LOCAL.chainID]: QUAI_NETWORK_LOCAL,
 }
-
 export const TEST_NETWORK_BY_CHAIN_ID = new Set(
-  [GOERLI].map((network) => network.chainID)
+  DEFAULT_TEST_NETWORKS.map((network) => network.chainID)
 )
-
-// REFACTOR delete in chain support
-export const NETWORKS_SUPPORTING_SWAPS = new Set(Object.keys({}))
-
 /**
  * Method list, to describe which rpc method calls on which networks
  *
@@ -418,26 +298,7 @@ export const RPC_METHOD_PROVIDER_ROUTING = {
     "quai_subscribe", // generic http providers do not support this, but dapps need this
     "quai_estimateGas", // just want to be safe, when setting up a transaction
   ],
-  [OPTIMISM.chainID]: [
-    "quai_call", // this is causing issues on optimism with ankr and is used heavily by uniswap
-  ],
-  [ARBITRUM_ONE.chainID]: [
-    "quai_call", // this is causing issues on arbitrum with ankr and is used heavily by uniswap
-  ],
 } as const
-
-export const CHAIN_ID_TO_OPENSEA_CHAIN = {
-  [ETHEREUM.chainID]: "ethereum",
-  [OPTIMISM.chainID]: "optimism",
-  [POLYGON.chainID]: "matic",
-  [ARBITRUM_ONE.chainID]: "arbitrum",
-  [AVALANCHE.chainID]: "avalanche",
-  [BINANCE_SMART_CHAIN.chainID]: "bsc",
-}
-
-export const NETWORKS_WITH_FEE_SETTINGS = new Set(
-  [ETHEREUM, POLYGON, ARBITRUM_ONE, AVALANCHE].map((network) => network.chainID)
-)
 
 // Network class contains data about a default or custom network.
 export class Network {
@@ -464,28 +325,8 @@ export class ChainData {
   multicall: string
 }
 
-export const NETWORK_LIST = []
-
 export const NUM_ZONES_IN_REGION = 3
 export const NUM_REGIONS_IN_PRIME = 3
-
-export const NETWORK_TO_CHAIN_CODE = {
-  Colosseum: 994,
-  Garden: 994,
-  Local: 994,
-}
-
-export const CHAIN_ID_TO_NETWORK = {
-  9000: "Colosseum",
-  12000: "Garden",
-  1337: "Local",
-}
-
-export const NETWORK_TO_CHAIN_ID = {
-  Colosseum: 9000,
-  Garden: 12000,
-  Local: 1337,
-}
 
 export const DEFAULT_QUAI_NETWORKS = [
   DEFAULT_QUAI_TESTNET,
@@ -553,50 +394,12 @@ export const QUAI_CONTEXTS = [
 export const CHAIN_ID_TO_RPC_URLS: {
   [chainId: string]: Array<string> | undefined
 } = {
-  [ROOTSTOCK.chainID]: ["https://public-node.rsk.co"],
-  [POLYGON.chainID]: [
-    // This one sometimes returns 0 for eth_getBalance
-    "https://polygon-rpc.com",
-    "https://1rpc.io/matic",
-  ],
-  [OPTIMISM.chainID]: [
-    "https://rpc.ankr.com/optimism",
-    "https://1rpc.io/op",
-    "https://optimism-mainnet.public.blastapi.io",
-  ],
-  [ETHEREUM.chainID]: ["https://rpc.ankr.com/eth", "https://1rpc.io/eth"],
-  [ARBITRUM_ONE.chainID]: [
-    "https://rpc.ankr.com/arbitrum",
-    "https://1rpc.io/arb",
-  ],
-  [ARBITRUM_NOVA.chainID]: ["https://nova.arbitrum.io/rpc	"],
-  [GOERLI.chainID]: ["https://ethereum-goerli-rpc.allthatnode.com"],
-  [AVALANCHE.chainID]: [
-    "https://api.avax.network/ext/bc/C/rpc",
-    "https://1rpc.io/avax/c",
-    "https://rpc.ankr.com/avalanche",
-  ],
-  [BINANCE_SMART_CHAIN.chainID]: [
-    "https://rpc.ankr.com/bsc",
-    "https://bsc-dataseed.binance.org",
-  ],
-  // All default quai local chain rpcs
   [QUAI_NETWORK.chainID]: [
     ...DEFAULT_QUAI_TESTNET.chains.map((chain) => chain.rpc),
   ],
   [QUAI_NETWORK_LOCAL.chainID]: [
     ...DEFAULT_QUAI_LOCAL.chains.map((chain) => chain.rpc),
   ],
-}
-
-export function getExplorerURLForShard(network: Network, shard: string) {
-  const chainData = network.chains.find(
-    (chain) => chain.shard === shard
-  ) as ChainData
-  if (chainData === undefined) {
-    return undefined
-  }
-  return chainData.blockExplorerUrl
 }
 
 export const getShardFromAddress = function (address: string): string {

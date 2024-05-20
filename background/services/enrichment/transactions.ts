@@ -29,7 +29,7 @@ import {
   getERC20LogsForAddresses,
 } from "./utils"
 import { enrichAddressOnNetwork } from "./addresses"
-import { OPTIMISM, SECOND } from "../../constants"
+import { SECOND } from "../../constants"
 import { parseLogsForWrappedDepositsAndWithdrawals } from "../../lib/wrappedAsset"
 import {
   ERC20TransferLog,
@@ -37,7 +37,6 @@ import {
   parseLogsForERC20Transfers,
 } from "../../lib/erc20"
 import { isDefined, isFulfilledPromise } from "../../lib/utils/type-guards"
-import { unsignedTransactionFromEVMTransaction } from "../chain/utils"
 
 async function buildSubannotations(
   chainService: ChainService,

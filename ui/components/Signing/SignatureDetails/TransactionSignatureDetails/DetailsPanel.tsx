@@ -11,10 +11,7 @@ import type {
   EnrichedLegacyTransactionRequest,
 } from "@pelagus/pelagus-background/services/enrichment"
 import { useTranslation } from "react-i18next"
-import {
-  BINANCE_SMART_CHAIN,
-  EIP_1559_COMPLIANT_CHAIN_IDS,
-} from "@pelagus/pelagus-background/constants"
+import { EIP_1559_COMPLIANT_CHAIN_IDS } from "@pelagus/pelagus-background/constants"
 import classNames from "classnames"
 import { getAccountNonceAndGasPrice } from "@pelagus/pelagus-background/redux-slices/assets"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
@@ -137,12 +134,10 @@ export default function DetailPanel({
 
   const getHightForSlideUpMenu = () => {
     return `${
-      transactionDetails.network.name === BINANCE_SMART_CHAIN.name
-        ? 150
-        : 3 * 56 +
-          320 +
-          (hasInsufficientFundsWarning ? 15 : 0) +
-          (isEIP1559Compliant ? 0 : 40)
+      3 * 56 +
+      320 +
+      (hasInsufficientFundsWarning ? 15 : 0) +
+      (isEIP1559Compliant ? 0 : 40)
     }px`
   }
 

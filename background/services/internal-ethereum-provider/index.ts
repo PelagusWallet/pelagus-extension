@@ -1,5 +1,5 @@
-import { TransactionRequest as EthersTransactionRequest } from "@quais/abstract-provider"
-import { serialize as serializeEthersTransaction } from "@quais/transactions"
+import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
+import { serialize as serializeQuaiTransaction } from "@quais/transactions"
 
 import {
   EIP1193Error,
@@ -34,17 +34,12 @@ import {
 } from "../../utils/signing"
 import { getOrCreateDB, InternalEthereumProviderDatabase } from "./db"
 import { TALLY_INTERNAL_ORIGIN } from "./constants"
-import { QUAI_NETWORK, ROOTSTOCK } from "../../constants"
 import {
   EnrichedEVMTransactionRequest,
   TransactionAnnotation,
 } from "../enrichment"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
-import {
-  isValidChecksumAddress,
-  isMixedCaseAddress,
-  decodeJSON,
-} from "../../lib/utils"
+import { decodeJSON } from "../../lib/utils"
 
 // A type representing the transaction requests that come in over JSON-RPC
 // requests like eth_sendTransaction and eth_signTransaction. These are very
@@ -61,7 +56,7 @@ import {
 // Additionally, internal provider requests can include an explicit
 // JSON-serialized annotation field provided by the wallet. The internal
 // provider disallows this field from non-internal sources.
-type JsonRpcTransactionRequest = Omit<EthersTransactionRequest, "gasLimit"> & {
+type JsonRpcTransactionRequest = Omit<QuaiTransactionRequest, "gasLimit"> & {
   gas?: string
   input?: string
   annotation?: string
@@ -179,10 +174,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       case "quai_signTypedData_v1":
       case "quai_signTypedData_v3":
       case "quai_signTypedData_v4":
-      case "eth_signTypedData":
-      case "eth_signTypedData_v1":
-      case "eth_signTypedData_v3":
-      case "eth_signTypedData_v4":
         return this.signTypedData({
           account: {
             address: params[0] as string,
@@ -242,42 +233,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       case "net_version":
       case "web3_clientVersion":
       case "web3_sha3":
-      case "eth_blockNumber":
-      case "eth_call":
-      case "eth_estimateGas":
-      case "eth_feeHistory":
-      case "eth_gasPrice":
-      case "eth_getBalance":
-      case "eth_getBlockByHash":
-      case "eth_getBlockByNumber":
-      case "eth_getBlockTransactionCountByHash":
-      case "eth_getBlockTransactionCountByNumber":
-      case "eth_getCode":
-      case "eth_getFilterChanges":
-      case "eth_getFilterLogs":
-      case "eth_getLogs":
-      case "eth_getProof":
-      case "eth_getStorageAt":
-      case "eth_getTransactionByBlockHashAndIndex":
-      case "eth_getTransactionByBlockNumberAndIndex":
-      case "eth_getTransactionByHash":
-      case "eth_getTransactionCount":
-      case "eth_getTransactionReceipt":
-      case "eth_getUncleByBlockHashAndIndex":
-      case "eth_getUncleByBlockNumberAndIndex":
-      case "eth_getUncleCountByBlockHash":
-      case "eth_getUncleCountByBlockNumber":
-      case "eth_maxPriorityFeePerGas":
-      case "eth_newBlockFilter":
-      case "eth_newFilter":
-      case "eth_newPendingTransactionFilter":
-      case "eth_nodeLocation":
-      case "eth_protocolVersion":
-      case "eth_sendRawTransaction":
-      case "eth_subscribe":
-      case "eth_syncing":
-      case "eth_uninstallFilter":
-      case "eth_unsubscribe":
         return this.chainService.send(
           method,
           params,
@@ -288,7 +243,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
       }
-      case "eth_sendTransaction":
       case "quai_sendTransaction":
         return this.signTransaction(
           {
@@ -299,13 +253,12 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           await this.chainService.broadcastSignedTransaction(signed)
           return signed.hash
         })
-      case "eth_signTransaction":
       case "quai_signTransaction":
         return this.signTransaction(
           params[0] as JsonRpcTransactionRequest,
           origin
         ).then((signedTransaction) =>
-          serializeEthersTransaction(
+          serializeQuaiTransaction(
             ethersTransactionFromSignedTransaction(signedTransaction),
             {
               r: signedTransaction.r,
@@ -314,7 +267,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
             }
           )
         )
-      case "eth_sign":
       case "quai_sign": // --- important wallet methods ---
         return this.signData(
           {
@@ -331,7 +283,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           },
           origin
         )
-      // TODO - actually allow adding a new ethereum chain - for now wallet_addEthereumChain
       // will just switch to a chain if we already support it - but not add a new one
       case "wallet_addEthereumChain": {
         const chainInfo = params[0] as ValidatedAddEthereumChainParameter
@@ -401,14 +352,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       case "metamask_sendDomainMetadata":
       case "wallet_requestPermissions":
       case "estimateGas": // --- eip1193-bridge only method --
-      case "eth_coinbase": // --- MM only methods ---
-      case "eth_decrypt":
-      case "eth_getEncryptionPublicKey":
-      case "eth_getWork":
-      case "eth_hashrate":
-      case "eth_mining":
-      case "eth_submitHashrate":
-      case "eth_submitWork":
       case "metamask_accountsChanged":
       case "metamask_chainChanged":
       case "metamask_logWeb3ShimUsage":
@@ -468,20 +411,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
     const currentNetwork =
       globalThis.main.store.getState().ui.selectedAccount.network
 
-    const isRootstock = currentNetwork.chainID === ROOTSTOCK.chainID
-
-    if (isRootstock) {
-      ;[transactionRequest.from, transactionRequest.to].forEach((address) => {
-        if (
-          address &&
-          isMixedCaseAddress(address) &&
-          !isValidChecksumAddress(address, +currentNetwork.chainID)
-        ) {
-          throw new Error("Bad address checksum")
-        }
-      })
-    }
-
     const { from, ...convertedRequest } =
       transactionRequestFromEthersTransactionRequest({
         // Convert input -> data if necessary; if transactionRequest uses data
@@ -492,12 +421,8 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         ...transactionRequest,
         gasLimit: transactionRequest.gas, // convert gas -> gasLimit
         // Etherjs rejects Rootstock checksummed addresses so convert to lowercase
-        from: isRootstock
-          ? normalizeHexAddress(transactionRequest.from)
-          : transactionRequest.from,
-        to: isRootstock
-          ? transactionRequest.to && normalizeHexAddress(transactionRequest.to)
-          : transactionRequest.to,
+        from: transactionRequest.from,
+        to: transactionRequest.to,
       })
 
     if (typeof from === "undefined") {

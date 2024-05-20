@@ -7,7 +7,7 @@ import {
   createInternalEthereumProviderService,
 } from "../../../tests/factories"
 import { validateAddEthereumChainParameter } from "../../provider-bridge/utils"
-import { ETHEREUM } from "../../../constants"
+import { QUAI_NETWORK } from "../../../constants"
 import { SignTypedDataRequest } from "../../../utils/signing"
 import { EIP712TypedData } from "../../../types"
 
@@ -104,7 +104,7 @@ describe("Internal Ethereum Provider Service", () => {
       const EIP712ObjectFiltered: SignTypedDataRequest = {
         account: {
           address: TEST_ADDRESS,
-          network: ETHEREUM,
+          network: QUAI_NETWORK,
         },
         typedData: {
           types,

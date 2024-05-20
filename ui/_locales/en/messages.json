@@ -126,33 +126,6 @@
       "invalidLimit": "Gas Limit must be a number",
       "lowGas": "Low"
     },
-    "optimism": {
-      "title": "Network fees",
-      "header": "Gas fees on {{name}} work differently from Ethereum.",
-      "transactionFee": "Transaction fee",
-      "rollUp": "Roll-up",
-      "estimatedGas": "Estimated Gas",
-      "explainerOne": "The estimated gas cost for {{name}} transactions includes an {{name}} fee + an Ethereum roll-up fee (the fee to register transaction on Ethereum chain).",
-      "explainerTwo": "Pelagus stays in sync with the current {{name}} and Ethereum network fees to estimate the fee for a given transaction.",
-      "explainerThree": "Only in rare cases will the actual fee you pay change by more than 25% from the estimate.",
-      "learnMore": "Learn More"
-    },
-    "rsk": {
-      "title": "Network fees",
-      "header": "Gas fees on RSK work differently from Ethereum.",
-      "minGasPrice": "Minimum Gas Price",
-      "multiplier": "10%",
-      "percentage": "percentage",
-      "estimatedGas": "Estimated Gas",
-      "explainerOne": "The estimated gas price for RSK transactions is calculated by adding 10% to the Minimum Gas Price obtained from the latest mined block.",
-      "explainerTwo": "Pelagus stays in sync with the current RSK and Ethereum network fees to estimate the fee for a given transaction.",
-      "explainerThree": "Only in rare cases will the actual fee you pay change by more than 10% from the estimate.",
-      "learnMore": "Learn More"
-    },
-    "bsc": {
-      "title": "Coming soon!",
-      "description": "Changing network fees for BNB Chain is not currently available."
-    },
     "miner": "Miner:",
     "maxBase": "Max Base:",
     "speeds": {
@@ -235,7 +208,7 @@
         },
         "viewOnly": {
           "title": "Read-only address",
-          "subtitle": "Add an Ethereum address or ENS name to view an existing wallet in Pelagus",
+          "subtitle": "Add an QUAI address to view an existing wallet in Pelagus",
           "submit": "Preview Pelagus",
           "tip": "You can upgrade a read-only wallet later."
         }
@@ -346,12 +319,6 @@
   },
   "readOnly": "Read-only",
   "readOnlyNotice": "Read-only mode",
-  "derivationPaths": {
-    "bip44": "BIP 44",
-    "ethTestnet": "Ethereum Testnet",
-    "rsk": "Rootstock",
-    "rskTestnet": "Rootstock Testnet"
-  },
   "settings": {
     "group": {
       "general": "General",
@@ -494,7 +461,6 @@
     "type": "Type",
     "EIP4361": {
       "subtext1": "Wants you to sign in with your",
-      "subtext2": "Ethereum account:",
       "statement": "Statement",
       "nonce": "Nonce",
       "version": "Version",
@@ -509,7 +475,6 @@
     "noSigning": "Read-only accounts cannot sign",
     "contractCreation": "Contract creation",
     "unknownNetwork": "Unknown Network",
-    "detailPanelName": "Details",
     "rawDataPanelName": "Raw data",
     "rawDataCopyMsg": "Raw data copied to clipboard",
     "copyRawData": "Copy hex",

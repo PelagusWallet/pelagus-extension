@@ -10,7 +10,7 @@ import KeyringService, {
 } from "../services/keyring"
 import { KeyringTypes } from "../types"
 import { EIP1559TransactionRequest } from "../networks"
-import { ETH, ETHEREUM } from "../constants"
+import { QUAI_NETWORK, QUAI } from "../constants"
 import logger from "../lib/logger"
 
 const originalCrypto = global.crypto
@@ -58,7 +58,7 @@ const validTransactionRequests: {
     network: {
       name: "none",
       chainID: "0",
-      baseAsset: ETH,
+      baseAsset: QUAI,
       family: "EVM",
     },
   },
@@ -132,7 +132,7 @@ describe("KeyringService when uninitialized", () => {
     it("won't sign transactions", async () => {
       await expect(
         service.signTransaction(
-          { address: "0x0", network: ETHEREUM },
+          { address: "0x0", network: QUAI_NETWORK },
           validTransactionRequests.simple
         )
       ).rejects.toThrow("KeyringService must be unlocked.")
@@ -269,7 +269,7 @@ describe("KeyringService when initialized", () => {
 
     await expect(
       service.signTransaction(
-        { address, network: ETHEREUM },
+        { address, network: QUAI_NETWORK },
         transactionWithFrom
       )
     ).resolves.toMatchObject({
@@ -297,7 +297,7 @@ describe("KeyringService when initialized", () => {
 
     await expect(
       service.signTransaction(
-        { address, network: ETHEREUM },
+        { address, network: QUAI_NETWORK },
         transactionWithFrom
       )
     ).resolves.toBeDefined()
@@ -506,7 +506,7 @@ describe("Keyring service when autolocking", () => {
         }
 
         await service.signTransaction(
-          { address, network: ETHEREUM },
+          { address, network: QUAI_NETWORK },
           transactionWithFrom
         )
       },

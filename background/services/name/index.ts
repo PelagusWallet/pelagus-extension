@@ -221,14 +221,10 @@ export default class NameService extends BaseService<Events> {
     )
 
     const localResolvers = [...workingResolvers].filter(
-      (resolver) =>
-        resolver.type === "tally-address-book" ||
-        resolver.type === "tally-known-contracts"
+      (resolver) => resolver.type === "tally-address-book"
     )
     const remoteResolvers = [...workingResolvers].filter(
-      (resolver) =>
-        resolver.type !== "tally-address-book" &&
-        resolver.type !== "tally-known-contracts"
+      (resolver) => resolver.type !== "tally-address-book"
     )
 
     let firstMatchingResolution = (

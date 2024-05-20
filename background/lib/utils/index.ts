@@ -1,29 +1,7 @@
 import { BigNumber, ethers, utils } from "ethers"
-import { normalizeHexAddress, toChecksumAddress } from "@pelagus/hd-keyring"
-import { NormalizedEVMAddress, UNIXTime } from "../../types"
-import { EVMNetwork } from "../../networks"
-import { QUAI_NETWORK, QUAI_NETWORK_LOCAL } from "../../constants"
+import { normalizeHexAddress } from "@pelagus/hd-keyring"
+import { NormalizedEVMAddress } from "../../types"
 import { AddressOnNetwork } from "../../accounts"
-
-export function isValidChecksumAddress(
-  address: string,
-  chainId?: number
-): boolean {
-  return toChecksumAddress(address, chainId) === address
-}
-
-export function isMixedCaseAddress(address: string): boolean {
-  let addressValue = address
-  // If address is uppercase then convert 0X prefix to lowercase
-  if (address.slice(0, 2) === "0X") {
-    addressValue = `0x${address.slice(2)}`
-  }
-
-  return !(
-    addressValue.match(/^(0x)?[0-9A-F]{40}$/) ||
-    addressValue.match(/^(0x)?[0-9a-f]{40}$/)
-  )
-}
 
 export function normalizeEVMAddress(
   address: string | Buffer
@@ -151,20 +129,6 @@ export function decodeJSON(input: string): unknown {
   )
 }
 
-/**
- * Determine which Ethereum network should be used based on the .env file
- */
-export function getEthereumNetwork(): EVMNetwork {
-  const ethereumNetwork = process.env.ETHEREUM_NETWORK?.toUpperCase()
-
-  if (ethereumNetwork === "LOCAL") {
-    return QUAI_NETWORK_LOCAL
-  }
-
-  // Default to mainnet
-  return QUAI_NETWORK
-}
-
 export function isProbablyEVMAddress(str: string): boolean {
   if (normalizeHexAddress(str).startsWith("0x") && str.length === 42) {
     return true
@@ -176,36 +140,9 @@ export function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-5)}`
 }
 
-export const getNumericStringValueFromBigNumber = (
-  value: BigNumber,
-  tokenDecimals: number
-): string => {
-  return Number(value.toBigInt() / 10n ** BigInt(tokenDecimals)).toString()
-}
-
-export const numberTo32BytesHex = (value: string, decimals: number): string => {
-  const withDecimals = BigInt(value) * 10n ** BigInt(decimals)
-  const hex = utils.hexlify(withDecimals)
-  return hex
-}
-
 export const isMaxUint256 = (amount: BigNumber | bigint | string): boolean => {
   return ethers.BigNumber.from(amount).eq(ethers.constants.MaxUint256)
 }
 
-/**
- * Converts a string of hexidecimals bytes to ascii text
- */
-export const hexToAscii = (hex_: string): string => {
-  const hex = hex_.toString() // force conversion
-  let str = ""
-  for (let i = 0; i < hex.length; i += 2)
-    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16))
-  return str.replace("\x00", "")
-}
-
 export const wait = (ms: number): Promise<void> =>
   new Promise<void>((r) => setTimeout(r, ms))
-
-export const getUNIXTimestamp = (time = Date.now()): UNIXTime =>
-  Math.floor(time / 1000)

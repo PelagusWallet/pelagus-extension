@@ -30,7 +30,6 @@ import WalletActivityList from "../components/Wallet/WalletActivityList"
 import WalletAccountBalanceControl from "../components/Wallet/WalletAccountBalanceControl"
 import WalletToggleDefaultBanner from "../components/Wallet/WalletToggleDefaultBanner"
 import WalletNoConnectionBanner from "../components/Wallet/WalletNoConnectionBanner"
-import WalletBanner from "../components/Wallet/Banner/WalletBanner"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
@@ -113,9 +112,6 @@ export default function Wallet(): ReactElement {
             initializationLoadingTimeExpired={initializationLoadingTimeExpired}
           />
         </div>
-        {isEnabled(FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER) && (
-          <WalletBanner />
-        )}
         <div className="section">
           <SharedPanelSwitcher
             setPanelNumber={setPanelNumber}

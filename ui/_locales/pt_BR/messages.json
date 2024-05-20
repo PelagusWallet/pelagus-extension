@@ -25,9 +25,7 @@
   },
   "popupEdition": "Community Edition",
   "protocol": {
-    "compatibleChain": "Blockchain compatível com Ethereum",
     "connected": "Conectado",
-    "l2": "Solução de escala L2",
     "mainnet": "Rede principal"
   },
   "readOnlyNotice": "Modo somente leitura",

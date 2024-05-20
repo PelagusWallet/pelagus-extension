@@ -13,8 +13,7 @@ import {
   getMetadata as getERC20Metadata,
   getTokenBalances,
 } from "../../lib/erc20"
-import { FeatureFlags, isEnabled } from "../../features"
-import { FORK, getShardFromAddress } from "../../constants"
+import { getShardFromAddress } from "../../constants"
 
 interface ProviderManager {
   providerForNetwork(network: EVMNetwork): SerialFallbackProvider | undefined
@@ -90,37 +89,6 @@ export default class AssetDataHelper {
       )
     }
 
-    // Load balances of tokens on the mainnet fork
-    if (isEnabled(FeatureFlags.USE_MAINNET_FORK)) {
-      const tokens = [
-        "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9", // AAVE
-        "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984", // UNI
-        "0x3A283D9c08E8b55966afb64C515f5143cf907611", // crvCVXETH
-        "0x29059568bB40344487d62f7450E78b8E6C74e0e5", // YFIETH
-        "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F", // SNX
-        "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2", // SUSHI
-        "0xf4d2888d29D722226FafA5d9B24F9164c092421E", // LOOKS
-        "0x85Eee30c52B0b379b046Fb0F85F4f3Dc3009aFEC", // KEEP
-        "0xCb08717451aaE9EF950a2524E33B6DCaBA60147B", // crvTETH
-        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
-      ]
-      const balances = tokens.map(async (token) => {
-        const balance = await getBalance(
-          provider,
-          token,
-          addressOnNetwork.address
-        )
-        return {
-          smartContract: {
-            contractAddress: token,
-            homeNetwork: FORK,
-          },
-          amount: BigInt(balance.toString()),
-        }
-      })
-      const resolvedBalances = Promise.all(balances)
-      return resolvedBalances
-    }
     return []
   }
 

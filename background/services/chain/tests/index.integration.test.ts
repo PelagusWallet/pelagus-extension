@@ -1,6 +1,6 @@
 import sinon from "sinon"
 import ChainService from ".."
-import { ETHEREUM, OPTIMISM, POLYGON } from "../../../constants"
+import { QUAI_NETWORK } from "../../../constants"
 import {
   AnyEVMTransaction,
   TransactionRequest,
@@ -44,7 +44,7 @@ describe("ChainService", () => {
       // Startup is simulated in the `beforeEach`
       expect(
         chainService.subscribedNetworks.filter(
-          ({ network }) => network.chainID === ETHEREUM.chainID
+          ({ network }) => network.chainID === QUAI_NETWORK.chainID
         )
       ).toHaveLength(1)
     })
@@ -100,8 +100,8 @@ describe("ChainService", () => {
       )
 
     const transactionRequestWithoutNonce = createLegacyTransactionRequest({
-      network: OPTIMISM,
-      chainID: OPTIMISM.chainID,
+      network: QUAI_NETWORK,
+      chainID: QUAI_NETWORK.chainID,
       nonce: undefined,
     })
 
@@ -144,8 +144,8 @@ describe("ChainService", () => {
       )
 
     const transactionRequestWithoutNonce = createLegacyTransactionRequest({
-      network: POLYGON,
-      chainID: POLYGON.chainID,
+      network: QUAI_NETWORK,
+      chainID: QUAI_NETWORK.chainID,
       nonce: undefined,
     })
 
@@ -187,7 +187,7 @@ describe("ChainService", () => {
     // Transaction should be persisted to the db
     expect(
       await chainServiceExternalized.getTransaction(
-        POLYGON,
+        QUAI_NETWORK,
         validOptimismEVMTransaction.hash
       )
     ).toBeTruthy()
@@ -248,8 +248,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: ETHEREUM,
-        chainID: ETHEREUM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: CHAIN_NONCE,
       })
 
@@ -265,8 +265,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: OPTIMISM,
-        chainID: OPTIMISM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: CHAIN_NONCE,
       })
 
@@ -282,8 +282,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: OPTIMISM,
-        chainID: OPTIMISM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: CHAIN_NONCE,
       })
 
@@ -302,8 +302,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: ETHEREUM,
-        chainID: ETHEREUM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: undefined,
       })
 
@@ -319,8 +319,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: OPTIMISM,
-        chainID: OPTIMISM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: undefined,
       })
 
@@ -336,8 +336,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: ETHEREUM,
-        chainID: ETHEREUM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: undefined,
       })
 
@@ -356,8 +356,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: OPTIMISM,
-        chainID: OPTIMISM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: undefined,
       })
 
@@ -390,8 +390,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: ETHEREUM,
-        chainID: ETHEREUM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: NONCE,
       }) as TransactionRequestWithNonce
       const { chainID, from } = transactionRequest
@@ -422,8 +422,8 @@ describe("ChainService", () => {
       const chainServiceExternalized =
         chainService as unknown as ChainServiceExternalized
       const transactionRequest = createLegacyTransactionRequest({
-        network: ETHEREUM,
-        chainID: ETHEREUM.chainID,
+        network: QUAI_NETWORK,
+        chainID: QUAI_NETWORK.chainID,
         nonce: NONCE,
       }) as TransactionRequestWithNonce
       const { chainID, from } = transactionRequest
@@ -478,7 +478,7 @@ describe("ChainService", () => {
 
       await chainService.addAccountToTrack({
         address: "0x123",
-        network: ETHEREUM,
+        network: QUAI_NETWORK,
       })
       const networksToTrack = await chainService.getNetworksToTrack()
 

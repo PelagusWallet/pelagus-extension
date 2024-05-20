@@ -1,14 +1,13 @@
-import dayjs from "dayjs"
 import { getShardFromAddress } from "quais/lib/utils"
 import { EIP2612SignTypedDataAnnotation, EnrichedEVMTransaction } from "./types"
-import { ETHEREUM } from "../../constants"
-import { SmartContractFungibleAsset } from "../../assets"
-import NameService from "../name"
 import { EIP712TypedData, HexString } from "../../types"
 import { EIP2612TypedData } from "../../utils/signing"
 import { ERC20TransferLog } from "../../lib/erc20"
 import { normalizeEVMAddress, sameEVMAddress } from "../../lib/utils"
 import { AddressOnNetwork } from "../../accounts"
+import dayjs from "dayjs"
+import NameService from "../name"
+import { SmartContractFungibleAsset } from "../../assets"
 
 export function isEIP2612TypedData(
   typedData: EIP712TypedData
@@ -16,7 +15,6 @@ export function isEIP2612TypedData(
   if (typeof typedData.message.spender === "string") {
     if (
       // Must be on main chain
-      typedData.domain.chainId === Number(ETHEREUM.chainID) &&
       typedData.primaryType === "Permit" &&
       // Must have all expected fields
       // @TODO use AJV validation
@@ -47,29 +45,12 @@ export async function enrichEIP2612SignTypedDataRequest(
   // We only need to add the token if we're not able to properly format the value above
   const token = formattedValue === `${value}` ? domain.name : null
 
-  const [sourceName, ownerName, spenderName] = (
-    await Promise.all([
-      await nameService.lookUpName({
-        address: spender,
-        network: ETHEREUM,
-      }),
-      await nameService.lookUpName(
-        { address: owner, network: ETHEREUM },
-        false
-      ),
-      await nameService.lookUpName(
-        { address: spender, network: ETHEREUM },
-        false
-      ),
-    ])
-  ).map((nameOnNetwork) => nameOnNetwork?.resolved?.nameOnNetwork.name)
-
   return {
     type: "EIP-2612",
-    source: sourceName ?? spender,
+    source: spender,
     displayFields: {
-      owner: ownerName ?? owner,
-      spender: spenderName ?? spender,
+      owner,
+      spender,
       tokenContract: domain.verifyingContract || "unknown",
       value: formattedValue,
       ...(token ? { token } : {}),

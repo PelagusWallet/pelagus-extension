@@ -11,7 +11,7 @@ import {
   isTallyConfigPayload,
   isTallyPortHealthCheck,
 } from "@tallyho/provider-bridge-shared"
-import { TransactionRequest as EthersTransactionRequest } from "@ethersproject/abstract-provider"
+import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
 import BaseService from "../base"
 import InternalEthereumProviderService, {
   AddEthereumChainParameter,
@@ -27,7 +27,6 @@ import {
 } from "./authorization"
 import showExtensionPopup from "./show-popup"
 import { HexString } from "../../types"
-import { WEBSITE_ORIGIN } from "../../constants/website"
 import {
   handleRPCErrorResponse,
   PermissionMap,
@@ -186,8 +185,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       response.result = null
     } else if (
       event.request.method === "quai_chainId" ||
-      event.request.method === "net_version" ||
-      event.request.method === "eth_chainId"
+      event.request.method === "net_version"
     ) {
       // we need to send back the chainId and net_version (a deprecated
       // precursor to eth_chainId) independent of dApp permission if we want to
@@ -552,7 +550,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
               // A dApp can't know what should be the next nonce because it can't access
               // the information about how many tx are in the signing process inside the
               // wallet. Nonce should be assigned only by the wallet.
-              ...(params[0] as EthersTransactionRequest),
+              ...(params[0] as QuaiTransactionRequest),
               nonce: undefined,
             },
             enablingPermission

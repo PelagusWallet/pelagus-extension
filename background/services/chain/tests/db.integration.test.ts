@@ -1,5 +1,5 @@
 import { IDBFactory } from "fake-indexeddb"
-import { ETHEREUM, OPTIMISM, POLYGON, ETH } from "../../../constants"
+import { QUAI, QUAI_NETWORK } from "../../../constants"
 import {
   createAccountBalance,
   createAddressOnNetwork,
@@ -13,7 +13,7 @@ describe("Chain Database ", () => {
 
   const account1 = createAddressOnNetwork()
 
-  const account2 = createAddressOnNetwork({ network: POLYGON })
+  const account2 = createAddressOnNetwork({ network: QUAI_NETWORK })
 
   beforeEach(() => {
     // Reset state of indexedDB
@@ -62,11 +62,11 @@ describe("Chain Database ", () => {
   })
   describe("addOrUpdateTransaction", () => {
     const addTransactionEth = createAnyEVMTransaction({
-      network: ETHEREUM,
+      network: QUAI_NETWORK,
     })
 
     const addTransactionOpt = createAnyEVMTransaction({
-      network: OPTIMISM,
+      network: QUAI_NETWORK,
     })
     it("should correctly persist transactions to indexedDB", async () => {
       const getEthTransaction = await db.getTransaction(
@@ -100,12 +100,12 @@ describe("Chain Database ", () => {
       expect(getOptTransaction).toBeTruthy()
 
       const updateEth = createAnyEVMTransaction({
-        network: ETHEREUM,
+        network: QUAI_NETWORK,
         hash: getEthTransaction?.hash,
         gasPrice: 40400000000n,
       })
       const updateOpt = createAnyEVMTransaction({
-        network: OPTIMISM,
+        network: QUAI_NETWORK,
         hash: getOptTransaction?.hash,
         gasPrice: 40400000000n,
       })
@@ -131,19 +131,6 @@ describe("Chain Database ", () => {
     it("should return the hashes of all persisted transactions ordered by hash", async () => {
       expect(await db.getAllSavedTransactionHashes()).toHaveLength(0)
 
-      const savedTransaction1 = createAnyEVMTransaction({
-        network: ETHEREUM,
-      })
-      const savedTransaction2 = createAnyEVMTransaction({
-        network: ETHEREUM,
-      })
-      const savedTransaction3 = createAnyEVMTransaction({
-        network: OPTIMISM,
-      })
-      const savedTransaction4 = createAnyEVMTransaction({
-        network: OPTIMISM,
-      })
-
       const allTransactions = await db.getAllSavedTransactionHashes()
 
       expect(allTransactions).toHaveLength(4)
@@ -167,10 +154,12 @@ describe("Chain Database ", () => {
   describe("getChainIdsToTrack", () => {
     it("should return chainIds corresponding to the networks of accounts being tracked", async () => {
       await db.addAccountToTrack(account1)
-      expect(await db.getChainIDsToTrack()).toEqual(new Set(ETHEREUM.chainID))
+      expect(await db.getChainIDsToTrack()).toEqual(
+        new Set(QUAI_NETWORK.chainID)
+      )
       await db.addAccountToTrack(account2)
       expect(await db.getChainIDsToTrack()).toEqual(
-        new Set([ETHEREUM.chainID, POLYGON.chainID])
+        new Set([QUAI_NETWORK.chainID])
       )
     })
     it("should disallow duplicate chain ids", async () => {
@@ -181,14 +170,14 @@ describe("Chain Database ", () => {
     it("should retrieve the most recent account balance corresponding to a given address, network, & asset persisted in indexedDB", async () => {
       const accountBalance = createAccountBalance({
         assetAmount: {
-          asset: ETH,
+          asset: QUAI,
           amount: 4n,
         },
       })
 
       const accountBalance2 = createAccountBalance({
         assetAmount: {
-          asset: ETH,
+          asset: QUAI,
           amount: 10n,
         },
         retrievedAt: Date.now() - 10_000,
@@ -198,7 +187,7 @@ describe("Chain Database ", () => {
       const latest = await db.getLatestAccountBalance(
         accountBalance.address,
         accountBalance.network,
-        ETH
+        QUAI
       )
       expect(latest?.assetAmount.amount).toEqual(4n)
     })
@@ -208,47 +197,47 @@ describe("Chain Database ", () => {
       const latest = await db.getLatestAccountBalance(
         accountBalance.address,
         accountBalance.network,
-        ETH
+        QUAI
       )
       expect(latest).toBeNull()
     })
   })
   describe("getLatestBlock", () => {
     const block = createAnyEVMBlock({
-      network: OPTIMISM,
+      network: QUAI_NETWORK,
     })
     it("should retrieve the most recent block for a given network", async () => {
       await db.addBlock(block)
-      expect(await db.getLatestBlock(OPTIMISM)).toBeTruthy()
+      expect(await db.getLatestBlock(QUAI_NETWORK)).toBeTruthy()
     })
   })
   describe("getNetworkPendingTransactions", () => {
     it("should return all pending transactions", async () => {
       const pendingEthTx1 = createAnyEVMTransaction({
-        network: ETHEREUM,
+        network: QUAI_NETWORK,
         blockHash: null,
       })
 
       const pendingEthTx2 = createAnyEVMTransaction({
-        network: ETHEREUM,
+        network: QUAI_NETWORK,
         blockHash: null,
       })
 
       const completeEthTx = createAnyEVMTransaction({
-        network: ETHEREUM,
+        network: QUAI_NETWORK,
       })
 
       const pendingOptimismTx1 = createAnyEVMTransaction({
-        network: OPTIMISM,
+        network: QUAI_NETWORK,
         blockHash: null,
       })
 
       const ethPendingTransactions = await db.getNetworkPendingTransactions(
-        ETHEREUM
+        QUAI_NETWORK
       )
 
       const opPendingTransactions = await db.getNetworkPendingTransactions(
-        OPTIMISM
+        QUAI_NETWORK
       )
 
       // Should pick up pending transactions

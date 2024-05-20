@@ -1,13 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
-import { ARBITRUM_ONE, FORK, OPTIMISM } from "../constants"
 import {
   EXPRESS,
   INSTANT,
   MAX_FEE_MULTIPLIER,
   REGULAR,
 } from "../constants/network-fees"
-import { FeatureFlags, isEnabled } from "../features"
 
 import {
   BlockEstimate,
@@ -156,10 +154,6 @@ export const signTransaction = createBackgroundAsyncThunk(
       EIP1559TransactionRequest | LegacyEVMTransactionRequest
     >
   ) => {
-    if (isEnabled(FeatureFlags.USE_MAINNET_FORK)) {
-      request.request.chainID = FORK.chainID
-    }
-
     await emitter.emit("requestSignature", request)
   }
 )
@@ -230,16 +224,6 @@ const transactionSlice = createSlice({
         }
       }
 
-      if (
-        !isEIP1559TransactionRequest(transactionRequest) &&
-        !isEIP1559TransactionRequest(newState.transactionRequest) &&
-        chainID === ARBITRUM_ONE.chainID
-      ) {
-        newState.transactionRequest.gasPrice =
-          state.estimatedFeesPerGas?.[chainID]?.[feeType]?.price ??
-          transactionRequest.gasPrice
-      }
-
       return newState
     },
     clearTransactionState: (
@@ -254,23 +238,6 @@ const transactionSlice = createSlice({
       signedTransaction: undefined,
       customFeesPerGas: state.customFeesPerGas,
     }),
-    updateRollupEstimates: (
-      immerState,
-      {
-        payload,
-      }: {
-        payload: { estimatedRollupFee: bigint; estimatedRollupGwei: bigint }
-      }
-    ) => {
-      const { estimatedRollupFee, estimatedRollupGwei } = payload
-      if (
-        immerState.transactionRequest?.network.chainID === OPTIMISM.chainID &&
-        !isEIP1559TransactionRequest(immerState.transactionRequest)
-      ) {
-        immerState.transactionRequest.estimatedRollupFee = estimatedRollupFee
-        immerState.transactionRequest.estimatedRollupGwei = estimatedRollupGwei
-      }
-    },
     setFeeType: (
       immerState,
       { payload }: { payload: NetworkFeeTypeChosen }
@@ -297,30 +264,14 @@ const transactionSlice = createSlice({
         payload: { estimatedFeesPerGas, network },
       }: { payload: { estimatedFeesPerGas: BlockPrices; network: EVMNetwork } }
     ) => {
-      if (network.chainID === OPTIMISM.chainID) {
-        const optimismBlockEstimate = makeBlockEstimate(
-          INSTANT,
-          estimatedFeesPerGas
-        )
-        immerState.estimatedFeesPerGas = {
-          ...(immerState.estimatedFeesPerGas ?? {}),
-          [network.chainID]: {
-            baseFeePerGas: estimatedFeesPerGas.baseFeePerGas,
-            instant: optimismBlockEstimate,
-            express: optimismBlockEstimate,
-            regular: optimismBlockEstimate,
-          },
-        }
-      } else {
-        immerState.estimatedFeesPerGas = {
-          ...(immerState.estimatedFeesPerGas ?? {}),
-          [network.chainID]: {
-            baseFeePerGas: estimatedFeesPerGas.baseFeePerGas,
-            instant: makeBlockEstimate(INSTANT, estimatedFeesPerGas),
-            express: makeBlockEstimate(EXPRESS, estimatedFeesPerGas),
-            regular: makeBlockEstimate(REGULAR, estimatedFeesPerGas),
-          },
-        }
+      immerState.estimatedFeesPerGas = {
+        ...(immerState.estimatedFeesPerGas ?? {}),
+        [network.chainID]: {
+          baseFeePerGas: estimatedFeesPerGas.baseFeePerGas,
+          instant: makeBlockEstimate(INSTANT, estimatedFeesPerGas),
+          express: makeBlockEstimate(EXPRESS, estimatedFeesPerGas),
+          regular: makeBlockEstimate(REGULAR, estimatedFeesPerGas),
+        },
       }
     },
     setCustomGas: (
@@ -375,7 +326,6 @@ export const {
   estimatedFeesPerGas,
   setCustomGas,
   clearCustomGas,
-  updateRollupEstimates,
   setCustomGasLimit,
 } = transactionSlice.actions
 

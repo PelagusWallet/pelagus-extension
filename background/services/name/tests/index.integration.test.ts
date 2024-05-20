@@ -1,6 +1,6 @@
 import sinon from "sinon"
 import NameService from ".."
-import { ETHEREUM } from "../../../constants"
+import { QUAI_NETWORK } from "../../../constants"
 import { createNameService } from "../../../tests/factories"
 
 describe("NameService", () => {
@@ -21,7 +21,7 @@ describe("NameService", () => {
     sandbox.stub(nameService, "lookUpAvatar").callsFake(async () => undefined)
     const nameRecord = await nameService.lookUpName({
       address: "0x52ec2f3d7c5977a8e558c8d9c6000b615098e8fc",
-      network: ETHEREUM,
+      network: QUAI_NETWORK,
     })
     expect(nameRecord).toBeDefined()
     if (nameRecord !== undefined) {

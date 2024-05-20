@@ -9,18 +9,8 @@ import {
   selectDefaultNetworkFeeSettings,
   selectTransactionData,
 } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
-import {
-  ARBITRUM_ONE,
-  BINANCE_SMART_CHAIN,
-  OPTIMISM,
-  ROOTSTOCK,
-} from "@pelagus/pelagus-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import NetworkSettingsSelect from "./NetworkSettingsSelect"
-import NetworkSettingsOptimism from "./NetworkSettingsSelectOptimism"
-import NetworkSettingsRSK from "./NetworkSettingsSelectRSK"
-import NetworkSettingsSelectArbitrum from "./NetworkSettingsSelectArbitrum"
-import NetworkSettingsSelectBNBChain from "./NetworkSettingsSelectBNBChain"
 
 interface NetworkSettingsChooserProps {
   estimatedFeesPerGas: EstimatedFeesPerGas | undefined
@@ -45,25 +35,6 @@ export default function NetworkSettingsChooser({
 
   function networkSettingsSelectorFinder() {
     if (transactionDetails) {
-      if (transactionDetails.network.name === OPTIMISM.name) {
-        return <NetworkSettingsOptimism />
-      }
-      if (transactionDetails.network.name === ROOTSTOCK.name) {
-        return <NetworkSettingsRSK />
-      }
-      if (transactionDetails.network.name === ARBITRUM_ONE.name) {
-        return (
-          <NetworkSettingsSelectArbitrum
-            estimatedFeesPerGas={estimatedFeesPerGas}
-            networkSettings={networkSettings}
-            onNetworkSettingsChange={setNetworkSettings}
-            onSave={saveNetworkSettings}
-          />
-        )
-      }
-      if (transactionDetails.network.name === BINANCE_SMART_CHAIN.name) {
-        return <NetworkSettingsSelectBNBChain />
-      }
       return (
         <NetworkSettingsSelect
           estimatedFeesPerGas={estimatedFeesPerGas}

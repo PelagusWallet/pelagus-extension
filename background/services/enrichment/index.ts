@@ -1,6 +1,4 @@
-import { normalizeHexAddress } from "@pelagus/hd-keyring"
 import { AnyEVMTransaction, EVMNetwork } from "../../networks"
-import { SmartContractFungibleAsset } from "../../assets"
 
 import ChainService from "../chain"
 import IndexingService from "../indexing"
@@ -20,7 +18,6 @@ import {
   getRelevantTransactionAddresses,
   isEIP2612TypedData,
 } from "./utils"
-import { ETHEREUM } from "../../constants"
 
 import resolveTransactionAnnotation from "./transactions"
 
@@ -128,22 +125,7 @@ export default class EnrichmentService extends BaseService<Events> {
 
     const { typedData } = signTypedDataRequest
     if (isEIP2612TypedData(typedData)) {
-      const assets = this.indexingService.getCachedAssets(ETHEREUM)
-      const correspondingAsset = assets.find(
-        (asset): asset is SmartContractFungibleAsset => {
-          if (
-            typedData.domain.verifyingContract &&
-            "contractAddress" in asset &&
-            asset.contractAddress
-          ) {
-            return (
-              normalizeHexAddress(asset.contractAddress) ===
-              normalizeHexAddress(typedData.domain.verifyingContract)
-            )
-          }
-          return false
-        }
-      )
+      const correspondingAsset = undefined
       annotation = await enrichEIP2612SignTypedDataRequest(
         typedData,
         this.nameService,

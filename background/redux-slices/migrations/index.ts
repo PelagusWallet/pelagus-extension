@@ -3,9 +3,7 @@ import to3 from "./to-3"
 import to4 from "./to-4"
 import to5 from "./to-5"
 import to7 from "./to-7"
-import to8 from "./to-8"
 import to9 from "./to-9"
-import to10 from "./to-10"
 import to11 from "./to-11"
 import to13 from "./to-13"
 import to14 from "./to-14"
@@ -16,7 +14,6 @@ import to19 from "./to-19"
 import to20 from "./to-20"
 import to21 from "./to-21"
 import to22 from "./to-22"
-import to23 from "./to-23"
 import to24 from "./to-24"
 import to25 from "./to-25"
 import to27 from "./to-27"
@@ -44,9 +41,7 @@ const allMigrations: { [targetVersion: string]: Migration } = {
   4: to4,
   5: to5,
   7: to7,
-  8: to8,
   9: to9,
-  10: to10,
   11: to11,
   13: to13,
   14: to14,
@@ -57,7 +52,6 @@ const allMigrations: { [targetVersion: string]: Migration } = {
   20: to20,
   21: to21,
   22: to22,
-  23: to23,
   24: to24,
   25: to25,
   27: to27,

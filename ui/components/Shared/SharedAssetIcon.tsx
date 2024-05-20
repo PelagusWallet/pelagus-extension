@@ -14,8 +14,6 @@ type Props = {
   symbol: string
 }
 
-const hardcodedIcons = new Set(["ETH", "MATIC", "RBTC", "AVAX", "BNB"])
-
 // Passes IPFS and Arweave through HTTP gateway
 function getAsHttpURL(anyURL: string) {
   let httpURL = anyURL
@@ -70,11 +68,7 @@ export default function SharedAssetIcon(props: Props): ReactElement {
   const { size, logoURL, symbol } = props
 
   const [imageURL, setImageURL] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
   const [visible, setIsVisible] = useState(false)
-  const [error, setHasError] = useState(false)
-
-  const hasHardcodedIcon = hardcodedIcons.has(symbol)
 
   const sizeClass = typeof size === "string" ? size : "custom_size"
 
@@ -97,40 +91,29 @@ export default function SharedAssetIcon(props: Props): ReactElement {
 
     const isIpfsURL = /^ipfs:/.test(logoURL)
     const httpURL = getAsHttpURL(logoURL)
-    setHasError(false)
 
     const img = new Image()
 
     img.onerror = () => {
       if (isIpfsURL) {
-        fetch(httpURL)
-          .then(async (response) => {
-            if (
-              response.ok &&
-              response.headers.get("content-type") === "text/html"
-            ) {
-              const prefix = "data:image/svg+xml;base64,"
-              const base64URI = Buffer.from(
-                await response.arrayBuffer()
-              ).toString("base64")
+        fetch(httpURL).then(async (response) => {
+          if (
+            response.ok &&
+            response.headers.get("content-type") === "text/html"
+          ) {
+            const prefix = "data:image/svg+xml;base64,"
+            const base64URI = Buffer.from(
+              await response.arrayBuffer()
+            ).toString("base64")
 
-              setImageURL(prefix + base64URI)
-            } else {
-              throw new Error("INVALID_RESPONSE")
-            }
-          })
-          .catch(() => {
-            // connection error / bad response
-            setHasError(true)
-          })
-          .finally(() => setIsLoading(false))
-      } else {
-        setHasError(true)
-        setIsLoading(false)
+            setImageURL(prefix + base64URI)
+          } else {
+            throw new Error("INVALID_RESPONSE")
+          }
+        })
       }
     }
     img.onload = () => {
-      setIsLoading(false)
       setImageURL(img.src)
     }
     img.src = httpURL
@@ -142,16 +125,12 @@ export default function SharedAssetIcon(props: Props): ReactElement {
       className={classNames("token_icon_wrap", sizeClass)}
       role="img"
     >
-      {hasHardcodedIcon || (!isLoading && !error) ? (
-        <div className="token_icon" />
-      ) : (
-        <div
-          role="presentation"
-          className={classNames("token_icon_fallback", sizeClass)}
-        >
-          {(symbol?.[0] ?? "?").toUpperCase()}
-        </div>
-      )}
+      <div
+        role="presentation"
+        className={classNames("token_icon_fallback", sizeClass)}
+      >
+        {(symbol?.[0] ?? "?").toUpperCase()}
+      </div>
       <style jsx>
         {`
           .token_icon_wrap {
@@ -179,10 +158,6 @@ export default function SharedAssetIcon(props: Props): ReactElement {
             width: 32px;
             height: 32px;
           }
-          .small .icon_eth {
-            width: 16px;
-            height: 24px;
-          }
           .large {
             width: 48px;
             height: 48px;
@@ -203,11 +178,7 @@ export default function SharedAssetIcon(props: Props): ReactElement {
           display: flex;
           align-items: center;
           justify-content: center;
-          ${hasHardcodedIcon
-            ? `background: url("${`./images/assets/${symbol.toLowerCase()}.png`}");
-            `
-            : `background: url("${imageURL}");
-            `}
+          background: url("${imageURL}");
           background-size: cover;
           animation: fadein 130ms ease-out forwards;
         }
@@ -228,5 +199,5 @@ export default function SharedAssetIcon(props: Props): ReactElement {
 SharedAssetIcon.defaultProps = {
   size: "medium",
   logoURL: null,
-  symbol: "ETH",
+  symbol: "QUAI",
 }

@@ -1,7 +1,6 @@
 import React, { ReactElement, useMemo } from "react"
 import {
   isBuiltInNetwork,
-  DISABLED_CHAINS_ID,
   DEFAULT_TEST_NETWORKS,
 } from "@pelagus/pelagus-background/constants"
 import { useBackgroundSelector } from "../../hooks"
@@ -39,7 +38,6 @@ export default function TopMenuProtocolListGA({
             network={network}
             isSelected={sameNetwork(currentNetwork, network)}
             onSelect={onProtocolListItemSelect}
-            isDisabled={DISABLED_CHAINS_ID.includes(network.chainID)}
           />
         ))}
       </div>

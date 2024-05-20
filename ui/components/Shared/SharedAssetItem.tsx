@@ -1,10 +1,7 @@
 import React, { ReactElement, useEffect, useState } from "react"
 import { AnyAsset, AnyAssetAmount } from "@pelagus/pelagus-background/assets"
 import { EVMNetwork } from "@pelagus/pelagus-background/networks"
-import {
-  ROOTSTOCK,
-  CurrentShardToExplorer,
-} from "@pelagus/pelagus-background/constants"
+import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedAssetIcon from "./SharedAssetIcon"
 import SharedIcon from "./SharedIcon"
@@ -55,8 +52,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
       : blockExplorer[currentNetwork.chainID]?.url
 
     if ("contractAddress" in asset && baseLink) {
-      const contractBase =
-        currentNetwork.chainID === ROOTSTOCK.chainID ? "address" : "token"
+      const contractBase = "token"
       setContractLink(`${baseLink}/${contractBase}/${asset.contractAddress}`)
     } else {
       setContractLink("")
@@ -165,12 +161,6 @@ export default function SharedAssetItem<T extends AnyAsset>(
             letter-spacing: 0.42px;
             line-height: 16px;
             margin-top: 5px;
-          }
-          .icon_eth {
-            background: url("./images/eth@2x.png");
-            background-size: 18px 29px;
-            width: 18px;
-            height: 29px;
           }
           .symbol {
             color: #fff;

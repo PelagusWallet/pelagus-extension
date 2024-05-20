@@ -10,11 +10,7 @@ import {
   AnyAsset,
   isSmartContractFungibleAsset,
 } from "../../assets"
-import {
-  BUILT_IN_NETWORK_BASE_ASSETS,
-  OPTIMISM,
-  POLYGON,
-} from "../../constants"
+import { BUILT_IN_NETWORK_BASE_ASSETS } from "../../constants"
 import { FeatureFlags, isEnabled } from "../../features"
 import { fromFixedPointNumber } from "../../lib/fixed-point"
 import { sameEVMAddress } from "../../lib/utils"
@@ -51,32 +47,6 @@ export function isNetworkBaseAsset(asset: AnyAsset): asset is NetworkBaseAsset {
   return "chainID" in asset
 }
 
-function isOptimismBaseAsset(asset: AnyAsset) {
-  const hasMatchingChainID =
-    (isSmartContractFungibleAsset(asset) &&
-      asset.homeNetwork.chainID === OPTIMISM.chainID) ||
-    (isNetworkBaseAsset(asset) && asset.chainID === OPTIMISM.chainID)
-
-  return (
-    hasMatchingChainID &&
-    "contractAddress" in asset &&
-    asset.contractAddress === OPTIMISM.baseAsset.contractAddress
-  )
-}
-
-function isPolygonBaseAsset(asset: AnyAsset) {
-  const hasMatchingChainID =
-    (isSmartContractFungibleAsset(asset) &&
-      asset.homeNetwork.chainID === POLYGON.chainID) ||
-    (isNetworkBaseAsset(asset) && asset.chainID === POLYGON.chainID)
-
-  return (
-    hasMatchingChainID &&
-    "contractAddress" in asset &&
-    asset.contractAddress === POLYGON.baseAsset.contractAddress
-  )
-}
-
 /**
  * Given an asset and a network, determines whether the given asset is the base
  * asset for the given network. Used to special-case transactions that should
@@ -91,14 +61,6 @@ export function isBuiltInNetworkBaseAsset(
   asset: AnyAsset,
   network: AnyNetwork
 ): asset is NetworkBaseAsset {
-  if (network.chainID === OPTIMISM.chainID && isOptimismBaseAsset(asset)) {
-    return true
-  }
-
-  if (network.chainID === POLYGON.chainID && isPolygonBaseAsset(asset)) {
-    return true
-  }
-
   return (
     isNetworkBaseAsset(asset) &&
     asset.symbol === network.baseAsset.symbol &&
@@ -128,11 +90,6 @@ export function sameNetworkBaseAsset(
   asset1: AnyAsset,
   asset2: AnyAsset
 ): boolean {
-  // for base assets with possible homeNetwork field
-  if (isOptimismBaseAsset(asset1) && isOptimismBaseAsset(asset2)) return true
-
-  if (isPolygonBaseAsset(asset1) && isPolygonBaseAsset(asset2)) return true
-
   // for other base assets
   if (
     "homeNetwork" in asset1 ||

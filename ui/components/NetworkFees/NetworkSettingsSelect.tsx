@@ -11,9 +11,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 
 import { weiToGwei } from "@pelagus/pelagus-background/lib/utils"
-import { ETH } from "@pelagus/pelagus-background/constants"
 import { PricePoint } from "@pelagus/pelagus-background/assets"
-import { enrichAssetAmountWithMainCurrencyValues } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import {
   selectTransactionData,
   selectTransactionMainCurrencyPricePoint,
@@ -53,18 +51,6 @@ const gasOptionFromEstimate = (
     0: NetworkFeeTypeChosen.Custom,
   }
 
-  const feeAssetAmount =
-    typeof gasLimit !== "undefined"
-      ? enrichAssetAmountWithMainCurrencyValues(
-          {
-            asset: ETH,
-            amount: maxFeePerGas * gasLimit,
-          },
-          mainCurrencyPricePoint,
-          2
-        )
-      : undefined
-  const dollarValue = feeAssetAmount?.localizedMainCurrencyAmount
   return {
     confidence: `${confidence}`,
     estimatedSpeed:
@@ -77,7 +63,7 @@ const gasOptionFromEstimate = (
     ).split(".")[0],
     maxPriorityGwei: weiToGwei(maxPriorityFeePerGas),
     maxGwei: weiToGwei(maxFeePerGas).split(".")[0],
-    dollarValue: dollarValue ? `$${dollarValue}` : "-",
+    dollarValue: "-",
     estimatedFeePerGas:
       (baseFeePerGas * ESTIMATED_FEE_MULTIPLIERS[confidence]) / 10n,
     baseMaxFeePerGas: BigInt(maxFeePerGas) - BigInt(maxPriorityFeePerGas),

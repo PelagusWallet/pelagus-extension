@@ -2,8 +2,6 @@ import { createSelector } from "@reduxjs/toolkit"
 import { PricePoint } from "../../assets"
 import { selectCurrentNetwork } from "."
 import { NetworksState } from "../networks"
-import { LegacyEVMTransactionRequest } from "../../networks"
-import { ROOTSTOCK } from "../../constants/networks"
 import {
   TransactionConstruction,
   NetworkFeeSettings,
@@ -42,12 +40,7 @@ export const selectDefaultNetworkFeeSettings = createSelector(
       values: {
         maxFeePerGas: selectedFeesPerGas?.maxFeePerGas ?? 0n,
         maxPriorityFeePerGas: selectedFeesPerGas?.maxPriorityFeePerGas ?? 0n,
-        gasPrice:
-          currentNetwork.chainID === ROOTSTOCK.chainID
-            ? (
-                transactionConstruction.transactionRequest as LegacyEVMTransactionRequest
-              )?.gasPrice
-            : selectedFeesPerGas?.price ?? 1000000000n,
+        gasPrice: selectedFeesPerGas?.price ?? 1000000000n,
         baseFeePerGas:
           networks.blockInfo[currentNetwork.chainID]?.baseFeePerGas ??
           undefined,
@@ -114,20 +107,6 @@ export const selectIsTransactionLoaded = createSelector(
   (state: { transactionConstruction: TransactionConstruction }) =>
     state.transactionConstruction.status,
   (status) => status === "loaded"
-)
-
-export const selectIsTransactionSigned = createSelector(
-  (state: { transactionConstruction: TransactionConstruction }) =>
-    state.transactionConstruction.status,
-  (status) => status === "signed"
-)
-
-export const selectCurrentlyChosenNetworkFees = createSelector(
-  (state: { transactionConstruction: TransactionConstruction }) =>
-    state.transactionConstruction?.estimatedFeesPerGas?.[
-      state.transactionConstruction.feeTypeSelected
-    ],
-  (feeData) => feeData
 )
 
 export const selectHasInsufficientFunds = createSelector(

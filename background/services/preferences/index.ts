@@ -10,7 +10,6 @@ import {
 import { getOrCreateDB, PreferenceDatabase } from "./db"
 import BaseService from "../base"
 import { normalizeEVMAddress } from "../../lib/utils"
-import { ETHEREUM, OPTIMISM, ARBITRUM_ONE } from "../../constants"
 import { EVMNetwork, sameNetwork } from "../../networks"
 import { HexString } from "../../types"
 import { AccountSignerSettings } from "../../ui"
@@ -28,52 +27,6 @@ const sameAddressBookEntry = (a: AddressOnNetwork, b: AddressOnNetwork) =>
   normalizeEVMAddress(a.address) === normalizeEVMAddress(b.address) &&
   sameNetwork(a.network, b.network)
 
-const BUILT_IN_CONTRACTS = [
-  {
-    network: ETHEREUM,
-    address: normalizeEVMAddress("0xDef1C0ded9bec7F1a1670819833240f027b25EfF"),
-    name: "0x Router",
-  },
-  {
-    network: OPTIMISM,
-    address: normalizeEVMAddress("0xdef1abe32c034e558cdd535791643c58a13acc10"),
-    name: "0x Router",
-  },
-  {
-    network: ETHEREUM,
-    // Optimism's custodial Teleportr bridge
-    // https://etherscan.io/address/0x52ec2f3d7c5977a8e558c8d9c6000b615098e8fc
-    address: normalizeEVMAddress("0x52ec2f3d7c5977a8e558c8d9c6000b615098e8fc"),
-    name: "🔴 Optimism Teleportr",
-  },
-  {
-    network: OPTIMISM,
-    // https://optimistic.etherscan.io/address/0x4200000000000000000000000000000000000010
-    address: normalizeEVMAddress("0x4200000000000000000000000000000000000010"),
-    name: "🔴 Optimism Teleportr",
-  },
-  {
-    network: ETHEREUM,
-    // Optimism's non-custodial Gateway bridge
-    address: normalizeEVMAddress("0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1"),
-    name: "🔴 Optimism Gateway",
-  },
-  {
-    network: ETHEREUM,
-    // Arbitrum's Delayed Inbox
-    // https://etherscan.io/address/0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f
-    address: normalizeEVMAddress("0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f"),
-    name: "🔵 Arbitrum bridge",
-  },
-  {
-    network: ETHEREUM,
-    // Arbitrum's old bridge contract
-    // https://etherscan.io/address/0x011b6e24ffb0b5f5fcc564cf4183c5bbbc96d515
-    address: normalizeEVMAddress("0x011B6E24FfB0B5f5fCc564cf4183C5BBBc96D515"),
-    name: "🔵 Arbitrum Old Bridge",
-  },
-]
-
 interface Events extends ServiceLifecycleEvents {
   preferencesChanges: Preferences
   initializeDefaultWallet: boolean
@@ -89,8 +42,6 @@ interface Events extends ServiceLifecycleEvents {
  * event when preferences change.
  */
 export default class PreferenceService extends BaseService<Events> {
-  private knownContracts: InMemoryAddressBook = BUILT_IN_CONTRACTS
-
   private addressBook: InMemoryAddressBook = []
 
   /*
@@ -162,27 +113,6 @@ export default class PreferenceService extends BaseService<Events> {
   ): NameOnNetwork | undefined {
     return this.addressBook.find((addressBookEntry) =>
       sameAddressBookEntry(addressBookEntry, addressOnNetwork)
-    )
-  }
-
-  async lookUpAddressForContractName({
-    name,
-    network,
-  }: NameOnNetwork): Promise<AddressOnNetwork | undefined> {
-    return this.knownContracts.find(
-      ({ name: entryName, network: entryNetwork }) =>
-        sameNetwork(network, entryNetwork) && name === entryName
-    )
-  }
-
-  async lookUpNameForContractAddress({
-    address,
-    network,
-  }: AddressOnNetwork): Promise<NameOnNetwork | undefined> {
-    return this.knownContracts.find(
-      ({ address: entryAddress, network: entryNetwork }) =>
-        sameNetwork(network, entryNetwork) &&
-        normalizeEVMAddress(address) === normalizeEVMAddress(entryAddress)
     )
   }
 

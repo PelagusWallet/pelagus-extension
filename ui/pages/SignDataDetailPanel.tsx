@@ -4,7 +4,6 @@ import classNames from "classnames"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import SharedSkeletonLoader from "../components/Shared/SharedSkeletonLoader"
-import SignTypedDataInfo from "../components/SignData/SignTypedDataInfo"
 import { useBackgroundSelector } from "../hooks"
 import { capitalize } from "../utils/textUtils"
 
@@ -31,9 +30,6 @@ function SignDataMessage({
     typedData: { message },
   } = typedDataRequest
   const keys = Object.keys(message)
-
-  if (keys.length > 2)
-    return <SignTypedDataInfo typedDataRequest={typedDataRequest} />
 
   return (
     <>

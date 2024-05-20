@@ -1,7 +1,7 @@
 import { fetchJson } from "@ethersproject/web"
 import sinon, { SinonStub } from "sinon"
 import IndexingService from ".."
-import { ETHEREUM, OPTIMISM } from "../../../constants"
+import { QUAI_NETWORK } from "../../../constants"
 import {
   createAddressOnNetwork,
   createChainService,
@@ -85,10 +85,8 @@ describe("IndexingService", () => {
       preferenceService: Promise.resolve(preferenceService),
     })
 
-    sandbox.stub(chainService, "supportedNetworks").value([ETHEREUM, OPTIMISM])
-    sandbox
-      .stub(chainService, "getTrackedNetworks")
-      .resolves([ETHEREUM, OPTIMISM])
+    sandbox.stub(chainService, "supportedNetworks").value([QUAI_NETWORK])
+    sandbox.stub(chainService, "getTrackedNetworks").resolves([QUAI_NETWORK])
 
     indexedDB = new IDBFactory()
 
@@ -160,9 +158,9 @@ describe("IndexingService", () => {
 
         expect(
           indexingService
-            .getCachedAssets(ETHEREUM)
+            .getCachedAssets(QUAI_NETWORK)
             .map((assets) => assets.symbol)
-        ).toEqual(["ETH", customAsset.symbol, "TEST"])
+        ).toEqual(["QUAI", customAsset.symbol, "TEST"])
       })
 
       delay.resolve(undefined)
@@ -212,8 +210,10 @@ describe("IndexingService", () => {
         )
 
         expect(
-          indexingService.getCachedAssets(ETHEREUM).map((asset) => asset.symbol)
-        ).toEqual(["ETH", "TEST"])
+          indexingService
+            .getCachedAssets(QUAI_NETWORK)
+            .map((asset) => asset.symbol)
+        ).toEqual(["QUAI", "TEST"])
       })
     })
 
@@ -235,9 +235,9 @@ describe("IndexingService", () => {
       await indexingService.emitter.once("assets").then(() => {
         expect(
           indexingService
-            .getCachedAssets(ETHEREUM)
+            .getCachedAssets(QUAI_NETWORK)
             .map((assets) => assets.symbol)
-        ).toEqual(["ETH", "TEST"])
+        ).toEqual(["QUAI", "TEST"])
       })
 
       await indexingService.addOrUpdateCustomAsset(customAsset)
@@ -245,8 +245,10 @@ describe("IndexingService", () => {
       expect(cacheSpy).toHaveBeenCalled()
 
       expect(
-        indexingService.getCachedAssets(ETHEREUM).map((assets) => assets.symbol)
-      ).toEqual(["ETH", customAsset.symbol, "TEST"])
+        indexingService
+          .getCachedAssets(QUAI_NETWORK)
+          .map((assets) => assets.symbol)
+      ).toEqual(["QUAI", customAsset.symbol, "TEST"])
     })
 
     // Check that we're using proper token ids for built in network assets
@@ -270,12 +272,7 @@ describe("IndexingService", () => {
 
       await indexingService.emitter.once("assets")
 
-      expect(
-        fetchJsonStub
-          .getCalls()
-          .toString()
-          .match(/ethereum,matic-network,rootstock,avalanche-2,binancecoin/i)
-      ).toBeTruthy()
+      expect(fetchJsonStub.getCalls().toString().match(/quai/i)).toBeTruthy()
     })
   })
 
@@ -361,7 +358,7 @@ describe("IndexingService", () => {
         () => Promise.resolve({}) as any
       )
 
-      await indexingService.cacheAssetsForNetwork(ETHEREUM)
+      await indexingService.cacheAssetsForNetwork(QUAI_NETWORK)
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       await indexingService["loadAccountBalances"]()

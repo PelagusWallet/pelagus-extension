@@ -15,7 +15,6 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { deriveAddress } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import {
-  ROOTSTOCK,
   VALID_SHARDS,
   VALID_SHARDS_NAMES,
 } from "@pelagus/pelagus-background/constants"
@@ -186,13 +185,10 @@ function WalletTypeHeader({
   const sectionTitle = useMemo(() => {
     if (accountType === AccountType.ReadOnly) return title
 
-    let networkName = "" // Only for Rootstock
-    if (path === ROOTSTOCK.derivationPath) networkName = `(${ROOTSTOCK.name})`
+    if (sectionCustomName) return `${sectionCustomName}`
 
-    if (sectionCustomName) return `${sectionCustomName} ${networkName}`
-
-    return `${title} ${walletNumber} ${networkName}`
-  }, [accountType, title, sectionCustomName, walletNumber, path])
+    return `${title} ${walletNumber}`
+  }, [accountType, title, sectionCustomName, walletNumber])
 
   const history = useHistory()
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)

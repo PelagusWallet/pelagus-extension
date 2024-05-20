@@ -1,6 +1,6 @@
 import { selectSigningData } from "@pelagus/pelagus-background/redux-slices/signing"
 import React from "react"
-import { EIP191Info, EIP4361Info } from "../components/SignData"
+import { EIP191Info } from "../components/SignData"
 import { useBackgroundSelector } from "../hooks"
 
 export default function PersonalSignDetailPanel(): JSX.Element {
@@ -14,10 +14,6 @@ export default function PersonalSignDetailPanel(): JSX.Element {
         <div className="container">
           {(() => {
             switch (signingDataRequest.messageType) {
-              case "eip4361":
-                return (
-                  <EIP4361Info signingData={signingDataRequest.signingData} />
-                )
               case "eip191":
               default:
                 return (

@@ -7,7 +7,6 @@ import {
   SmartContractFungibleAsset,
   TokenListAndReference,
 } from "../assets"
-import { isValidUniswapTokenListResponse } from "./validate"
 import { EVMNetwork } from "../networks"
 import {
   findClosestAssetIndex,
@@ -55,9 +54,6 @@ export async function fetchAndValidateTokenList(
   }
   const cleanedJSON = cleanTokenListResponse(response, url)
 
-  if (!isValidUniswapTokenListResponse(cleanedJSON)) {
-    throw new Error(`Invalid token list at ${url}`)
-  }
   return {
     tokenList: cleanedJSON as TokenList,
     url,

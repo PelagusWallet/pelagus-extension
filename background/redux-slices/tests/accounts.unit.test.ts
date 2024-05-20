@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash"
 import { AccountBalance } from "../../accounts"
 import { SmartContractFungibleAsset } from "../../assets"
-import { ETH, ETHEREUM } from "../../constants"
+import { QUAI, QUAI_NETWORK } from "../../constants"
 import {
   createAccountData,
   createAddressOnNetwork,
@@ -20,7 +20,7 @@ import { determineAssetDisplayAndVerify } from "../selectors"
 const ADDRESS_MOCK = "0x208e94d5661a73360d9387d3ca169e5c130090cd"
 const ACCOUNT_MOCK = {
   address: ADDRESS_MOCK,
-  network: ETHEREUM,
+  network: QUAI_NETWORK,
   balances: {},
   ens: {},
   defaultName: "Topa",
@@ -32,10 +32,10 @@ const ASSET_MOCK: SmartContractFungibleAsset = createSmartContractAsset({
 const BALANCE_MOCK: AccountBalance = {
   address: ADDRESS_MOCK,
   assetAmount: {
-    asset: ETH,
+    asset: QUAI,
     amount: 1n,
   },
-  network: ETHEREUM,
+  network: QUAI_NETWORK,
   retrievedAt: 1,
   dataSource: "local",
 }
@@ -57,43 +57,43 @@ describe("Accounts redux slice", () => {
     it("should update positive balance for account that is loading", () => {
       const balances = [BALANCE_MOCK]
       state.accountsData.evm = {
-        [ETHEREUM.chainID]: { [ADDRESS_MOCK]: "loading" },
+        [QUAI_NETWORK.chainID]: { [ADDRESS_MOCK]: "loading" },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: ETHEREUM },
+          addressOnNetwork: { address: ADDRESS_MOCK, network: QUAI_NETWORK },
         })
       )
 
       const updatedAccountData =
-        updated.accountsData.evm[ETHEREUM.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QUAI_NETWORK.chainID][ADDRESS_MOCK]
 
       expect(updatedAccountData).not.toEqual("loading")
 
       const updatedBalance = (updatedAccountData as AccountData)?.balances
-      expect(updatedBalance?.[ETH.symbol].assetAmount.amount).toBe(1n)
+      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
       expect(updated.combinedData.totalMainCurrencyValue).toBe("")
     })
 
     it("should update positive balance for account that is loaded", () => {
       const balances = [BALANCE_MOCK]
       state.accountsData.evm = {
-        [ETHEREUM.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
+        [QUAI_NETWORK.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: ETHEREUM },
+          addressOnNetwork: { address: ADDRESS_MOCK, network: QUAI_NETWORK },
         })
       )
       const updatedAccountData =
-        updated.accountsData.evm[ETHEREUM.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QUAI_NETWORK.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as AccountData)?.balances
 
-      expect(updatedBalance?.[ETH.symbol].assetAmount.amount).toBe(1n)
+      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
       expect(updated.combinedData.totalMainCurrencyValue).toBe("")
     })
 
@@ -102,29 +102,29 @@ describe("Accounts redux slice", () => {
         {
           ...BALANCE_MOCK,
           assetAmount: {
-            asset: ETH,
+            asset: QUAI,
             amount: 0n,
           },
         },
       ]
       state.accountsData.evm = {
-        [ETHEREUM.chainID]: { [ADDRESS_MOCK]: "loading" },
+        [QUAI_NETWORK.chainID]: { [ADDRESS_MOCK]: "loading" },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: ETHEREUM },
+          addressOnNetwork: { address: ADDRESS_MOCK, network: QUAI_NETWORK },
         })
       )
 
       const updatedAccountData =
-        updated.accountsData.evm[ETHEREUM.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QUAI_NETWORK.chainID][ADDRESS_MOCK]
 
       expect(updatedAccountData).not.toEqual("loading")
 
       const updatedBalance = (updatedAccountData as AccountData)?.balances
-      expect(updatedBalance?.[ETH.symbol].assetAmount.amount).toBe(0n)
+      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(0n)
     })
 
     it("should update zero balance for account that is loaded", () => {
@@ -132,31 +132,31 @@ describe("Accounts redux slice", () => {
         {
           ...BALANCE_MOCK,
           assetAmount: {
-            asset: ETH,
+            asset: QUAI,
             amount: 0n,
           },
         },
       ]
       state.accountsData.evm = {
-        [ETHEREUM.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
+        [QUAI_NETWORK.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: ETHEREUM },
+          addressOnNetwork: { address: ADDRESS_MOCK, network: QUAI_NETWORK },
         })
       )
       const updatedAccountData =
-        updated.accountsData.evm[ETHEREUM.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QUAI_NETWORK.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as AccountData)?.balances
 
-      expect(updatedBalance?.[ETH.symbol].assetAmount.amount).toBe(0n)
+      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(0n)
     })
 
     it("should update positive balance multiple times", () => {
       state.accountsData.evm = {
-        [ETHEREUM.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
+        [QUAI_NETWORK.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
       }
 
       const initial = reducer(
@@ -166,7 +166,7 @@ describe("Accounts redux slice", () => {
             BALANCE_MOCK,
             { ...BALANCE_MOCK, assetAmount: { asset: ASSET_MOCK, amount: 5n } },
           ],
-          addressOnNetwork: { address: ADDRESS_MOCK, network: ETHEREUM },
+          addressOnNetwork: { address: ADDRESS_MOCK, network: QUAI_NETWORK },
         })
       )
       const updated = reducer(
@@ -178,15 +178,15 @@ describe("Accounts redux slice", () => {
               assetAmount: { asset: ASSET_MOCK, amount: 10n },
             },
           ],
-          addressOnNetwork: { address: ADDRESS_MOCK, network: ETHEREUM },
+          addressOnNetwork: { address: ADDRESS_MOCK, network: QUAI_NETWORK },
         })
       )
 
       const updatedAccountData =
-        updated.accountsData.evm[ETHEREUM.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QUAI_NETWORK.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as AccountData)?.balances
 
-      expect(updatedBalance?.[ETH.symbol].assetAmount.amount).toBe(1n)
+      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
       expect(updatedBalance?.[ASSET_MOCK.symbol].assetAmount.amount).toBe(10n)
     })
 
@@ -194,7 +194,7 @@ describe("Accounts redux slice", () => {
       const asset = createSmartContractAsset()
       const otherAccount = createAddressOnNetwork()
       state.accountsData.evm = {
-        [ETHEREUM.chainID]: {
+        [QUAI_NETWORK.chainID]: {
           [ADDRESS_MOCK]: ACCOUNT_MOCK,
           [otherAccount.address]: createAccountData({
             address: otherAccount.address,
@@ -211,7 +211,7 @@ describe("Accounts redux slice", () => {
               assetAmount: { asset, amount: 10n },
             },
           ],
-          addressOnNetwork: { address: ADDRESS_MOCK, network: ETHEREUM },
+          addressOnNetwork: { address: ADDRESS_MOCK, network: QUAI_NETWORK },
         })
       )
 
@@ -227,17 +227,17 @@ describe("Accounts redux slice", () => {
           ],
           addressOnNetwork: {
             address: otherAccount.address,
-            network: ETHEREUM,
+            network: QUAI_NETWORK,
           },
         })
       )
 
       const firstAccountData = secondAccountUpdate.accountsData.evm[
-        ETHEREUM.chainID
+        QUAI_NETWORK.chainID
       ][ADDRESS_MOCK] as AccountData
 
       const secondAccountData = secondAccountUpdate.accountsData.evm[
-        ETHEREUM.chainID
+        QUAI_NETWORK.chainID
       ][otherAccount.address] as AccountData
 
       expect(
@@ -259,11 +259,11 @@ describe("Accounts redux slice", () => {
       )
 
       const updatedFirstAccountData = newState.accountsData.evm[
-        ETHEREUM.chainID
+        QUAI_NETWORK.chainID
       ][ADDRESS_MOCK] as AccountData
 
       const updatedSecondAccountData = newState.accountsData.evm[
-        ETHEREUM.chainID
+        QUAI_NETWORK.chainID
       ][otherAccount.address] as AccountData
 
       expect(

@@ -41,7 +41,8 @@
         "unlock": "Unlock signing"
       },
       "snackbar": "Signing locked"
-    }
+    },
+    "noResults": "No results found"
   },
   "viewAddressOnBlockExplorer": "View address on {{blockExplorer}}",
   "assets": {

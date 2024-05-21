@@ -707,6 +707,10 @@ export default function AccountsNotificationPanelAccounts({
           (type) => (accountTotals[type]?.length ?? 0) > 0
         )
 
+        if (!filteredAccountTypeTotals.length) {
+          return <p className="noAccounts">{t("accounts.noResults")}</p>
+        }
+
         return (
           <div key={switcherWrapIdx} className="switcherWrapIdx">
             {shouldAddHeader(existingAccountTypes, accountType) && (
@@ -906,6 +910,17 @@ export default function AccountsNotificationPanelAccounts({
           p {
             margin: 0;
           }
+
+          .noAccounts {
+            margin-top: 110px;
+            display: flex;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 500;
+            font-size: 18px;
+            line-height: 20px;
+          }
+
           .switcherWrapIdx {
             padding-bottom: 16px;
           }

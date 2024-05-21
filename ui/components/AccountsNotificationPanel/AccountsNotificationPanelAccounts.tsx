@@ -45,7 +45,6 @@ import {
   useBackgroundSelector,
   useAreKeyringsUnlocked,
 } from "../../hooks"
-import SharedAccountItemSummary from "../Shared/SharedAccountItemSummary"
 import AccountItemOptionsMenu from "../AccountItem/AccountItemOptionsMenu"
 import SharedIcon from "../Shared/SharedIcon"
 import SharedDropdown from "../Shared/SharedDropDown"
@@ -58,7 +57,10 @@ import OnboardingRoutes, {
 } from "../../pages/Onboarding/Tabbed/Routes"
 import SharedSelect from "../Shared/SharedSelect"
 import SharedLoadingShip from "../Shared/SharedLoadingShip"
-import { isAccountWithSecrets } from "../../utils/accounts"
+import {
+  isAccountWithSecrets,
+  searchAccountsHandle,
+} from "../../utils/accounts"
 import SharedORDivider from "../Shared/SharedORDivider"
 import SelectAccountListItem from "../AccountItem/SelectAccountListItem"
 import AccountsSearchBar from "../AccountItem/AccountsSearchBar"
@@ -528,33 +530,6 @@ export default function AccountsNotificationPanelAccounts({
   const accountTotals = useBackgroundSelector(
     selectCurrentNetworkAccountTotalsByCategory
   )
-  const walletTypeDetails: { [key in AccountType]: WalletTypeInfo } = {
-    [AccountType.ReadOnly]: {
-      title: t("accounts.notificationPanel.readOnly"),
-      icon: "./images/eye@2x.png",
-      category: t("accounts.notificationPanel.category.readOnly"),
-    },
-    [AccountType.Imported]: {
-      title: t("accounts.notificationPanel.import"),
-      icon: "./images/imported@2x.png",
-      category: t("accounts.notificationPanel.category.others"),
-    },
-    [AccountType.PrivateKey]: {
-      title: t("accounts.notificationPanel.privateKey"),
-      icon: "./images/key-light.svg",
-      category: t("accounts.notificationPanel.category.others"),
-    },
-    [AccountType.Internal]: {
-      title: t("accounts.notificationPanel.internal"),
-      icon: "./images/stars_grey.svg",
-      category: t("accounts.notificationPanel.category.others"),
-    },
-    [AccountType.Ledger]: {
-      title: t("accounts.notificationPanel.ledger"),
-      icon: "./images/ledger_icon.svg",
-      category: t("accounts.notificationPanel.category.ledger"),
-    },
-  }
 
   const [pendingSelectedAddress, setPendingSelectedAddress] = useState("")
   const defaultSigner = useRef(
@@ -639,21 +614,10 @@ export default function AccountsNotificationPanelAccounts({
           return <></>
         }
 
-        const filteredAccountTypeTotals = searchAccountsValue
-          ? accountTypeTotals?.filter(
-              (item: AccountTotal) =>
-                item.name
-                  ?.toLowerCase()
-                  .includes(searchAccountsValue.toLowerCase()) ||
-                item.address
-                  ?.toLowerCase()
-                  .includes(searchAccountsValue.toLowerCase()) ||
-                (item?.accountSigner?.type === "keyring" &&
-                  item.accountSigner?.shard
-                    ?.toLowerCase()
-                    .includes(searchAccountsValue.toLowerCase()))
-            )
-          : accountTypeTotals
+        const filteredAccountTypeTotals = searchAccountsHandle(
+          searchAccountsValue,
+          accountTypeTotals
+        )
 
         const accountTotalsByType = filteredAccountTypeTotals.reduce(
           (acc, accountTypeTotal) => {
@@ -747,11 +711,12 @@ export default function AccountsNotificationPanelAccounts({
           <div key={switcherWrapIdx} className="switcherWrapIdx">
             {shouldAddHeader(existingAccountTypes, accountType) && (
               <div className="category_wrap simple_text">
-                {isAccountWithSecrets(accountType) && (
-                  <SigningButton
-                    onCurrentAddressChange={onCurrentAddressChange}
-                  />
-                )}
+                {isAccountWithSecrets(accountType) &&
+                  filteredAccountTypeTotals.length > 0 && (
+                    <SigningButton
+                      onCurrentAddressChange={onCurrentAddressChange}
+                    />
+                  )}
               </div>
             )}
             {Object.values(accountTotalsByType).map(

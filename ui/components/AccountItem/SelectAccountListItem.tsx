@@ -92,7 +92,7 @@ export default function SelectAccountListItem({
             line-height: 20px;
           }
           .details {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 400;
             line-height: 18px;
           }

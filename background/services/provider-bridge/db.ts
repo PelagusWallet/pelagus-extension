@@ -70,6 +70,18 @@ export class ProviderBridgeServiceDatabase extends Dexie {
       [mainTable]: null,
     })
 
+    this.version(9)
+      .stores({
+        [mainTable]:
+          "&[origin+accountAddress+chainID],origin,accountAddress,chainID",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table(tempTable)
+          .toArray()
+          .then((rows) => tx.table(mainTable).bulkAdd(rows))
+      })
+
     this.version(10).stores({
       [tempTable]: null,
     })

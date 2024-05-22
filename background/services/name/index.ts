@@ -10,14 +10,7 @@ import { AddressOnNetwork, NameOnNetwork } from "../../accounts"
 import { SECOND } from "../../constants"
 
 import { NameResolver } from "./name-resolver"
-import {
-  NameResolverSystem,
-  knownContractResolverFor,
-  addressBookResolverFor,
-  ensResolverFor,
-  unsResolver,
-  rnsResolver,
-} from "./resolvers"
+import { NameResolverSystem, addressBookResolverFor } from "./resolvers"
 import PreferenceService from "../preferences"
 import { isFulfilledPromise } from "../../lib/utils/type-guards"
 
@@ -117,12 +110,6 @@ export default class NameService extends BaseService<Events> {
     this.resolvers = [
       // User-controlled resolvers are higher priority.
       addressBookResolverFor(preferenceService),
-      knownContractResolverFor(preferenceService),
-      // Third-party resolvers are used when the user has not defined a name
-      // for the given resource.
-      ensResolverFor(chainService),
-      unsResolver(),
-      rnsResolver(),
     ]
 
     preferenceService.emitter.on(

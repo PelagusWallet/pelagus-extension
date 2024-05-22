@@ -377,11 +377,7 @@ export default async function resolveTransactionAnnotation(
         // skip the warning.
         if (
           recipient.annotation.hasCode &&
-          !(
-            recipient.annotation.nameRecord?.system ===
-              "tally-known-contracts" ||
-            recipient.annotation.nameRecord?.system === "tally-address-book"
-          )
+          !(recipient.annotation.nameRecord?.system === "tally-address-book")
         ) {
           txAnnotation.warnings ??= []
           txAnnotation.warnings.push("send-to-contract")
@@ -456,11 +452,7 @@ export default async function resolveTransactionAnnotation(
         // skip the warning.
         if (
           recipient.annotation.hasCode &&
-          !(
-            recipient.annotation.nameRecord?.system ===
-              "tally-known-contracts" ||
-            recipient.annotation.nameRecord?.system === "tally-address-book"
-          )
+          !(recipient.annotation.nameRecord?.system === "tally-address-book")
         ) {
           txAnnotation.warnings ??= []
           txAnnotation.warnings.push("send-to-contract")

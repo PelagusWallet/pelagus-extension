@@ -31,7 +31,6 @@ const impersonateMetamaskWhitelist = [
   "galxe.com",
   "dydx.exchange",
   "app.euler.finance",
-  "kwenta.io",
   "stargate.finance",
   "etherscan.io",
   "swapr.eth.link",

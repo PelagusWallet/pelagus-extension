@@ -29,9 +29,6 @@ on:
       UNS_API_KEY:
         description: "needed for uns"
         required: true
-      SIMPLE_HASH_API_KEY:
-        description: "needed for simple hash"
-        required: true
 
 jobs:
   tag:
@@ -121,7 +118,6 @@ jobs:
           echo 'USE_ANALYTICS_SOURCE="BETA"' >> .env
           yarn build
         env:
-          BLOCKNATIVE_API_KEY: ${{ secrets.DEV_BLOCKNATIVE_API_KEY || 'f60816ff-da02-463f-87a6-67a09c6d53fa' }}
           COMMIT_SHA: ${{ github.sha }}
       - name: Production build
         if: ${{ inputs.update_version }}
@@ -129,10 +125,7 @@ jobs:
           echo 'USE_ANALYTICS_SOURCE="PROD"' >> .env
           yarn build
         env:
-          BLOCKNATIVE_API_KEY: ${{ secrets.BLOCKNATIVE_API_KEY }}
           UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
-          SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
-          ZEROX_API_KEY: ${{ secrets.ZEROX_API_KEY }}
           COMMIT_SHA: ${{ github.sha }}
       - name: Upload build asset
         if: ${{ inputs.update_version }}

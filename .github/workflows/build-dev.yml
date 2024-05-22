@@ -11,7 +11,6 @@ jobs:
       GPG_PRIVATE_KEY2: ${{ secrets.GPG_PRIVATE_KEY2 }}
       GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
       UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
-      SIMPLE_HASH_API_KEY: ${{ secrets.SIMPLE_HASH_API_KEY }}
     with:
       update_version_command: npm version prerelease --preid=pre --no-git-tag-version
       update_version: false

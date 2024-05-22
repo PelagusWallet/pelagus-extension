@@ -26,9 +26,6 @@ on:
       GPG_KEY_ID:
         description: "needed for gpg key"
         required: true
-      UNS_API_KEY:
-        description: "needed for uns"
-        required: true
 
 jobs:
   tag:
@@ -125,7 +122,6 @@ jobs:
           echo 'USE_ANALYTICS_SOURCE="PROD"' >> .env
           yarn build
         env:
-          UNS_API_KEY: ${{ secrets.UNS_API_KEY }}
           COMMIT_SHA: ${{ github.sha }}
       - name: Upload build asset
         if: ${{ inputs.update_version }}

@@ -136,8 +136,7 @@ Object.defineProperty(window, "ethereum", {
           // as a workaround we need to remove this list for uniswap so the actual provider change can work after reload.
           // The same is true for `galaxy.eco`
           if (
-            (window.location.href.includes("kwenta.io") ||
-              window.location.href.includes("galxe.com")) &&
+            window.location.href.includes("galxe.com") &&
             prop === "providers"
           ) {
             return null

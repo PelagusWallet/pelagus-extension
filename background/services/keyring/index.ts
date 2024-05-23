@@ -1,5 +1,6 @@
+import { Wallet } from "@quais/wallet"
+import { parseAndValidateSignedTransaction } from "./utils"
 import { parse as parseRawTransaction } from "@quais/transactions"
-
 import HDKeyring, { SerializedHDKeyring } from "@pelagus/hd-keyring"
 
 import { arrayify } from "ethers/lib/utils"
@@ -22,7 +23,6 @@ import { FeatureFlags, isEnabled } from "../../features"
 import { AddressOnNetwork } from "../../accounts"
 import logger from "../../lib/logger"
 import { getShardFromAddress } from "../../redux-slices/selectors"
-import { Wallet } from "ethers"
 
 export const MAX_KEYRING_IDLE_TIME = 60 * MINUTE
 export const MAX_OUTSIDE_IDLE_TIME = 60 * MINUTE
@@ -757,7 +757,7 @@ export default class KeyringService extends BaseService<Events> {
   /**
    * Sign a transaction.
    *
-   * @param account - the account desired to sign the transaction
+   * @param addressOnNetwork - the desired account address on network to sign the transaction
    * @param txRequest -
    */
   async signTransaction(
@@ -768,98 +768,25 @@ export default class KeyringService extends BaseService<Events> {
 
     const { address: account, network } = addressOnNetwork
 
-    // find the keyring using a linear search
-    const keyring = await this.#findKeyring(account)
+    const signerWithType = this.#findSigner(account)
+    if (!signerWithType)
+      throw new Error(
+        `Signing transaction failed. Signer for address ${account} was not found.`
+      )
 
-    // ethers has a looser / slightly different request type
     const ethersTxRequest = ethersTransactionFromTransactionRequest(txRequest)
 
-    // unfortunately, ethers gives us a serialized signed tx here
-    const signed = await keyring.signTransaction(account, ethersTxRequest)
+    const signedRawTransactionString = isPrivateKey(signerWithType)
+      ? await signerWithType.signer.signTransaction(ethersTxRequest) // Using Wallet for private key sign
+      : await signerWithType.signer.signTransaction(account, ethersTxRequest) // Using HDKeyring for deterministic wallet sign
 
-    // parse the tx, then unpack it as best we can
-    const tx = parseRawTransaction(signed)
+    const parsedTx = parseRawTransaction(signedRawTransactionString)
+    const signedTransaction = parseAndValidateSignedTransaction(
+      parsedTx,
+      network
+    )
 
-    if (!tx.hash || !tx.from || !tx.r || !tx.s || typeof tx.v === "undefined") {
-      throw new Error("Transaction doesn't appear to have been signed.")
-    }
-
-    const {
-      to,
-      gasPrice,
-      gasLimit,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      externalGasLimit,
-      externalGasPrice,
-      externalGasTip,
-      externalAccessList,
-      externalData,
-      hash,
-      from,
-      nonce,
-      data,
-      value,
-      type,
-      r,
-      s,
-      v,
-    } = tx
-
-    if (
-      typeof maxPriorityFeePerGas === "undefined" ||
-      typeof maxFeePerGas === "undefined"
-    ) {
-      const signedTx = {
-        hash,
-        from,
-        to,
-        nonce,
-        input: data,
-        value: value.toBigInt(),
-        type: type as 0,
-        gasPrice: gasPrice?.toBigInt() ?? null,
-        gasLimit: gasLimit.toBigInt(),
-        maxFeePerGas: null,
-        maxPriorityFeePerGas: null,
-        r,
-        s,
-        v,
-        blockHash: null,
-        blockHeight: null,
-        asset: network.baseAsset,
-        network: isEnabled(FeatureFlags.USE_MAINNET_FORK) ? FORK : network,
-      }
-      return signedTx
-    }
-
-    // TODO move this to a helper function
-    const signedTx: SignedTransaction = {
-      hash,
-      from,
-      to,
-      nonce,
-      input: data,
-      value: value.toBigInt(),
-      type: type as 0 | 2 | 1 | 100 | null,
-      gasPrice: null,
-      maxFeePerGas: maxFeePerGas.toBigInt(),
-      maxPriorityFeePerGas: maxPriorityFeePerGas.toBigInt(),
-      gasLimit: gasLimit.toBigInt(),
-      r,
-      s,
-      v,
-      externalGasLimit: externalGasLimit?.toBigInt(),
-      externalGasPrice: externalGasPrice?.toBigInt(),
-      externalGasTip: externalGasTip?.toBigInt(),
-      // TODO: Add external data and access list
-      blockHash: null,
-      blockHeight: null,
-      asset: network.baseAsset,
-      network: isEnabled(FeatureFlags.USE_MAINNET_FORK) ? FORK : network,
-    }
-
-    return signedTx
+    return signedTransaction
   }
   /**
    * Sign typed data based on EIP-712 with the usage of eth_signTypedData_v4 method,

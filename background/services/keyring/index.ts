@@ -804,17 +804,27 @@ export default class KeyringService extends BaseService<Events> {
   }): Promise<string> {
     this.requireUnlocked()
     const { domain, types, message } = typedData
-    // find the keyring using a linear search
-    const keyring = await this.#findKeyring(account)
-    // When signing we should not include EIP712Domain type
     const { EIP712Domain, ...typesForSigning } = types
-    try {
-      const signature = await keyring.signTypedData(
-        account,
-        domain,
-        typesForSigning,
-        message
+
+    const signerWithType = this.#findSigner(account)
+    if (!signerWithType)
+      throw new Error(
+        `Signing transaction failed. Signer for address ${account} was not found.`
       )
+
+    try {
+      const signature = isPrivateKey(signerWithType)
+        ? await signerWithType.signer._signTypedData(
+            domain,
+            typesForSigning,
+            message
+          )
+        : await signerWithType.signer.signTypedData(
+            account,
+            domain,
+            typesForSigning,
+            message
+          )
 
       return signature
     } catch (error) {
@@ -839,13 +849,17 @@ export default class KeyringService extends BaseService<Events> {
   }): Promise<string> {
     this.requireUnlocked()
 
-    // find the keyring using a linear search
-    const keyring = await this.#findKeyring(account)
-    try {
-      const signature = await keyring.signMessageBytes(
-        account,
-        arrayify(signingData)
+    const signerWithType = this.#findSigner(account)
+    if (!signerWithType)
+      throw new Error(
+        `Signing transaction failed. Signer for address ${account} was not found.`
       )
+
+    try {
+      const messageBytes = arrayify(signingData)
+      const signature = isPrivateKey(signerWithType)
+        ? await signerWithType.signer.signMessage(messageBytes)
+        : await signerWithType.signer.signMessageBytes(account, messageBytes)
 
       return signature
     } catch (error) {

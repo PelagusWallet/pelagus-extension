@@ -1,14 +1,11 @@
 import { HexString, UNIXTime } from "../../types"
 import { normalizeAddressOnNetwork } from "../../lib/utils"
-import { storageGatewayURL } from "../../lib/storage-gateway"
-
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import BaseService from "../base"
 import ChainService from "../chain"
 import logger from "../../lib/logger"
 import { AddressOnNetwork, NameOnNetwork } from "../../accounts"
 import { SECOND } from "../../constants"
-
 import { NameResolver } from "./name-resolver"
 import { NameResolverSystem, addressBookResolverFor } from "./resolvers"
 import PreferenceService from "../preferences"
@@ -35,42 +32,19 @@ export type ResolvedNameRecord = {
   system: NameResolverSystem
 }
 
-type ResolvedAvatarRecord = {
-  from: {
-    addressOnNetwork: AddressOnNetwork
-  }
-  resolved: {
-    avatar: URL
-  }
-  system: NameResolverSystem
-}
-
 type Events = ServiceLifecycleEvents & {
   resolvedAddress: ResolvedAddressRecord
   resolvedName: ResolvedNameRecord
-  resolvedAvatar: ResolvedAvatarRecord
 }
 
 // A minimum record expiry that avoids infinite resolution loops.
 const MINIMUM_RECORD_EXPIRY = 10 * SECOND
 
 /**
- * The NameService is responsible for resolving human-readable names into
- * addresses and other metadata across multiple networks, caching where
- * appropriate.
- *
- * Initially, the service supports ENS on mainnet Ethereum.
- */
+ The NameService is responsible for resolving human-readable names into addresses and other metadata across multiple networks, caching where ppropriate.
+*/
 export default class NameService extends BaseService<Events> {
   private resolvers: NameResolver<NameResolverSystem>[] = []
-
-  /**
-   * Cached resolution for avatar URIs that are not yet URLs, e.g. for EIP155.
-   */
-  private cachedResolvedEIP155Avatars: Record<
-    string,
-    ResolvedAvatarRecord | undefined
-  > = {}
 
   /**
    * Cached resolution for name records, by network family followed by whatever
@@ -106,11 +80,7 @@ export default class NameService extends BaseService<Events> {
     preferenceService: PreferenceService
   ) {
     super({})
-
-    this.resolvers = [
-      // User-controlled resolvers are higher priority.
-      addressBookResolverFor(preferenceService),
-    ]
+    this.resolvers = [addressBookResolverFor(preferenceService)]
 
     preferenceService.emitter.on(
       "addressBookEntryModified",
@@ -134,21 +104,6 @@ export default class NameService extends BaseService<Events> {
         }
       }
     )
-    this.emitter.on("resolvedName", async ({ from: { addressOnNetwork } }) => {
-      try {
-        const avatar = await this.lookUpAvatar(addressOnNetwork)
-
-        if (avatar) {
-          this.emitter.emit("resolvedAvatar", avatar)
-        }
-      } catch (error) {
-        logger.error(
-          "Error fetching avatar for address",
-          addressOnNetwork,
-          error
-        )
-      }
-    })
   }
 
   async lookUpEthereumAddress(
@@ -219,7 +174,6 @@ export default class NameService extends BaseService<Events> {
     const workingResolvers = this.resolvers.filter((resolver) =>
       resolver.canAttemptNameResolution({ address, network })
     )
-
     const localResolvers = [...workingResolvers].filter(
       (resolver) => resolver.type === "tally-address-book"
     )
@@ -254,9 +208,8 @@ export default class NameService extends BaseService<Events> {
     if (
       firstMatchingResolution === undefined ||
       firstMatchingResolution.resolved === undefined
-    ) {
+    )
       return undefined
-    }
 
     const { type: resolverType, resolved: nameOnNetwork } =
       firstMatchingResolution
@@ -277,7 +230,6 @@ export default class NameService extends BaseService<Events> {
     this.cachedResolvedNames[network.family][network.chainID][address] =
       nameRecord
 
-    // Only emit an event if the resolved name changed.
     if (cachedNameOnNetwork?.name !== nameOnNetwork.name) {
       this.emitter.emit("resolvedName", nameRecord)
     }
@@ -293,7 +245,6 @@ export default class NameService extends BaseService<Events> {
 
   removeAccount(address: HexString): void {
     const chainIds = Object.keys(this.cachedResolvedNames.EVM)
-
     chainIds.forEach((chainId) => {
       this.clearNameCacheEntry(chainId, address)
     })
@@ -305,70 +256,4 @@ export default class NameService extends BaseService<Events> {
       this.clearNameCacheEntry(chainId, address)
     })
   }
-
-  async lookUpAvatar(
-    addressOnNetwork: AddressOnNetwork
-  ): Promise<ResolvedAvatarRecord | undefined> {
-    const workingResolvers = this.resolvers.filter((resolver) =>
-      resolver.canAttemptAvatarResolution(addressOnNetwork)
-    )
-
-    const firstMatchingResolution = (
-      await Promise.allSettled(
-        workingResolvers.map(async (resolver) => ({
-          type: resolver.type,
-          resolved: await resolver.lookUpAvatar(addressOnNetwork),
-        }))
-      )
-    )
-      .filter(isFulfilledPromise)
-      .find(({ value: { resolved } }) => resolved !== undefined)?.value
-
-    if (
-      firstMatchingResolution === undefined ||
-      firstMatchingResolution.resolved === undefined
-    ) {
-      return undefined
-    }
-
-    const {
-      type: resolverType,
-      resolved: { uri: avatarUri },
-    } = firstMatchingResolution
-
-    const baseResolvedAvatar = {
-      from: { addressOnNetwork },
-      system: resolverType,
-    }
-
-    if (avatarUri instanceof URL) {
-      return {
-        ...baseResolvedAvatar,
-        resolved: { avatar: storageGatewayURL(avatarUri.href) },
-      }
-    }
-
-    if (avatarUri.match(/^eip155:1/)) {
-      const normalizedAvatarUri = avatarUri.toLowerCase()
-      // check if we've cached the resolved URL, otherwise hit the chain
-      if (normalizedAvatarUri in this.cachedResolvedEIP155Avatars) {
-        // TODO properly cache this with any other non-ENS NFT stuff we do
-        return this.cachedResolvedEIP155Avatars[normalizedAvatarUri]
-      }
-    }
-
-    // If not an EIP URI, assume we're looking at a standard URL; if that
-    // fails, log an error and just return undefined.
-    try {
-      const plainURL = storageGatewayURL(avatarUri)
-      return {
-        ...baseResolvedAvatar,
-        resolved: { avatar: plainURL },
-      }
-    } catch (error) {
-      logger.error("Unexpected avatar URI scheme", avatarUri)
-      return undefined
-    }
-  }
 }
-// TODO resolve content, eg IPFS hashes

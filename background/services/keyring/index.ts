@@ -2,7 +2,6 @@ import { Wallet } from "@quais/wallet"
 import { parseAndValidateSignedTransaction } from "./utils"
 import { parse as parseRawTransaction } from "@quais/transactions"
 import HDKeyring, { SerializedHDKeyring } from "@pelagus/hd-keyring"
-
 import { arrayify } from "ethers/lib/utils"
 import { normalizeEVMAddress, sameEVMAddress } from "../../lib/utils"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -15,7 +14,6 @@ import {
 } from "./encryption"
 import { HexString, KeyringTypes, EIP712TypedData, UNIXTime } from "../../types"
 import { SignedTransaction, TransactionRequestWithNonce } from "../../networks"
-
 import BaseService from "../base"
 import { MINUTE } from "../../constants"
 import { ethersTransactionFromTransactionRequest } from "../chain/utils"
@@ -487,9 +485,7 @@ export default class KeyringService extends BaseService<Events> {
     const newWallet = new Wallet(privateKey)
     const normalizedAddress = normalizeEVMAddress(newWallet.address)
 
-    if (this.#findSigner(normalizedAddress)) {
-      return normalizedAddress
-    }
+    if (this.#findSigner(normalizedAddress)) return normalizedAddress
 
     this.#privateKeys.push(newWallet)
     this.#keyringMetadata[normalizedAddress] = {
@@ -503,20 +499,18 @@ export default class KeyringService extends BaseService<Events> {
    */
   #findSigner(account: HexString): InternalSignerWithType | null {
     const keyring = this.#findKeyringNew(account)
-    if (keyring) {
+    if (keyring)
       return {
         signer: keyring,
         type: SignerSourceTypes.keyring,
       }
-    }
 
     const privateKey = this.#findPrivateKey(account)
-    if (privateKey) {
+    if (privateKey)
       return {
         signer: privateKey,
         type: SignerSourceTypes.privateKey,
       }
-    }
 
     return null
   }
@@ -603,12 +597,9 @@ export default class KeyringService extends BaseService<Events> {
     shard,
   }: KeyringAccountSigner): Promise<HexString> {
     this.requireUnlocked()
-    console.log("Deriving address for keyring", keyringID, "in shard", shard)
     // find the keyring using a linear search
     const keyring = this.#keyrings.find((kr) => kr.id === keyringID)
-    if (!keyring) {
-      throw new Error("Keyring not found.")
-    }
+    if (!keyring) throw new Error("Keyring not found.")
 
     // const keyringAddresses = keyring.getAddressesSync()
     let found = false
@@ -620,9 +611,7 @@ export default class KeyringService extends BaseService<Events> {
         continue
       }
       const shardFromAddress = getShardFromAddress(address)
-      // console.log(`Address: ${address}, isHidden: ${isHidden} Shard: ${shardFromAddress}`);
       if (shardFromAddress !== undefined) {
-        // Check if address is in correct shard
         if (
           shardFromAddress === shard &&
           keyring.getAddressesSync().includes(address)
@@ -630,7 +619,6 @@ export default class KeyringService extends BaseService<Events> {
           found = true
           delete this.#hiddenAccounts[address]
           newAddress = address
-          console.log("Found hidden address in shard %s %s", shard, address)
           break
         }
       }

@@ -1,18 +1,13 @@
 import browser from "webextension-polyfill"
-
 import { Store as ProxyStore } from "webext-redux"
 import patchDeepDiff from "webext-redux/lib/strategies/deepDiff/patch"
 import { AnyAction } from "@reduxjs/toolkit"
-
 import Main from "./main"
 import { encodeJSON, decodeJSON } from "./lib/utils"
-
 import { RootState } from "./redux-slices"
 
 export { browser }
-
 export type { RootState }
-
 export type BackgroundDispatch = Main["store"]["dispatch"]
 
 /**
@@ -33,7 +28,6 @@ export async function newProxyStore(): Promise<
     patchStrategy: patchDeepDiff,
   })
   await proxyStore.ready()
-
   return proxyStore
 }
 
@@ -42,8 +36,6 @@ export async function newProxyStore(): Promise<
  */
 export async function startMain(): Promise<Main> {
   const mainService = await Main.create()
-
   mainService.startService()
-
   return mainService.started()
 }

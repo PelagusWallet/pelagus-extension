@@ -47,20 +47,16 @@ export const signingSliceEmitter = new Emittery<Events>()
 type SigningState = {
   signedTypedData: string | undefined
   typedDataRequest: EnrichedSignTypedDataRequest | undefined
-
   signedData: string | undefined
   signDataRequest: MessageSigningRequest | undefined
-
   additionalSigningStatus: "editing" | undefined
 }
 
 export const initialState: SigningState = {
   typedDataRequest: undefined,
   signedTypedData: undefined,
-
   signedData: undefined,
   signDataRequest: undefined,
-
   additionalSigningStatus: undefined,
 }
 
@@ -167,7 +163,6 @@ export const rejectDataSignature = createBackgroundAsyncThunk(
   "signing/reject",
   async (_, { dispatch }) => {
     await signingSliceEmitter.emit("signatureRejected")
-    // Provide a clean slate for future transactions.
     dispatch(signingSlice.actions.clearSigningState())
   }
 )

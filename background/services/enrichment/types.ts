@@ -1,8 +1,4 @@
-import {
-  AnyAssetAmount,
-  FungibleAsset,
-  SmartContractFungibleAsset,
-} from "../../assets"
+import { AnyAssetAmount, SmartContractFungibleAsset } from "../../assets"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import {
   AnyEVMTransaction,

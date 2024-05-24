@@ -10,7 +10,6 @@ describe("Utils", () => {
       const response = handleRPCErrorResponse(
         new EIP1193Error(EIP1193_ERROR_CODES.disconnected)
       )
-
       expect(response).toBe(EIP1193_ERROR_CODES.disconnected)
     })
 
@@ -23,7 +22,6 @@ describe("Utils", () => {
         }),
       }
       const response = handleRPCErrorResponse(error)
-
       expect(response).toStrictEqual({ code: 4001, message: "Custom error" })
     })
 
@@ -38,7 +36,6 @@ describe("Utils", () => {
         },
       }
       const response = handleRPCErrorResponse(error)
-
       expect(response).toStrictEqual({ code: 4001, message: "Custom error" })
     })
 
@@ -53,7 +50,6 @@ describe("Utils", () => {
         },
       }
       const response = handleRPCErrorResponse(error)
-
       expect(response).toBe(EIP1193_ERROR_CODES.userRejectedRequest)
     })
   })

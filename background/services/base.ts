@@ -168,14 +168,11 @@ export default abstract class BaseService<Events extends ServiceLifecycleEvents>
     switch (this.serviceState) {
       case "started":
         return this
-
       case "stopped":
         throw new Error("Service is already stopped and cannot be restarted.")
-
       case "unstarted":
       case "starting":
         return this.emitter.once("serviceStarted").then(() => this)
-
       default: {
         const exhaustiveCheck: never = this.serviceState
         throw new Error(`Unreachable code: ${exhaustiveCheck}`)
@@ -207,19 +204,15 @@ export default abstract class BaseService<Events extends ServiceLifecycleEvents>
       case "started":
       case "starting":
         return
-
       case "stopped":
-        //stop service worker interval
         stopHeartbeat()
         throw new Error("Service is already stopped and cannot be restarted.")
-
       case "unstarted":
         this.serviceState = "starting"
         await this.internalStartService()
         this.serviceState = "started"
         this.emitter.emit("serviceStarted", undefined)
         break
-
       default: {
         const exhaustiveCheck: never = this.serviceState
         throw new Error(`Unreachable code: ${exhaustiveCheck}`)
@@ -241,21 +234,17 @@ export default abstract class BaseService<Events extends ServiceLifecycleEvents>
     switch (this.serviceState) {
       case "unstarted":
         throw new Error("Attempted to stop a service that was never started.")
-
       case "stopped":
         return
-
       case "starting":
         await this.started()
         await this.stopService()
         break
-
       case "started":
         await this.internalStopService()
         this.serviceState = "stopped"
         this.emitter.emit("serviceStopped", undefined)
         break
-
       default: {
         const exhaustiveCheck: never = this.serviceState
         throw new Error(`Unreachable code: ${exhaustiveCheck}`)

@@ -1,5 +1,4 @@
 import Dexie, { Collection, DexieOptions, IndexableTypeArray } from "dexie"
-
 import { UNIXTime } from "../../types"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import {
@@ -32,7 +31,6 @@ type AccountAssetTransferLookup = {
 
 // TODO keep track of blocks invalidated by a reorg
 // TODO keep track of transaction replacement / nonce invalidation
-
 export class ChainDatabase extends Dexie {
   /*
    * Accounts whose transaction and balances should be tracked on a particular
@@ -452,9 +450,6 @@ export class ChainDatabase extends Dexie {
         .equals([hash, network.name])
         .delete()
     }
-
-    // Fetch all transactions again to verify
-    const updatedTxs = await this.getAllTransactions()
   }
 
   async getOldestAccountAssetTransferLookup(

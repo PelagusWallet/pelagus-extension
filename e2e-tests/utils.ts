@@ -43,7 +43,7 @@ export const test = base.extend<WalletTestFixtures>({
       route.fulfill({ json: { status: 1 } })
     )
 
-    // // for manifest v3:
+    // for manifest v3:
     // let [background] = context.serviceWorkers();
     // if (!background)
     //   background = await context.waitForEvent("serviceworker");

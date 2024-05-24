@@ -17,7 +17,6 @@ import {
   NETWORK_BY_CHAIN_ID,
   getShardFromAddress,
 } from "../../constants"
-
 import {
   fetchAndValidateTokenList,
   mergeAssets,
@@ -132,7 +131,6 @@ export default class IndexingService extends BaseService<Events> {
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-
     this.connectChainServiceEvents()
 
     // Kick off token list fetching in the background
@@ -242,7 +240,6 @@ export default class IndexingService extends BaseService<Events> {
     contractAddress: HexString
   ): SmartContractFungibleAsset | undefined {
     const knownAssets = this.getCachedAssets(network)
-
     const searchResult = knownAssets.find(
       (asset): asset is SmartContractFungibleAsset =>
         isSmartContractFungibleAsset(asset) &&
@@ -527,9 +524,9 @@ export default class IndexingService extends BaseService<Events> {
 
     const accountBalances = unfilteredAccountBalances.reduce<AccountBalance[]>(
       (acc, current) => {
-        if (current.status === "fulfilled" && current.value) {
+        if (current.status === "fulfilled" && current.value)
           return [...acc, current.value]
-        }
+
         return acc
       },
       []
@@ -646,15 +643,6 @@ export default class IndexingService extends BaseService<Events> {
       normalizedAddress
     )
 
-    if (!customAsset) {
-      // pull metadata from Alchemy
-      customAsset =
-        (await this.chainService.assetData.getTokenMetadata({
-          contractAddress: normalizedAddress,
-          homeNetwork: network,
-        })) || undefined
-    }
-
     if (customAsset) {
       const isRemoved = customAsset?.metadata?.removed ?? false
       const isVerified = metadata.verified ?? false
@@ -721,7 +709,6 @@ export default class IndexingService extends BaseService<Events> {
   private async loadAccountBalances(onlyActiveAccounts = false): Promise<void> {
     // TODO doesn't support multi-network assets
     // like USDC or CREATE2-based contracts on L1/L2
-
     const accounts = await this.chainService.getAccountsToTrack(
       onlyActiveAccounts
     )

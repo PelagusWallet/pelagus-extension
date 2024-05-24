@@ -268,9 +268,7 @@ export function convertAssetAmountViaPricePoint<T extends AnyAssetAmount>(
   sourceAssetAmount: T,
   assetPricePoint: PricePoint | undefined
 ): FungibleAssetAmount | undefined {
-  if (typeof assetPricePoint === "undefined") {
-    return undefined
-  }
+  if (typeof assetPricePoint === "undefined") return undefined
 
   const [sourceAsset, targetAsset] = assetPricePoint.pair
   const [sourceConversionFactor, targetConversionFactor] =
@@ -315,12 +313,11 @@ export function convertAssetAmountViaPricePoint<T extends AnyAssetAmount>(
     sourceAssetAmount.asset.symbol === sourceAsset.symbol &&
     isFungibleAsset(targetAsset) &&
     sourceConversionFactor === 1n
-  ) {
+  )
     return {
       asset: targetAsset,
       amount: sourceAssetAmount.amount * targetConversionFactor,
     }
-  }
 
   return undefined
 }
@@ -339,12 +336,9 @@ export function convertAssetAmountViaPricePoint<T extends AnyAssetAmount>(
 export function unitPricePointForPricePoint(
   assetPricePoint: PricePoint | undefined
 ): UnitPricePoint<FungibleAsset> | undefined {
-  if (typeof assetPricePoint === "undefined") {
-    return undefined
-  }
+  if (typeof assetPricePoint === "undefined") return undefined
 
   const sourceAsset = assetPricePoint.pair[0]
-
   const unitPrice = convertAssetAmountViaPricePoint(
     {
       amount:
@@ -356,12 +350,11 @@ export function unitPricePointForPricePoint(
     assetPricePoint
   )
 
-  if (typeof unitPrice !== "undefined") {
+  if (typeof unitPrice !== "undefined")
     return {
       unitPrice,
       time: assetPricePoint.time,
     }
-  }
 
   return undefined
 }

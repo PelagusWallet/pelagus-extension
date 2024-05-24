@@ -89,7 +89,6 @@ export class ProviderBridgeServiceDatabase extends Dexie {
 
   async getAllPermission(): Promise<PermissionMap> {
     const permissions = await this.dAppPermissions.toArray()
-
     return keyPermissionsByChainIdAddressOrigin(permissions)
   }
 

@@ -2,17 +2,6 @@ import { TypedDataField } from "@ethersproject/abstract-signer"
 import { Opaque } from "./tag-types"
 
 /**
- * Named type for strings that should be URIs.
- *
- * Currently *does not offer type safety*, just documentation value; see
- * https://github.com/microsoft/TypeScript/issues/202 and
- * https://github.com/microsoft/TypeScript/issues/41160 for TS features that
- * would give this some more teeth. Right now, any `string` can be assigned
- * into a variable of type `URI` and vice versa.
- */
-export type URI = string
-
-/**
  * Named type for strings that should be domain names.
  *
  * Currently *does not offer type safety*, just documentation value; see
@@ -52,14 +41,14 @@ export type NormalizedEVMAddress = Opaque<
  */
 export type UNIXTime = number
 
-// KEY TYPES
-
 export enum KeyringTypes {
   mnemonicBIP39S128 = "mnemonic#bip39:128",
   mnemonicBIP39S256 = "mnemonic#bip39:256",
   metamaskMnemonic = "mnemonic#metamask",
   singleSECP = "single#secp256k1",
 }
+
+export type EIP191Data = string
 
 export type EIP712DomainType = {
   name?: string
@@ -75,8 +64,5 @@ export type EIP712TypedData<T = Record<string, unknown>> = {
   primaryType: string
 }
 
-export type EIP191Data = string
-
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] }
-
 export type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> }

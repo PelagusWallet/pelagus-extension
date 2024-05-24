@@ -72,9 +72,7 @@ export default class AssetDataHelper {
       addressOnNetwork.network
     )
     globalThis.main.SetShard(prevShard)
-    if (typeof provider === "undefined") {
-      return []
-    }
+    if (typeof provider === "undefined") return []
 
     try {
       return await getTokenBalances(
@@ -92,15 +90,14 @@ export default class AssetDataHelper {
     return []
   }
 
+  // REFACTOR maybe remove
   async getTokenMetadata(
     tokenSmartContract: SmartContract
   ): Promise<SmartContractFungibleAsset | undefined> {
     const provider = this.providerTracker.providerForNetwork(
       tokenSmartContract.homeNetwork
     )
-    if (typeof provider === "undefined") {
-      return undefined
-    }
+    if (typeof provider === "undefined") return undefined
 
     return getERC20Metadata(provider, tokenSmartContract)
   }

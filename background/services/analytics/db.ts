@@ -7,7 +7,6 @@ export interface AnalyticsUUID {
 
 export class AnalyticsDatabase extends Dexie {
   private analyticsUUID!: Dexie.Table<AnalyticsUUID, number>
-
   private oneTimeEvent!: Dexie.Table<{ name: string }, number>
 
   constructor() {

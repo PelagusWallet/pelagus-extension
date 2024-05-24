@@ -76,17 +76,14 @@ export function findClosestAssetIndex(
   const [bestScore, index] = assets.reduce(
     ([runningScore, runningScoreIndex], asset, i) => {
       const score = scoreAssetSimilarity(assetToFind, asset)
-      if (score > runningScore) {
-        return [score, i]
-      }
+      if (score > runningScore) return [score, i]
+
       return [runningScore, runningScoreIndex]
     },
     [0, -1]
   )
 
-  if (bestScore >= minimumSimilarityScore && index >= 0) {
-    return index
-  }
+  if (bestScore >= minimumSimilarityScore && index >= 0) return index
 
   return undefined
 }

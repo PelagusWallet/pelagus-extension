@@ -1,6 +1,5 @@
 import Dexie, { DexieOptions } from "dexie"
 import { TokenList } from "@uniswap/token-lists"
-
 import { AccountBalance } from "../../accounts"
 import { EVMNetwork } from "../../networks"
 import {
@@ -150,9 +149,8 @@ export class IndexingDatabase extends Dexie {
         if (
           isInvalidFungibleAssetForNetwork ||
           seenAddresses.has(normalizedAddress)
-        ) {
+        )
           return true
-        }
 
         seenAddresses.add(normalizedAddress)
 
@@ -284,9 +282,8 @@ export class IndexingDatabase extends Dexie {
       .equals(url)
       .reverse()
       .sortBy("retrievedAt")
-    if (candidateLists.length > 0) {
-      return candidateLists[0]
-    }
+    if (candidateLists.length > 0) return candidateLists[0]
+
     return null
   }
 

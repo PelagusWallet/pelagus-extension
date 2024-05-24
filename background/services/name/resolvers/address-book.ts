@@ -11,18 +11,12 @@ export default function addressBookResolverFor(
     canAttemptNameResolution(): boolean {
       return true
     },
-    canAttemptAvatarResolution(): boolean {
-      return false
-    },
     canAttemptAddressResolution(): boolean {
       return true
     },
 
     async lookUpAddressForName(nameOnNetwork: NameOnNetwork) {
       return preferenceService.lookUpAddressForName(nameOnNetwork)
-    },
-    async lookUpAvatar() {
-      throw new Error("Avatar resolution not supported in address book.")
     },
     async lookUpNameForAddress(addressOnNetwork: AddressOnNetwork) {
       return preferenceService.lookUpNameForAddress(addressOnNetwork)

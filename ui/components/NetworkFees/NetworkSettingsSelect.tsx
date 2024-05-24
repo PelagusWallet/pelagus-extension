@@ -1,6 +1,6 @@
 import React, { ReactElement, useCallback, useEffect, useState } from "react"
 import { BlockEstimate } from "@pelagus/pelagus-background/networks"
-import { ESTIMATED_FEE_MULTIPLIERS } from "@pelagus/pelagus-background/constants/network-fees"
+import { ESTIMATED_FEE_MULTIPLIERS } from "@pelagus/pelagus-background/constants"
 import {
   EstimatedFeesPerGas,
   NetworkFeeSettings,

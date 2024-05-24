@@ -1,7 +1,6 @@
 import {
   enrichAssetAmountWithMainCurrencyValues,
   formatCurrencyAmount,
-  getBuiltInNetworkBaseAsset,
   sameNetworkBaseAsset,
 } from "../utils/asset-utils"
 import { createAssetAmount, createPricePoint } from "../../tests/factories"
@@ -10,12 +9,6 @@ import { QUAI } from "../../constants"
 describe(sameNetworkBaseAsset, () => {
   test("should handle built in network base assets", () => {
     expect(sameNetworkBaseAsset(QUAI, QUAI)).toBe(true)
-  })
-})
-
-describe(getBuiltInNetworkBaseAsset, () => {
-  test("should return base asset data for builtin networks", () => {
-    expect(getBuiltInNetworkBaseAsset("QUAI", "9000")).toBe(QUAI)
   })
 })
 

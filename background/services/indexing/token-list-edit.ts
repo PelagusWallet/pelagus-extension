@@ -6,9 +6,7 @@ export const polygonTokenListURL =
 export function fixPolygonWETHIssue(tokensParam: TokenInfo[]): TokenInfo[] {
   // See the discussion behind this migration here
   // https://matrix.to/#/!WZRftnsYNnOtzOGuZy:thesis.co/$nhJA20S7sFCv8qyPoxsYF0xIlOBAW4rqhdkUEmxCQYQ?via=thesis.co&via=matrix.org
-
   const tokens = tokensParam
-
   const wethToWethPOSAddress = "0xae740d42e4ff0c5086b2b5b5d149eb2f9e1a754f"
 
   let tokenToRenameIndex = tokens.findIndex(

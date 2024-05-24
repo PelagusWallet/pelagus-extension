@@ -3,10 +3,8 @@
 // https://github.com/microsoft/TypeScript/issues/22677
 // POC https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ0PWPAdhALgE4Cuw+8hAFAA6ECWAbmPgKbRgBc0B9OA5gBpotRszYAjLjmIBbcS0IBKFAF9Ua1CBb5oAM0TQAvNBwsA7nESUARGHHBrQgIwAmAMyLU2PPC0A6EHg+Sn14AG1bawBdZQB6WOgAeQBpVHisXAhfFgCgkMQIgH0waLiEgFEAJUrEyrSE0IiSqKNoAFZodKqayqA
 /* eslint-disable @typescript-eslint/dot-notation */
-
 import * as uuid from "uuid"
 import browser from "webextension-polyfill"
-
 import AnalyticsService from ".."
 import { createAnalyticsService } from "../../../tests/factories"
 import PreferenceService from "../../preferences"

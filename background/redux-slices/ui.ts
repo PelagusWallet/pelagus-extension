@@ -270,7 +270,6 @@ export const setNewDefaultWalletValue = createBackgroundAsyncThunk(
   "ui/setNewDefaultWalletValue",
   async (defaultWallet: boolean, { dispatch }) => {
     await emitter.emit("newDefaultWalletValue", defaultWallet)
-    // Once the default value has persisted, propagate to the store.
     dispatch(uiSlice.actions.setDefaultWallet(defaultWallet))
   }
 )
@@ -290,9 +289,9 @@ export const setNewNetworkConnectError = createBackgroundAsyncThunk(
         current[i].error != networkConnectError.error
       ) {
         const newErrors = current.map((error) => {
-          if (error.chainId === networkConnectError.chainId) {
+          if (error.chainId === networkConnectError.chainId)
             return { ...error, error: networkConnectError.error }
-          }
+
           return error
         })
         dispatch(uiSlice.actions.setNetworkConnectError(newErrors))
@@ -361,10 +360,8 @@ export const userActivityEncountered = createBackgroundAsyncThunk(
 export const setSelectedNetwork = createBackgroundAsyncThunk(
   "ui/setSelectedNetwork",
   async (network: EVMNetwork, { getState, dispatch }) => {
-    if (network.name == "Ethereum") {
-      // Ethereum is disabled
-      return
-    }
+    if (network.name == "Ethereum") return
+
     const state = getState() as { ui: UIState; account: AccountState }
     const { ui, account } = state
     const currentlySelectedChainID = ui.selectedAccount.network.chainID
@@ -434,11 +431,6 @@ export const selectShowAnalyticsNotification = createSelector(
   (settings) => settings?.showAnalyticsNotification
 )
 
-export const selectSlippageTolerance = createSelector(
-  selectUI,
-  (ui) => ui.slippageTolerance
-)
-
 export const selectShowingAccountsModal = createSelector(
   selectUI,
   (ui) => ui.showingAccountsModal
@@ -447,11 +439,6 @@ export const selectShowingAccountsModal = createSelector(
 export const selectShowingAddAccountModal = createSelector(
   selectUI,
   (ui) => ui.showingAddAccountModal
-)
-
-export const selectInitializationTimeExpired = createSelector(
-  selectUI,
-  (ui) => ui.initializationLoadingTimeExpired
 )
 
 export const selectShowTestNetworks = createSelector(
@@ -466,7 +453,7 @@ export const selectShowUnverifiedAssets = createSelector(
 
 export const selectCollectAnalytics = createSelector(
   selectSettings,
-  (settings) => false // settings?.collectAnalytics // changed to only false
+  () => false // settings?.collectAnalytics // changed to only false
 )
 
 export const selectHideBanners = createSelector(

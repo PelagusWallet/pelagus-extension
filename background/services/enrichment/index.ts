@@ -1,5 +1,4 @@
 import { AnyEVMTransaction, EVMNetwork } from "../../networks"
-
 import ChainService from "../chain"
 import IndexingService from "../indexing"
 import NameService from "../name"
@@ -18,7 +17,6 @@ import {
   getRelevantTransactionAddresses,
   isEIP2612TypedData,
 } from "./utils"
-
 import resolveTransactionAnnotation from "./transactions"
 
 export * from "./types"
@@ -73,7 +71,6 @@ export default class EnrichmentService extends BaseService<Events> {
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-
     await this.connectChainServiceEvents()
   }
 
@@ -128,7 +125,6 @@ export default class EnrichmentService extends BaseService<Events> {
       const correspondingAsset = undefined
       annotation = await enrichEIP2612SignTypedDataRequest(
         typedData,
-        this.nameService,
         correspondingAsset
       )
     }

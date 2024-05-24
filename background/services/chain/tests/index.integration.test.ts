@@ -113,14 +113,14 @@ describe("ChainService", () => {
     const { from, network } = transactionRequestWithoutNonce
     expect(providerForNetworkOrThrow.called).toBe(true)
 
-    const validOptimismEVMTransaction = createAnyEVMTransaction({
+    const validQuaiTransaction = createAnyEVMTransaction({
       nonce: CHAIN_NONCE + 1,
       from,
       network,
     })
 
     await chainServiceExternalized.handlePendingTransaction(
-      validOptimismEVMTransaction
+      validQuaiTransaction
     )
 
     // provider.once should be called inside of subscribeToTransactionConfirmation
@@ -157,14 +157,14 @@ describe("ChainService", () => {
     const { chainID, from, network } = transactionRequestWithoutNonce
     expect(providerForNetworkOrThrow.called).toBe(true)
 
-    const validOptimismEVMTransaction = createAnyEVMTransaction({
+    const validQuaiTransaction = createAnyEVMTransaction({
       nonce: CHAIN_NONCE + 1,
       from,
       network,
     })
 
     await chainServiceExternalized.handlePendingTransaction(
-      validOptimismEVMTransaction
+      validQuaiTransaction
     )
 
     // provider.once should be called inside of subscribeToTransactionConfirmation
@@ -181,14 +181,14 @@ describe("ChainService", () => {
     expect(
       chainServiceExternalized.evmChainLastSeenNoncesByNormalizedAddress[
         chainID
-      ][validOptimismEVMTransaction.from]
-    ).toBe(validOptimismEVMTransaction.nonce)
+      ][validQuaiTransaction.from]
+    ).toBe(validQuaiTransaction.nonce)
 
     // Transaction should be persisted to the db
     expect(
       await chainServiceExternalized.getTransaction(
         QUAI_NETWORK,
-        validOptimismEVMTransaction.hash
+        validQuaiTransaction.hash
       )
     ).toBeTruthy()
   })

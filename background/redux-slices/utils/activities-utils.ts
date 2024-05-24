@@ -58,9 +58,7 @@ function getAmount(tx: EnrichedEVMTransaction): string {
       baseAsset: { symbol },
     },
   } = tx
-  if (value == null || typeof value === "undefined") {
-    return "(Unknown)"
-  }
+  if (value == null || typeof value === "undefined") return "(Unknown)"
 
   return `${convertToEth(value) || "0"} ${symbol}`
 }
@@ -73,23 +71,19 @@ function getBlockHeight(tx: EnrichedEVMTransaction): string {
     status !== undefined &&
     status !== TxStatus.SUCCESS &&
     status !== 2
-  ) {
+  )
     return "(failed)"
-  }
-  if (blockHeight !== null) {
-    return blockHeight.toString()
-  }
-  if (blockHeight === null && status === TxStatus.FAIL) {
-    return "(dropped)"
-  }
+
+  if (blockHeight !== null) return blockHeight.toString()
+
+  if (blockHeight === null && status === TxStatus.FAIL) return "(dropped)"
 
   return "(pending)"
 }
 
 function getGweiPrice(value: bigint | null | undefined): string {
-  if (value === null || typeof value === "undefined") {
-    return "(Unknown)"
-  }
+  if (value === null || typeof value === "undefined") return "(Unknown)"
+
   return `${weiToGwei(value) || "0"} Gwei`
 }
 
@@ -185,9 +179,7 @@ export const getActivity = (
 
 const getAnnotationType = (transaction: Transaction) => {
   const { to, from } = transaction
-  if (typeof to === undefined) {
-    return "contract-deployment"
-  }
+  if (typeof to === undefined) return "contract-deployment"
 
   let annotation = "contract-interaction"
 

@@ -286,7 +286,7 @@ export const createAccountData = (
     address: createAddressOnNetwork().address,
     network: QUAI_NETWORK,
     balances: {},
-    ens: {
+    customAccountData: {
       name: "test.crypto",
     },
     defaultName: "Test",
@@ -297,7 +297,6 @@ export const createAccountData = (
 
 const getRandomStr = (length: number) => {
   let result = ""
-
   while (result.length < length) {
     result += Math.random().toString(36).slice(2)
   }

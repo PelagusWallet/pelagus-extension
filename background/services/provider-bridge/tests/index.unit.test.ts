@@ -90,7 +90,6 @@ describe("ProviderBridgeService", () => {
         params,
         origin
       )
-
       expect(stub.called).toBe(true)
     })
 

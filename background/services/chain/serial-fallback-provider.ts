@@ -133,9 +133,7 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   // The currently-used provider, produced by the provider-creator at
   // currentProviderIndex.
   private currentProvider: JsonRpcProvider
-
   private backoffUrlsToTime: Map<string, number>
-
   private urlsReadyForReconnect: Map<string, boolean>
 
   /**
@@ -307,7 +305,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       delete this.messagesToSend[messageId]
       return result
     } catch (error) {
-      // Awful, but what can ya do.
       const stringifiedError = String(error)
 
       if (
@@ -323,9 +320,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       ) {
         if (this.shouldSendMessageOnNextProvider(messageId)) {
           // If there is another provider to try - try to send the message on that provider
-          if (this.currentProviderIndex + 1 < this.providerCreators.length) {
+          if (this.currentProviderIndex + 1 < this.providerCreators.length)
             return await this.attemptToSendMessageOnNewProvider(messageId)
-          }
 
           // Otherwise, set us up for the next call, but fail the
           // current one since we've gone through every available provider. Note
@@ -413,17 +409,15 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       const address = (params as string[])[0]
       const now = Date.now()
       const lastUpdate = this.latestBalanceCache[address]?.updatedAt
-      if (lastUpdate && now < lastUpdate + BALANCE_TTL) {
+      if (lastUpdate && now < lastUpdate + BALANCE_TTL)
         return this.latestBalanceCache[address].balance
-      }
     }
 
     // @TODO Remove once initial activity load is refactored.
     if (method === "eth_getCode" && (params as string[])[1] === "latest") {
       const address = (params as string[])[0]
-      if (typeof this.latestHasCodeCache[address] !== "undefined") {
+      if (typeof this.latestHasCodeCache[address] !== "undefined")
         return this.latestHasCodeCache[address].hasCode
-      }
     }
 
     return undefined
@@ -472,9 +466,9 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       this.urlsReadyForReconnect.has(this.currentProvider.connection.url) &&
       this.urlsReadyForReconnect.get(this.currentProvider.connection.url) ==
         false
-    ) {
+    )
       return
-    }
+
     this.disconnectCurrentProvider()
     // this.currentProviderIndex += 1 // Other providers might be different Quai shards so don't try them
     // Try again with the next provider.
@@ -492,9 +486,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
   override async send(method: string, params: unknown[]): Promise<unknown> {
     // Since we can reliably return the chainId with absolutely no communication with
     // the provider - we can return it without needing to worry about routing rpc calls
-    if (method === "quai_chainId" || method === "eth_chainId") {
+    if (method === "quai_chainId" || method === "eth_chainId")
       return this.cachedChainId
-    }
 
     // Generate a unique symbol to track the message and store message information
     const id = Symbol(method)
@@ -507,7 +500,6 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
 
     // Start routing message down our waterfall of rpc providers
     const result = await this.routeRpcCall(id)
-
     // Cache results for method/param combinations that are frequently called subsequently
     this.conditionallyCacheResult(result, { method, params })
 
@@ -626,15 +618,13 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
           if (
             typeof listenerToRemove === "undefined" ||
             listenerToRemove === null
-          ) {
+          )
             return true
-          }
 
           // If the listener is wrapped, use that to check against the
           // specified listener to remove.
-          if ("wrappedListener" in savedListener) {
+          if ("wrappedListener" in savedListener)
             return savedListener.wrappedListener === listenerToRemove
-          }
 
           // Otherwise, directly compare.
           return savedListener === listenerToRemove
@@ -715,9 +705,9 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       this.urlsReadyForReconnect.has(this.currentProvider.connection.url) &&
       this.urlsReadyForReconnect.get(this.currentProvider.connection.url) ==
         false
-    ) {
+    )
       return
-    }
+
     this.disconnectCurrentProvider()
     if (this.currentProviderIndex >= this.providerCreators.length) {
       this.currentProviderIndex = 0
@@ -825,13 +815,10 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     if (
       isClosedOrClosingWebSocketProvider(provider) ||
       isConnectingWebSocketProvider(provider)
-    ) {
+    )
       return false
-    }
 
-    if (!provider.network) {
-      return false
-    }
+    if (!provider.network) return false
 
     if (provider instanceof WebSocketProvider) {
       const websocketProvider = provider as WebSocketProvider
@@ -872,9 +859,9 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
       this.urlsReadyForReconnect.has(this.currentProvider.connection.url) &&
       this.urlsReadyForReconnect.get(this.currentProvider.connection.url) ==
         false
-    ) {
+    )
       return
-    }
+
     if (this.currentProviderIndex === 0) {
       // If we are already connected to the primary provider - don't resubscribe
       return null
@@ -938,9 +925,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
     // resubscribing.
     return waitAnd(WAIT_BEFORE_SUBSCRIBING, async (): Promise<unknown> => {
       const subscriptionsSuccessful = await this.resubscribe(primaryProvider)
-      if (!subscriptionsSuccessful) {
-        return
-      }
+      if (!subscriptionsSuccessful) return
+
       // Cleanup the subscriptions on the backup provider.
       await this.disconnectCurrentProvider()
       // only set if subscriptions are successful
@@ -980,9 +966,8 @@ export default class SerialFallbackProvider extends QuaisJsonRpcProvider {
    */
   private shouldSendMessageOnNextProvider(messageId: symbol): boolean {
     const { backoffCount } = this.messagesToSend[messageId]
-    if (backoffCount && backoffCount >= MAX_RETRIES_PER_PROVIDER) {
-      return true
-    }
+    if (backoffCount && backoffCount >= MAX_RETRIES_PER_PROVIDER) return true
+
     return false
   }
 }
@@ -1025,9 +1010,7 @@ export function makeSerialFallbackProvider(
         type: "generic" as const,
         creator: () => {
           const url = new URL(rpcUrl)
-          if (/^wss?/.test(url.protocol)) {
-            return new WebSocketProvider(rpcUrl)
-          }
+          if (/^wss?/.test(url.protocol)) return new WebSocketProvider(rpcUrl)
 
           return new JsonRpcProvider(rpcUrl)
         },

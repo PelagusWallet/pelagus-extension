@@ -1,8 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
-
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
-
 import BaseService from "../base"
 import { AnalyticsDatabase, getOrCreateDB } from "./db"
 import {
@@ -14,6 +12,7 @@ import {
 } from "../../lib/posthog"
 import PreferenceService from "../preferences"
 import logger from "../../lib/logger"
+import { WEBSITE_ORIGIN } from "../../constants/website"
 
 const chainSpecificOneTimeEvents = [OneTimeAnalyticsEvent.CHAIN_ADDED]
 interface Events extends ServiceLifecycleEvents {
@@ -67,9 +66,9 @@ export default class AnalyticsService extends BaseService<Events> {
     }
 
     if (isEnabled) {
-      const { uuid, isNew } = await this.getOrCreateAnalyticsUUID()
+      const { isNew } = await this.getOrCreateAnalyticsUUID()
 
-      browser.runtime.setUninstallURL(`${process.env.WEBSITE_ORIGIN}`)
+      browser.runtime.setUninstallURL(`${WEBSITE_ORIGIN}`)
 
       if (isNew) {
         await this.sendAnalyticsEvent(AnalyticsEvent.NEW_INSTALL)

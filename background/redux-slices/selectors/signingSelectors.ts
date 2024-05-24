@@ -14,7 +14,7 @@ import {
 import { selectCurrentAccount } from "./uiSelectors"
 import { QUAI_CONTEXTS } from "../../constants"
 
-// FIXME: This has a duplicate in `accountSelectors.ts`, but importing causes a dependency cycle
+// FIXME: importing causes a dependency cycle
 const getAllAddresses = createSelector(
   (state: RootState) => state.account,
   (account) => [

@@ -10,9 +10,7 @@ import { ChainDatabase, createDB } from "../db"
 
 describe("Chain Database ", () => {
   let db: ChainDatabase
-
   const account1 = createAddressOnNetwork()
-
   const account2 = createAddressOnNetwork({ network: QUAI_NETWORK })
 
   beforeEach(() => {

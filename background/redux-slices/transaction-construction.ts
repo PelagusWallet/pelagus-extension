@@ -6,7 +6,6 @@ import {
   MAX_FEE_MULTIPLIER,
   REGULAR,
 } from "../constants/network-fees"
-
 import {
   BlockEstimate,
   BlockPrices,
@@ -21,7 +20,6 @@ import {
   EnrichedEVMTransactionSignatureRequest,
   EnrichedEVMTransactionRequest,
 } from "../services/enrichment"
-
 import { createBackgroundAsyncThunk } from "./utils"
 import { SignOperation } from "./signing"
 

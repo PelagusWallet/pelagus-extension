@@ -1,4 +1,3 @@
-import { WEBSITE_ORIGIN } from "@pelagus/pelagus-background/constants/website"
 import {
   deleteAnalyticsData,
   selectCollectAnalytics,

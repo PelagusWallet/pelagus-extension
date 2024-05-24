@@ -92,6 +92,7 @@ export default class AssetDataHelper {
     return []
   }
 
+  // REFACTOR maybe remove
   async getTokenMetadata(
     tokenSmartContract: SmartContract
   ): Promise<SmartContractFungibleAsset | undefined> {

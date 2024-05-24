@@ -11,9 +11,6 @@ export default async function getBlockPrices(
     provider.getBlock("latest"),
     provider.getFeeData(),
   ])
-  console.log("currentBlock", currentBlock)
-  console.log("feeData", feeData)
-
   const baseFeePerGas = currentBlock?.baseFeePerGas?.toBigInt()
 
   if (feeData.gasPrice === null) {

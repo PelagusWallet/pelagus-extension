@@ -14,11 +14,8 @@ export const RuntimeFlag = {
     process.env.HIDE_IMPORT_DERIVATION_PATH === "true",
   USE_UPDATED_SIGNING_UI: process.env.USE_UPDATED_SIGNING_UI === "true",
   SUPPORT_MULTIPLE_LANGUAGES: process.env.SUPPORT_MULTIPLE_LANGUAGES === "true",
-  HIDE_TOKEN_FEATURES: process.env.HIDE_TOKEN_FEATURES === "true",
-  SUPPORT_ARBITRUM_NOVA: process.env.SUPPORT_ARBITRUM_NOVA === "true",
   SUPPORT_ACHIEVEMENTS_BANNER:
     process.env.SUPPORT_ACHIEVEMENTS_BANNER === "true",
-  SUPPORT_CUSTOM_NETWORKS: process.env.SUPPORT_CUSTOM_NETWORKS === "true",
   SUPPORT_CUSTOM_RPCS: process.env.SUPPORT_CUSTOM_RPCS === "true",
   SUPPORT_UNVERIFIED_ASSET: process.env.SUPPORT_UNVERIFIED_ASSET === "true",
   ENABLE_UPDATED_DAPP_CONNECTIONS:
@@ -26,9 +23,7 @@ export const RuntimeFlag = {
 } as const
 
 type BuildTimeFlagType = keyof typeof BuildTimeFlag
-
 export type RuntimeFlagType = keyof typeof RuntimeFlag
-
 export type FeatureFlagType = RuntimeFlagType | BuildTimeFlagType
 
 /**

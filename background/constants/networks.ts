@@ -230,7 +230,7 @@ export const DEFAULT_QUAI_LOCAL = {
 } as Network
 
 export const QUAI_NETWORK: EVMNetwork = {
-  name: "Quai Network", // maybe add "Colosseum"
+  name: "Quai Network",
   baseAsset: QUAI,
   chainID: "9000",
   family: "EVM",
@@ -249,7 +249,6 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   isQuai: true,
 }
 
-// FIXME consider how to properly separate testnet and mainnet in the wallet
 export const DEFAULT_NETWORKS = [QUAI_NETWORK]
 export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_LOCAL]
 
@@ -284,44 +283,21 @@ export const NETWORK_BY_CHAIN_ID = {
 export const TEST_NETWORK_BY_CHAIN_ID = new Set(
   DEFAULT_TEST_NETWORKS.map((network) => network.chainID)
 )
-/**
- * Method list, to describe which rpc method calls on which networks
- *
- * The method names can be full or the starting parts of the method name.
- * This allows us to use "namespaces" for providers eg `qn_...`
- *
- * The structure is network specific with an extra `everyChain` option.
- */
-export const RPC_METHOD_PROVIDER_ROUTING = {
-  everyChain: [
-    "quai_sendRawTransaction", // broadcast should always go to alchemy
-    "quai_subscribe", // generic http providers do not support this, but dapps need this
-    "quai_estimateGas", // just want to be safe, when setting up a transaction
-  ],
-} as const
 
 // Network class contains data about a default or custom network.
 export class Network {
   name: string
-
   chains: ChainData[]
-
   isCustom: boolean
-
   chainCode: number
-
   chainID: number
 }
 
 export class ChainData {
   name: string
-
   shard: string
-
   blockExplorerUrl: string
-
   rpc: string
-
   multicall: string
 }
 

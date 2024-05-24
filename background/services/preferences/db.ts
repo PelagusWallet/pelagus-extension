@@ -1,8 +1,6 @@
 import Dexie, { Transaction } from "dexie"
-
 import { FiatCurrency } from "../../assets"
 import { AddressOnNetwork } from "../../accounts"
-
 import DEFAULT_PREFERENCES from "./defaults"
 import { AccountSignerSettings } from "../../ui"
 import { AccountSignerWithId } from "../../signing"

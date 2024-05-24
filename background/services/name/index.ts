@@ -1,14 +1,12 @@
 import { HexString, UNIXTime } from "../../types"
 import { normalizeAddressOnNetwork } from "../../lib/utils"
 import { storageGatewayURL } from "../../lib/storage-gateway"
-
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import BaseService from "../base"
 import ChainService from "../chain"
 import logger from "../../lib/logger"
 import { AddressOnNetwork, NameOnNetwork } from "../../accounts"
 import { SECOND } from "../../constants"
-
 import { NameResolver } from "./name-resolver"
 import { NameResolverSystem, addressBookResolverFor } from "./resolvers"
 import PreferenceService from "../preferences"
@@ -371,4 +369,3 @@ export default class NameService extends BaseService<Events> {
     }
   }
 }
-// TODO resolve content, eg IPFS hashes

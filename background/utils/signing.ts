@@ -87,9 +87,7 @@ const checkEIP4361: (message: string) => EIP4361Data | undefined = (
       expiration: siweMessage.expirationTime,
       nonce: siweMessage.nonce,
     }
-  } catch (err) {
-    // console.error(err)
-  }
+  } catch (err) {}
 
   return undefined
 }

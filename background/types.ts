@@ -52,14 +52,14 @@ export type NormalizedEVMAddress = Opaque<
  */
 export type UNIXTime = number
 
-// KEY TYPES
-
 export enum KeyringTypes {
   mnemonicBIP39S128 = "mnemonic#bip39:128",
   mnemonicBIP39S256 = "mnemonic#bip39:256",
   metamaskMnemonic = "mnemonic#metamask",
   singleSECP = "single#secp256k1",
 }
+
+export type EIP191Data = string
 
 export type EIP712DomainType = {
   name?: string
@@ -75,8 +75,5 @@ export type EIP712TypedData<T = Record<string, unknown>> = {
   primaryType: string
 }
 
-export type EIP191Data = string
-
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] }
-
 export type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> }

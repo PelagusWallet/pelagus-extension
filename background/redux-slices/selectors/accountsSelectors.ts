@@ -480,7 +480,7 @@ function getNetworkAccountTotalsByCategory(
           getTotalBalance(accountData.balances, assets, mainCurrencySymbol),
           desiredDecimals.default
         ),
-        balance: `${balance} ` + `QUAI`, // May want to change this in the future
+        balance: `${balance} ` + `QUAI`,
       }
     })
     .reduce<CategorizedAccountTotals>(
@@ -608,9 +608,6 @@ export const selectCurrentAccountTotal = createSelector(
 )
 
 export const getAllAddresses = createSelector(getAccountState, (account) => {
-  // On extension install we are using this selector to display onboarding screen,
-  // sometimes frontend is loading faster than background script and we need to
-  // prepare for redux slices to be undefined for a split second
   return account
     ? [
         ...new Set(

@@ -1,7 +1,6 @@
 import { FiatCurrency } from "../../assets"
 import { AddressOnNetwork, NameOnNetwork } from "../../accounts"
 import { ServiceLifecycleEvents, ServiceCreatorFunction } from "../types"
-
 import {
   AnalyticsPreferences,
   Preferences,

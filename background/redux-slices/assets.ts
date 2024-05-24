@@ -1,17 +1,7 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit"
 import { BigNumber, ethers } from "ethers"
-import { JsonRpcProvider } from "@quais/providers"
-import { keccak256 } from "@quais/keccak256"
-import { UnsignedTransaction } from "@quais/transactions"
 import { quais } from "quais"
-import {
-  hexlify,
-  stripZeros,
-  toUtf8Bytes,
-  accessListify,
-  hexConcat,
-  RLP,
-} from "quais/lib/utils"
+import { stripZeros, accessListify, hexConcat, RLP } from "quais/lib/utils"
 import {
   AnyAsset,
   AnyAssetAmount,
@@ -32,18 +22,15 @@ import {
   EVMNetwork,
   KnownTxTypes,
   SignedTransaction,
-  TransactionRequestWithNonce,
   sameNetwork,
 } from "../networks"
 import { ERC20_INTERFACE } from "../lib/erc20"
 import logger from "../lib/logger"
 import {
-  CHAIN_ID_TO_RPC_URLS,
   FIAT_CURRENCIES_SYMBOL,
   NUM_REGIONS_IN_PRIME,
   NUM_ZONES_IN_REGION,
   QUAI,
-  QUAI_NETWORK,
   getShardFromAddress,
 } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"

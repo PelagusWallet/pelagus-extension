@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
-
 import { setNewSelectedAccount, UIState } from "./ui"
 import { createBackgroundAsyncThunk } from "./utils"
 import {

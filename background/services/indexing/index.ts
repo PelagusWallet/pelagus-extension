@@ -646,15 +646,6 @@ export default class IndexingService extends BaseService<Events> {
       normalizedAddress
     )
 
-    if (!customAsset) {
-      // pull metadata from Alchemy
-      customAsset =
-        (await this.chainService.assetData.getTokenMetadata({
-          contractAddress: normalizedAddress,
-          homeNetwork: network,
-        })) || undefined
-    }
-
     if (customAsset) {
       const isRemoved = customAsset?.metadata?.removed ?? false
       const isVerified = metadata.verified ?? false

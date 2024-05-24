@@ -687,10 +687,7 @@
         "HIDE_IMPORT_DERIVATION_PATH": "Hide import derivation path",
         "USE_UPDATED_SIGNING_UI": "Use updated signing UI",
         "SUPPORT_MULTIPLE_LANGUAGES": "Enable to choose language",
-        "HIDE_TOKEN_FEATURES": "Hide token features",
         "SUPPORT_ACHIEVEMENTS_BANNER": "Enable achievements banner",
-        "SUPPORT_ARBITRUM_NOVA": "Enable Arbitrum Nova network",
-        "SUPPORT_CUSTOM_NETWORKS": "Show custom network page on settings panel",
         "SUPPORT_CUSTOM_RPCS": "Enable adding custom RPCs",
         "SUPPORT_UNVERIFIED_ASSET": "Enable assets verification"
       }
@@ -705,8 +702,7 @@
     "selectNetwork": {
       "title": "Select a network",
       "toggleShowTestNetworks": "Show developer environments",
-      "disabledToggleMessage": "Switch to the main network to disable the development environment",
-      "toggleShowTestNetworks": "Show developer environments"
+      "disabledToggleMessage": "Switch to the main network to disable the development environment"
     },
     "dAppConnection": {
       "title": "Dapp Connections",

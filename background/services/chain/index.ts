@@ -34,7 +34,6 @@ import {
   getProviderForGivenShard,
   EIP_1559_COMPLIANT_CHAIN_IDS,
 } from "../../constants"
-import { FeatureFlags, isEnabled } from "../../features"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { createDB, ChainDatabase, Transaction } from "./db"
@@ -1285,9 +1284,6 @@ export default class ChainService extends BaseService<Events> {
     network: EVMNetwork,
     transactionRequest: TransactionRequest
   ): Promise<bigint> {
-    if (isEnabled(FeatureFlags.USE_MAINNET_FORK)) {
-      return 350000n
-    }
     const estimate = await this.providerForNetworkOrThrow(network).estimateGas(
       ethersTransactionFromTransactionRequest(transactionRequest)
     )

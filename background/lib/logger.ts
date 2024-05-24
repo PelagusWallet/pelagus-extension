@@ -2,9 +2,8 @@
 // the console.
 /* eslint-disable no-console */
 
+import { HOUR } from "../constants"
 import localStorageShim from "../utils/local-storage-shim"
-
-const HOUR = 1000 * 60 * 60
 
 const store = {
   async get(key: string): Promise<string> {

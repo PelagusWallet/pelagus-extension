@@ -281,7 +281,6 @@ const accountSlice = createSlice({
       // Delete the account from all chains.
       Object.keys(evm).forEach((chainId) => {
         const { [normalizedAddress]: _, ...withoutEntryToRemove } = evm[chainId]
-
         immerState.accountsData.evm[chainId] = withoutEntryToRemove
       })
 

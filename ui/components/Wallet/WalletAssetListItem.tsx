@@ -44,11 +44,6 @@ export default function WalletAssetListItem(props: Props): ReactElement {
           .asset_icon:hover {
             background-color: var(--trophy-gold);
           }
-          .asset_icon_gift {
-            width: 22px;
-            height: 22px;
-            mask-image: url("./images/gift@2x.png");
-          }
           .asset_icon_send {
             mask-image: url("./images/send_asset.svg");
           }

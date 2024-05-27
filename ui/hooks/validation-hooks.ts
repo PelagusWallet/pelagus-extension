@@ -51,29 +51,6 @@ export type AsyncValidationHookProperties = ValidationHookProperties & {
 }
 
 /**
- * A hook that provides validation for a string input that should produce a
- * type T. Validation hooks typically handle parsing internally and may do
- * limited validation; additional validation may be provided with one or more
- * additional validators, which are expected to be called in sequence.
- *
- * The `onValidChange` handler is invoked with a validated value, or `undefined`
- * if the entered value was invalid.
- *
- * Validation hooks return an object with two properties; see
- * `ValidationHookProperties` for more.
- *
- * @param onValidChange A change handler that is invoked with the parsed and
- *     validated user input, or undefined if the user input was empty,
- *     unparsable, or invalid.
- * @param additionalValidators One or more additional validator functions that
- *     can layer caller-specified validation on the parsed value.
- */
-export type ValidationHook<T> = (
-  onValidChange: ValidDataChangeHandler<T>,
-  ...additionalValidators: AdditionalDataValidator<T>[]
-) => ValidationHookProperties
-
-/**
  * A hook that provides asynchronous validation for a string input that should
  * produce a type T. These hooks function the same as {@see ValidationHook},
  * but may perform asynchronous operations. As such, they return an additional

@@ -28,7 +28,7 @@ export default function AccountHistoryRemovalConfirm({
   account,
   close,
 }: AccountHistoryRemovalConfirmProps): ReactElement {
-  const { address, network } = account
+  const { address } = account
 
   const { t } = useTranslation("translation", {
     keyPrefix: "accounts.accountItem",
@@ -118,7 +118,7 @@ export default function AccountHistoryRemovalConfirm({
           display: flex;
           flex-direction: column;
           line-height: 24px;
-          font-size 16px;
+          font-size: 16px;
         }
         .button_container {
           display: flex;

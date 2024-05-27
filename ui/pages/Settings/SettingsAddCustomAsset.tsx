@@ -239,7 +239,6 @@ export default function SettingsAddCustomAsset(): ReactElement {
         .input_container {
           position: relative;
           --input-padding: 0 32px 0 16px;
-          bg: var(--green-20);
           border-radius: 10px;
         }
 
@@ -253,14 +252,6 @@ export default function SettingsAddCustomAsset(): ReactElement {
           flex-direction: column;
           gap: 16px;
           padding: 0 16px;
-        }
-
-        .network_select_title {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 24px;
-          letter-spacing: 0em;
-          text-align: left;
         }
       `}</style>
 
@@ -445,7 +436,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
           font-size: 16px;
           font-weight: 500;
           line-height: 24px;
-          letter-spacing: 0em;
+          letter-spacing: 0;
           text-align: left;
           color: var(--green-40);
         }
@@ -482,7 +473,6 @@ export default function SettingsAddCustomAsset(): ReactElement {
           text-overflow: ellipsis;
           max-width: 140px;
           white-space: pre;
-      }
         }
 
         .token_details_container {
@@ -535,12 +525,6 @@ export default function SettingsAddCustomAsset(): ReactElement {
           font-weight: 500;
           font-size: 16px;
           line-height: 24px;
-        }
-
-        .content {
-          display: flex;
-          flex-direction: column;
-          gap: 32px;
         }
       `}</style>
     </div>

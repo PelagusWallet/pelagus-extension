@@ -23,8 +23,6 @@ export function hasAmounts<T extends AnyAsset>(
 ): assetWithOptionalAmount is AnyAssetAmount<T> & {
   localizedDecimalAmount: string
 } {
-  // The types on AnyAssetWithOptionalAmount ensures that if amount exists, so
-  // does localizedDecimalAmount.
   return "amount" in assetWithOptionalAmount
 }
 
@@ -142,7 +140,6 @@ export default function SharedAssetItem<T extends AnyAsset>(
           .token_icon_wrap {
             width: 40px;
             height: 40px;
-            border-radius: 46px;
             background-color: var(--hunter-green);
             border-radius: 80px;
             margin-right: 8px;

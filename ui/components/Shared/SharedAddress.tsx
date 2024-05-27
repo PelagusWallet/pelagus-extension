@@ -14,21 +14,6 @@ type SharedAddressProps = {
   alwaysShowAddress: boolean
 }
 
-/**
- * The SharedAddress component is used to render addresses that can optionally
- * be represented as resolved names, and that are copiable by clicking.
- *
- * The component always expects an `address` prop. If an optional `name` prop
- * is passed, it is shown; otherwise, a truncated version of the address is
- * shown. The component tooltip always has a tooltip with the full address.
- * Additionally, clicking the component will copy the address to the clipboard
- * and present the user with a snackbar message indicating this has occurred.
- *
- * If the optional `nameResolverSystem` property is provided, an info tooltip
- * is included in the component to inform the user of which name resolver
- * system was used to resolve the passed `name`. If no `name` is passed, the
- * `nameResolverSystem` prop is ignored.
- */
 export default function SharedAddress({
   name,
   address,

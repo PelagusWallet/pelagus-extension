@@ -14,8 +14,6 @@ import SettingsAnalytics from "../pages/Settings/SettingsAnalytics"
 import SettingsConnectedWebsites from "../pages/Settings/SettingsConnectedWebsites"
 import HiddenDevPanel from "../components/HiddenDevPanel/HiddenDevPanel"
 import FeatureFlagsPanel from "../components/HiddenDevPanel/FeatureFlagsPanel"
-import SettingsCustomNetworks from "../pages/Settings/SettingsCustomNetworks"
-import NewCustomNetworkRequest from "../pages/NewCustomNetworkRequest"
 import SettingsAddCustomAsset from "../pages/Settings/SettingsAddCustomAsset"
 
 type PageList = {
@@ -54,12 +52,6 @@ const pageList: PageList[] = [
     persistOnClose: false,
   },
   {
-    path: "/add-evm-chain",
-    Component: NewCustomNetworkRequest,
-    hasTopBar: false,
-    persistOnClose: false,
-  },
-  {
     path: "/sign-data",
     Component: SignData,
     hasTopBar: false,
@@ -86,12 +78,6 @@ const pageList: PageList[] = [
   {
     path: "/settings/analytics",
     Component: SettingsAnalytics,
-    hasTopBar: false,
-    persistOnClose: true,
-  },
-  {
-    path: "/settings/custom-networks",
-    Component: SettingsCustomNetworks,
     hasTopBar: false,
     persistOnClose: true,
   },

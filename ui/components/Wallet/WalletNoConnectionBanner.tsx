@@ -1,24 +1,13 @@
-import {
-  NETWORK_BY_CHAIN_ID,
-  SECOND,
-} from "@pelagus/pelagus-background/constants"
+import { NETWORK_BY_CHAIN_ID } from "@pelagus/pelagus-background/constants"
 import { selectNetworkConnectError } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
-import React, {
-  ReactElement,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react"
-import { useTranslation } from "react-i18next"
+import React, { ReactElement, useEffect, useState } from "react"
 import { ChainIdWithError } from "@pelagus/pelagus-background/networks"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
 import { useBackgroundSelector } from "../../hooks"
 
 export default function WalletNoConnectionBanner(): ReactElement {
-  const { t } = useTranslation()
   const networkConnectErrors: ChainIdWithError[] = useBackgroundSelector(
     selectNetworkConnectError
   )
@@ -26,12 +15,6 @@ export default function WalletNoConnectionBanner(): ReactElement {
     useBackgroundSelector(selectCurrentAccount)
   const [showErr, setShowErr] = useState(false)
   const [networkName, setNetworkName] = useState("")
-  const timeout = useRef<number | undefined>()
-
-  const resetTimeout = useCallback(() => {
-    clearTimeout(timeout.current)
-    timeout.current = undefined
-  }, [])
 
   useEffect(() => {
     for (let i = 0; i < networkConnectErrors.length; i++) {
@@ -97,9 +80,6 @@ export default function WalletNoConnectionBanner(): ReactElement {
           margin-bottom: 0;
           pointer-events: none;
           transition: all 500ms;
-        }
-        .highlight {
-          color: var(--trophy-gold);
         }
       `}</style>
     </div>

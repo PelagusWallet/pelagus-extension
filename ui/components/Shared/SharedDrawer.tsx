@@ -151,7 +151,6 @@ export default function SharedDrawer({
               ${fillAvailable
                 ? `${SLIDE_TRANSITION_MS}ms`
                 : `${SLIDE_TRANSITION_MS * 2}ms`},
-            // Drop opacity all at once at the end.
             opacity 0ms ${SLIDE_TRANSITION_MS}ms;
           opacity: 0;
           pointer-events: none;
@@ -192,26 +191,8 @@ export default function SharedDrawer({
           color: var(--white);
         }
 
-        .drawer-header-close {
-          width: 14px;
-          height: 14px;
-          z-index: 1;
-          mask-size: cover;
-          mask-image: url("./images/close.svg");
-          background-color: var(--white);
-        }
-
         .drawer-footer {
           width: 100%;
-        }
-
-        .drawer-void-space {
-          top: 0;
-          left: 0;
-          height: 100%;
-          width: 100%;
-          z-index: -1;
-          position: fixed;
         }
       `}</style>
     </>

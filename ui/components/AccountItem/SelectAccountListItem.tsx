@@ -96,16 +96,6 @@ export default function SelectAccountListItem({
             font-weight: 400;
             line-height: 18px;
           }
-          .account-action-btn {
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 18px;
-            border: 1px solid #d4d4d4;
-            border-radius: 176px;
-            text-align: center;
-            box-sizing: border-box;
-            padding: 4px 12px;
-          }
           .balance {
             font-size: 12px;
             line-height: 18px;

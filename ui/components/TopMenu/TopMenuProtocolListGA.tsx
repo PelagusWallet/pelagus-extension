@@ -3,11 +3,11 @@ import {
   isBuiltInNetwork,
   DEFAULT_TEST_NETWORKS,
 } from "@pelagus/pelagus-background/constants"
-import { useBackgroundSelector } from "../../hooks"
-import TopMenuProtocolListItemGA from "./TopMenuProtocolListItemGA"
 import { EVMNetwork, sameNetwork } from "@pelagus/pelagus-background/networks"
 import { selectShowTestNetworks } from "@pelagus/pelagus-background/redux-slices/ui"
 import { selectProductionEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
+import { useBackgroundSelector } from "../../hooks"
+import TopMenuProtocolListItemGA from "./TopMenuProtocolListItemGA"
 
 type TopMenuProtocolListGAProps = {
   currentNetwork: EVMNetwork

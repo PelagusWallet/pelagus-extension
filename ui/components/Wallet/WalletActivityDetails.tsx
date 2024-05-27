@@ -20,15 +20,17 @@ import { getBlockExplorerURL } from "../../utils/networks"
 function DetailRowItem(props: ActivityDetail): ReactElement {
   const { assetIconUrl, label, value } = props
 
-  function truncateValue(value: string) {
-    const isLong = value.length > 30
+  function truncateValue(rowValue: string) {
+    const isLong = rowValue.length > 30
     const displayValue = isLong
-      ? `${value.substring(0, 13)}...${value.substring(value.length - 13)}`
-      : value
+      ? `${rowValue.substring(0, 13)}...${rowValue.substring(
+          rowValue.length - 13
+        )}`
+      : rowValue
     if (isLong) {
-      return <SharedAddress name={displayValue} address={value} />
+      return <SharedAddress name={displayValue} address={rowValue} />
     }
-    return <div className="right">{value}</div>
+    return <div className="right">{rowValue}</div>
   }
 
   return (
@@ -49,7 +51,7 @@ function DetailRowItem(props: ActivityDetail): ReactElement {
             border-bottom: 1px solid var(--hunter-green);
             display: flex;
             justify-content: space-between;
-            padding: 7px 0px;
+            padding: 7px 0;
             height: 24px;
             align-items: center;
           }
@@ -217,16 +219,19 @@ export default function WalletActivityDetails(
           .wrap {
             margin-top: -24px;
           }
+
           .destination_cards {
             display: flex;
             align-items: center;
             margin-bottom: 4px;
           }
+
           .header {
             display: flex;
             align-items: center;
             margin: 18px 0;
           }
+
           .header_title {
             margin-left: 4px;
             margin-right: 8px;
@@ -237,17 +242,16 @@ export default function WalletActivityDetails(
             line-height: 24px;
             color: var(--white);
           }
+
           .icon_transfer {
-            background: url("./images/transfer@2x.png") center no-repeat;
             background-size: 11px 12px;
             width: 35px;
             height: 35px;
             border: 3px solid var(--green-95);
-            background-color: var(--hunter-green);
+            background: var(--hunter-green) url("./images/transfer@2x.png")
+              no-repeat center;
             border-radius: 70%;
-            margin: 0 auto;
-            margin-left: -5px;
-            margin-right: -5px;
+            margin: 0 -5px;
             position: relative;
             flex-grow: 1;
             flex-shrink: 0;

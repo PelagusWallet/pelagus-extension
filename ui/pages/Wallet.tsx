@@ -5,11 +5,7 @@ import {
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 
-import {
-  FeatureFlags,
-  isDisabled,
-  isEnabled,
-} from "@pelagus/pelagus-background/features"
+import { FeatureFlags, isDisabled } from "@pelagus/pelagus-background/features"
 import classNames from "classnames"
 import { useTranslation } from "react-i18next"
 import {
@@ -23,7 +19,7 @@ import {
 } from "@pelagus/pelagus-background/assets"
 import { useHistory } from "react-router-dom"
 import { bigIntToDecimal } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
-import { useBackgroundDispatch, useBackgroundSelector } from "../hooks"
+import { useBackgroundSelector } from "../hooks"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
 import WalletAssetList from "../components/Wallet/WalletAssetList"
 import WalletActivityList from "../components/Wallet/WalletActivityList"
@@ -38,10 +34,8 @@ export default function Wallet(): ReactElement {
   const { t } = useTranslation()
   const [panelNumber, setPanelNumber] = useState(0)
 
-  const dispatch = useBackgroundDispatch()
   const history = useHistory()
 
-  //  accountLoading, hasWalletErrorCode
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showUnverifiedAssets = useBackgroundSelector(selectShowUnverifiedAssets)
@@ -92,9 +86,6 @@ export default function Wallet(): ReactElement {
           )}
 
         <WalletNoConnectionBanner />
-
-        {/* FIXME temporary solution to hide analytics screen
-        <WalletAnalyticsNotificationBanner /> */}
 
         <div className="section">
           <WalletAccountBalanceControl
@@ -181,38 +172,45 @@ export default function Wallet(): ReactElement {
             align-items: center;
             justify-content: space-between;
           }
+
           .section {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
           }
+
           .panel {
             padding-top: 16px;
             box-sizing: border-box;
             height: 302px;
           }
+
           .panel::-webkit-scrollbar {
             display: none;
           }
+
           .no_padding {
             padding-top: 0;
           }
+
           .add_custom_asset {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 16px 0;
-            margin: 0px 16px;
+            margin: 0 16px;
           }
+
           .add_custom_asset span {
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;
-            letter-spacing: 0em;
+            letter-spacing: 0;
             text-align: left;
             color: var(--green-40);
           }
+
           .line {
             border-bottom: 1px solid var(--green-80);
             margin-bottom: 8px;

@@ -29,21 +29,22 @@ export default function PersonalSignDetailPanel(): JSX.Element {
       </div>
       <style jsx>{`
         .primary_info_card {
-          display: block;
           height: fit-content;
           border-radius: 16px;
           background-color: var(--hunter-green);
-          margin: 16px 0px;
+          margin: 16px 0;
           display: flex;
           flex-direction: column;
           align-items: center;
         }
+
         .sign_block {
           display: flex;
           width: 100%;
           flex-direction: column;
           justify-content: space-between;
         }
+
         .container {
           display: flex;
           margin: 20px 16px;

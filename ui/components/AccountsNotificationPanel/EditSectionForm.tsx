@@ -121,7 +121,6 @@ function EditSectionForm({
           width: 24px;
           height: 24px;
         }
-
         .wallet_title {
           width: 100%;
           box-sizing: border-box;
@@ -133,14 +132,6 @@ function EditSectionForm({
           padding: 8px;
           margin-top: 24px;
         }
-
-        .account_container {
-          margin: 0 auto;
-          width: 336px;
-          height: 52px;
-          margin-top: 15px;
-        }
-
         .wallet_title > h2 {
           display: flex;
           align-items: center;
@@ -150,11 +141,9 @@ function EditSectionForm({
           line-height: 24px;
           margin: 0;
         }
-
         .header {
           height: 24px;
         }
-
         .edit_address_name {
           margin-left: 20px;
           margin-right: 20px;
@@ -163,7 +152,7 @@ function EditSectionForm({
           height: 95%;
         }
         form {
-          margin: 0px;
+          margin: 0;
         }
         .details {
           display: flex;

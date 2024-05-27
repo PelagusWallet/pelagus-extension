@@ -1,17 +1,17 @@
 import React, { ReactElement, useMemo, useLayoutEffect } from "react"
 import { useTranslation } from "react-i18next"
-import SharedDrawer from "../Shared/SharedDrawer"
 import {
   selectShowTestNetworks,
   toggleTestNetworks,
 } from "@pelagus/pelagus-background/redux-slices/ui"
+import { isTestNetwork } from "@pelagus/pelagus-background/constants"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import SharedDrawer from "../Shared/SharedDrawer"
 import TopMenuProtocolListGA from "../TopMenu/TopMenuProtocolListGA"
 import SharedToggleButtonGA from "../Shared/SharedToggleButtonGA"
 import SharedToggleSwitchRow from "../Shared/SharedToggleSwitchRow"
-import { isTestNetwork } from "@pelagus/pelagus-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
-import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 
 interface SelectNetworkDrawerProps {
   isProtocolListOpen: boolean

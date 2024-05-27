@@ -270,7 +270,6 @@ export default function SpendApprovalSummary({
             border-bottom: 1px solid var(--green-120);
             padding-bottom: 16px;
             margin-bottom: 16px;
-            text-align: center;
           }
           .spend_limit_header {
             display: flex;

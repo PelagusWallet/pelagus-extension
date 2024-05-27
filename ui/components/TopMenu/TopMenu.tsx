@@ -62,14 +62,14 @@ export default function TopMenu(): ReactElement {
     const dAppInfo = allowedPages.find(
       (permission) => permission.origin === origin
     )
-    const connectedAccountsToDApp = allowedPages.filter(
+    const dAppAccounts = allowedPages.filter(
       (permission) => permission.origin === origin
     )
 
     if (dAppInfo) {
       setIsConnectedToDApp(true)
       setCurrentDAppInfo(dAppInfo)
-      setConnectedAccountsToDApp(connectedAccountsToDApp)
+      setConnectedAccountsToDApp(dAppAccounts)
     } else {
       setIsConnectedToDApp(false)
       setConnectedAccountsToDApp([])

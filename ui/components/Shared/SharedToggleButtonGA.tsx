@@ -1,15 +1,10 @@
 import React, { useState, ReactElement, useEffect } from "react"
 import classNames from "classnames"
-import SharedTooltip from "./SharedTooltip"
 import { useTranslation } from "react-i18next"
+import SharedTooltip from "./SharedTooltip"
 
 type SharedToggleButtonGAProps = {
   isDisabled?: boolean
-  /**
-   * True if the toggle is off when on the left and on when on the right, false
-   * if the direction is opposite (on when on the left and off when on the
-   * right). True by default.
-   */
   leftToRight?: boolean
   value?: boolean | undefined
   onChange: (toggleValue: boolean) => void
@@ -94,7 +89,7 @@ export default function SharedToggleButtonGA({
       disabled={!isDisabled}
       IconComponent={ToggleButtonComponent}
     >
-      <div className="centered_tooltip">{t("disabledToggleMessage")}</div>
+      <div>{t("disabledToggleMessage")}</div>
     </SharedTooltip>
   )
 }

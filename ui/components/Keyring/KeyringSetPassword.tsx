@@ -102,28 +102,30 @@ export default function KeyringSetPassword(): ReactElement {
             display: flex;
             width: 100%;
           }
+
           .wordmark {
-            background: url("./images/wordmark.svg");
             background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
+            background: url("./images/wordmark.svg") no-repeat center;
             width: 95px;
             height: 25px;
             position: absolute;
-            left: 0px;
-            right: 0px;
+            left: 0;
+            right: 0;
             margin: 0 auto;
           }
+
           .serif_header {
             text-align: center;
             margin: 40px 30px 7px 30px;
             line-height: 42px;
           }
+
           .subtitle {
             text-align: center;
-            margin: 24px 0px 51px 0px;
+            margin: 24px 0 51px 0;
             white-space: pre-line;
           }
+
           section {
             padding-top: 25px;
             background-color: var(--hunter-green);
@@ -132,19 +134,23 @@ export default function KeyringSetPassword(): ReactElement {
             justify-content: center;
             align-items: center;
           }
+
           .input_wrap {
             width: 260px;
           }
+
           .strength_bar_wrap {
             width: 260px;
             height: 26px;
             box-sizing: border-box;
             padding-top: 10px;
           }
+
           .repeat_password_wrap {
             margin-bottom: 60px;
             margin-top: 27px;
           }
+
           .restore {
             display: none; // TODO Implement account restoration.
             position: fixed;

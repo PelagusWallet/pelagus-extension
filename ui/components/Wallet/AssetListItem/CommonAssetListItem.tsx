@@ -7,7 +7,6 @@ import {
   bigIntToDecimal,
   isUnverifiedAssetByUser,
 } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
-import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   isSmartContractFungibleAsset,
   SmartContractFungibleAsset,
@@ -17,7 +16,6 @@ import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import SharedAssetIcon from "../../Shared/SharedAssetIcon"
 import styles from "./styles"
 import SharedIconRouterLink from "../../Shared/SharedIconRouterLink"
-import { useBackgroundSelector } from "../../../hooks"
 import { trimWithEllipsis } from "../../../utils/textUtils"
 import AssetVerifyToggler from "../UnverifiedAsset/AssetVerifyToggler"
 import SharedIcon from "../../Shared/SharedIcon"
@@ -38,19 +36,7 @@ export default function CommonAssetListItem(
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet",
   })
-  const {
-    assetAmount,
-    initializationLoadingTimeExpired,
-    onUnverifiedAssetWarningClick,
-  } = props
-  const isMissingLocalizedUserValue =
-    typeof assetAmount.localizedMainCurrencyAmount === "undefined"
-  const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
-
-  const contractAddress =
-    "contractAddress" in assetAmount.asset
-      ? assetAmount.asset.contractAddress
-      : undefined
+  const { assetAmount, onUnverifiedAssetWarningClick } = props
 
   const isUnverified = isUnverifiedAssetByUser(assetAmount.asset)
 
@@ -126,21 +112,6 @@ export default function CommonAssetListItem(
       </div>
       <style jsx>{`
         ${styles}
-        .price {
-          height: 17px;
-          display: flex;
-          color: var(--green-40);
-          font-size: 14px;
-          font-weight: 400;
-          letter-spacing: 0.42px;
-          line-height: 16px;
-        }
-        .centered_tooltip {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
       `}</style>
     </Link>
   )

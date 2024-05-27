@@ -198,19 +198,6 @@ export default function SharedDropdown({
               </ul>
               <style jsx>
                 {`
-                  .icon_settings {
-                    mask-image: url("./images/more_dots@2x.png");
-                    mask-repeat: no-repeat;
-                    mask-position: center;
-                    background-color: var(--green-60);
-                    mask-size: 20%;
-                    width: 4px;
-                    height: 20px;
-                    border: 10px solid transparent;
-                  }
-                  .icon_settings:hover {
-                    background-color: var(--green-40);
-                  }
                   div.options {
                     display: block;
 

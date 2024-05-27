@@ -1,13 +1,13 @@
 import React, { ReactElement } from "react"
-import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { setNewSelectedAccount } from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   selectCurrentAccount,
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
-import DAppAccountListItem from "./DAppAccountListItem"
 import { ListAccount } from "@pelagus/pelagus-background/redux-slices/accounts"
+import DAppAccountListItem from "./DAppAccountListItem"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 
 type DAppAccountsListProps = {
   accountsList: ListAccount[]

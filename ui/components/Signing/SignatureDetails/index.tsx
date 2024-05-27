@@ -1,8 +1,5 @@
 import React, { ReactElement } from "react"
-import {
-  isEnrichedEVMTransactionRequest,
-  TransactionRequest,
-} from "@pelagus/pelagus-background/networks"
+import { TransactionRequest } from "@pelagus/pelagus-background/networks"
 import {
   rejectDataSignature,
   signData,
@@ -35,20 +32,12 @@ export type ResolvedSignatureDetails = {
   signer: AccountSigner
   signingAddress: AddressOnNetwork
   renderedSigningData: ReactElement
-  /**
-   * A string that represents what signing this data will achieve. Some
-   * signers may ignore this string, others may use it for their confirmation
-   * button.
-   */
   signingActionLabelI18nKey:
     | "signTransaction.confirmButtonLabel"
     // FIXME Move out of signTransaction once old flow is removed???
     | "signTransaction.signTypedData.confirmButtonLabel"
   signActionCreator: () => AnyAction
   rejectActionCreator: () => AnyAction
-  /**
-   * The value determines whether to redirect the user to the activity page after submitting a transaction
-   */
   redirectToActivityPage?: boolean
 }
 

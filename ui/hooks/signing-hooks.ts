@@ -1,6 +1,4 @@
-import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useEffect } from "react"
 import { useHistory } from "react-router-dom"
 
@@ -39,13 +37,4 @@ export const useAreKeyringsUnlocked = (redirectIfNot: boolean): boolean => {
   })
 
   return keyringStatus === "unlocked"
-}
-
-// FIXME Remove after USE_UPDATED_SIGNING_UI = true
-export function useIsSignerLocked(signer: AccountSigner | null): boolean {
-  const needsKeyrings = isEnabled(FeatureFlags.USE_UPDATED_SIGNING_UI)
-    ? false
-    : signer?.type === "keyring"
-  const areKeyringsUnlocked = useAreKeyringsUnlocked(needsKeyrings)
-  return needsKeyrings && !areKeyringsUnlocked
 }

@@ -38,23 +38,6 @@ export const useOnClickOutside = <T extends HTMLElement = HTMLElement>(
  * passed content are returned immediately. If `delayCondition` is `true`,
  * updates to the passed content are unchanged for an additional `delayMs`,
  * then returned.
- *
- * An example usage is when wanting to delay the clearing of a piece of text so
- * that a hiding animation can occur:
- *
- * ```
- * const MESSAGE_DELAY_MS = 300
- * const storedMesage = useSelector(selectComponentMessage)
- * const shouldHide = storedMessage.trim() === ""
- * // displayMessage will be the same as storedMessage until storedMessage is
- * // cleared. Once it is cleared and 300ms has passed, displayMessage will be
- * // cleared.
- * const displayMessage = useDelayContentChange(
- *   storedMessage,
- *   shouldHide,
- *   MESSAGE_DELAY_MS
- * )
- * ```
  */
 export function useDelayContentChange<T>(
   storedContent: T,

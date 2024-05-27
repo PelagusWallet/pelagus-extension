@@ -25,7 +25,6 @@ export default function NewSeedReview({
       <div className="step_content">
         <div className="seed_phrase">
           {mnemonic.map((word, i) => {
-            // It's safe to use index as key here
             const key = `${word}-${i}`
             return (
               <div className="word" key={key}>
@@ -61,7 +60,7 @@ export default function NewSeedReview({
           flex-direction: column;
           align-items: center;
         }
-        .step_content{
+        .step_content {
           max-width: 430px;
           display: flex;
           flex-direction: column;
@@ -77,7 +76,7 @@ export default function NewSeedReview({
           color: var(--hunter-green);
           text-align: center;
           margin-bottom: 27px;
-          margin-top 24px;
+          margin-top: 24px;
         }
         .seed_phrase {
           display: grid;

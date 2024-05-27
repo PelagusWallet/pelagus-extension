@@ -34,7 +34,6 @@ export default function DataSignatureDetails({
       </div>
       <style jsx>{`
         .primary_info_card {
-          display: block;
           height: fit-content;
           border-radius: 16px;
           background-color: var(--hunter-green);

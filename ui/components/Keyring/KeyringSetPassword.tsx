@@ -103,17 +103,6 @@ export default function KeyringSetPassword(): ReactElement {
             width: 100%;
           }
 
-          .wordmark {
-            background-size: contain;
-            background: url("./images/wordmark.svg") no-repeat center;
-            width: 95px;
-            height: 25px;
-            position: absolute;
-            left: 0;
-            right: 0;
-            margin: 0 auto;
-          }
-
           .serif_header {
             text-align: center;
             margin: 40px 30px 7px 30px;

@@ -9,8 +9,6 @@ import {
 
 const windowOriginAtLoadTime = window.location.origin
 
-const INJECTED_WINDOW_PROVIDER_SOURCE = "@@@WINDOW_PROVIDER@@@"
-
 function performHealthCheck(port: browser.Runtime.Port): void {
   port.postMessage({
     request: {

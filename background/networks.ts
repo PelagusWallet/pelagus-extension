@@ -1,6 +1,6 @@
 import { TransactionRequest as EthersTransactionRequest } from "@quais/abstract-provider"
 import { Transaction } from "@quais/transactions"
-import { Slip44CoinType } from "./constants/coin-types"
+import { Slip44CoinType } from "./constants"
 import { HexString, UNIXTime } from "./types"
 import type { FungibleAsset } from "./assets"
 import type {

@@ -1,11 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
-import {
-  EXPRESS,
-  INSTANT,
-  MAX_FEE_MULTIPLIER,
-  REGULAR,
-} from "../constants/network-fees"
+import { EXPRESS, INSTANT, MAX_FEE_MULTIPLIER, REGULAR } from "../constants"
 import {
   BlockEstimate,
   BlockPrices,

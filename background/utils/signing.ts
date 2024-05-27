@@ -3,7 +3,6 @@ import { hexlify, toUtf8Bytes, toUtf8String } from "ethers/lib/utils"
 import { SiweMessage } from "siwe"
 import { AddressOnNetwork } from "../accounts"
 import { AccountSignerWithId } from "../signing"
-
 import { EIP191Data, EIP712TypedData, HexString } from "../types"
 
 export type EIP712DomainType = {

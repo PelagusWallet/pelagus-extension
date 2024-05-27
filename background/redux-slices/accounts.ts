@@ -15,7 +15,7 @@ import {
   isBuiltInNetworkBaseAsset,
   isSameAsset,
 } from "./utils/asset-utils"
-import { DomainName, HexString, URI } from "../types"
+import { DomainName, HexString } from "../types"
 import { normalizeEVMAddress, sameEVMAddress } from "../lib/utils"
 import { AccountSigner } from "../services/signing"
 import { TEST_NETWORK_BY_CHAIN_ID } from "../constants"
@@ -58,9 +58,8 @@ export type AccountData = {
   balances: {
     [assetSymbol: string]: AccountBalance
   }
-  ens: {
+  customAccountData: {
     name?: DomainName
-    avatarURL?: URI
   }
   defaultName: string
   defaultAvatar: string
@@ -99,9 +98,6 @@ type InternalCompleteAssetAmount<
  */
 export type CompleteAssetAmount<T extends AnyAsset = AnyAsset> =
   InternalCompleteAssetAmount<T, AnyAssetAmount<T>>
-
-export type CompleteSmartContractFungibleAssetAmount =
-  CompleteAssetAmount<SmartContractFungibleAsset>
 
 export const initialState: AccountState = {
   accountsData: { evm: {} },
@@ -157,7 +153,7 @@ function newAccountData(
     address,
     network,
     balances: {},
-    ens: {},
+    customAccountData: {},
     defaultName: defaultAccountName,
     defaultAvatar: defaultAccountAvatar,
   }
@@ -367,39 +363,7 @@ const accountSlice = createSlice({
 
       immerState.accountsData.evm[network.chainID][normalizedAddress] = {
         ...baseAccountData,
-        ens: { ...baseAccountData.ens, name },
-      }
-    },
-    updateENSAvatar: (
-      immerState,
-      {
-        payload: { address, network, avatar },
-      }: { payload: AddressOnNetwork & { avatar: URI } }
-    ) => {
-      const normalizedAddress = normalizeEVMAddress(address)
-
-      // No entry means this avatar doesn't correspond to an account we are
-      // tracking.
-      if (
-        immerState.accountsData.evm[network.chainID]?.[normalizedAddress] ===
-        undefined
-      ) {
-        return
-      }
-
-      immerState.accountsData.evm[network.chainID] ??= {}
-
-      // TODO Figure out the best way to handle default name assignment
-      // TODO across networks.
-      const baseAccountData = getOrCreateAccountData(
-        immerState,
-        normalizedAddress,
-        network
-      )
-
-      immerState.accountsData.evm[network.chainID][normalizedAddress] = {
-        ...baseAccountData,
-        ens: { ...baseAccountData.ens, avatarURL: avatar },
+        customAccountData: { ...baseAccountData.customAccountData, name },
       }
     },
     /**
@@ -461,7 +425,6 @@ export const {
   loadAccount,
   updateAccountBalance,
   updateAccountName,
-  updateENSAvatar,
   updateAssetReferences,
   removeAssetReferences,
   removeChainBalances,

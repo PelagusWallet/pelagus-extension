@@ -1,12 +1,12 @@
 import { indexOf } from "lodash"
+import logger from "../lib/logger"
+import { QUAI, QUAI_LOCAL } from "./"
+import { EVMNetwork } from "../networks"
 import {
   JsonRpcProvider as QuaisJsonRpcProvider,
   WebSocketProvider as QuaisWebSocketProvider,
 } from "@quais/providers"
-import logger from "../lib/logger"
-import { EVMNetwork } from "../networks"
 import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
-import { QUAI, QUAI_LOCAL } from "./currencies"
 
 export const VALID_SHARDS: Array<string> = [
   "cyprus-1",

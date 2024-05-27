@@ -1,13 +1,11 @@
-import { BaseProvider, Provider } from "@quais/providers"
+import { BaseProvider } from "@quais/providers"
 import { BigNumber, quais } from "quais"
-
 import {
   EventFragment,
   Fragment,
   FunctionFragment,
   TransactionDescription,
 } from "ethers/lib/utils"
-import { get } from "lodash"
 import { SmartContractAmount, SmartContractFungibleAsset } from "../assets"
 import { EVMLog, SmartContract } from "../networks"
 import { HexString } from "../types"
@@ -61,18 +59,6 @@ export const ERC20_ABI = Object.values<Fragment>(ERC20_FUNCTIONS).concat(
 )
 
 export const ERC20_INTERFACE = new quais.utils.Interface(ERC20_ABI)
-
-export const ERC2612_FUNCTIONS = {
-  permit: FunctionFragment.from(
-    "permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)"
-  ),
-  nonces: FunctionFragment.from("nonces(address owner) view returns (uint256)"),
-  DOMAIN: FunctionFragment.from("DOMAIN_SEPARATOR() view returns (bytes32)"),
-}
-
-export const ERC2612_ABI = ERC20_ABI.concat(Object.values(ERC2612_FUNCTIONS))
-
-export const ERC2612_INTERFACE = new quais.utils.Interface(ERC2612_ABI)
 
 /*
  * Get an account's balance from an ERC20-compliant contract.

@@ -60,12 +60,6 @@ export const selectEstimatedFeesPerGas = createSelector(
       : gasData[selectedNetwork.chainID]
 )
 
-export const selectFeeType = createSelector(
-  (state: { transactionConstruction: TransactionConstruction }) =>
-    state.transactionConstruction.feeTypeSelected,
-  (feeTypeChosen) => feeTypeChosen
-)
-
 export const selectBaseAsset = createSelector(
   (state: { transactionConstruction: TransactionConstruction }) =>
     state.transactionConstruction.transactionRequest?.network.baseAsset,

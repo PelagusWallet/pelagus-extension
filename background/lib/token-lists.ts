@@ -1,5 +1,4 @@
 import { TokenList } from "@uniswap/token-lists"
-
 import { memoize } from "lodash"
 import { fetchJson } from "@ethersproject/web"
 import {

@@ -1,9 +1,7 @@
 import { AddressOnNetwork } from "../../accounts"
 import { getShardFromAddress } from "../../constants"
-
 import ChainService from "../chain"
 import NameService from "../name"
-
 import { AddressOnNetworkAnnotation, EnrichedAddressOnNetwork } from "./types"
 
 // TODO look up whether contracts are verified on EtherScan

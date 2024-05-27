@@ -1,5 +1,4 @@
 import { AddressOnNetwork, NameOnNetwork } from "../../accounts"
-import { Network } from "../../networks"
 
 /**
  * This interface must be implemented by a resolver that can be used to resolve
@@ -30,15 +29,6 @@ export interface NameResolver<ResolverType extends string> {
    */
   canAttemptNameResolution(addressOnNetwork: AddressOnNetwork): boolean
   /**
-   * Given an address and network, synchronously returns a boolean indicating
-   * whether this name resolver can attempt to resolve an avatar for that name.
-   *
-   * Returning false should mean {@see lookUpAvatar} will never be called.
-   */
-  canAttemptAvatarResolution(
-    addressOrNameOnNetwork: AddressOnNetwork | NameOnNetwork
-  ): boolean
-  /**
    * Given a name and network, synchronously returns a boolean indicating
    * whether this resolver can resolve an address from that network back to a
    * name.
@@ -59,25 +49,6 @@ export interface NameResolver<ResolverType extends string> {
   lookUpAddressForName(
     nameOnNetwork: NameOnNetwork
   ): Promise<AddressOnNetwork | undefined>
-  /**
-   * Given an address and network, attempt to resolve an avatar URI for that
-   * address. Note that avatar URIs can be EIP155 URNs, not just
-   * URLs.
-   *
-   * Returns `undefined` if the avatar could not be resolved. Should return a
-   * rejected promise if {@see canAttemptAvatarResolution} would have returned
-   * `false`, or if internal resolution errors occurred (e.g., an issue
-   * communicating with a server).
-   */
-  lookUpAvatar(
-    addressOrNameOnNetwork: AddressOnNetwork | NameOnNetwork
-  ): Promise<
-    | {
-        uri: URL | string
-        network: Network
-      }
-    | undefined
-  >
   /**
    * Given an address and network, attempt to resolve the name of that address
    * on that network.

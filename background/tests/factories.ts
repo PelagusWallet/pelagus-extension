@@ -286,7 +286,7 @@ export const createAccountData = (
     address: createAddressOnNetwork().address,
     network: QUAI_NETWORK,
     balances: {},
-    ens: {
+    customAccountData: {
       name: "test.crypto",
     },
     defaultName: "Test",

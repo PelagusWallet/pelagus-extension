@@ -10,7 +10,6 @@ import {
   AnyAsset,
   isSmartContractFungibleAsset,
 } from "../../assets"
-import { BUILT_IN_NETWORK_BASE_ASSETS } from "../../constants"
 import { FeatureFlags, isEnabled } from "../../features"
 import { fromFixedPointNumber } from "../../lib/fixed-point"
 import { sameEVMAddress } from "../../lib/utils"
@@ -70,18 +69,6 @@ export function isBuiltInNetworkBaseAsset(
 }
 
 /**
- * Return network base asset for chain by asset symbol.
- */
-export function getBuiltInNetworkBaseAsset(
-  symbol: string,
-  chainID: string
-): NetworkBaseAsset | undefined {
-  return BUILT_IN_NETWORK_BASE_ASSETS.find(
-    (asset) => asset.symbol === symbol && asset.chainID === chainID
-  )
-}
-
-/**
  * @param asset1 any asset
  * @param asset2 any asset
  * @returns true if both assets are the same network base assets
@@ -104,20 +91,6 @@ export function sameNetworkBaseAsset(
     asset1.symbol === asset2.symbol &&
     asset1.chainID === asset2.chainID &&
     asset1.name === asset2.name
-  )
-}
-
-/**
- * Tests whether two assets should be considered the same built in network base asset.
- */
-export function sameBuiltInNetworkBaseAsset(
-  asset1: AnyAsset,
-  asset2: AnyAsset
-): boolean {
-  return BUILT_IN_NETWORK_BASE_ASSETS.some(
-    (baseAsset) =>
-      sameNetworkBaseAsset(baseAsset, asset1) &&
-      sameNetworkBaseAsset(baseAsset, asset2)
   )
 }
 

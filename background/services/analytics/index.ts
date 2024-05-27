@@ -12,7 +12,7 @@ import {
 } from "../../lib/posthog"
 import PreferenceService from "../preferences"
 import logger from "../../lib/logger"
-import { WEBSITE_ORIGIN } from "../../constants/website"
+import { WEBSITE_ORIGIN } from "../../constants"
 
 const chainSpecificOneTimeEvents = [OneTimeAnalyticsEvent.CHAIN_ADDED]
 interface Events extends ServiceLifecycleEvents {

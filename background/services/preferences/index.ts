@@ -50,7 +50,6 @@ export default class PreferenceService extends BaseService<Events> {
   static create: ServiceCreatorFunction<Events, PreferenceService, []> =
     async () => {
       const db = await getOrCreateDB()
-
       return new this(db)
     }
 
@@ -74,7 +73,6 @@ export default class PreferenceService extends BaseService<Events> {
 
   protected override async internalStopService(): Promise<void> {
     this.db.close()
-
     await super.internalStopService()
   }
 

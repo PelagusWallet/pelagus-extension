@@ -1,7 +1,5 @@
 import { parse as parseRawTransaction } from "@quais/transactions"
-
 import HDKeyring, { SerializedHDKeyring } from "@pelagus/hd-keyring"
-
 import { arrayify } from "ethers/lib/utils"
 import { normalizeEVMAddress, sameEVMAddress } from "../../lib/utils"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -14,7 +12,6 @@ import {
 } from "./encryption"
 import { HexString, KeyringTypes, EIP712TypedData, UNIXTime } from "../../types"
 import { SignedTransaction, TransactionRequestWithNonce } from "../../networks"
-
 import BaseService from "../base"
 import { MINUTE } from "../../constants"
 import { ethersTransactionFromTransactionRequest } from "../chain/utils"

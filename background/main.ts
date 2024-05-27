@@ -6,7 +6,6 @@ import { devToolsEnhancer } from "@redux-devtools/remote"
 import { PermissionRequest } from "@tallyho/provider-bridge-shared"
 import { debounce } from "lodash"
 import { utils } from "ethers"
-
 import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers"
 import {
   JsonRpcProvider as QuaisJsonRpcProvider,
@@ -19,7 +18,6 @@ import {
   sameEVMAddress,
   wait,
 } from "./lib/utils"
-
 import {
   BaseService,
   ChainService,
@@ -35,11 +33,9 @@ import {
   SigningService,
   AnalyticsService,
 } from "./services"
-
 import { HexString, KeyringTypes, NormalizedEVMAddress } from "./types"
 import { ChainIdWithError, SignedTransaction } from "./networks"
 import { AccountBalance, AddressOnNetwork, NameOnNetwork } from "./accounts"
-
 import rootReducer from "./redux-slices"
 import {
   AccountType,
@@ -47,11 +43,9 @@ import {
   loadAccount,
   updateAccountBalance,
   updateAccountName,
-  updateENSAvatar,
 } from "./redux-slices/accounts"
 import {
   assetsLoaded,
-  newPricePoints,
   refreshAsset,
   removeAssetData,
 } from "./redux-slices/assets"
@@ -105,7 +99,6 @@ import {
   typedDataRequest,
   signDataRequest,
 } from "./redux-slices/signing"
-
 import { SignTypedDataRequest, MessageSigningRequest } from "./utils/signing"
 import { getShardFromAddress } from "./constants"
 import {
@@ -667,7 +660,6 @@ export default class Main extends BaseService<never> {
   }
 
   public SetShard(shard: string): void {
-    console.log(`Shard set to ${shard}`)
     this.SelectedShard = shard
   }
 
@@ -1050,14 +1042,6 @@ export default class Main extends BaseService<never> {
         this.store.dispatch(updateAccountName({ ...addressOnNetwork, name }))
       }
     )
-    this.nameService.emitter.on(
-      "resolvedAvatar",
-      async ({ from: { addressOnNetwork }, resolved: { avatar } }) => {
-        this.store.dispatch(
-          updateENSAvatar({ ...addressOnNetwork, avatar: avatar.toString() })
-        )
-      }
-    )
   }
 
   async connectIndexingService(): Promise<void> {
@@ -1143,10 +1127,6 @@ export default class Main extends BaseService<never> {
 
     this.indexingService.emitter.on("assets", async (assets) => {
       await this.store.dispatch(assetsLoaded(assets))
-    })
-
-    this.indexingService.emitter.on("prices", (pricePoints) => {
-      this.store.dispatch(newPricePoints(pricePoints))
     })
 
     this.indexingService.emitter.on("refreshAsset", (asset) => {

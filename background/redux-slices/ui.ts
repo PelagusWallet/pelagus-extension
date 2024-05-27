@@ -434,11 +434,6 @@ export const selectShowAnalyticsNotification = createSelector(
   (settings) => settings?.showAnalyticsNotification
 )
 
-export const selectSlippageTolerance = createSelector(
-  selectUI,
-  (ui) => ui.slippageTolerance
-)
-
 export const selectShowingAccountsModal = createSelector(
   selectUI,
   (ui) => ui.showingAccountsModal
@@ -447,11 +442,6 @@ export const selectShowingAccountsModal = createSelector(
 export const selectShowingAddAccountModal = createSelector(
   selectUI,
   (ui) => ui.showingAddAccountModal
-)
-
-export const selectInitializationTimeExpired = createSelector(
-  selectUI,
-  (ui) => ui.initializationLoadingTimeExpired
 )
 
 export const selectShowTestNetworks = createSelector(

@@ -22,7 +22,7 @@ const ACCOUNT_MOCK = {
   address: ADDRESS_MOCK,
   network: QUAI_NETWORK,
   balances: {},
-  ens: {},
+  customAccountData: {},
   defaultName: "Topa",
   defaultAvatar: "",
 }

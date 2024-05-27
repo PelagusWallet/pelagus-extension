@@ -12,9 +12,7 @@ import {
   AnyAsset,
 } from "../../assets"
 import { enrichAssetAmountWithDecimalValues } from "../../redux-slices/utils/asset-utils"
-
 import { normalizeEVMAddress, sameEVMAddress } from "../../lib/utils"
-
 import ChainService from "../chain"
 import IndexingService from "../indexing"
 import NameService from "../name"

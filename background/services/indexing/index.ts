@@ -17,7 +17,6 @@ import {
   NETWORK_BY_CHAIN_ID,
   getShardFromAddress,
 } from "../../constants"
-
 import {
   fetchAndValidateTokenList,
   mergeAssets,

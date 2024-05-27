@@ -1,8 +1,6 @@
 import TallyWindowProvider from "@tallyho/window-provider"
-import { Contract, ethers, ContractInterface } from "ethers"
 import Emittery from "emittery"
 import TallyWeb3Provider from "../../tally-provider"
-import { SECOND } from "../../constants"
 
 type InternalProviderPortEvents = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,33 +34,4 @@ export const internalProvider = new TallyWindowProvider(internalProviderPort)
 
 export function getProvider(this: unknown): TallyWeb3Provider {
   return new TallyWeb3Provider(internalProvider)
-}
-
-export const getContract = async (
-  address: string,
-  abi: ContractInterface
-): Promise<Contract> => {
-  const provider = getProvider()
-  const signer = provider.getSigner()
-  return new ethers.Contract(address, abi, signer)
-}
-
-export const getSignerAddress = async (): Promise<string> => {
-  const provider = getProvider()
-  const signer = provider.getSigner()
-  const signerAddress = await signer.getAddress()
-  return signerAddress
-}
-
-let latestBlockNumber = 0
-let latestAsk = 0
-export const getCurrentTimestamp = async (): Promise<number> => {
-  if (latestAsk + 10 * SECOND < Date.now()) {
-    const provider = getProvider()
-    const { timestamp } = await provider.getBlock(provider.getBlockNumber())
-    latestBlockNumber = timestamp
-    latestAsk = Date.now()
-    return timestamp
-  }
-  return latestBlockNumber
 }

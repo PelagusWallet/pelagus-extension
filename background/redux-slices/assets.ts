@@ -13,7 +13,6 @@ import {
   SmartContractFungibleAsset,
 } from "../assets"
 import { AddressOnNetwork } from "../accounts"
-import { findClosestAssetIndex } from "../lib/asset-similarity"
 import { createBackgroundAsyncThunk } from "./utils"
 import { isBuiltInNetworkBaseAsset, isSameAsset } from "./utils/asset-utils"
 import { getProvider } from "./utils/contract-utils"
@@ -27,7 +26,6 @@ import {
 import { ERC20_INTERFACE } from "../lib/erc20"
 import logger from "../lib/logger"
 import {
-  FIAT_CURRENCIES_SYMBOL,
   NUM_REGIONS_IN_PRIME,
   NUM_ZONES_IN_REGION,
   QUAI,
@@ -112,25 +110,6 @@ const assetsSlice = createSlice({
 
       return Object.values(mappedAssets).flat()
     },
-    newPricePoints: (
-      immerState,
-      { payload: pricePoints }: { payload: PricePoint[] }
-    ) => {
-      pricePoints.forEach((pricePoint) => {
-        const fiatCurrency = pricePoint.pair.find((asset) =>
-          FIAT_CURRENCIES_SYMBOL.includes(asset.symbol)
-        )
-        const [pricedAsset] = pricePoint.pair.filter(
-          (asset) => asset !== fiatCurrency
-        )
-        if (fiatCurrency && pricedAsset) {
-          const index = findClosestAssetIndex(pricedAsset, immerState)
-          if (typeof index !== "undefined") {
-            immerState[index].recentPrices[fiatCurrency.symbol] = pricePoint
-          }
-        }
-      })
-    },
     removeAsset: (
       immerState,
       { payload: removedAsset }: { payload: AnyAsset }
@@ -140,7 +119,7 @@ const assetsSlice = createSlice({
   },
 })
 
-export const { assetsLoaded, newPricePoints, removeAsset } = assetsSlice.actions
+export const { assetsLoaded, removeAsset } = assetsSlice.actions
 
 export default assetsSlice.reducer
 

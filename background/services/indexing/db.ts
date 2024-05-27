@@ -1,6 +1,5 @@
 import Dexie, { DexieOptions } from "dexie"
 import { TokenList } from "@uniswap/token-lists"
-
 import { AccountBalance } from "../../accounts"
 import { EVMNetwork } from "../../networks"
 import {

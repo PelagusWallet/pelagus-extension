@@ -1,5 +1,4 @@
 import { AnyEVMTransaction, EVMNetwork } from "../../networks"
-
 import ChainService from "../chain"
 import IndexingService from "../indexing"
 import NameService from "../name"
@@ -18,7 +17,6 @@ import {
   getRelevantTransactionAddresses,
   isEIP2612TypedData,
 } from "./utils"
-
 import resolveTransactionAnnotation from "./transactions"
 
 export * from "./types"

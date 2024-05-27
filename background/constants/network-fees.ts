@@ -15,4 +15,3 @@ export const MAX_FEE_MULTIPLIER: { [confidence: number]: bigint } = {
 export const INSTANT = 99
 export const EXPRESS = 95
 export const REGULAR = 70
-export const CUSTOM = 0

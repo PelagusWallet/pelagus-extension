@@ -221,37 +221,6 @@ const getCurrentAccountState = (state: RootState) => {
 }
 export const getAssetsState = (state: RootState): AssetsState => state.assets
 
-export const selectAccountAndTimestampedActivities = createSelector(
-  getAccountState,
-  getAssetsState,
-  selectHideDust,
-  selectShowUnverifiedAssets,
-  selectMainCurrencySymbol,
-  (account, assets, hideDust, showUnverifiedAssets, mainCurrencySymbol) => {
-    const { combinedAssetAmounts, totalMainCurrencyAmount } =
-      computeCombinedAssetAmountsData(
-        account.combinedData.assets,
-        assets,
-        mainCurrencySymbol,
-        hideDust,
-        showUnverifiedAssets
-      )
-
-    return {
-      combinedData: {
-        assets: combinedAssetAmounts,
-        totalMainCurrencyValue: totalMainCurrencyAmount
-          ? formatCurrencyAmount(
-              mainCurrencySymbol,
-              totalMainCurrencyAmount,
-              desiredDecimals.default
-            )
-          : undefined,
-      },
-      accountData: account.accountsData,
-    }
-  }
-)
 export const selectCurrentAccountBalances = createSelector(
   getCurrentAccountState,
   getAssetsState,
@@ -431,7 +400,6 @@ function getNetworkAccountTotalsByCategory(
     .filter(([, accountData]) => typeof accountData !== "undefined")
     .map(([address, accountData]): AccountTotal => {
       const shortenedAddress = truncateAddress(address)
-
       const accountSigner = accountSignersByAddress[address]
       const signerId = signerIdFor(accountSigner)
       const path = keyringsByAddresses[address]?.path
@@ -453,16 +421,21 @@ function getNetworkAccountTotalsByCategory(
           accountSigner,
         }
       }
+
       const shard = getShardFromAddress(address)
-      let name = accountData.ens.name ?? accountData.defaultName
-      const shortName = accountData.ens.name ?? accountData.defaultName
-      let balance = "0"
-      if (accountData.balances.QUAI !== undefined) {
-        balance = parseFloat(
-          convertToEth(accountData.balances.QUAI.assetAmount.amount)
-        ).toFixed(4)
-      }
-      name = `${name} (${shard})`
+      const { customAccountData, defaultName, balances, defaultAvatar } =
+        accountData
+      const name = `${customAccountData.name ?? defaultName} (${shard})`
+      const shortName = customAccountData.name ?? defaultName
+      const balanceAmount = balances.QUAI
+        ? parseFloat(convertToEth(balances.QUAI.assetAmount.amount)).toFixed(4)
+        : "0"
+      const balance = `${balanceAmount} QUAI`
+      const localizedTotalMainCurrencyAmount = formatCurrencyAmount(
+        mainCurrencySymbol,
+        getTotalBalance(balances, assets, mainCurrencySymbol),
+        desiredDecimals.default
+      )
 
       return {
         shortName,
@@ -474,13 +447,9 @@ function getNetworkAccountTotalsByCategory(
         path,
         accountSigner,
         name,
-        avatarURL: accountData.ens.avatarURL ?? accountData.defaultAvatar,
-        localizedTotalMainCurrencyAmount: formatCurrencyAmount(
-          mainCurrencySymbol,
-          getTotalBalance(accountData.balances, assets, mainCurrencySymbol),
-          desiredDecimals.default
-        ),
-        balance: `${balance} ` + `QUAI`,
+        avatarURL: defaultAvatar,
+        localizedTotalMainCurrencyAmount,
+        balance,
       }
     })
     .reduce<CategorizedAccountTotals>(
@@ -513,58 +482,6 @@ export const selectCurrentNetworkAccountTotalsByCategory = createSelector(
   }
 )
 
-export const selectAccountTotals = createSelector(
-  selectCurrentNetworkAccountTotalsByCategory,
-  (selectNetworkAccountTotalsByCategory): AccountTotal[] =>
-    Object.values(selectNetworkAccountTotalsByCategory).flat()
-)
-
-export type AccountTotalList = {
-  [address: string]: {
-    ensName?: string
-    shortenedAddress: string
-    totals: {
-      [chainID: string]: number
-    }
-  }
-}
-/** Get list of all accounts totals on all networks but without test networks */
-export const selectAccountTotalsForOverview = createSelector(
-  getAccountState,
-  getAssetsState,
-  selectMainCurrencySymbol,
-  (accountsState, assetsState, mainCurrencySymbol) => {
-    const accountsTotal: AccountTotalList = {}
-
-    Object.entries(accountsState.accountsData.evm)
-      .filter(
-        ([chainID, accounts]) =>
-          typeof accounts !== "undefined" &&
-          !TEST_NETWORK_BY_CHAIN_ID.has(chainID)
-      )
-      .forEach(([chainID, accounts]) =>
-        Object.entries(accounts).forEach(([address, accountData]) => {
-          if (accountData === "loading") return
-
-          const normalizedAddress = normalizeEVMAddress(address)
-          accountsTotal[normalizedAddress] ??= {
-            ensName: accountData.ens.name,
-            shortenedAddress: truncateAddress(address),
-            totals: {},
-          }
-
-          accountsTotal[normalizedAddress].totals[chainID] = getTotalBalance(
-            accountData.balances,
-            assetsState,
-            mainCurrencySymbol
-          )
-        })
-      )
-
-    return accountsTotal
-  }
-)
-
 function findAccountTotal(
   categorizedAccountTotals: CategorizedAccountTotals,
   accountAddressOnNetwork: AddressOnNetwork
@@ -589,17 +506,6 @@ export const getAccountTotal = (
     accountAddressOnNetwork
   )
 
-export const getAccountNameOnChain = (
-  state: RootState,
-  accountAddressOnNetwork: AddressOnNetwork
-): string | undefined => {
-  const account = getAccountTotal(state, accountAddressOnNetwork)
-
-  return account?.name && !DEFAULT_ACCOUNT_NAMES.includes(account.name)
-    ? account.name
-    : undefined
-}
-
 export const selectCurrentAccountTotal = createSelector(
   selectCurrentNetworkAccountTotalsByCategory,
   selectCurrentAccount,
@@ -622,35 +528,6 @@ export const getAllAddresses = createSelector(getAccountState, (account) => {
 export const getAddressCount = createSelector(
   getAllAddresses,
   (allAddresses) => allAddresses.length
-)
-
-export const getAllNetworks = createSelector(getAccountState, (account) =>
-  Object.keys(account.accountsData.evm).map(
-    (chainID) => NETWORK_BY_CHAIN_ID[chainID]
-  )
-)
-
-export const getNetworkCountForOverview = createSelector(
-  getAccountState,
-  (account) =>
-    Object.keys(account.accountsData.evm).filter(
-      (chainID) => !TEST_NETWORK_BY_CHAIN_ID.has(chainID)
-    ).length
-)
-
-export const getTotalBalanceForOverview = createSelector(
-  selectAccountTotalsForOverview,
-  selectMainCurrencySymbol,
-  (accountsTotal, currencySymbol) =>
-    formatCurrencyAmount(
-      currencySymbol,
-      Object.values(accountsTotal).reduce(
-        (total, { totals }) =>
-          Object.values(totals).reduce((sum, balance) => sum + balance) + total,
-        0
-      ),
-      2
-    )
 )
 
 export const getAllAccounts = createSelector(getAccountState, (account) => {

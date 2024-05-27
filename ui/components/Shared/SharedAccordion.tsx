@@ -21,11 +21,7 @@ export default function SharedAccordion({
 }): ReactElement {
   const contentRef = useRef<HTMLDivElement>(null)
   const [isOpen, setIsOpen] = useState(isInitiallyOpen)
-  /**
-   * Accordion content has an overflow hidden property when it is closed.
-   * The overflow property is changed to visible after a delay when the content is visible.
-   * The goal is to display the tooltip message correctly.
-   */
+
   const [isVisible, setIsVisible] = useState(isInitiallyOpen)
   /* If the accordion is open by default, the first opening should be without a transition. */
   const [withTransition, setWithTransition] = useState(!isInitiallyOpen)

@@ -101,15 +101,6 @@ function BasicTypedDataDetails<
             width: 100%;
             padding: 16px 0 0;
           }
-          .icon_external {
-            mask-image: url("./images/new_tab@2x.png");
-            mask-size: 16px 16px;
-            width: 16px;
-            margin-left: 4px;
-            font-weight: bold;
-            height: 16px;
-            background-color: var(--trophy-gold);
-          }
           .message {
             display: flex;
             justify-content: space-between;

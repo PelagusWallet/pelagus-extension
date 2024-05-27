@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
   createPassword,
   unlockKeyrings,
@@ -40,6 +40,7 @@ export default function SetPassword(): JSX.Element {
   // FIXME temp fix
   useEffect(() => {
     if (areKeyringsUnlocked) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       nextPage ? history.replace(nextPage) : history.replace(keyringNextPage)
     }
   }, [areKeyringsUnlocked, history, nextPage])
@@ -169,7 +170,7 @@ export default function SetPassword(): JSX.Element {
               font-weight: 500;
               font-size: 36px;
               line-height: 42px;
-              margin: 0em;
+              margin: 0;
             }
 
             img {
@@ -259,16 +260,6 @@ export default function SetPassword(): JSX.Element {
               line-height: 24px;
               font-weight: 500;
               margin-bottom: 32px;
-            }
-            .warning_wrap {
-              margin-top: 16px;
-              margin-bottom: 24px;
-            }
-            .warning_content {
-              color: var(--attention);
-              font-weight: 500;
-              font-size: 16px;
-              line-height: 24px;
             }
             .password_section {
               text-align: center;

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { ReactElement, useEffect, useState } from "react"
 import {
   selectEstimatedFeesPerGas,
@@ -18,7 +17,6 @@ import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSlideUpMenu from "../../../Shared/SharedSlideUpMenu"
 import NetworkSettingsChooser from "../../../NetworkFees/NetworkSettingsChooser"
 import FeeSettingsButton from "../../../NetworkFees/FeeSettingsButton"
-import TransactionAdditionalDetails from "./TransactionAdditionalDetails"
 import TransactionSignatureDetailsWarning from "./TransactionSignatureDetailsWarning"
 
 export type PanelState = {
@@ -94,11 +92,6 @@ export default function DetailPanel({
           },
         })
       ).then(({ nonce, maxFeePerGas, maxPriorityFeePerGas }) => {
-        console.log(
-          `Returned nonce and gasprice ${nonce}`,
-          maxFeePerGas,
-          maxPriorityFeePerGas
-        )
         setNonce(nonce)
         if (estimatedFeesPerGas) {
           if (estimatedFeesPerGas.regular) {
@@ -178,10 +171,6 @@ export default function DetailPanel({
         </div>
         <FeeSettingsButton onClick={() => setNetworkSettingsModalOpen(true)} />
       </span>
-      <TransactionAdditionalDetails
-        transactionRequest={transactionDetails}
-        annotation={transactionDetails.annotation}
-      />
       <span className="detail_item">
         <div className="detail_label">Nonce</div>
         <span className="detail_item_right">

@@ -67,8 +67,6 @@ export default function ActiveDAppConnection({
       <style jsx>{`
         .connection_button {
           width: 32px;
-          height: 32px;
-
           border-right: 1px solid var(--green-60);
           height: 17px;
           padding-right: 6px;
@@ -80,11 +78,9 @@ export default function ActiveDAppConnection({
           mask-image: url("./images/bolt@2x.png");
           mask-repeat: no-repeat;
           mask-position: center;
-          mask-size: cover;
           mask-size: 35%;
           width: 32px;
           height: 32px;
-
           margin-top: -8px;
         }
       `}</style>

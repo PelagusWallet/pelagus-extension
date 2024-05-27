@@ -1,10 +1,6 @@
-import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { I18nKey } from "../_locales/i18n"
 
 export type TabInfo = {
-  /**
-   * i18n key with the title for this tab
-   */
   title: I18nKey
   path: string
   icon: string

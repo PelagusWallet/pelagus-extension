@@ -3,29 +3,14 @@ import classNames from "classnames"
 
 type SharedToggleButtonProps = {
   onChange: (toggleValue: boolean) => void
-  /**
-   * The color of the toggle bulb when the toggle is on. Any valid CSS color
-   * (including a `var` expression) can be used.
-   */
   onColor?: string
-  /**
-   * The color of the toggle bulb when the toggle is off. Any valid CSS color
-   * (including a `var` expression) can be used.
-   */
   offColor?: string
   value?: boolean | undefined
-  /**
-   * True if the toggle is off when on the left and on when on the right, false
-   * if the direction is opposite (on when on the left and off when on the
-   * right). True by default.
-   */
   leftToRight: boolean
 }
 
 export default function SharedToggleButton({
   onChange,
-  onColor,
-  offColor,
   value,
   leftToRight,
 }: SharedToggleButtonProps): ReactElement {
@@ -69,13 +54,13 @@ export default function SharedToggleButton({
             background-color: var(--hunter-green);
             transition: 0.2s ease-in-out;
 
-            box-shadow: 0px 1px 1px rgba(0, 20, 19, 0.3);
+            box-shadow: 0 1px 1px rgba(0, 20, 19, 0.3);
           }
           .is_active .bulb {
             transform: translateX(16px);
           }
           .is_active {
-            background-color: var(--green-80); // This line was added
+            background-color: var(--green-80);
           }
         `}
       </style>

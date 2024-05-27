@@ -89,7 +89,6 @@ export default function Send(): ReactElement {
         },
       })
     ).then(({ nonce, maxFeePerGas, maxPriorityFeePerGas }) => {
-      console.log(nonce, maxFeePerGas, maxPriorityFeePerGas)
       setNonce(nonce)
       setMaxFeePerGas(BigNumber.from(maxFeePerGas))
       setMaxPriorityFeePerGas(BigNumber.from(maxPriorityFeePerGas))
@@ -252,12 +251,6 @@ export default function Send(): ReactElement {
               amount={amount}
               showMaxButton
             />
-            {
-              assetType === "token" && !hasError && null
-              // <div className="value">
-              //   ${assetAmount?.localizedMainCurrencyAmount ?? "-"}
-              // </div>
-            }
           </div>
           <div className="form_input send_to_field">
             <label htmlFor="send_address">{t("wallet.sendTo")}</label>
@@ -273,6 +266,7 @@ export default function Send(): ReactElement {
               })}
             />
             <button
+              type="button"
               className="advanced-button"
               onClick={() => setAdvancedVisible(!advancedVisible)}
             >
@@ -405,6 +399,7 @@ export default function Send(): ReactElement {
           .advanced-button:hover {
             color: var(--green-20);
           }
+
           .icon_activity_send_medium {
             background: url("./images/pelagus_send.png");
             background-size: 24px 24px;
@@ -412,6 +407,7 @@ export default function Send(): ReactElement {
             height: 24px;
             margin-right: 8px;
           }
+
           .title {
             flex-grow: 1;
             height: 32px;
@@ -420,6 +416,7 @@ export default function Send(): ReactElement {
             font-weight: 500;
             line-height: 32px;
           }
+
           .back_button_wrap {
             position: absolute;
             margin-left: -1px;
@@ -428,46 +425,36 @@ export default function Send(): ReactElement {
             background: white;
             width: 100%;
           }
+
           .header {
             display: flex;
             align-items: center;
             margin-bottom: 4px;
             margin-top: 30px;
           }
+
           .form_input {
             position: relative;
             margin-bottom: 14px;
           }
+
           .form {
             margin-top: 20px;
           }
-          .label_right {
-            margin-right: 6px;
-          }
-          .label {
-            margin-bottom: 6px;
-          }
-          .value {
-            display: flex;
-            justify-content: flex-end;
-            position: absolute;
-            bottom: 8px;
-            right: 16px;
-            color: var(--green-60);
-            font-size: 12px;
-            line-height: 16px;
-          }
+
           div.send_to_field {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: space-between;
           }
+
           div.send_to_field label {
             color: var(--green-40);
             text-align: right;
             font-size: 14px;
           }
+
           input#send_address {
             box-sizing: border-box;
             height: 72px;
@@ -480,7 +467,7 @@ export default function Send(): ReactElement {
 
             border-radius: 4px;
             background-color: var(--green-95);
-            padding: 0px 16px;
+            padding: 0 16px;
 
             transition: padding-bottom 0.2s;
           }
@@ -497,18 +484,21 @@ export default function Send(): ReactElement {
 
             border-radius: 4px;
             background-color: var(--green-95);
-            padding: 0px 16px;
+            padding: 0 16px;
 
             transition: padding-bottom 0.2s;
           }
+
           input#send_address::placeholder {
             color: var(--green-40);
           }
+
           input#send_address.resolved_address {
             font-size: 18px;
             font-weight: 600;
             padding-bottom: 16px;
           }
+
           input#send_address ~ .error {
             color: var(--error);
             font-weight: 500;
@@ -520,6 +510,7 @@ export default function Send(): ReactElement {
             margin-right: 15px;
             margin-bottom: 5px;
           }
+
           input#send_address ~ .address {
             display: flex;
             align-items: center;
@@ -537,27 +528,33 @@ export default function Send(): ReactElement {
 
             transition: color 0.2s;
           }
+
           input#send_address ~ .address:hover {
             color: var(--gold-80);
           }
+
           input#send_address ~ .address > :global(.icon) {
             transition: background-color 0.2s;
           }
+
           input#send_address ~ .address:hover > :global(.icon) {
             background-color: var(--gold-80);
           }
+
           input#send_address ~ .validating {
             margin-top: -50px;
             margin-bottom: 22px;
             margin-right: 15px;
             align-self: flex-end;
           }
+
           .send_footer {
             display: flex;
             justify-content: flex-end;
             margin-top: 21px;
             padding-bottom: 20px;
           }
+
           /* Hide for all browsers */
           input[type="number"]::-webkit-inner-spin-button,
           input[type="number"]::-webkit-outer-spin-button {

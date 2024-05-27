@@ -3,14 +3,14 @@ import { useHistory } from "react-router-dom"
 import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { useTranslation } from "react-i18next"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
-import SharedButton from "../../../components/Shared/SharedButton"
-import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
-import { OnboardingBox, OnboardingMessageHeader } from "../styles"
 import {
   SignerImportSource,
   SignerSourceTypes,
 } from "@pelagus/pelagus-background/services/keyring"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import SharedButton from "../../../components/Shared/SharedButton"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
+import { OnboardingBox, OnboardingMessageHeader } from "../styles"
 
 function VerifySeedSuccess({
   mnemonic,

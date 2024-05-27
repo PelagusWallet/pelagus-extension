@@ -115,7 +115,6 @@ export default function KeyringUnlock({
               label={t("signingPassword")}
               onChange={(value) => {
                 setPassword(value)
-                // Clear error message on input change
                 setErrorMessage("")
               }}
               errorMessage={errorMessage}
@@ -132,13 +131,12 @@ export default function KeyringUnlock({
       <style jsx>
         {`
           .illustration_unlock {
-            background: url("./images/pelagus_unlock.png");
-            background-position: center;
-            background-repeat: no-repeat;
+            background: url("./images/pelagus_unlock.png") no-repeat center;
             background-size: contain;
             width: 90px;
             height: 172.18px;
           }
+
           section {
             background-color: var(--green-95);
             display: flex;
@@ -149,30 +147,35 @@ export default function KeyringUnlock({
             height: 100%;
             gap: 16px;
           }
+
           .subtitle {
             width: 55%;
             text-align: center;
             box-sizing: border-box;
           }
+
           form {
             display: flex;
             justify-content: space-between;
             margin-bottom: 12px;
           }
+
           .signing_wrap {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 30px;
           }
+
           .cancel_btn_wrap {
             width: 100%;
             display: flex;
             justify-content: flex-end;
-            right: 0px;
-            top: 0px;
+            right: 0;
+            top: 0;
             margin-top: 12px;
           }
+
           .input_wrap {
             width: 260px;
           }

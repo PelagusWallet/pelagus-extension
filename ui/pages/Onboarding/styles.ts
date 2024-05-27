@@ -9,26 +9,6 @@ export const OnboardingBox = `
     flex-direction: column;
     width: 280px;
 `
-export const OnboardingContainer = `
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-`
-export const OnboardingHeader = `
-    font-size: 36px;
-    margin-top: 24px;
-    margin-bottom: 8px;
-`
-
-export const OnboardingSubheader = `
-    font-size: 16px;
-    font-weight: 500;
-    text-align: center;
-    color: var(--green-60);
-    margin: 0;
-`
 
 export const OnboardingMessageHeader = `
     display: flex;

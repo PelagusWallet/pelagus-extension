@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
-import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
 import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
 
 type TopMenuProtocolListItemGAProps = {
   network: EVMNetwork

@@ -1,5 +1,3 @@
-// https://eips.ethereum.org/EIPS/eip-1193#request
-
 import { isNumber, isObject, isString } from "./runtime-typechecks"
 
 export type RequestArgument = {

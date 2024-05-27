@@ -1,4 +1,3 @@
-import { WEBSITE_ORIGIN } from "@pelagus/pelagus-background/constants/website"
 import {
   deleteAnalyticsData,
   selectCollectAnalytics,
@@ -11,8 +10,6 @@ import AnalyticsSlideUpMenu from "../../components/Analytics/AnalyticsSlideUpMen
 import SharedButton from "../../components/Shared/SharedButton"
 import SharedPageHeader from "../../components/Shared/SharedPageHeader"
 import SharedToggleButton from "../../components/Shared/SharedToggleButton"
-
-/* List items */
 
 const analyticsRecordedItems = ["Trends", "Usage"] as const
 
@@ -134,50 +131,60 @@ export default function SettingsAnalytics(): ReactElement {
           line-height: 24px;
           margin: 0;
         }
+
         .analytics_wrapper {
           display: flex;
           flex-direction: column;
           gap: 16px;
         }
+
         .toggle_container {
           border-radius: 15px;
           padding: 24px 20px;
           background-color: var(--green-120);
         }
+
         .header_container {
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
+
         .title_container {
           display: flex;
           align-items: center;
           gap: 16px;
         }
+
         .icon {
           height: 34px;
         }
+
         .toggle_description {
-          margin: 0;
-          margin-top: 16px;
+          margin: 16px 0 0;
         }
+
         .title_success {
           color: var(--success);
         }
+
         .title_error {
           color: var(--error);
         }
+
         .list {
           display: flex;
           flex-flow: column;
           margin: 16px 0;
           padding-left: 25px;
         }
+
         .list_item {
           display: list-item;
           line-height: 24px;
           list-style-type: disc;
         }
+
         .btn_container {
           display: flex;
           justify-content: space-between;

@@ -144,10 +144,6 @@ export default function ViewOnlyWallet(): ReactElement {
             width: 320px;
             margin-bottom: 40px;
           }
-
-          .center_horizontal {
-            font-weight: 500;
-          }
         `}
       </style>
     </section>

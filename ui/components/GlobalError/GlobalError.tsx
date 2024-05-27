@@ -38,8 +38,7 @@ export default function GlobalError(): ReactElement {
           .description {
             width: 65%;
             text-align: center;
-            margin: 0;
-            margin-bottom: 15px;
+            margin: 0 0 15px 0;
           }
         `}
       </style>

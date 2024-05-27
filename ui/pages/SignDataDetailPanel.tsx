@@ -129,11 +129,6 @@ export default function SignDataDetailPanel(): ReactElement {
           justify-content: space-between;
           padding: 6px 16px;
         }
-        .value {
-          overflow-wrap: anywhere;
-          max-width: 220px;
-          text-align: right;
-        }
         .divider {
           width: 80%;
           height: 2px;

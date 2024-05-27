@@ -83,25 +83,23 @@ export default function DAppConnectPage({
           height: 100vh;
           margin: 0 auto;
         }
-        .page {
-          background-color: var(--green-95);
-          height: 100vh;
-          width: 100vw;
-          z-index: 1000;
-        }
+
         h1 {
           color: var(--trophy-gold);
           margin-top: 45px;
           margin-bottom: 25px;
           text-align: center;
         }
+
         .permissions_list {
           margin-left: 16px;
         }
+
         ul {
           display: flex;
           flex-direction: column;
         }
+
         li {
           font-size: 14px;
           line-height: 20px;
@@ -109,12 +107,14 @@ export default function DAppConnectPage({
           margin-bottom: 4px;
           margin-left: 5px;
         }
+
         .permissions_list_title {
           color: var(--green-40);
           margin-bottom: 8px;
           margin-top: 15px;
-          margin-left: 0px;
+          margin-left: 0;
         }
+
         .connection_destination {
           width: 100%;
           height: 88px;
@@ -127,9 +127,10 @@ export default function DAppConnectPage({
           box-sizing: border-box;
           margin-bottom: 8px;
         }
+
         .icon_connection {
-          background: url("./images/bolt@2x.png") center no-repeat;
-          background-color: var(--green-95);
+          background: var(--green-95) url("./images/bolt@2x.png") no-repeat
+            center;
           border-radius: 4px;
           background-size: 10px 17px;
           border: solid 3px var(--hunter-green);
@@ -140,12 +141,13 @@ export default function DAppConnectPage({
           margin-bottom: -10px;
           z-index: 3;
         }
+
         .footer_actions {
           position: fixed;
-          bottom: 0px;
+          bottom: 0;
           display: flex;
           width: 100%;
-          padding: 0px 16px;
+          padding: 0 16px;
           box-sizing: border-box;
           align-items: center;
           height: 80px;

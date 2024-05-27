@@ -51,5 +51,3 @@ export type I18nKey = StringValueKeys<{
 }>
 
 export { i18n, getLanguage, setLanguage }
-
-export default i18n

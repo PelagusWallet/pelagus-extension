@@ -60,7 +60,6 @@ import {
 import SharedORDivider from "../Shared/SharedORDivider"
 import SelectAccountListItem from "../AccountItem/SelectAccountListItem"
 import AccountsSearchBar from "../AccountItem/AccountsSearchBar"
-import AccountNetworkTabs from "./AccountNetworkTabs"
 
 type WalletTypeInfo = {
   title: string
@@ -102,7 +101,6 @@ function WalletTypeHeader({
   accountType,
   onClickAddAddress,
   walletNumber,
-  path,
   accountSigner,
   signerId,
   setShard,
@@ -146,7 +144,7 @@ function WalletTypeHeader({
       category: t("accounts.notificationPanel.category.others"),
     },
   }
-  const { title, icon } = walletTypeDetails[accountType]
+  const { title } = walletTypeDetails[accountType]
   const dispatch = useBackgroundDispatch()
   const shardOptions = VALID_SHARDS.map((shard, index) => ({
     value: shard,
@@ -397,27 +395,9 @@ function WalletTypeHeader({
           margin: 0;
         }
 
-        .icon_wallet {
-          background: url("./images/wallet_kind_icon@2x.png") center no-repeat;
-          background-size: cover;
-          width: 24px;
-          height: 24px;
-          margin-right: 8px;
-        }
-        .icon_edit {
-          background: url("./images/edit@2x.png") center no-repeat;
-          background-size: cover;
-          width: 13px;
-          height: 13px;
-          margin-left: 8px;
-        }
         .left {
           align-items: center;
           display: flex;
-        }
-        .right {
-          align-items: center;
-          margin-right: 4px;
         }
       `}</style>
     </>
@@ -720,7 +700,6 @@ export default function AccountsNotificationPanelAccounts({
                         accountType === "internal" ||
                         accountType === "private-key"
                           ? () => {
-                              console.log(`onClickAddress ${shard.current}`)
                               if (shard.current === "") {
                                 throw new Error("shard is empty")
                               } else if (
@@ -862,7 +841,7 @@ export default function AccountsNotificationPanelAccounts({
       })}
       <style jsx>
         {`
-          . ul {
+          .ul {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -883,9 +862,6 @@ export default function AccountsNotificationPanelAccounts({
             display: flex;
             justify-content: center;
             background-color: var(--hunter-green);
-          }
-          .category_title {
-            color: var(--green-60);
           }
           p {
             margin: 0;

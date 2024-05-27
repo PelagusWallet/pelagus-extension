@@ -1,10 +1,10 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
-import SharedIconGA from "../Shared/SharedIconGA"
 import { truncateAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { HexString } from "@pelagus/pelagus-background/types"
 import { ListAccount } from "@pelagus/pelagus-background/redux-slices/accounts"
+import SharedIconGA from "../Shared/SharedIconGA"
 
 const capitalizeFirstLetter = (text: string): string =>
   text.charAt(0).toUpperCase() + text.slice(1)
@@ -64,7 +64,7 @@ export default function DAppAccountListItem({
         </button>
       </div>
       <style jsx>
-        {`        
+        {`
           .connected-account-item {
             display: flex;
             flex-direction: row;
@@ -86,7 +86,7 @@ export default function DAppAccountListItem({
             gap: 8px;
           }
           .select .left-side::before {
-            content: '';
+            content: "";
             position: absolute;
             left: -12px;
             top: 50%;
@@ -132,7 +132,7 @@ export default function DAppAccountListItem({
             cursor: default;
           }
           .connected-account-item.disabled .item-title {
-            color var(--green-20);
+            color: var(--green-20);
           }
         `}
       </style>

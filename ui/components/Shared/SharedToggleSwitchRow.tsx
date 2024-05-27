@@ -12,8 +12,8 @@ export default function SharedToggleSwitchRow(
 
   return (
     <div className="row">
-      <div className="left">{title}</div>
-      <div className="right">{component()}</div>
+      <div>{title}</div>
+      <div>{component()}</div>
       <style jsx>
         {`
           .row {

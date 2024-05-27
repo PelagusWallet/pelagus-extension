@@ -10,7 +10,13 @@ import { useTranslation } from "react-i18next"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { langEs as es } from "@quais/wordlists/lib/lang-es"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import {
+  SignerImportSource,
+  SignerSourceTypes,
+} from "@pelagus/pelagus-background/services/keyring"
 import SharedButton from "../../../components/Shared/SharedButton"
 import {
   useBackgroundDispatch,
@@ -19,11 +25,6 @@ import {
 } from "../../../hooks"
 import OnboardingRoutes from "./Routes"
 import SharedSelect from "../../../components/Shared/SharedSelect"
-import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
-import {
-  SignerImportSource,
-  SignerSourceTypes,
-} from "@pelagus/pelagus-background/services/keyring"
 
 type Props = {
   nextPage: string
@@ -228,16 +229,12 @@ export default function ImportSeed(props: Props): ReactElement {
         .bottom {
           justify-content: space-between;
           flex-direction: column;
-          margin-top: ${
-            isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
-              ? "48px"
-              : "24px"
-          };
-          margin-bottom: ${
-            isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
-              ? "24px"
-              : "16px"
-          };
+          margin-top: ${isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
+            ? "48px"
+            : "24px"};
+          margin-bottom: ${isEnabled(FeatureFlags.HIDE_IMPORT_DERIVATION_PATH)
+            ? "24px"
+            : "16px"};
         }
         .illustration_import {
           background: url("./icon-128.png");
@@ -269,13 +266,6 @@ export default function ImportSeed(props: Props): ReactElement {
         .help_button {
           margin-top: 16px;
         }
-        .checkbox_wrapper {
-          margin-top: 6px;
-          margin-bottom: 6px;
-        }
-        .select_wrapper {
-          margin-bottom: 24px;
-        }
         .input_wrap {
           position: relative;
         }
@@ -283,7 +273,7 @@ export default function ImportSeed(props: Props): ReactElement {
         .recovery_label {
           position: absolute;
           font-size: 12px;
-          margin-left: 16px; 
+          margin-left: 16px;
           line-height: 16px;
           transition: all 0.2s ease-in-out;
           pointer-events: none;
@@ -293,7 +283,7 @@ export default function ImportSeed(props: Props): ReactElement {
           font-size: 16px;
           line-height: 24px;
           top: 12px;
-          color; var(--hunter-green)
+          color: var(--hunter-green);
           left: 16px;
         }
 

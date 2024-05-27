@@ -4,17 +4,10 @@ import { useTranslation } from "react-i18next"
 import {
   setNewDefaultWalletValue,
   selectDefaultWallet,
-  selectHideDust,
-  toggleHideDust,
-  selectShowTestNetworks,
-  toggleTestNetworks,
   toggleHideBanners,
   selectHideBanners,
-  selectShowUnverifiedAssets,
-  toggleShowUnverifiedAssets,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
-import { selectMainCurrencySign } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   FeatureFlags,
   isEnabled,
@@ -25,7 +18,6 @@ import SharedSelect from "../components/Shared/SharedSelect"
 import { getLanguageIndex, getAvalableLanguages } from "../_locales"
 import { getLanguage, setLanguage } from "../_locales/i18n"
 import SettingButton from "./Settings/SettingButton"
-import { useBackgroundSelector } from "../hooks"
 import SharedIcon from "../components/Shared/SharedIcon"
 import SharedDrawer from "../components/Shared/SharedDrawer"
 import SharedToggleButtonGA from "../components/Shared/SharedToggleButtonGA"
@@ -128,87 +120,15 @@ export default function Settings(): ReactElement {
   const { t } = useTranslation()
   const history = useHistory()
   const dispatch = useDispatch()
-  const hideDust = useSelector(selectHideDust)
   const hideBanners = useSelector(selectHideBanners)
   const defaultWallet = useSelector(selectDefaultWallet)
-  const showTestNetworks = useSelector(selectShowTestNetworks)
-  const showUnverifiedAssets = useSelector(selectShowUnverifiedAssets)
-  const mainCurrencySign = useBackgroundSelector(selectMainCurrencySign)
-
-  const toggleHideDustAssets = (toggleValue: boolean) => {
-    dispatch(toggleHideDust(toggleValue))
-  }
   const toggleDefaultWallet = (defaultWalletValue: boolean) => {
     dispatch(setNewDefaultWalletValue(defaultWalletValue))
-  }
-
-  const toggleShowTestNetworks = (defaultWalletValue: boolean) => {
-    dispatch(toggleTestNetworks(defaultWalletValue))
-  }
-
-  const toggleShowUnverified = (toggleValue: boolean) => {
-    dispatch(toggleShowUnverifiedAssets(toggleValue))
   }
 
   const toggleHideNotificationBanners = (toggleValue: boolean) => {
     dispatch(toggleHideBanners(!toggleValue))
   }
-
-  // FIXME temporary solution to hide small asset balance
-  // const hideSmallAssetBalance = {
-  //   title: t("settings.hideSmallAssetBalance", {
-  //     amount: 2,
-  //     sign: mainCurrencySign,
-  //   }),
-  //   component: () => (
-  //     <SharedToggleButton
-  //       onChange={(toggleValue) => toggleHideDustAssets(toggleValue)}
-  //       value={hideDust}
-  //     />
-  //   ),
-  // }
-
-  // FIXME temporary solution to hide unverified assets
-  // const unverifiedAssets = {
-  //   title: "",
-  //   component: () => (
-  //     <div className="content">
-  //       <div className="left">
-  //         {t("settings.showUnverifiedAssets")}
-  //         <SharedTooltip width={190} customStyles={{ marginLeft: "4" }}>
-  //           <div className="tooltip">
-  //             <span>{t("settings.unverifiedAssets.tooltip.firstPart")}</span>
-  //             {isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET) && (
-  //               <span>{t("settings.unverifiedAssets.tooltip.secondPart")}</span>
-  //             )}
-  //           </div>
-  //         </SharedTooltip>
-  //       </div>
-  //       <SharedToggleButton
-  //         onChange={(toggleValue) => toggleShowUnverified(toggleValue)}
-  //         value={showUnverifiedAssets}
-  //       />
-  //       <style jsx>
-  //         {`
-  //           .content {
-  //             display: flex;
-  //             justify-content: space-between;
-  //             width: 336px;
-  //           }
-  //           .left {
-  //             display: flex;
-  //             align-items: center;
-  //           }
-  //           .tooltip {
-  //             display: flex;
-  //             flex-direction: column;
-  //             gap: 16px;
-  //           }
-  //         `}
-  //       </style>
-  //     </div>
-  //   ),
-  // }
 
   const setAsDefault = {
     title: t("settings.setAsDefault"),
@@ -219,17 +139,6 @@ export default function Settings(): ReactElement {
       />
     ),
   }
-
-  // FIXME temporary solution to hide testnet networks
-  // const enableTestNetworks = {
-  //   title: t("settings.enableTestNetworks"),
-  //   component: () => (
-  //     <SharedToggleButton
-  //       onChange={(toggleValue) => toggleShowTestNetworks(toggleValue)}
-  //       value={showTestNetworks}
-  //     />
-  //   ),
-  // }
 
   const langOptions = getAvalableLanguages()
   const langIdx = getLanguageIndex(getLanguage())
@@ -293,19 +202,6 @@ export default function Settings(): ReactElement {
     ),
   }
 
-  // FIXME temporary solution to hide analytics screen
-  // const analytics = {
-  //   title: "",
-  //   component: () => (
-  //     <SettingButton
-  //       link="/settings/analytics"
-  //       label={t("settings.analytics")}
-  //       ariaLabel={t("settings.analyticsSetUp.ariaLabel")}
-  //       icon="continue"
-  //     />
-  //   ),
-  // }
-
   const notificationBanner = {
     title: t("settings.showBanners"),
     component: () => (
@@ -316,31 +212,15 @@ export default function Settings(): ReactElement {
     ),
   }
 
-  // FIXME currently allows users to add networks that can break the extension
-  // const customNetworks = {
-  //   title: "",
-  //   component: () => (
-  //     <SettingButton
-  //       link="/settings/custom-networks"
-  //       label={t("settings.customNetworks")}
-  //       ariaLabel={t("settings.customNetworksSettings.ariaLabel")}
-  //       icon="continue"
-  //     />
-  //   ),
-  // }
-
   const settings = Object.values({
     general: {
       title: t("settings.group.general"),
       items: [
-        // setAsDefault is removed from settings in the new dApp Connections flow.
         ...wrapIfDisabled(
           FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS,
           setAsDefault
         ),
         dAppsSettings,
-        // FIXME temporary solution to hide analytics screen
-        // analytics,
         ...wrapIfEnabled(FeatureFlags.SUPPORT_MULTIPLE_LANGUAGES, languages),
         ...wrapIfEnabled(
           FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER,
@@ -350,13 +230,7 @@ export default function Settings(): ReactElement {
     },
     walletOptions: {
       title: t("settings.group.walletOptions"),
-      items: [
-        // hideSmallAssetBalance, // FIXME temporary solution to hide small asset balance
-        // unverifiedAssets, // FIXME temporary solution to hide unverified assets
-        // customNetworks, // FIXME currently allows users to add networks that can break the extension //
-        addCustomAsset,
-        // enableTestNetworks, // FIXME temporary solution to hide testnet networks
-      ],
+      items: [addCustomAsset],
     },
     helpCenter: {
       title: t("settings.group.helpCenter"),
@@ -423,12 +297,13 @@ export default function Settings(): ReactElement {
             height: 544px;
             background-color: var(--hunter-green);
           }
+
           .menu {
             display: flex;
             justify-content: space-between;
-            display: flex;
             flex-direction: column;
           }
+
           h1 {
             color: var(--white);
             font-size: 22px;
@@ -436,12 +311,14 @@ export default function Settings(): ReactElement {
             line-height: 32px;
             margin-bottom: 28px;
           }
+
           span {
             color: var(--green-40);
             font-size: 16px;
             font-weight: 400;
             line-height: 24px;
           }
+
           .footer {
             width: 100vw;
             margin-left: -24px;
@@ -451,11 +328,13 @@ export default function Settings(): ReactElement {
             flex-direction: column;
             align-items: center;
           }
+
           .action_icons {
             display: flex;
             justify-content: center;
             gap: 24px;
           }
+
           .group {
             border-bottom: 1px solid var(--white);
             margin-bottom: 20px;
@@ -464,9 +343,10 @@ export default function Settings(): ReactElement {
 
           .group:last-child {
             border-bottom: none;
-            padding: 0px;
-            margin: 0px;
+            padding: 0;
+            margin: 0;
           }
+
           .group_title {
             color: var(--green-40);
             font-family: "Segment";

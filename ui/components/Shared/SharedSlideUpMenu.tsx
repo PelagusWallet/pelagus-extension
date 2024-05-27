@@ -108,9 +108,9 @@ export default function SharedSlideUpMenu(props: Props): ReactElement {
             border-radius: ${isFullScreen ? "0" : "16px 16px 0 0"};
             background-color: #ffffff;
             position: fixed;
-            left: 0px;
-            right: 0px;
-            bottom: 0px;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 999;
             transform: translateY(0); /* open by default */
             opacity: 1;
@@ -144,7 +144,6 @@ export default function SharedSlideUpMenu(props: Props): ReactElement {
             transform: translateY(100%);
             transition: transform cubic-bezier(0.19, 1, 0.22, 1)
                 ${SLIDE_TRANSITION_MS}ms,
-              // Drop opacity all at once at the end.
               opacity 0ms ${SLIDE_TRANSITION_MS}ms;
             opacity: 0;
             pointer-events: none;

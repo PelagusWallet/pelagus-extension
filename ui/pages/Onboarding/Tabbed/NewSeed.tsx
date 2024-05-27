@@ -12,6 +12,11 @@ import {
   useRouteMatch,
 } from "react-router-dom"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import {
+  SignerImportSource,
+  SignerSourceTypes,
+} from "@pelagus/pelagus-background/services/keyring"
 import OnboardingStepsIndicator from "../../../components/Onboarding/OnboardingStepsIndicator"
 import {
   useAreKeyringsUnlocked,
@@ -22,11 +27,6 @@ import NewSeedIntro from "./NewSeed/NewSeedIntro"
 import NewSeedReview from "./NewSeed/NewSeedReview"
 import NewSeedVerify from "./NewSeed/NewSeedVerify"
 import OnboardingRoutes from "./Routes"
-import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
-import {
-  SignerImportSource,
-  SignerSourceTypes,
-} from "@pelagus/pelagus-background/services/keyring"
 
 const StepContainer = ({
   children,

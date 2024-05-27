@@ -57,16 +57,4 @@ export default `
   .asset_list_item:hover .bold_amount_count{
     color: #FFFFFF;
   }
-  .verify_asset {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    font-family: "Segment";
-    font-style: normal;
-    font-weight: 500;
-    font-size: 16px;
-    line-height: 24px;
-    color: var(--attention);
-  }
 `

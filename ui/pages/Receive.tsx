@@ -48,12 +48,6 @@ export default function Receive(): ReactElement {
             align-items: center;
             width: 100%;
           }
-          .receive_wrap {
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            margin-top: 24px;
-          }
           h1 {
             height: 32px;
             color: var(--trophy-gold);

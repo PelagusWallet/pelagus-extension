@@ -24,7 +24,6 @@ function OnboardingStep(props: OnboardingStepProps): ReactElement {
             background-color: var(--hunter-green);
           }
           li {
-            display: block;
             color: var(--hunter-green);
             font-size: 16px;
             font-weight: 500;

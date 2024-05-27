@@ -27,10 +27,6 @@ function isSendActivity(
     : true
 }
 
-function formatShard(shard: string): string {
-  return ` ${shard.charAt(0).toUpperCase()}${shard.slice(1).replace("-", " ")}`
-}
-
 export default function WalletActivityListItem(props: Props): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet.activities",
@@ -196,11 +192,10 @@ export default function WalletActivityListItem(props: Props): ReactElement {
             color: var(--green-20);
           }
           .approved {
-            color: #5FB375;
+            color: #5fb375;
           }
           .settled {
-            color: #3B66E1;
-          }
+            color: #3b66e1;
           }
           .top {
             height: 16px;
@@ -268,21 +263,6 @@ export default function WalletActivityListItem(props: Props): ReactElement {
           .name {
             white-space: nowrap;
             padding-top: 3px;
-          }
-          .price {
-            width: 58px;
-            height: 17px;
-            color: var(--green-40);
-            font-size: 14px;
-            font-weight: 400;
-            letter-spacing: 0.42px;
-            line-height: 16px;
-          }
-          .icon_send_asset {
-            background: url("./images/send_asset.svg");
-            background-size: 12px 12px;
-            width: 12px;
-            height: 12px;
           }
           .right {
             display: flex;

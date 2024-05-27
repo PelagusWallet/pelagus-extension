@@ -32,8 +32,6 @@ export default function WalletActivityList({
 
   const account = useBackgroundSelector(selectCurrentAccount)
 
-  // Used to fix Tx Details Slide-up menu should close
-  // when extension closes. (#618)
   const [instantlyHideActivityDetails, setInstantlyHideActivityDetails] =
     useState(true)
 
@@ -88,8 +86,7 @@ export default function WalletActivityList({
             font-size: 16px;
             text-align: center;
             line-height: 22px;
-            margin: 0 auto;
-            margin-top: 15px;
+            margin: 15px auto 0 auto;
           }
         `}</style>
       </span>
@@ -162,7 +159,7 @@ export default function WalletActivityList({
             gap: 8px;
           }
           .hand {
-            margin: 10px 0px;
+            margin: 10px 0;
             font-size: 22px;
           }
           div:last-child {

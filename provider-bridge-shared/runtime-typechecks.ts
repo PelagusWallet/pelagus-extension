@@ -1,5 +1,4 @@
 import {
-  RPCRequest,
   WindowResponseEvent,
   PortResponseEvent,
   TallyConfigPayload,
@@ -38,12 +37,6 @@ export function isMessageEvent(arg: unknown): arg is MessageEvent {
   return arg instanceof MessageEvent
 }
 
-export function isRPCRequestParamsType(
-  arg: unknown
-): arg is RPCRequest["params"] {
-  return isObject(arg) || isArray(arg)
-}
-
 export function isWindowResponseEvent(
   arg: unknown
 ): arg is WindowResponseEvent {
@@ -76,8 +69,6 @@ export type AllowedQueryParamPageType =
 export function isAllowedQueryParamPage(
   url: unknown
 ): url is AllowedQueryParamPageType {
-  // The typing for Array.includes in `lib.es.2016.array.include.ts` does not make any sense here -> Object.values<string>
-  // interface Array<T> { ... includes(searchElement: T, fromIndex?: number): boolean; ...
   return Object.values<unknown>(AllowedQueryParamPage).includes(url)
 }
 

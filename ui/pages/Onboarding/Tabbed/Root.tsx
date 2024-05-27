@@ -44,7 +44,6 @@ function Navigation({
       <style jsx>
         {`
           section {
-            width: 100%;
             display: flex;
             height: 100%;
             width: 100%;
@@ -69,13 +68,12 @@ function Navigation({
 
           .right_container {
             position: relative;
-            padding: 62px 80px 0;
-            padding-top: 10%;
+            padding: 10% 80px 0;
             width: 50%;
-            max-height: 100vh; // Adjust this if you need to
+            max-height: 100vh;
             box-sizing: border-box;
             background: #04141480;
-            overflow-y: auto; // Makes it scrollable
+            overflow-y: auto;
           }
 
           .route_based_content {
@@ -106,15 +104,11 @@ function Navigation({
             max-width: 300px;
           }
 
-          .supported_chains_container {
-            margin-top: auto;
-            margin-bottom: 40px;
-          }
-
           @media (max-width: 980px) {
             .left_container {
               display: none;
             }
+
             .right_container {
               width: 100%;
             }

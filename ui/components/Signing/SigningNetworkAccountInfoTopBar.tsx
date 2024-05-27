@@ -34,35 +34,37 @@ export default function SigningNetworkAccountInfoTopBar({
       <style jsx>
         {`
           .top_bar_wrap {
-            margin: 0 auto;
-            margin-top: 16px;
-            margin-bottom: 16px;
+            margin: 16px 0;
             display: flex;
             justify-content: space-between;
             gap: 5px;
           }
+
           .network {
             flex-shrink: 0;
           }
+
           .network_name {
             color: var(--green-20);
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;
           }
+
           .row_part {
             display: flex;
             align-items: center;
           }
+
           .account_avatar {
             border-radius: 2px;
             width: 24px;
             height: 24px;
-            background-color: white;
             margin-left: 8px;
-            background: url("./images/portrait.png");
+            background: white url("./images/portrait.png");
             background-size: cover;
           }
+
           .network_icon_wrap {
             width: 24px;
             height: 24px;
@@ -73,6 +75,7 @@ export default function SigningNetworkAccountInfoTopBar({
             justify-content: center;
             margin-right: 5px;
           }
+
           .account {
             min-width: 0;
           }

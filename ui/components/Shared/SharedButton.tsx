@@ -21,9 +21,6 @@ export type Props = {
     | "unstyled"
     | "twitter"
   size: "small" | "medium" | "large"
-  /**
-   * Default: right
-   */
   iconPosition?: "left" | "right"
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
   isDisabled?: boolean
@@ -60,8 +57,6 @@ export default function SharedButton(
     React.useState<History.LocationDescriptor<unknown> | null>(null)
   const [isClicked, setIsClicked] = useState(false)
 
-  // If the prop deciding if the loader should be displayed or not
-  // changes, assume resetting the loading state condition.
   useEffect(() => {
     setIsClicked(false)
   }, [showLoadingOnClick])

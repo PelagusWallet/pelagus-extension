@@ -23,8 +23,7 @@ import SharedAssetItem, {
 import SharedAssetIcon from "./SharedAssetIcon"
 import PriceDetails from "./PriceDetails"
 
-// List of symbols we want to display first.  Lower array index === higher priority.
-// For now we just prioritize somewhat popular assets that we are able to load an icon for.
+// List of symbols we want to display first. Lower array index === higher priority.
 const SYMBOL_PRIORITY_LIST = [
   "MATIC",
   "KEEP",
@@ -79,13 +78,6 @@ function prioritizedAssetAlphabeticSorter<
 // the current locale, but bubbles to the top any assets that match the passed
 // `searchTerm` at the start of the symbol. Matches are case-insensitive for
 // sorting purposes.
-//
-// For example, if a set of assets [DAAD, AD, AB, AC, AA] is passed, and the
-// search term is empty, the list will be [DAAD, AA, AB, AC, AD]. If the search
-// term is instead AA, the list will be [AA, DAAD, AB, AC, AD]. Note that this
-// function performs no filtering against the search term, the search term is
-// purely used to sort start-anchored symbol matches in front of all other
-// assets.
 function assetAlphabeticSorterWithFilter<
   AssetType extends AnyAsset,
   T extends AnyAssetWithOptionalAmount<AssetType>
@@ -130,9 +122,6 @@ function SelectAssetMenuContent<T extends AnyAsset>(
               asset.contractAddress &&
               searchTerm.startsWith("0x") &&
               normalizeEVMAddress(asset.contractAddress).includes(
-                // The replace handles `normalizeEVMAddress`'s
-                // octet alignment that prefixes a `0` to a partial address
-                // if it has an uneven number of digits.
                 normalizeEVMAddress(searchTerm).replace(/^0x0?/, "0x")
               ) &&
               asset.contractAddress.length >= searchTerm.length)
@@ -192,9 +181,6 @@ function SelectAssetMenuContent<T extends AnyAsset>(
       )}
       <style jsx>
         {`
-          .panel_switcher {
-            width: 100%;
-          }
           .search_label {
             height: 20px;
             color: var(--green-60);
@@ -326,7 +312,6 @@ function assetWithOptionalAmountFromAsset<T extends AnyAsset>(
     assetsToSearch.find(({ asset: listAsset }) =>
       isSameAsset(asset, listAsset)
     ) ?? {
-      // If not found, default balance to zero
       asset: { ...asset, decimals: 1 },
       localizedDecimalAmount: "0",
       amount: BigInt(0),
@@ -582,11 +567,6 @@ export default function SharedAssetInput<T extends AnyAsset>(
             position: relative;
             font-size: 14px;
           }
-          .max {
-            margin-left: 8px; // space to balance
-            color: var(--trophy-gold);
-            cursor: pointer;
-          }
           .asset_wrap {
             height: 72px;
             border-radius: 4px;
@@ -595,9 +575,8 @@ export default function SharedAssetInput<T extends AnyAsset>(
             align-items: center;
             justify-content: space-between;
             position: relative;
-            padding: 0px 16px;
+            padding: 0 16px;
             box-sizing: border-box;
-            position: relative;
           }
           // Using :global() to target child component
           label:hover ~ .asset_wrap > div > :global(button:hover) {
@@ -606,18 +585,6 @@ export default function SharedAssetInput<T extends AnyAsset>(
           }
           label:hover ~ .asset_wrap > div > :global(button:hover .icon_button) {
             background-color: var(--trophy-gold);
-          }
-          .asset_input {
-            width: 100%;
-            height: 34px;
-            font-size: 28px;
-            font-weight: 500;
-            line-height: 32px;
-            color: #fff;
-          }
-          .asset_input::placeholder {
-            color: var(--green-40);
-            opacity: 1;
           }
           .input_amount_wrap {
             display: flex;

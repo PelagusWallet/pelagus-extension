@@ -15,7 +15,7 @@ export default function TransactionSignatureSummaryBody({
             height: fit-content;
             border-radius: 16px;
             background-color: var(--hunter-green);
-            margin: 16px 0px;
+            margin: 16px 0;
             flex-direction: column;
             align-items: center;
           }

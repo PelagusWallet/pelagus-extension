@@ -21,32 +21,31 @@ export default function AccountitemOptionLabel({
       <div className="icon" />
       <span>{label}</span>
       <style jsx>{`
-          .icon {
-            mask-image: url("./images/${icon}");
-            mask-size: cover;
-            background-color: ${color || "var(--green-20)"};
-            width: 16px;
-            margin-right: 5px;
-            height: 16px;
-          }
-          .option_label {
-            display: flex;
-            color: ${color || "var(--green-20)"};
-            flexDirection: row;
-            align-items: center;
-            font-size: 16px;
-            height: 100%;
-            line-height 24px;
-            font-weight: 500;
-            width: 100%;
-          }
-          .hover:hover {
-            color: ${hoverColor || "#fff"};
-          }
-          .hover:hover .icon {
-            background-color: ${hoverColor || "#fff"};
-          }
-        `}</style>
+        .icon {
+          mask-image: url("./images/${icon}");
+          mask-size: cover;
+          background-color: ${color || "var(--green-20)"};
+          width: 16px;
+          margin-right: 5px;
+          height: 16px;
+        }
+        .option_label {
+          display: flex;
+          color: ${color || "var(--green-20)"};
+          align-items: center;
+          font-size: 16px;
+          height: 100%;
+          line-height: 24px;
+          font-weight: 500;
+          width: 100%;
+        }
+        .hover:hover {
+          color: ${hoverColor || "#fff"};
+        }
+        .hover:hover .icon {
+          background-color: ${hoverColor || "#fff"};
+        }
+      `}</style>
     </div>
   )
 }

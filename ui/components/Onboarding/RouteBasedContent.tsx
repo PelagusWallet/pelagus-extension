@@ -4,7 +4,6 @@ import { Route, Switch } from "react-router-dom"
 import { FaDiscord, FaTwitter } from "react-icons/fa"
 import OnboardingRoutes from "../../pages/Onboarding/Tabbed/Routes"
 import SharedButton from "../Shared/SharedButton"
-import WalletShortcut from "./WalletShortcut"
 
 export default function RouteBasedContent(): JSX.Element {
   const { t } = useTranslation("translation", {
@@ -53,11 +52,7 @@ export default function RouteBasedContent(): JSX.Element {
       <Route
         key={OnboardingRoutes.ONBOARDING_COMPLETE}
         path={OnboardingRoutes.ONBOARDING_COMPLETE}
-      >
-        <div className="fadeIn">
-          <WalletShortcut />
-        </div>
-      </Route>
+      ></Route>
       <Route>
         <div className="onboarding_facts fadeIn">
           <p>{t("default.fact1")}</p>

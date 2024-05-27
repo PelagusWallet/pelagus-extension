@@ -1,7 +1,7 @@
 import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
 import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
-import React, { ReactElement, useEffect, useMemo, useState } from "react"
+import React, { ReactElement, useMemo, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import SharedButton from "../../../../components/Shared/SharedButton"
@@ -19,19 +19,6 @@ type SeedWordProps = {
 
 function SeedWord(props: SeedWordProps): ReactElement {
   const { index, word, isActive = false, onSubmit } = props
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768)
-    }
-
-    window.addEventListener("resize", handleResize)
-
-    return () => {
-      window.removeEventListener("resize", handleResize)
-    }
-  }, [])
 
   return (
     <>
@@ -73,12 +60,15 @@ function SeedWord(props: SeedWordProps): ReactElement {
         .word_container.is_active {
           color: var(--trophy-gold);
         }
+
         .word_container.is_active .word_box {
           background: var(--trophy-gold);
         }
+
         .word_container.is_filled {
           color: var(--green-40);
         }
+
         .word_container.is_filled .word_box {
           background: var(--green-60);
           border-color: var(--green-60);
@@ -99,12 +89,12 @@ function SeedWord(props: SeedWordProps): ReactElement {
           border-radius: 4px;
           min-width: 55px;
           width: auto;
-          color: var(--hunter-green)
+          color: var(--hunter-green);
           height: 22px;
-          padding: 4px 8px;
-          padding-right: 32px;
+          padding: 4px 32px 4px 8px;
           text-align: left;
         }
+
         .dash {
           padding: 4px 0;
           font-size: 18px;

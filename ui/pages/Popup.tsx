@@ -216,12 +216,11 @@ export function Main(): ReactElement {
         <style jsx global>
           {`
             ::-webkit-scrollbar {
-              width: 0px;
+              width: 0;
               background: transparent;
             }
 
             ${animationStyles(isDirectionRight)}
-
             .hide {
               opacity: 0;
             }

@@ -218,35 +218,6 @@ function SeedVerification({
             margin-right: 8px;
             margin-bottom: 8px;
           }
-          .selected_wrap {
-            max-height: 159px;
-            overflow-y: scroll;
-            overflow-anchor: none;
-          }
-          .column {
-            height: 152px;
-            font-size: 16px;
-            font-weight: 600;
-            line-height: 38px;
-            text-align: right;
-          }
-          .column_wrap {
-            display: flex;
-            width: 167px;
-          }
-          .dashes {
-            margin-right: 8px;
-            margin-left: 5px;
-            width: 12px;
-          }
-          .words {
-            width: 69px;
-            text-align: left;
-          }
-          .numbers {
-            width: 18px;
-            text-align: right;
-          }
           .onboarding_box {
             ${OnboardingBox}
             flex-wrap: wrap;

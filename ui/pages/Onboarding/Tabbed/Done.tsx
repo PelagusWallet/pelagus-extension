@@ -3,7 +3,6 @@ import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 // eslint-disable-next-line import/no-extraneous-dependencies
 import css from "styled-jsx/css"
-import WalletShortcut from "../../../components/Onboarding/WalletShortcut"
 import { useBackgroundSelector } from "../../../hooks"
 
 const styles = css`
@@ -60,14 +59,6 @@ const styles = css`
     left: 0;
     width: 100%;
     height: 100%;
-  }
-
-  .shortcut_container {
-    background: var(--green-95);
-    padding: 35px 32px 29px;
-    max-width: 402px;
-    margin: 0 auto;
-    border-radius: 4px;
   }
 `
 

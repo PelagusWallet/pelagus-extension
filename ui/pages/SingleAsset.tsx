@@ -72,28 +72,27 @@ export default function SingleAsset(): ReactElement {
     })
   )
 
-  const { asset, localizedMainCurrencyAmount, localizedDecimalAmount } =
-    useBackgroundSelector((state) => {
-      const balances = selectCurrentAccountBalances(state)
+  const { asset, localizedDecimalAmount } = useBackgroundSelector((state) => {
+    const balances = selectCurrentAccountBalances(state)
 
-      if (typeof balances === "undefined") {
-        return undefined
-      }
-
-      return balances.allAssetAmounts.find(({ asset: candidateAsset }) => {
-        if (typeof contractAddress !== "undefined") {
-          return (
-            isSmartContractFungibleAsset(candidateAsset) &&
-            sameEVMAddress(candidateAsset.contractAddress, contractAddress)
-          )
-        }
-        return candidateAsset.symbol === symbol
-      })
-    }) ?? {
-      asset: undefined,
-      localizedMainCurrencyAmount: undefined,
-      localizedDecimalAmount: undefined,
+    if (typeof balances === "undefined") {
+      return undefined
     }
+
+    return balances.allAssetAmounts.find(({ asset: candidateAsset }) => {
+      if (typeof contractAddress !== "undefined") {
+        return (
+          isSmartContractFungibleAsset(candidateAsset) &&
+          sameEVMAddress(candidateAsset.contractAddress, contractAddress)
+        )
+      }
+      return candidateAsset.symbol === symbol
+    })
+  }) ?? {
+    asset: undefined,
+    localizedMainCurrencyAmount: undefined,
+    localizedDecimalAmount: undefined,
+  }
 
   const isUntrusted = isUntrustedAsset(asset)
   const isUnverifiedByUser = isUnverifiedAssetByUser(asset)
@@ -176,9 +175,6 @@ export default function SingleAsset(): ReactElement {
               )}
             </div>
             <div className="balance">{localizedDecimalAmount}</div>
-            {/* {localizedMainCurrencyAmount && (
-              <div className="usd_value">${localizedMainCurrencyAmount}</div>
-            )} */}
           </div>
           <div className="right">
             {isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET) && (
@@ -268,20 +264,6 @@ export default function SingleAsset(): ReactElement {
             font-size: 36px;
             font-weight: 500;
             line-height: 48px;
-          }
-          .usd_value {
-            width: 112px;
-            color: var(--green-40);
-            font-size: 16px;
-            font-weight: 600;
-            line-height: 24px;
-          }
-          .label_light {
-            color: var(--green-40);
-            font-size: 16px;
-            font-weight: 500;
-            line-height: 24px;
-            margin-bottom: 8px;
           }
           .icon_new_tab {
             mask-image: url("./images/new_tab@2x.png");

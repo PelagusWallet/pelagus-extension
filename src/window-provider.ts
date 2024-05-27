@@ -50,7 +50,6 @@ if (!window.walletRouter) {
           // eslint-disable-next-line no-nested-ternary
           ...(window.ethereum
             ? // let's use the providers that has already been registered
-              // This format is used by coinbase wallet
               Array.isArray(window.ethereum.providers)
               ? [...window.ethereum.providers, window.ethereum]
               : [window.ethereum]
@@ -77,16 +76,6 @@ if (!window.walletRouter) {
           }, 1000)
         }
       },
-      getProviderInfo(provider: WalletProvider) {
-        return (
-          provider.providerInfo || {
-            label: "Injected Provider",
-            injectedNamespace: "ethereum",
-            iconURL: "TODO",
-          }
-        )
-      },
-      setSelectedProvider() {},
       addProvider(newProvider: WalletProvider) {
         if (!this.providers.includes(newProvider)) {
           this.providers.push(newProvider)
@@ -131,10 +120,6 @@ Object.defineProperty(window, "ethereum", {
           !(prop in window.walletRouter.currentProvider) &&
           prop in window.walletRouter
         ) {
-          // Uniswap MM connector checks the providers array for the MM provider and forces to use that
-          // https://github.com/Uniswap/web3-react/blob/main/packages/metamask/src/index.ts#L57
-          // as a workaround we need to remove this list for uniswap so the actual provider change can work after reload.
-          // The same is true for `galaxy.eco`
           if (
             window.location.href.includes("galxe.com") &&
             prop === "providers"
@@ -144,7 +129,6 @@ Object.defineProperty(window, "ethereum", {
           // let's publish the api of `window.walletRoute` also on `window.ethereum` for better discoverability
 
           // @ts-expect-error ts accepts symbols as index only from 4.4
-          // https://stackoverflow.com/questions/59118271/using-symbol-as-object-key-type-in-typescript
           return window.walletRouter[prop]
         }
 

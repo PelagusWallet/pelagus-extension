@@ -1,6 +1,6 @@
-import React, { ReactElement, useEffect } from "react"
+import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { getLocalStorageItem, useLocalStorage } from "../../hooks"
+import { useLocalStorage } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedModal from "../Shared/SharedModal"
 

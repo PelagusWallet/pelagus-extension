@@ -1,10 +1,10 @@
-import React, { ReactElement, useState } from "react"
+import React, { ReactElement } from "react"
 import { Redirect, useHistory } from "react-router-dom"
+import { keyringNextPage } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { useTranslation } from "react-i18next"
 import OnboardingRoutes from "./Routes"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../../hooks"
-import { useTranslation } from "react-i18next"
 import ImportPrivateKey from "./ImportPrivateKey"
-import { keyringNextPage } from "@pelagus/pelagus-background/redux-slices/keyrings"
 
 type Props = {
   nextPage: string

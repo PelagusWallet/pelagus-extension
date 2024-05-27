@@ -27,9 +27,6 @@ export function useIsDappPopup(): boolean {
   return isDappPopup
 }
 
-/**
- * Used to describe a panel for useSwitchablePanels.
- */
 type PanelDescriptor = {
   name: string
   panelElement: () => ReactElement
@@ -42,30 +39,6 @@ type PanelDescriptor = {
  * The underlying component is a `SharedPanelSwitcher`, and the hook returns
  * the switcher element and current panel being displayed as siblings for
  * adding to a JSX component.
- *
- * @example
- * ```
- * const switchablePanels = useSwitchablePanels([
- *   {
- *     name: "Details",
- *     panelElement: () => (
- *       <SigningDataTransactionDetailPanel
- *         transactionRequest={transactionRequest}
- *       />
- *     ),
- *   },
- *   {
- *     name: "Raw data",
- *     panelElement: () => (
- *       <SigningDataTransactionRawDataPanel
- *         transactionRequest={transactionRequest}
- *       />
- *     ),
- *   },
- * ])
-
- * return <>{switchablePanels}</>
- * ```
  */
 export function useSwitchablePanels(panels: PanelDescriptor[]): ReactNode {
   const [panelNumber, setPanelNumber] = useState(0)

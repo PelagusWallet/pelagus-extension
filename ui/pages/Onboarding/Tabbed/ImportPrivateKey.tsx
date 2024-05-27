@@ -1,10 +1,10 @@
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
-import SharedButton from "../../../components/Shared/SharedButton"
-import { useBackgroundDispatch } from "../../../hooks"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { SignerSourceTypes } from "@pelagus/pelagus-background/services/keyring"
+import SharedButton from "../../../components/Shared/SharedButton"
+import { useBackgroundDispatch } from "../../../hooks"
 
 type Props = {
   finalize: () => void
@@ -37,7 +37,6 @@ export default function ImportPrivateKey(props: Props): ReactElement {
     )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
 
     if (success) {
-      // dispatch(sendEvent(OneTimeAnalyticsEvent.ONBOARDING_FINISHED))
       finalize()
     } else {
       setErrorMessage(t("errorImport"))
@@ -88,11 +87,6 @@ export default function ImportPrivateKey(props: Props): ReactElement {
       </SharedButton>
       <style jsx>
         {`
-          .bottom {
-            width: 100%;
-            margin: 25px auto 0;
-          }
-
           .input_wrap {
             position: relative;
           }
@@ -100,20 +94,20 @@ export default function ImportPrivateKey(props: Props): ReactElement {
           .recovery_label {
             position: absolute;
             font-size: 12px;
-            margin-left: 16px; 
+            margin-left: 16px;
             line-height: 16px;
             transition: all 0.2s ease-in-out;
             pointer-events: none;
           }
-  
+
           #recovery_phrase[data-empty="true"]:not(:focus) ~ .recovery_label {
             font-size: 16px;
             line-height: 24px;
             top: 12px;
-            color; var(--hunter-green)
+            color: var(--hunter-green);
             left: 16px;
           }
-  
+
           #recovery_phrase[data-empty="false"] ~ .recovery_label {
             padding: 0 6px;
             color: var(--green-40);
@@ -121,7 +115,7 @@ export default function ImportPrivateKey(props: Props): ReactElement {
             top: -8px;
             left: 16px;
           }
-  
+
           #recovery_phrase {
             width: 320px;
             height: 104px;
@@ -134,13 +128,13 @@ export default function ImportPrivateKey(props: Props): ReactElement {
             font-family: inherit;
             overflow-y: scroll;
           }
-  
+
           #recovery_phrase * {
             word-wrap: break-word;
             color: var(--white);
             font-family: inherit;
           }
-  
+
           #recovery_phrase:focus ~ .recovery_label {
             top: -8px;
             left: 16px;
@@ -151,12 +145,12 @@ export default function ImportPrivateKey(props: Props): ReactElement {
             transition: all 0.2s ease-in-out;
             z-index: 999;
           }
-  
+
           #recovery_phrase:focus {
             border: 2px solid var(--trophy-gold);
             outline: 0;
           }
-  
+
           .error {
             color: red;
           }

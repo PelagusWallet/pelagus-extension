@@ -17,11 +17,7 @@ import {
   useIsOnboarding,
 } from "../../hooks"
 
-// Number of ms before a snackbar message dismisses; changing the message will
-// extend visibility by this much.
 const DISMISS_MS = 2500
-// Number of ms that it takes for the snackbar to disappear after it's
-// dismissed.
 const DISMISS_ANIMATION_MS = 300
 
 export default function Snackbar({
@@ -111,8 +107,6 @@ export default function Snackbar({
           }
 
           .snackbar_container.hidden {
-            // Take up no space, and let pointer events through just in case. No
-            // hidden snackbar should get in the way of a user's actions.
             pointer-events: none;
             opacity: 0;
           }

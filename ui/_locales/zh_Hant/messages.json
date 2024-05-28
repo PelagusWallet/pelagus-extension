@@ -7,18 +7,6 @@
     "search": "透過名稱或地址搜尋",
     "selectToken": "選擇代幣"
   },
-  "comingSoon": "敬請期待",
-  "overview": {
-    "accounts": "帳號",
-    "assets": "資產",
-    "networks": "網路",
-    "tableHeader": {
-      "asset": "資產",
-      "balance": "帳戶總額",
-      "price": "價格"
-    },
-    "totalBalanceEverywhere": "所有帳戶的總額"
-  },
   "passwordStrength": {
     "average": "普通",
     "hintDesc": "要產生一個高強度的密碼，可以試著混合大小寫、符號與數字。密碼長度應該超過 8 個字元。",
@@ -26,18 +14,9 @@
     "strong": "強",
     "weak": "弱"
   },
-  "popupEdition": "社群版",
-  "protocol": {
-    "compatibleChain": "以太坊相容區塊鏈",
-    "connected": "已連線",
-    "l2": "L2 擴展方案",
-    "mainnet": "以太坊主網",
-    "testnet": "測試網路"
-  },
   "readOnly": "唯讀",
   "readOnlyNotice": "唯讀模式",
   "settings": {
-    "analytics": "分析",
     "analyticsSetUp": {
       "analyticsOffSlideUpMenu": {
         "desc": "確定想要關閉分析？開啟分析使我們能夠為您打造更好的錢包",
@@ -54,12 +33,8 @@
         "title": "想要刪除您的資料？"
       },
       "noRecordItemSeed": "你的助記詞",
-      "noRecordItemTransactions": "您的地址和交易",
       "noRecordTitle": "我們永遠不會記錄",
       "policyBtn": "隱私政策",
-      "recordItemAccounts": "帳號數目",
-      "recordItemGas": "Gas 支付總額",
-      "recordItemOrders": "交換/發送次數",
       "recordTitle": "我們將記錄什麼",
       "title": "分析",
       "toggleDesc": "分析幫助我們了解您的需求，並使我們能夠為您打造更好的錢包！",
@@ -74,7 +49,6 @@
       "emptyList": "尚未與任何網站連結",
       "title": "已連結的網站"
     },
-    "enableTestNetworks": "啟用測試網路",
     "exportLogs": {
       "ariaLabel": "開啟問題報告",
       "discordBtn": "加入 Discord",
@@ -85,20 +59,12 @@
       "logTitle": "2. 匯出紀錄",
       "title": "問題回報"
     },
-    "hideSmallAssetBalance": "隱藏小於 {{sign}}{{amount}} 的資產",
-    "joinBtn": "加入我們的 Discord 並給予反饋",
-    "joinDesc": "加入我們的 Discord 並給予反饋!",
-    "joinTitle": "加入我們的社群",
     "language": "語言",
     "mainMenu": "設定",
     "setAsDefault": "將 Pelagus 設為你的預設錢包"
   },
   "shared": {
     "cancelBtn": "取消"
-  },
-  "toggle": {
-    "collapse": "展開",
-    "viewAll": "查看全部"
   },
   "wallet": {
     "assetAmount": "資產 / 數目",

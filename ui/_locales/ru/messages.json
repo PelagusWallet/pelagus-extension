@@ -1,21 +1,12 @@
 {
-  "overview": {
-    "assets": "Активы",
-    "tableHeader": {
-      "asset": "Актив",
-      "balance": "Баланс"
-    }
-  },
   "passwordStrength": {
     "average": "Средний"
   },
-  "popupEdition": "Community Edition",
   "settings": {
     "bugReport": "Сообщить об ошибке",
     "exportLogs": {
       "title": "Сообщить об ошибке"
-    },
-    "hideSmallAssetBalance": ""
+    }
   },
   "wallet": {
     "assetAmount": "Актив / Количество"

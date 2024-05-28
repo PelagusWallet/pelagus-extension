@@ -7,18 +7,6 @@
     "search": "Buscar por nombre o dirección",
     "selectToken": "Seleccionar Token"
   },
-  "comingSoon": "Próximamente",
-  "overview": {
-    "accounts": "Cuentas",
-    "assets": "Activos",
-    "networks": "Redes",
-    "tableHeader": {
-      "asset": "Activo",
-      "balance": "Saldo",
-      "price": "Precio"
-    },
-    "totalBalanceEverywhere": "Saldo Total en todas las cuentas"
-  },
   "passwordStrength": {
     "average": "Promedio",
     "hintDesc": "Para una contraseña segura, considere mezclar mayúsculas y minúsculas, símbolos, y números. Las contraseñas deben tener más de 8 caracteres",
@@ -26,16 +14,9 @@
     "strong": "Fuerte",
     "weak": "Débil"
   },
-  "popupEdition": "Edición comunitaria",
-  "protocol": {
-    "connected": "Conectado",
-    "mainnet": "Mainnet",
-    "testnet": "Red de prueba"
-  },
   "readOnly": "Solo lectura",
   "readOnlyNotice": "Modo - Solo lectura",
   "settings": {
-    "analytics": "Analítica",
     "analyticsSetUp": {
       "analyticsOffSlideUpMenu": {
         "desc": "¿Está seguro que desea desactivar la analítica? Nos ayudan mucho a construir una mejor billetera para ti.",
@@ -43,7 +24,6 @@
         "submitBtn": "Sí, apagar",
         "title": "¿Desactivar analítica?"
       },
-      "ariaLabel": "Analítica abierta",
       "deleteBtn": "Eliminar mis datos",
       "deleteSlideUpMenu": {
         "desc": "¿Está seguro que desea eliminar sus datos? Nos ayudan mucho a construir una mejor billetera para ti.",
@@ -52,13 +32,8 @@
         "title": "¿Eliminar tus datos?"
       },
       "noRecordItemSeed": "Tu Frase Semilla",
-      "noRecordItemTransactions": "Tu dirección y transacciones",
       "noRecordTitle": "Nunca grabaremos",
       "policyBtn": "Política de Privacidad",
-      "recordItemAccounts": "Número de Cuentas",
-      "recordItemGas": "Gas pagado en general",
-      "recordItemOrders": "Número de intercambios / envíos",
-      "title": "Analíticas",
       "toggleDesc": "¡Las analíticas nos ayudan a comprender sus necesidades y nos permiten construir una billetera mejor para ti!",
       "toggleTitleOff": "La analítica está desactivada",
       "toggleTitleOn": "La analítica está activada"
@@ -71,7 +46,6 @@
       "emptyList": "No está conectado a ningún sitio web",
       "title": "Sitios web a los que está conectado"
     },
-    "enableTestNetworks": "Habilitar redes de prueba",
     "exportLogs": {
       "ariaLabel": "Reporta un error",
       "discordBtn": "Únase a Discord",
@@ -82,20 +56,12 @@
       "logTitle": "2. Exportar registros",
       "title": "Informe de errores"
     },
-    "hideSmallAssetBalance": "Ocultar saldos menores de {{sign}}{{amount}}",
-    "joinBtn": "Únete y danos tu opinión",
-    "joinDesc": "¡Únete a nuestro Discord y danos tu opinión!",
-    "joinTitle": "Únete a nuestra comunidad",
     "language": "Idioma",
     "mainMenu": "Ajustes",
     "setAsDefault": "Usa Pelagus como su billetera predeterminada"
   },
   "shared": {
     "cancelBtn": "Cancelar"
-  },
-  "toggle": {
-    "collapse": "Colapsar",
-    "viewAll": "Ver todo"
   },
   "wallet": {
     "assetAmount": "Activo / Monto",

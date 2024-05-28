@@ -24,8 +24,7 @@ export const selectKeyringByAddress = (
   createSelector(
     [(state: RootState) => state.keyrings.keyrings],
     (keyrings) => {
-      const kr = keyrings.find((keyring) => keyring.addresses.includes(address))
-      return kr
+      return keyrings.find((keyring) => keyring.addresses.includes(address))
     }
   )
 

@@ -297,7 +297,6 @@ export const createAccountData = (
 
 const getRandomStr = (length: number) => {
   let result = ""
-
   while (result.length < length) {
     result += Math.random().toString(36).slice(2)
   }

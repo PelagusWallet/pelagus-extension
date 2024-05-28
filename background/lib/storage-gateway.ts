@@ -33,10 +33,8 @@ export function changeURLProtocolAndBase(url: URL, baseURL: URL): URL {
 // TODO eventually we want proper IPFS and Arweave support
 export function storageGatewayURL(url: string): URL {
   const protocol = url.slice(0, url.indexOf("//"))
-
   switch (protocol) {
     case "ipfs:": {
-      // cidv0 is case sensitive
       const contentId = url.split("ipfs://")[1]
       return new URL(contentId, ipfsGateway)
     }

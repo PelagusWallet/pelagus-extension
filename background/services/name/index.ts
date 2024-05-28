@@ -174,7 +174,6 @@ export default class NameService extends BaseService<Events> {
     const workingResolvers = this.resolvers.filter((resolver) =>
       resolver.canAttemptNameResolution({ address, network })
     )
-
     const localResolvers = [...workingResolvers].filter(
       (resolver) => resolver.type === "tally-address-book"
     )
@@ -209,9 +208,8 @@ export default class NameService extends BaseService<Events> {
     if (
       firstMatchingResolution === undefined ||
       firstMatchingResolution.resolved === undefined
-    ) {
+    )
       return undefined
-    }
 
     const { type: resolverType, resolved: nameOnNetwork } =
       firstMatchingResolution
@@ -247,7 +245,6 @@ export default class NameService extends BaseService<Events> {
 
   removeAccount(address: HexString): void {
     const chainIds = Object.keys(this.cachedResolvedNames.EVM)
-
     chainIds.forEach((chainId) => {
       this.clearNameCacheEntry(chainId, address)
     })

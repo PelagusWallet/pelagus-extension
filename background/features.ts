@@ -1,13 +1,7 @@
-/**
- * Feature flags which are set at build time.
- */
 const BuildTimeFlag = {
   SWITCH_RUNTIME_FLAGS: process.env.SWITCH_RUNTIME_FLAGS === "true",
 } as const
 
-/**
- * Feature flags which are set at runtime.
- */
 export const RuntimeFlag = {
   USE_MAINNET_FORK: process.env.USE_MAINNET_FORK === "true",
   HIDE_IMPORT_DERIVATION_PATH:
@@ -59,9 +53,7 @@ export function isEnabled(
   const isBuildTimeFlag = (flag: string): flag is BuildTimeFlagType =>
     flag in BuildTimeFlag
 
-  if (isBuildTimeFlag(flagName)) {
-    return BuildTimeFlag[flagName]
-  }
+  if (isBuildTimeFlag(flagName)) return BuildTimeFlag[flagName]
 
   if (checkBrowserStorage) {
     const state = localStorage.getItem(flagName)

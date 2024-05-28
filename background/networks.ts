@@ -388,9 +388,9 @@ export function sameNetwork(
  * while also handling cases where an already hexlified chainID is passed in.
  */
 export function toHexChainID(chainID: string | number): string {
-  if (typeof chainID === "string" && chainID.startsWith("0x")) {
+  if (typeof chainID === "string" && chainID.startsWith("0x"))
     return chainID.toLowerCase()
-  }
+
   return `0x${BigInt(chainID).toString(16)}`
 }
 
@@ -399,7 +399,6 @@ export const sameChainID = (chainID: string, other: string): boolean => {
 }
 
 // There is probably some clever way to combine the following type guards into one function
-
 export const isEIP1559TransactionRequest = (
   transactionRequest:
     | AnyEVMTransaction

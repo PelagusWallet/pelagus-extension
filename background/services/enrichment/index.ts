@@ -71,7 +71,6 @@ export default class EnrichmentService extends BaseService<Events> {
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-
     await this.connectChainServiceEvents()
   }
 
@@ -126,7 +125,6 @@ export default class EnrichmentService extends BaseService<Events> {
       const correspondingAsset = undefined
       annotation = await enrichEIP2612SignTypedDataRequest(
         typedData,
-        this.nameService,
         correspondingAsset
       )
     }

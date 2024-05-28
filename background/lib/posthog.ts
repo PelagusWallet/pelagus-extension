@@ -26,18 +26,13 @@ export const isOneTimeAnalyticsEvent = (
 }
 
 const POSTHOG_PROJECT_ID = "0"
-
 const PERSON_ENDPOINT = `https://app.posthog.com/api/projects/${POSTHOG_PROJECT_ID}/persons`
-
 export const POSTHOG_URL =
   process.env.POSTHOG_URL ?? "https://app.posthog.com/capture/"
-
-// Destructuring doesn't work with env variables. process.nev is `MISSING ENV VAR` in that case
-// eslint-disable-next-line prefer-destructuring
 export const USE_ANALYTICS_SOURCE = process.env.USE_ANALYTICS_SOURCE
 
 export function shouldSendPosthogEvents(): boolean {
-  return false
+  return false // FIXME I haven't deleted yet, maybe there will be logic in the future
 }
 
 export function createPosthogPayload(
@@ -47,15 +42,10 @@ export function createPosthogPayload(
 ): string {
   return JSON.stringify({
     // See posthog Data model: https://posthog.com/docs/how-posthog-works/data-model
-    // ID of the event
     uuid: uuidv4(),
-    // The unique or anonymous id of the user that triggered the event.
     distinct_id: personUUID,
-    // api key
     api_key: process.env.POSTHOG_API_KEY,
-    // name of the event
     event: eventName,
-    // Let's include a timestamp just to be sure. Optional.
     timestamp: new Date().toISOString(),
     properties: {
       // $lib property name is a convention used by posthog to send in the source property.
@@ -66,7 +56,6 @@ export function createPosthogPayload(
       // properties[$current_url] is a convention used by posthog
       // Let's store the URL so we can differentiate between the sources later on.
       $current_url: self.location.href,
-      // Let's also send in anything that we might send with the event. Eg time
       ...payload,
     },
   })
@@ -78,17 +67,16 @@ export function sendPosthogEvent(
   payload?: Record<string, unknown>
 ): void {
   try {
-    if (shouldSendPosthogEvents()) {
-      // fetchJson works only with GET requests
-      fetch(POSTHOG_URL, {
-        method: "POST",
-        body: createPosthogPayload(personUUID, eventName, payload),
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      })
-    }
+    if (!shouldSendPosthogEvents()) return // FIXME in fact, we always exit the function
+
+    fetch(POSTHOG_URL, {
+      method: "POST",
+      body: createPosthogPayload(personUUID, eventName, payload),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    })
   } catch (e) {
     logger.debug("Sending analytics event failed with error: ", e)
   }

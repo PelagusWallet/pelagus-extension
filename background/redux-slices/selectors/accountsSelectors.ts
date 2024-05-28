@@ -1,11 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit"
 import { selectHideDust, selectShowUnverifiedAssets } from "../ui"
 import { RootState } from ".."
-import {
-  AccountType,
-  DEFAULT_ACCOUNT_NAMES,
-  CompleteAssetAmount,
-} from "../accounts"
+import { AccountType, CompleteAssetAmount } from "../accounts"
 import { AssetsState, selectAssetPricePoint } from "../assets"
 import {
   enrichAssetAmountWithDecimalValues,
@@ -43,7 +39,6 @@ import {
 } from "./keyringsSelectors"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import { EVMNetwork, sameNetwork } from "../../networks"
-import { NETWORK_BY_CHAIN_ID, TEST_NETWORK_BY_CHAIN_ID } from "../../constants"
 import { AccountSigner, SignerType } from "../../services/signing"
 import { assertUnreachable } from "../../lib/utils/type-guards"
 import { SignerImportSource } from "../../services/keyring"
@@ -78,9 +73,8 @@ export function determineAssetDisplayAndVerify(
 ): { displayAsset: boolean; verifiedAsset: boolean } {
   const isVerified = !isUnverifiedAssetByUser(assetAmount.asset)
 
-  if (shouldForciblyDisplayAsset(assetAmount)) {
+  if (shouldForciblyDisplayAsset(assetAmount))
     return { displayAsset: true, verifiedAsset: isVerified }
-  }
 
   const isNotDust =
     typeof assetAmount.mainCurrencyAmount === "undefined"
@@ -111,8 +105,7 @@ const computeCombinedAssetAmountsData = (
   unverifiedAssetAmounts: CompleteAssetAmount[]
   totalMainCurrencyAmount: number | undefined
 } => {
-  // Derive account "assets"/assetAmount which include USD values using
-  // data from the assets slice
+  // Derive account "assets"/assetAmount which include USD values using data from the assets slice
   const allAssetAmounts = assetAmounts
     .map<CompleteAssetAmount>((assetAmount) => {
       const assetPricePoint = selectAssetPricePoint(
@@ -148,22 +141,18 @@ const computeCombinedAssetAmountsData = (
 
       // Always sort base assets above non-base assets. This also sorts the
       // current network base asset above the rest
-      if (leftIsBaseAsset !== rightIsBaseAsset) {
-        return leftIsBaseAsset ? -1 : 1
-      }
+      if (leftIsBaseAsset !== rightIsBaseAsset) return leftIsBaseAsset ? -1 : 1
 
       // If the assets are both base assets or neither is a base asset, compare
       // by main currency amount.
       if (
         asset1.mainCurrencyAmount !== undefined &&
         asset2.mainCurrencyAmount !== undefined
-      ) {
+      )
         return asset2.mainCurrencyAmount - asset1.mainCurrencyAmount
-      }
 
       if (asset1.mainCurrencyAmount === asset2.mainCurrencyAmount) {
-        // If both assets are missing a main currency amount, compare symbols
-        // lexicographically.
+        // If both assets are missing a main currency amount, compare symbols lexicographically.
         return asset1.asset.symbol.localeCompare(asset2.asset.symbol)
       }
 
@@ -194,8 +183,7 @@ const computeCombinedAssetAmountsData = (
       { combinedAssetAmounts: [], unverifiedAssetAmounts: [] }
     )
 
-  // Keep a tally of the total user value; undefined if no main currency data
-  // is available.
+  // Keep a tally of the total user value; undefined if no main currency data is available.
   let totalMainCurrencyAmount: number | undefined
   combinedAssetAmounts.forEach((assetAmount) => {
     if (typeof assetAmount.mainCurrencyAmount !== "undefined") {
@@ -234,9 +222,8 @@ export const selectCurrentAccountBalances = createSelector(
     showUnverifiedAssets,
     mainCurrencySymbol
   ) => {
-    if (typeof currentAccount === "undefined" || currentAccount === "loading") {
+    if (typeof currentAccount === "undefined" || currentAccount === "loading")
       return undefined
-    }
 
     const assetAmounts = Object.values(currentAccount.balances).map(
       (balance) => balance.assetAmount
@@ -364,18 +351,13 @@ const getTotalBalance = (
         mainCurrencySymbol
       )
 
-      if (typeof assetPricePoint === "undefined") {
-        return 0
-      }
+      if (typeof assetPricePoint === "undefined") return 0
 
       const convertedAmount = convertAssetAmountViaPricePoint(
         assetAmount,
         assetPricePoint
       )
-
-      if (typeof convertedAmount === "undefined") {
-        return 0
-      }
+      if (typeof convertedAmount === "undefined") return 0
 
       return assetAmountToDesiredDecimals(
         convertedAmount,
@@ -410,7 +392,7 @@ function getNetworkAccountTotalsByCategory(
         sourcesByAddress
       )
 
-      if (accountData === "loading") {
+      if (accountData === "loading")
         return {
           address,
           network,
@@ -420,7 +402,6 @@ function getNetworkAccountTotalsByCategory(
           path,
           accountSigner,
         }
-      }
 
       const shard = getShardFromAddress(address)
       const { customAccountData, defaultName, balances, defaultAvatar } =

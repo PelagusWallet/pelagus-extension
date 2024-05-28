@@ -24,9 +24,7 @@ export const selectShowingActivityDetail = createSelector(
   selectCurrentAccount,
   (state: RootState) => state.ui.showingActivityDetailID,
   (activities, currentAccountOnNetwork, showingActivityDetailID) => {
-    if (!showingActivityDetailID) {
-      return null
-    }
+    if (!showingActivityDetailID) return null
 
     return (
       activities[currentAccountOnNetwork.address]?.[

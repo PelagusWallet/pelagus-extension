@@ -69,7 +69,6 @@ export async function getBalance(
   account: string
 ): Promise<bigint> {
   const token = new quais.Contract(tokenAddress, ERC20_ABI, provider)
-
   return BigInt((await token.balanceOf(account)).toString())
 }
 
@@ -163,9 +162,8 @@ export function parseLogsForERC20Transfers(logs: EVMLog[]): ERC20TransferLog[] {
           typeof decoded.to === "undefined" ||
           typeof decoded.from === "undefined" ||
           typeof decoded.amount === "undefined"
-        ) {
+        )
           return undefined
-        }
 
         return {
           contractAddress,
@@ -193,14 +191,12 @@ export const getTokenBalances = async (
   }
 
   const contract = new quais.Contract(multicallAddress, MULTICALL_ABI, provider)
-
   const balanceOfCallData = ERC20_INTERFACE.encodeFunctionData("balanceOf", [
     address,
   ])
 
   const response = (await contract.callStatic.tryBlockAndAggregate(
-    // false === don't require all calls to succeed
-    false,
+    false, // false === don't require all calls to succeed
     tokenAddresses.map((tokenAddress) =>
       tokenAddress != "" &&
       getShardFromAddress(address) == getShardFromAddress(tokenAddress)
@@ -210,13 +206,8 @@ export const getTokenBalances = async (
   )) as AggregateContractResponse
 
   return response.returnData.flatMap((data, i) => {
-    if (data.success !== true) {
-      return []
-    }
-
-    if (data.returnData === "0x00" || data.returnData === "0x") {
-      return []
-    }
+    if (data.success !== true) return []
+    if (data.returnData === "0x00" || data.returnData === "0x") return []
 
     return {
       amount: BigInt(BigNumber.from(data.returnData).toString()),

@@ -29,6 +29,4 @@ test.describe("Signing", () => {
     // If we see this then it means we were able to sign in
     await expect(siwe.getByText("Vote for your favorite emoji")).toBeVisible()
   })
-
-  // test.skip("Typed data signing", async () => {})
 })

@@ -158,9 +158,7 @@ export const refreshAsset = createBackgroundAsyncThunk(
     },
     { dispatch }
   ) => {
-    // Update assets slice
     await dispatch(assetsLoaded([asset]))
-    // Update accounts slice cached data about this asset
     await dispatch(updateAssetReferences(asset))
   }
 )
@@ -356,7 +354,6 @@ export const transferAsset = createBackgroundAsyncThunk(
 
     const provider = getProvider()
     const signer = provider.getSigner()
-    console.log(await signer.getAddress())
 
     if (isBuiltInNetworkBaseAsset(assetAmount.asset, fromNetwork)) {
       logger.debug(
@@ -421,7 +418,6 @@ function genQuaiRawTransaction(
   }
 
   if (isExternal) {
-    // is external this time
     type = 2
   } else {
     type = 0
@@ -442,7 +438,6 @@ function genQuaiRawTransaction(
   }
 
   if (isExternal) {
-    // is external this time
     tx.externalGasLimit = BigInt(100000)
     tx.externalGasPrice =
       tx.maxFeePerGas * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
@@ -487,9 +482,8 @@ export const selectAssetPricePoint = createSelector(
       if (
         (assetToFind.metadata?.tokenLists?.length ?? 0) < 1 &&
         !isBuiltInNetworkBaseAsset(assetToFind, assetToFind.homeNetwork)
-      ) {
+      )
         return undefined
-      }
     }
 
     /* Otherwise, find a best-effort match by looking for assets with the same symbol  */
@@ -533,7 +527,6 @@ export const selectAssetPricePoint = createSelector(
       return pricePoint
     }
 
-    // If no matching priced asset was found, return undefined.
     return undefined
   }
 )
@@ -570,7 +563,6 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
         network,
       })
     } catch (error) {
-      // FIXME: Rejected thunks return undefined instead of throwing
       console.log(error)
       return null
     }
@@ -580,13 +572,11 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
 transactionConstructionSliceEmitter.on(
   "signedTransactionResult",
   async (tx) => {
-    console.log("transaction signed", tx)
     const provider = globalThis.main.chainService.providerForNetworkOrThrow(
       tx.network
     )
     try {
-      const res = await provider.sendTransaction(serializeSigned(tx))
-      console.log(res)
+      await provider.sendTransaction(serializeSigned(tx))
       globalThis.main.chainService.saveTransaction(tx, "local")
     } catch (error: any) {
       if (error.toString().includes("insufficient funds")) {
@@ -634,7 +624,7 @@ function serializeSigned(transaction: SignedTransaction): string {
     formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
     formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
     formatNumber(transaction.gasLimit || 0, "gasLimit"),
-    transaction.to, // presuming it's valid as it's already signed
+    transaction.to,
     formatNumber(transaction.value || 0, "value"),
     transaction.input || "0x",
     formatAccessList([]),
@@ -687,7 +677,6 @@ export function calcEtxFeeMultiplier(fromShard: string, toShard: string) {
     (fromShard.includes("paxos") && toShard.includes("paxos")) ||
     (fromShard.includes("hydra") && toShard.includes("hydra"))
   ) {
-    // same region
     multiplier = NUM_ZONES_IN_REGION
   } else {
     multiplier = NUM_ZONES_IN_REGION * NUM_REGIONS_IN_PRIME

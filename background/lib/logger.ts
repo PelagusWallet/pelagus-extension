@@ -1,7 +1,6 @@
 // Ignore the no-console lint rule since this file is meant to funnel output to
 // the console.
 /* eslint-disable no-console */
-
 import { HOUR } from "../constants"
 import localStorageShim from "../utils/local-storage-shim"
 
@@ -185,9 +184,7 @@ class Logger {
         // Remove empty lines from the output
         // Chrome prepends the word "Error" to the first line of the trace, but Firefox doesn't
         // Let's ignore that for consistency between browsers!
-        if (line.trim() === "" || line.trim() === "Error") {
-          return false
-        }
+        if (line.trim() === "" || line.trim() === "Error") return false
 
         return true
       })
@@ -301,9 +298,7 @@ class Logger {
     })
 
     // This check is here to safeguard array access in the filter below
-    if (logEntries.length < 1) {
-      return ""
-    }
+    if (logEntries.length < 1) return ""
 
     const dateFromLogEntry = (dateStr: string) =>
       new Date(dateStr.substring(1, iso8601Length))
@@ -331,5 +326,4 @@ class Logger {
 const logger = new Logger()
 
 export const serializeLogs = logger.serializeLogs.bind(logger)
-
 export default logger

@@ -60,12 +60,11 @@ export const importKeyring = createBackgroundAsyncThunk(
   ): Promise<{ success: boolean; errorMessage?: string }> => {
     const address = await main.importSigner(signerRaw)
 
-    if (!address) {
+    if (!address)
       return {
         success: false,
         errorMessage: "Unexpected error during signer import",
       }
-    }
 
     const { ui } = getState() as {
       ui: UIState
@@ -111,9 +110,7 @@ const keyringsSlice = createSlice({
       // list as the keyring service clears the in-memory keyrings. For UI
       // purposes, however, we want to continue tracking the keyring metadata,
       // so we ignore an empty list if the keyrings are locked.
-      if (keyrings.length === 0 && state.status === "locked") {
-        return state
-      }
+      if (keyrings.length === 0 && state.status === "locked") return state
 
       return {
         ...state,
@@ -151,13 +148,8 @@ export const generateNewKeyring = createBackgroundAsyncThunk(
 export const deriveAddress = createBackgroundAsyncThunk(
   "keyrings/deriveAddress",
   async ({ signerId: id, shard }: DeriveAddressData) => {
-    if (id == "") {
-      console.log("No signerId provided, skipping derive address")
-      return
-    }
-    console.log(
-      `Emitting derive address for signerId: ${id} and shard: ${shard}`
-    )
+    if (id == "") return
+
     await emitter.emit("deriveAddress", { signerId: id, shard })
   }
 )

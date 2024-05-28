@@ -34,7 +34,6 @@ export default class AnalyticsService extends BaseService<Events> {
     [Promise<PreferenceService>]
   > = async (preferenceService) => {
     const db = await getOrCreateDB()
-
     return new this(db, await preferenceService)
   }
 
@@ -55,7 +54,6 @@ export default class AnalyticsService extends BaseService<Events> {
       // this handles the edge case where we have already shipped analytics
       // but with default turned off and now we want to turn default on
       // and show a notification to the user
-
       isEnabled = true
       hasDefaultOnBeenTurnedOn = true
 
@@ -78,7 +76,6 @@ export default class AnalyticsService extends BaseService<Events> {
 
   protected override async internalStopService(): Promise<void> {
     this.db.close()
-
     await super.internalStopService()
   }
 
@@ -87,7 +84,6 @@ export default class AnalyticsService extends BaseService<Events> {
     payload?: Record<string, unknown>
   ): Promise<void> {
     // @TODO: implement event batching
-
     const { isEnabled } = await this.preferenceService.getAnalyticsPreferences()
     // We want to send the ANALYTICS_TOGGLED event to denote that the user
     // has disabled analytics - and we send the event after disabling, so
@@ -95,7 +91,6 @@ export default class AnalyticsService extends BaseService<Events> {
     // after analytics have been set to disabled in the preferenceService.
     if (eventName === AnalyticsEvent.ANALYTICS_TOGGLED || isEnabled) {
       const { uuid } = await this.getOrCreateAnalyticsUUID()
-
       sendPosthogEvent(uuid, eventName, payload)
     }
   }
@@ -105,9 +100,7 @@ export default class AnalyticsService extends BaseService<Events> {
     payload?: Record<string, unknown>
   ): Promise<void> {
     const { isEnabled } = await this.preferenceService.getAnalyticsPreferences()
-    if (!isEnabled) {
-      return
-    }
+    if (!isEnabled) return
 
     // There are some events that we want to send once per chainId.
     // Rather than creating a separate event for every chain - lets

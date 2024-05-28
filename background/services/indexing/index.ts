@@ -131,7 +131,6 @@ export default class IndexingService extends BaseService<Events> {
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-
     this.connectChainServiceEvents()
 
     // Kick off token list fetching in the background
@@ -241,7 +240,6 @@ export default class IndexingService extends BaseService<Events> {
     contractAddress: HexString
   ): SmartContractFungibleAsset | undefined {
     const knownAssets = this.getCachedAssets(network)
-
     const searchResult = knownAssets.find(
       (asset): asset is SmartContractFungibleAsset =>
         isSmartContractFungibleAsset(asset) &&
@@ -526,9 +524,9 @@ export default class IndexingService extends BaseService<Events> {
 
     const accountBalances = unfilteredAccountBalances.reduce<AccountBalance[]>(
       (acc, current) => {
-        if (current.status === "fulfilled" && current.value) {
+        if (current.status === "fulfilled" && current.value)
           return [...acc, current.value]
-        }
+
         return acc
       },
       []
@@ -711,7 +709,6 @@ export default class IndexingService extends BaseService<Events> {
   private async loadAccountBalances(onlyActiveAccounts = false): Promise<void> {
     // TODO doesn't support multi-network assets
     // like USDC or CREATE2-based contracts on L1/L2
-
     const accounts = await this.chainService.getAccountsToTrack(
       onlyActiveAccounts
     )

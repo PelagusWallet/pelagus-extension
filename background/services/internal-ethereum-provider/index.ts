@@ -374,7 +374,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       return defaultNetwork
     }
     return currentNetwork
-    // return QUAI_NETWORK
   }
 
   async removePrefererencesForChain(chainId: string): Promise<void> {
@@ -448,9 +447,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       sameChainID(network.chainID, chainID)
     )
 
-    if (trackedNetwork) {
-      return trackedNetwork
-    }
+    if (trackedNetwork) return trackedNetwork
 
     try {
       const newlyTrackedNetwork =

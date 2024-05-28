@@ -12,11 +12,7 @@ export type EIP712DomainType = {
   verifyingContract?: HexString
 }
 
-// spec found https://eips.ethereum.org/EIPS/eip-4361
 export interface EIP4361Data {
-  /**
-   * The message string that was parsed to produce this EIP-4361 data.
-   */
   unparsedMessageData: string
   domain: string
   address: string
@@ -68,7 +64,6 @@ export type EIP2612TypedData = {
   types: Record<string, TypedDataField[]>
   message: EIP2612Message
   primaryType: "Permit"
-  // FIXME Add network info.
 }
 
 const checkEIP4361: (message: string) => EIP4361Data | undefined = (
@@ -123,12 +118,11 @@ export function parseSigningData(signingData: string): MessageSigningData {
   }
 
   const data = checkEIP4361(normalizedData)
-  if (data) {
+  if (data)
     return {
       messageType: "eip4361",
       signingData: data,
     }
-  }
 
   return {
     messageType: "eip191",
@@ -145,10 +139,8 @@ export const isSameAccountSignerWithId = (
   switch (signerB.type) {
     case "private-key":
       return signerB.walletID === (signerA as typeof signerB).walletID
-
     case "keyring":
       return signerB.keyringID === (signerA as typeof signerB).keyringID
-
     default:
       return false
   }

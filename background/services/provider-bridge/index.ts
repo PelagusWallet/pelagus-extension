@@ -126,7 +126,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService() // Not needed, but better to stick to the patterns
-
     this.emitter.emit(
       "initializeAllowedPages",
       await this.db.getAllPermission()
@@ -138,9 +137,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     event: PortRequestEvent
   ): Promise<void> {
     const { url, tab } = port.sender
-    if (typeof url === "undefined") {
-      return
-    }
+    if (typeof url === "undefined") return
 
     const { origin } = new URL(url)
 
@@ -214,9 +211,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     ) {
       // if it's external communication AND the dApp does not have permission BUT asks for it
       // then let's ask the user what he/she thinks
-
       const selectedAccount = await this.preferenceService.getSelectedAccount()
-
       const { address: accountAddress } = selectedAccount
 
       // @TODO 7/12/21 Figure out underlying cause here
@@ -230,7 +225,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
       // these params are taken directly from the dapp website
       const [title, faviconUrl] = event.request.params as string[]
-
       const permissionRequest: PermissionRequest = {
         key: `${origin}_${accountAddress}_${dAppChainID}`,
         origin,
@@ -241,20 +235,14 @@ export default class ProviderBridgeService extends BaseService<Events> {
         accountAddress,
       }
 
-      const blockUntilUserAction = await this.requestPermission(
-        permissionRequest
-      )
-
-      await blockUntilUserAction
+      await this.requestPermission(permissionRequest)
 
       const persistedPermission = await this.checkPermission(
         origin,
         dAppChainID
       )
-
       if (typeof persistedPermission !== "undefined") {
         // if agrees then let's return the account data
-
         response.result = await this.routeContentScriptRPCRequest(
           persistedPermission,
           "quai_accounts",
@@ -269,7 +257,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
         )
       } else {
         // if user does NOT agree, then reject
-
         response.result = new EIP1193Error(
           EIP1193_ERROR_CODES.userRejectedRequest
         ).toJSON()
@@ -296,7 +283,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
         )
       }
     } else {
-      // sorry dear dApp, there is no love for you here
       response.result = new EIP1193Error(
         EIP1193_ERROR_CODES.unauthorized
       ).toJSON()
@@ -320,7 +306,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
   notifyContentScriptsAboutAddressChange(newAddress?: string): void {
     this.openPorts.forEach(async (port) => {
-      // we know that url exists because it was required to store the port
       const { origin } = new URL(port.sender?.url as string)
       const { chainID } =
         await this.internalEthereumProviderService.getCurrentOrDefaultNetworkForOrigin(
@@ -479,7 +464,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
     const response = await this.internalEthereumProviderService
       .routeSafeRPCRequest(method, params, origin)
       .finally(async () => {
-        // Close the popup once we're done submitting.
         const popup = await popupPromise
         if (typeof popup.id !== "undefined") {
           browser.windows.remove(popup.id)

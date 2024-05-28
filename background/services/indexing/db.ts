@@ -149,9 +149,8 @@ export class IndexingDatabase extends Dexie {
         if (
           isInvalidFungibleAssetForNetwork ||
           seenAddresses.has(normalizedAddress)
-        ) {
+        )
           return true
-        }
 
         seenAddresses.add(normalizedAddress)
 
@@ -283,9 +282,8 @@ export class IndexingDatabase extends Dexie {
       .equals(url)
       .reverse()
       .sortBy("retrievedAt")
-    if (candidateLists.length > 0) {
-      return candidateLists[0]
-    }
+    if (candidateLists.length > 0) return candidateLists[0]
+
     return null
   }
 

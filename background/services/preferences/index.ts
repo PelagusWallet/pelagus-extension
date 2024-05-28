@@ -59,7 +59,6 @@ export default class PreferenceService extends BaseService<Events> {
 
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService()
-
     this.emitter.emit("initializeDefaultWallet", await this.getDefaultWallet())
     this.emitter.emit(
       "initializeSelectedAccount",
@@ -78,7 +77,6 @@ export default class PreferenceService extends BaseService<Events> {
 
   // TODO Implement the following 6 methods as something stored in the database and user-manageable.
   // TODO Track account names in the UI in the address book.
-
   addOrEditNameInAddressBook(newEntry: AddressBookEntry): void {
     const correspondingEntryIndex = this.addressBook.findIndex((entry) =>
       sameAddressBookEntry(newEntry, entry)
@@ -119,7 +117,6 @@ export default class PreferenceService extends BaseService<Events> {
     const updatedSignerSettings = await this.db.deleteAccountSignerSettings(
       signer
     )
-
     this.emitter.emit("updatedSignerSettings", updatedSignerSettings)
   }
 
@@ -128,7 +125,6 @@ export default class PreferenceService extends BaseService<Events> {
     title: string
   ): Promise<void> {
     const updatedSignerSettings = this.db.updateSignerTitle(signer, title)
-
     this.emitter.emit("updatedSignerSettings", await updatedSignerSettings)
   }
 

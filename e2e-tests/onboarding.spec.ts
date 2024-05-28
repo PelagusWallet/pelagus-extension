@@ -50,11 +50,8 @@ test.describe("Onboarding", () => {
     await walletPageHelper.goToStartPage()
 
     await popup.getByTestId("top_menu_profile_button").last().hover()
-
     await popup.getByRole("button", { name: "Copy address" }).click()
-
     const address = await popup.evaluate(() => navigator.clipboard.readText())
-
     expect(address.toLowerCase()).toEqual(wallet.address.toLowerCase())
   })
 

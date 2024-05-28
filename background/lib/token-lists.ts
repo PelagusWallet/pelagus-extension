@@ -18,19 +18,10 @@ import { DeepWriteable } from "../types"
 // We allow `any` here because we don't know what we'll get back from a 3rd party api.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const cleanTokenListResponse = (json: any, url: string) => {
-  if (url.includes("api-polygon-tokens.polygon.technology")) {
-    if (typeof json === "object" && json !== null && "tags" in json) {
-      const { tags, ...cleanedJson } = json
-      return cleanedJson
-    }
-  }
-
-  // Trader joe token list has invalid tags
   if (url.includes("traderjoe-xyz") && Array.isArray(json?.tokens)) {
     const tokens = json.tokens.map((token: unknown) => {
-      if (typeof token === "object" && token && "tags" in token) {
+      if (typeof token === "object" && token && "tags" in token)
         return { ...token, tags: [] }
-      }
 
       return token
     })
@@ -73,9 +64,7 @@ function tokenListToFungibleAssetsForNetwork(
   return tokenList.tokens
     .filter(
       ({ chainId, symbol }) =>
-        chainId === networkChainID &&
-        // Filter out assets with the same symbol as the network base asset
-        symbol !== network.baseAsset.symbol
+        chainId === networkChainID && symbol !== network.baseAsset.symbol
     )
     .map((tokenMetadata) => {
       return {
@@ -109,13 +98,12 @@ export function mergeAssets<T extends FungibleAsset>(
     },
     asset: T
   ) {
-    const updatedSeenAssetsBySimilarityKey = { ...seenAssetsBySimilarityKey }
-
     const similarityKeys = prioritizedAssetSimilarityKeys(asset)
-
     // For now, only use the highest-priority similarity key with no fallback.
     const referenceKey = similarityKeys[0]
+
     // Initialize if needed.
+    const updatedSeenAssetsBySimilarityKey = { ...seenAssetsBySimilarityKey }
     updatedSeenAssetsBySimilarityKey[referenceKey] ??= []
 
     // For each key, determine where a close asset match exists.

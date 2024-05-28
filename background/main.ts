@@ -282,11 +282,8 @@ export default class Main extends BaseService<never> {
       internalEthereumProviderService,
       preferenceService
     )
-
     const telemetryService = TelemetryService.create()
-
     const signingService = SigningService.create(keyringService, chainService)
-
     const analyticsService = AnalyticsService.create(preferenceService)
 
     let savedReduxState = {}
@@ -444,9 +441,8 @@ export default class Main extends BaseService<never> {
 
   async startBalanceChecker(): Promise<void> {
     const interval = setInterval(async () => {
-      if (!walletOpen) {
-        return
-      }
+      if (!walletOpen) return
+
       // Also refresh the transactions in the account
       this.enrichActivitiesForSelectedAccount()
 
@@ -458,9 +454,9 @@ export default class Main extends BaseService<never> {
       if (
         currentAccountState === undefined ||
         currentAccountState === "loading"
-      ) {
+      )
         return
-      }
+
       const { balances } = currentAccountState
       for (const assetSymbol in balances) {
         const { asset } = balances[assetSymbol].assetAmount
@@ -470,7 +466,6 @@ export default class Main extends BaseService<never> {
             getShardFromAddress(asset.contractAddress) !==
             getShardFromAddress(selectedAccount.address)
           ) {
-            // skip if the asset is not on the same shard as the account
             continue
           }
           newBalance = (
@@ -525,12 +520,9 @@ export default class Main extends BaseService<never> {
       .evm[selectedAccount.network.chainID]?.[
       normalizeEVMAddress(selectedAccount.address)
     ]
-    if (
-      currentAccountState === undefined ||
-      currentAccountState === "loading"
-    ) {
+    if (currentAccountState === undefined || currentAccountState === "loading")
       return
-    }
+
     const { balances } = currentAccountState
     for (const assetSymbol in balances) {
       const { asset } = balances[assetSymbol].assetAmount
@@ -540,7 +532,6 @@ export default class Main extends BaseService<never> {
           getShardFromAddress(asset.contractAddress) !==
           getShardFromAddress(selectedAccount.address)
         ) {
-          // skip if the asset is not on the same shard as the account
           continue
         }
         newBalance = (
@@ -642,7 +633,6 @@ export default class Main extends BaseService<never> {
     await this.connectChainService()
 
     // FIXME Should no longer be necessary once transaction queueing enters the
-    // FIXME picture.
     this.store.dispatch(
       clearTransactionState(TransactionConstructionStatus.Idle)
     )
@@ -654,7 +644,7 @@ export default class Main extends BaseService<never> {
     const selectedAddress = this.store.getState().ui.selectedAccount.address
     if (selectedAddress === undefined || selectedAddress === "") {
       console.error("No selected address")
-      return "cyprus-1" // Set default shard
+      return "cyprus-1"
     }
     return getShardFromAddress(selectedAddress)
   }
@@ -667,7 +657,7 @@ export default class Main extends BaseService<never> {
     const selectedAddress = this.store.getState().ui.selectedAccount.address
     if (selectedAddress === undefined || selectedAddress === "") {
       console.error("No selected address")
-      this.SelectedShard = "cyprus-1" // Set default shard
+      this.SelectedShard = "cyprus-1"
       return
     }
     this.SelectedShard = getShardFromAddress(selectedAddress)
@@ -707,8 +697,6 @@ export default class Main extends BaseService<never> {
     }
 
     this.store.dispatch(removeActivities(address))
-
-    // remove dApp premissions
     this.store.dispatch(revokePermissionsForAddress(address))
     await this.providerBridgeService.revokePermissionsForAddress(address)
     // TODO Adjust to handle specific network.
@@ -853,7 +841,6 @@ export default class Main extends BaseService<never> {
       existingAccounts.forEach(async (addressNetwork) => {
         // Mark as loading and wire things up.
         this.store.dispatch(loadAccount(addressNetwork))
-
         // Force a refresh of the account balance to populate the store.
         this.chainService.getLatestBaseAccountBalance(addressNetwork)
       })
@@ -1019,8 +1006,7 @@ export default class Main extends BaseService<never> {
       }
     )
 
-    // Report on transactions for basic activity. Fancier stuff is handled via
-    // connectEnrichmentService
+    // Report on transactions for basic activity. Fancier stuff is handled via connectEnrichmentService
     this.chainService.emitter.on("transaction", async (transactionInfo) => {
       this.store.dispatch(addActivity(transactionInfo))
     })
@@ -1054,12 +1040,9 @@ export default class Main extends BaseService<never> {
           trackedAccounts.map((account) => account.address)
         )
 
-        if (!allTrackedAddresses.has(addressOnNetwork.address)) {
-          return
-        }
+        if (!allTrackedAddresses.has(addressOnNetwork.address)) return
 
         const filteredBalancesToDispatch: AccountBalance[] = []
-
         const sortedBalances: AccountBalance[] = []
 
         balances
@@ -1079,9 +1062,8 @@ export default class Main extends BaseService<never> {
                 balance.assetAmount.asset,
                 balance.network
               )
-            ) {
+            )
               return false
-            }
 
             return isSmartContract
           })
@@ -1200,7 +1182,6 @@ export default class Main extends BaseService<never> {
     })
 
     keyringSliceEmitter.on("deriveAddress", async (keyringData) => {
-      console.log("deriving address", keyringData)
       await this.signingService.deriveAddress({
         type: "keyring",
         keyringID: keyringData.signerId,

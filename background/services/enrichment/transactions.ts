@@ -65,9 +65,7 @@ async function buildSubannotations(
               sameEVMAddress(asset.contractAddress, contractAddress)
           )
 
-          if (!matchingFungibleAsset) {
-            return undefined
-          }
+          if (!matchingFungibleAsset) return undefined
 
           // Try to find a resolved annotation for the recipient and sender and otherwise fetch them
           const recipient =
@@ -255,12 +253,10 @@ export default async function resolveTransactionAnnotation(
   }
 
   if (numAsks > 10 && latestWorkedAsk + 5 * SECOND > Date.now()) {
-    // Requesting too often
     console.log("Requesting tx annotations too often, skipping")
     return txAnnotation
   }
   if (numAsks > 10 && latestWorkedAsk + 5 * SECOND < Date.now()) {
-    // Reset
     numAsks = 0
   }
   numAsks++
@@ -353,7 +349,6 @@ export default async function resolveTransactionAnnotation(
     ) {
       // If the tx has no data, it's either a simple ETH send, or it's relying
       // on a contract that's `payable` to execute code
-
       const recipient = contractInfo
       const sender = await enrichAddressOnNetwork(chainService, nameService, {
         address: transaction.from,

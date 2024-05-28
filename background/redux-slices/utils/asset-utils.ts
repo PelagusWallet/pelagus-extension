@@ -83,9 +83,8 @@ export function sameNetworkBaseAsset(
     "homeNetwork" in asset2 ||
     !isNetworkBaseAsset(asset1) ||
     !isNetworkBaseAsset(asset2)
-  ) {
+  )
     return false
-  }
 
   return (
     asset1.symbol === asset2.symbol &&
@@ -212,8 +211,7 @@ export function enrichAssetAmountWithDecimalValues<T extends AnyAssetAmount>(
 ): T & AssetDecimalAmount {
   const decimalAmount = isFungibleAssetAmount(assetAmount)
     ? assetAmountToDesiredDecimals(assetAmount, desiredDecimals)
-    : // If the asset is not fungible, the amount should have 0 decimals of
-      // precision.
+    : // If the asset is not fungible, the amount should have 0 decimals of precision.
       assetAmountToDesiredDecimals(
         { ...assetAmount, asset: { ...assetAmount.asset, decimals: 0 } },
         desiredDecimals
@@ -276,9 +274,8 @@ export function heuristicDesiredDecimalsForUnitPrice(
  *
  */
 export function isUntrustedAsset(asset: AnyAsset | undefined): boolean {
-  if (asset) {
-    return !asset?.metadata?.tokenLists?.length
-  }
+  if (asset) return !asset?.metadata?.tokenLists?.length
+
   return false
 }
 
@@ -310,38 +307,33 @@ export function isUnverifiedAssetByUser(asset: AnyAsset | undefined): boolean {
  * should not be sent.
  */
 export function canBeUsedForTransaction(asset: AnyAsset): boolean {
-  if (!isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET)) {
-    return true
-  }
+  if (!isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET)) return true
+
   return isUntrustedAsset(asset) ? !isUnverifiedAssetByUser(asset) : true
 }
 
 // FIXME Unify once asset similarity code is unified.
 export function isSameAsset(asset1?: AnyAsset, asset2?: AnyAsset): boolean {
-  if (typeof asset1 === "undefined" || typeof asset2 === "undefined") {
+  if (typeof asset1 === "undefined" || typeof asset2 === "undefined")
     return false
-  }
 
   if (
     isSmartContractFungibleAsset(asset1) &&
     isSmartContractFungibleAsset(asset2)
-  ) {
+  )
     return (
       sameNetwork(asset1.homeNetwork, asset2.homeNetwork) &&
       sameEVMAddress(asset1.contractAddress, asset2.contractAddress)
     )
-  }
 
   if (
     isSmartContractFungibleAsset(asset1) ||
     isSmartContractFungibleAsset(asset2)
-  ) {
+  )
     return false
-  }
 
-  if (isNetworkBaseAsset(asset1) && isNetworkBaseAsset(asset2)) {
+  if (isNetworkBaseAsset(asset1) && isNetworkBaseAsset(asset2))
     return sameNetworkBaseAsset(asset1, asset2)
-  }
 
   return asset1.symbol === asset2.symbol
 }
@@ -351,13 +343,9 @@ export function bigIntToDecimal(
   decimalPlaces = 18,
   precision = 3
 ) {
-  if (bigIntValue == BigInt(0)) {
-    return "0.000"
-  }
-  // Convert BigInt to String
-  let bigIntStr = bigIntValue.toString()
+  if (bigIntValue == BigInt(0)) return "0.000"
 
-  // Ensure that bigIntStr is at least decimalPlaces long by padding with leading zeros if necessary
+  let bigIntStr = bigIntValue.toString()
   while (bigIntStr.length < decimalPlaces) {
     bigIntStr = `0${bigIntStr}`
   }

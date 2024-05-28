@@ -87,7 +87,6 @@ const NETWORK_POLLING_TIMEOUT = MINUTE * 2.05
 const TRANSACTION_CHECK_LIFETIME_MS = 10 * HOUR
 
 const GAS_POLLS_PER_PERIOD = 1 // 1 time per 5 minutes
-
 const GAS_POLLING_PERIOD = 5 // 5 minutes
 
 // Maximum number of transactions with priority.
@@ -298,7 +297,6 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedAccounts = []
     this.subscribedNetworks = []
     this.transactionsToRetrieve = []
-
     this.assetData = new AssetDataHelper(this)
   }
 
@@ -309,13 +307,11 @@ export default class ChainService extends BaseService<Events> {
     await this.initializeNetworks()
     const accounts = await this.getAccountsToTrack()
     const trackedNetworks = await this.getTrackedNetworks()
-
     const transactions = await this.db.getAllTransactions()
 
     this.emitter.emit("initializeActivities", { transactions, accounts })
 
     // get the latest blocks and subscribe for all active networks
-
     Promise.allSettled(
       accounts
         .flatMap((an) => [
@@ -353,7 +349,6 @@ export default class ChainService extends BaseService<Events> {
 
   async initializeNetworks(): Promise<void> {
     const rpcUrls = await this.db.getAllRpcUrls()
-
     await this.updateSupportedNetworks()
 
     this.lastUserActivityOnNetwork =
@@ -397,9 +392,7 @@ export default class ChainService extends BaseService<Events> {
    * Defaults to ethereum in the case that neither exist.
    */
   async getTrackedNetworks(): Promise<EVMNetwork[]> {
-    if (this.trackedNetworks.length > 0) {
-      return this.trackedNetworks
-    }
+    if (this.trackedNetworks.length > 0) return this.trackedNetworks
 
     // Since trackedNetworks will be an empty array at extension load (or reload time)
     // we need a durable way to track which networks an extension is tracking.
@@ -482,7 +475,6 @@ export default class ChainService extends BaseService<Events> {
    */
   providerForNetworkOrThrow(network: EVMNetwork): SerialFallbackProvider {
     const provider = this.providerForNetwork(network)
-
     if (!provider) {
       logger.error(
         "Request received for operation on an inactive network",
@@ -794,9 +786,8 @@ export default class ChainService extends BaseService<Events> {
         !this.evmChainLastSeenNoncesByNormalizedAddress[chainID]?.[
           normalizedAddress
         ]
-      ) {
+      )
         return
-      }
 
       const lastSeenNonce =
         this.evmChainLastSeenNoncesByNormalizedAddress[chainID][
@@ -855,9 +846,8 @@ export default class ChainService extends BaseService<Events> {
     const networks = await Promise.all(
       [...chainIDs].map(async (chainID) => {
         const network = NETWORK_BY_CHAIN_ID[chainID]
-        if (!network) {
-          return this.db.getEVMNetworkByChainID(chainID)
-        }
+        if (!network) return this.db.getEVMNetworkByChainID(chainID)
+
         return network
       })
     )
@@ -986,9 +976,8 @@ export default class ChainService extends BaseService<Events> {
 
   async getBlockHeight(network: EVMNetwork): Promise<number> {
     const cachedBlock = await this.db.getLatestBlock(network)
-    if (cachedBlock) {
-      return cachedBlock.blockHeight
-    }
+    if (cachedBlock) return cachedBlock.blockHeight
+
     return this.providerForNetworkOrThrow(network).getBlockNumber()
   }
 
@@ -1006,17 +995,13 @@ export default class ChainService extends BaseService<Events> {
     blockHash: string
   ): Promise<AnyEVMBlock> {
     const cachedBlock = await this.db.getBlock(network, blockHash)
-    if (cachedBlock) {
-      return cachedBlock
-    }
+    if (cachedBlock) return cachedBlock
 
-    // Looking for new block
     const resultBlock = await this.providerForNetworkOrThrow(network).getBlock(
       blockHash
     )
 
     const block = blockFromEthersBlock(network, resultBlock)
-
     await this.db.addBlock(block)
     this.emitter.emit("block", block)
     return block
@@ -1037,9 +1022,7 @@ export default class ChainService extends BaseService<Events> {
     blockHash: string
   ): Promise<AnyEVMBlock> {
     const cachedBlock = await this.db.getBlock(network, blockHash)
-    if (cachedBlock) {
-      return cachedBlock
-    }
+    if (cachedBlock) return cachedBlock
 
     // Convert shard string. Map 0 to cyprus, 1 to paxos, 2 to hydra
     // zone-0-0 should become cyprus-1
@@ -1055,14 +1038,10 @@ export default class ChainService extends BaseService<Events> {
       this.providers.evm[network.chainID],
       shardName
     )
-    console.log(provider)
 
     const resultBlock = await provider.getBlock(blockHash)
 
-    console.log(resultBlock)
-
     const block = blockFromEthersBlock(network, resultBlock)
-
     await this.db.addBlock(block)
     this.emitter.emit("block", block)
     return block
@@ -1084,9 +1063,8 @@ export default class ChainService extends BaseService<Events> {
   ): Promise<AnyEVMTransaction> {
     const cachedTx = await this.db.getTransaction(network, txHash)
     // If tx is cached and already included in a block, don't need to query provider
-    if (cachedTx && cachedTx.blockHash != undefined) {
-      return cachedTx
-    }
+    if (cachedTx && cachedTx.blockHash != undefined) return cachedTx
+
     const gethResult = await this.providerForNetworkOrThrow(
       network
     ).getTransaction(txHash)
@@ -1120,9 +1098,8 @@ export default class ChainService extends BaseService<Events> {
       cachedTx.blockHash != undefined &&
       "status" in cachedTx &&
       cachedTx.status == 2
-    ) {
+    )
       return cachedTx
-    }
 
     // Provider for destination shard
     const destinationProvider = getProviderForGivenShard(
@@ -1154,14 +1131,10 @@ export default class ChainService extends BaseService<Events> {
 
     // If tx is cached and already included in a block, its ETX is possibly confirmed
     if (cachedTx) {
-      if (cachedTx.to == undefined) {
-        return cachedTx
-      }
+      if (cachedTx.to == undefined) return cachedTx
 
       const etxHash = "etxs" in cachedTx ? cachedTx.etxs[0].hash : undefined
-      if (!etxHash) {
-        return cachedTx
-      }
+      if (!etxHash) return cachedTx
 
       const gethResult = await destinationProvider.getTransaction(etxHash)
       let newTransaction
@@ -1169,9 +1142,7 @@ export default class ChainService extends BaseService<Events> {
         newTransaction = transactionFromEthersTransaction(gethResult, network)
       }
 
-      if (!newTransaction) {
-        return cachedTx
-      }
+      if (!newTransaction) return cachedTx
 
       if (!newTransaction.blockHash && !newTransaction.blockHeight) {
         this.subscribeToETXConfirmation(network, cachedTx, newTransaction)
@@ -1417,9 +1388,7 @@ export default class ChainService extends BaseService<Events> {
   }
 
   async pollBlockPricesForNetwork(chainID: string): Promise<void> {
-    if (!this.isCurrentlyActiveChainID(chainID)) {
-      return
-    }
+    if (!this.isCurrentlyActiveChainID(chainID)) return
 
     const subscription = this.subscribedNetworks.find(
       ({ network }) => toHexChainID(network.chainID) === toHexChainID(chainID)
@@ -1725,10 +1694,7 @@ export default class ChainService extends BaseService<Events> {
   }: QueuedTxToRetrieve): Promise<void> {
     try {
       const result = await this.getOrCancelTransaction(network, hash)
-
-      if (!result) {
-        return
-      }
+      if (!result) return
 
       const transaction = transactionFromEthersTransaction(result, network)
 
@@ -1746,9 +1712,7 @@ export default class ChainService extends BaseService<Events> {
           transaction
         )
       } else if (transaction.blockHash) {
-        // Get relevant block data.
         await this.getBlockData(transaction.network, transaction.blockHash)
-        // Retrieve gas used, status, etc
         this.retrieveTransactionReceipt(transaction.network, transaction)
       }
     } catch (error) {
@@ -2107,12 +2071,11 @@ export default class ChainService extends BaseService<Events> {
       contractAddress
     )
 
-    if (existingAsset) {
+    if (existingAsset)
       return {
         asset: existingAsset,
         amount: balance.amount,
       }
-    }
 
     const asset = await this.assetData
       .getTokenMetadata({

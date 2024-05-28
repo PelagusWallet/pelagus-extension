@@ -65,7 +65,6 @@ type AddressHandler = {
 }
 
 function getSigningErrorReason(err: unknown): SigningErrorReason {
-  console.log(err)
   return "genericError"
 }
 
@@ -100,9 +99,8 @@ export default class SigningService extends BaseService<Events> {
   }
 
   async deriveAddress(signerID: AccountSigner): Promise<HexString> {
-    if (signerID.type === "keyring") {
+    if (signerID.type === "keyring")
       return this.keyringService.deriveAddress(signerID)
-    }
 
     throw new Error(`Unknown signerID: ${signerID}`)
   }

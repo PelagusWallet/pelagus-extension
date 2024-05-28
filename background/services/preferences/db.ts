@@ -47,7 +47,6 @@ export class PreferenceDatabase extends Dexie {
 
   constructor() {
     super("tally/preferences")
-
     // DELETE ME: No need to keep this, but because this service was using a different method
     // I thought it's easier to follow the history if it's here at least until we discuss this approach
     this.version(1).stores({
@@ -85,7 +84,6 @@ export class PreferenceDatabase extends Dexie {
       preferences: "++id", // removed all the unused indexes
     })
 
-    //
     this.version(4)
       .stores({
         preferences: "++id",

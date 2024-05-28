@@ -71,7 +71,6 @@ const dateNowValue = 1000000000000
 const startKeyringService = async () => {
   const service = await KeyringService.create()
   await service.startService()
-
   return service
 }
 

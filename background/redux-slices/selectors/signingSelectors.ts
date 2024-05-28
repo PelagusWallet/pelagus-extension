@@ -36,9 +36,7 @@ export const selectAccountSignersByAddress = createSelector(
     const keyringEntries = Object.entries(keyringsByAddress)
       .map(
         ([address, keyring]): [HexString, KeyringAccountSigner] | undefined => {
-          if (keyring.id === null) {
-            return undefined
-          }
+          if (keyring.id === null) return undefined
 
           allAccountsSeen.add(address)
           const shard = getShardFromAddress(address)
@@ -59,9 +57,7 @@ export const selectAccountSignersByAddress = createSelector(
         ([address, wallet]):
           | [HexString, PrivateKeyAccountSigner]
           | undefined => {
-          if (wallet.id === null) {
-            return undefined
-          }
+          if (wallet.id === null) return undefined
 
           allAccountsSeen.add(address)
 

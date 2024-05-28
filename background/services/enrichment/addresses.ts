@@ -6,7 +6,6 @@ import { AddressOnNetworkAnnotation, EnrichedAddressOnNetwork } from "./types"
 
 // TODO look up whether contracts are verified on EtherScan
 // TODO ABIs
-
 export async function resolveAddressAnnotation(
   chainService: ChainService,
   nameService: NameService,

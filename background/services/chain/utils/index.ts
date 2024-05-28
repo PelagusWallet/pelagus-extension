@@ -124,11 +124,11 @@ export function ethersTransactionRequestFromLegacyTransactionRequest(
 export function ethersTransactionFromTransactionRequest(
   transactionRequest: TransactionRequest
 ): EthersTransactionRequest {
-  if (isEIP1559TransactionRequest(transactionRequest)) {
+  if (isEIP1559TransactionRequest(transactionRequest))
     return ethersTransactionRequestFromEIP1559TransactionRequest(
       transactionRequest
     )
-  }
+
   // Legacy Transaction
   return ethersTransactionRequestFromLegacyTransactionRequest(
     transactionRequest
@@ -198,11 +198,11 @@ function legacyEVMTransactionRequestFromEthersTransactionRequest(
 export function transactionRequestFromEthersTransactionRequest(
   ethersTransactionRequest: EthersTransactionRequest
 ): Partial<TransactionRequest> {
-  if (isEIP1559TransactionRequest(ethersTransactionRequest)) {
+  if (isEIP1559TransactionRequest(ethersTransactionRequest))
     return eip1559TransactionRequestFromEthersTransactionRequest(
       ethersTransactionRequest
     )
-  }
+
   return legacyEVMTransactionRequestFromEthersTransactionRequest(
     ethersTransactionRequest
   )
@@ -246,7 +246,7 @@ export function ethersTransactionFromSignedTransaction(
     gasLimit: BigNumber.from(tx.gasLimit),
   }
 
-  if (isEIP1559SignedTransaction(tx)) {
+  if (isEIP1559SignedTransaction(tx))
     return {
       ...baseTx,
       maxFeePerGas: BigNumber.from(tx.maxFeePerGas),
@@ -256,7 +256,6 @@ export function ethersTransactionFromSignedTransaction(
       s: tx.s,
       v: tx.v,
     }
-  }
 
   return baseTx
 }

@@ -7,26 +7,12 @@
     "search": "Pesquisar por nome ou endereço",
     "selectToken": "Selecionar token"
   },
-  "overview": {
-    "assets": "Ativos",
-    "networks": "Redes",
-    "tableHeader": {
-      "asset": "Ativo",
-      "balance": "Saldo",
-      "price": "Preço"
-    }
-  },
   "passwordStrength": {
     "average": "Média",
     "hintDesc": "Para uma senha forte, considere uma combinação de caracteres minúsculos e maiúsculos, símbolos e números. As senhas devem ter mais de 8 caracteres.",
     "strength": "Força",
     "strong": "Forte",
     "weak": "Fraca"
-  },
-  "popupEdition": "Community Edition",
-  "protocol": {
-    "connected": "Conectado",
-    "mainnet": "Rede principal"
   },
   "readOnlyNotice": "Modo somente leitura",
   "settings": {
@@ -40,10 +26,6 @@
       "logTitle": "2. Exportar logs",
       "title": "Relatório de erro"
     },
-    "hideSmallAssetBalance": "Ocultar saldos de ativos em {{sign}}{{amount}}",
-    "joinBtn": "Participe e dê feedback",
-    "joinDesc": "Junte-se ao nosso Discord para nos dar feedback!",
-    "joinTitle": "Junte-se a nossa comunidade",
     "mainMenu": "Definições",
     "setAsDefault": "Usar Pelagus como sua carteira padrão"
   },

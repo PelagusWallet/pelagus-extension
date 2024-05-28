@@ -112,6 +112,21 @@ export default function CommonAssetListItem(
       </div>
       <style jsx>{`
         ${styles}
+        .price {
+          height: 17px;
+          display: flex;
+          color: var(--green-40);
+          font-size: 14px;
+          font-weight: 400;
+          letter-spacing: 0.42px;
+          line-height: 16px;
+        }
+        .centered_tooltip {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
       `}</style>
     </Link>
   )

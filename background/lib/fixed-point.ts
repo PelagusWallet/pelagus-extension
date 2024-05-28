@@ -36,9 +36,8 @@ export function convertFixedPoint(
   fixedPointDecimals: number,
   targetDecimals: number
 ): bigint {
-  if (fixedPointDecimals >= targetDecimals) {
+  if (fixedPointDecimals >= targetDecimals)
     return fixedPoint / 10n ** BigInt(fixedPointDecimals - targetDecimals)
-  }
 
   return fixedPoint * 10n ** BigInt(targetDecimals - fixedPointDecimals)
 }
@@ -74,9 +73,7 @@ export function multiplyFixedPointNumbers(
     decimals: decimals1 + decimals2,
   }
 
-  if (typeof desiredResultDecimals === "undefined") {
-    return baseResult
-  }
+  if (typeof desiredResultDecimals === "undefined") return baseResult
 
   return convertFixedPointNumber(baseResult, desiredResultDecimals)
 }
@@ -141,16 +138,12 @@ export function toFixedPointNumber(
 export function parseToFixedPointNumber(
   floatingPointString: string
 ): FixedPointNumber | undefined {
-  if (!floatingPointString.match(/^[^0-9]*([0-9,]+)(?:\.([0-9]*))?$/)) {
+  if (!floatingPointString.match(/^[^0-9]*([0-9,]+)(?:\.([0-9]*))?$/))
     return undefined
-  }
 
   const [whole, decimals, ...extra] = floatingPointString.split(".")
 
-  // Only one `.` supported.
-  if (extra.length > 0) {
-    return undefined
-  }
+  if (extra.length > 0) return undefined
 
   const noThousandsSeparatorWhole = whole.replace(",", "")
   const setDecimals = decimals ?? ""
@@ -161,7 +154,6 @@ export function parseToFixedPointNumber(
       decimals: setDecimals.length,
     }
   } catch (error) {
-    // FIXME should be debug once logger.debug lands
     logger.debug(
       `Error parsing ${floatingPointString} to fixed-point number:`,
       error

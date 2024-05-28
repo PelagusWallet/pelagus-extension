@@ -1,6 +1,5 @@
 import { webcrypto } from "crypto"
 import browser from "webextension-polyfill"
-
 import KeyringService, {
   Keyring,
   MAX_KEYRING_IDLE_TIME,
@@ -72,7 +71,6 @@ const dateNowValue = 1000000000000
 const startKeyringService = async () => {
   const service = await KeyringService.create()
   await service.startService()
-
   return service
 }
 

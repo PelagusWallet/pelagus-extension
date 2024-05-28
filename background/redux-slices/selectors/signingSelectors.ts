@@ -14,7 +14,7 @@ import {
 import { selectCurrentAccount } from "./uiSelectors"
 import { QUAI_CONTEXTS } from "../../constants"
 
-// FIXME: This has a duplicate in `accountSelectors.ts`, but importing causes a dependency cycle
+// FIXME: importing causes a dependency cycle
 const getAllAddresses = createSelector(
   (state: RootState) => state.account,
   (account) => [
@@ -36,9 +36,7 @@ export const selectAccountSignersByAddress = createSelector(
     const keyringEntries = Object.entries(keyringsByAddress)
       .map(
         ([address, keyring]): [HexString, KeyringAccountSigner] | undefined => {
-          if (keyring.id === null) {
-            return undefined
-          }
+          if (keyring.id === null) return undefined
 
           allAccountsSeen.add(address)
           const shard = getShardFromAddress(address)
@@ -59,9 +57,7 @@ export const selectAccountSignersByAddress = createSelector(
         ([address, wallet]):
           | [HexString, PrivateKeyAccountSigner]
           | undefined => {
-          if (wallet.id === null) {
-            return undefined
-          }
+          if (wallet.id === null) return undefined
 
           allAccountsSeen.add(address)
 

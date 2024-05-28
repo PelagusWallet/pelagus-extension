@@ -1,7 +1,6 @@
 import { BigNumber } from "ethers"
 
 // Forked from https://github.com/joshstevens19/ethereum-multicall
-
 export interface AggregateContractResponse {
   blockNumber: BigNumber
   returnData: Array<{
@@ -14,7 +13,6 @@ export const MULTICALL_CONTRACT_ADDRESS =
   "0x15b6351eDEcd7142ac4c6fE54948b603D4566862" // TODO: Different for each network. Must be deployed on all shards!
 
 export const CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES = {
-  "324": "0x47898B2C52C957663aE9AB46922dCec150a2272c", // zksync era
   "1337": "0x15b6351eDEcd7142ac4c6fE54948b603D4566862", // cyprus1 local
 } as { [chainId: string]: string }
 

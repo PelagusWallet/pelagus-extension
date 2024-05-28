@@ -1,5 +1,4 @@
 import browser from "webextension-polyfill"
-
 import { EncryptedVault } from "./encryption"
 import { UNIXTime } from "../../types"
 

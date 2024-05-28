@@ -214,7 +214,7 @@ describe("Chain Service", () => {
         )
         .resolves([QUAI_NETWORK])
 
-      const resolvesWithPolygon = sinon.promise()
+      const resolvesWithQuai = sinon.promise()
 
       sandbox
         .stub(
@@ -227,11 +227,11 @@ describe("Chain Service", () => {
           return Promise.resolve(QUAI_NETWORK)
         })
         .onSecondCall()
-        .returns(resolvesWithPolygon as Promise<EVMNetwork>)
+        .returns(resolvesWithQuai as Promise<EVMNetwork>)
 
       setTimeout(() => {
         activeNetworksMock.push(QUAI_NETWORK)
-        resolvesWithPolygon.resolve(QUAI_NETWORK)
+        resolvesWithQuai.resolve(QUAI_NETWORK)
       }, 30)
 
       await chainService.getTrackedNetworks()

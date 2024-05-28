@@ -1,12 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
-import {
-  EXPRESS,
-  INSTANT,
-  MAX_FEE_MULTIPLIER,
-  REGULAR,
-} from "../constants/network-fees"
-
+import { EXPRESS, INSTANT, MAX_FEE_MULTIPLIER, REGULAR } from "../constants"
 import {
   BlockEstimate,
   BlockPrices,
@@ -21,7 +15,6 @@ import {
   EnrichedEVMTransactionSignatureRequest,
   EnrichedEVMTransactionRequest,
 } from "../services/enrichment"
-
 import { createBackgroundAsyncThunk } from "./utils"
 import { SignOperation } from "./signing"
 
@@ -210,7 +203,6 @@ const transactionSlice = createSlice({
           transactionRequest.maxPriorityFeePerGas
 
         // Gas minimums
-
         if (newState.transactionRequest.maxPriorityFeePerGas < 1000000000n) {
           newState.transactionRequest.maxPriorityFeePerGas = 1000000000n
         }
@@ -244,7 +236,6 @@ const transactionSlice = createSlice({
     ) => {
       immerState.feeTypeSelected = payload
     },
-
     signed: (state, { payload }: { payload: SignedTransaction }) => ({
       ...state,
       status: TransactionConstructionStatus.Signed,
@@ -357,7 +348,6 @@ export const rejectTransactionSignature = createBackgroundAsyncThunk(
   "transaction-construction/reject",
   async (_, { dispatch }) => {
     await emitter.emit("signatureRejected")
-    // Provide a clean slate for future transactions.
     dispatch(
       transactionSlice.actions.clearTransactionState(
         TransactionConstructionStatus.Idle

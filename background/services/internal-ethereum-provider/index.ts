@@ -1,6 +1,5 @@
 import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
 import { serialize as serializeQuaiTransaction } from "@quais/transactions"
-
 import {
   EIP1193Error,
   EIP1193_ERROR_CODES,
@@ -8,9 +7,7 @@ import {
 } from "@tallyho/provider-bridge-shared"
 import { hexlify, toUtf8Bytes, _TypedDataEncoder } from "ethers/lib/utils"
 import { normalizeHexAddress } from "@pelagus/hd-keyring"
-
 import logger from "../../lib/logger"
-
 import BaseService from "../base"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import ChainService from "../chain"
@@ -26,7 +23,6 @@ import {
 } from "../chain/utils"
 import PreferenceService from "../preferences"
 import { internalProviderPort } from "../../redux-slices/utils/contract-utils"
-
 import {
   SignTypedDataRequest,
   MessageSigningRequest,
@@ -111,10 +107,6 @@ type Events = ServiceLifecycleEvents & {
   signDataRequest: DAppRequestEvent<MessageSigningRequest, string>
   selectedNetwork: EVMNetwork
   watchAssetRequest: { contractAddress: string; network: EVMNetwork }
-  // connect
-  // disconnet
-  // account change
-  // networkchange
 }
 
 export default class InternalEthereumProviderService extends BaseService<Events> {
@@ -382,7 +374,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       return defaultNetwork
     }
     return currentNetwork
-    // return QUAI_NETWORK
   }
 
   async removePrefererencesForChain(chainId: string): Promise<void> {
@@ -405,9 +396,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       throw new Error("Transactions must have a from address for signing.")
     }
 
-    /* let currentNetwork = await this.getCurrentOrDefaultNetworkForOrigin(
-      origin
-    ) */
     const currentNetwork =
       globalThis.main.store.getState().ui.selectedAccount.network
 
@@ -459,9 +447,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
       sameChainID(network.chainID, chainID)
     )
 
-    if (trackedNetwork) {
-      return trackedNetwork
-    }
+    if (trackedNetwork) return trackedNetwork
 
     try {
       const newlyTrackedNetwork =

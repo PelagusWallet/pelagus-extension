@@ -1,17 +1,7 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit"
 import { BigNumber, ethers } from "ethers"
-import { JsonRpcProvider } from "@quais/providers"
-import { keccak256 } from "@quais/keccak256"
-import { UnsignedTransaction } from "@quais/transactions"
 import { quais } from "quais"
-import {
-  hexlify,
-  stripZeros,
-  toUtf8Bytes,
-  accessListify,
-  hexConcat,
-  RLP,
-} from "quais/lib/utils"
+import { stripZeros, accessListify, hexConcat, RLP } from "quais/lib/utils"
 import {
   AnyAsset,
   AnyAssetAmount,
@@ -23,7 +13,6 @@ import {
   SmartContractFungibleAsset,
 } from "../assets"
 import { AddressOnNetwork } from "../accounts"
-import { findClosestAssetIndex } from "../lib/asset-similarity"
 import { createBackgroundAsyncThunk } from "./utils"
 import { isBuiltInNetworkBaseAsset, isSameAsset } from "./utils/asset-utils"
 import { getProvider } from "./utils/contract-utils"
@@ -32,18 +21,14 @@ import {
   EVMNetwork,
   KnownTxTypes,
   SignedTransaction,
-  TransactionRequestWithNonce,
   sameNetwork,
 } from "../networks"
 import { ERC20_INTERFACE } from "../lib/erc20"
 import logger from "../lib/logger"
 import {
-  CHAIN_ID_TO_RPC_URLS,
-  FIAT_CURRENCIES_SYMBOL,
   NUM_REGIONS_IN_PRIME,
   NUM_ZONES_IN_REGION,
   QUAI,
-  QUAI_NETWORK,
   getShardFromAddress,
 } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
@@ -125,25 +110,6 @@ const assetsSlice = createSlice({
 
       return Object.values(mappedAssets).flat()
     },
-    newPricePoints: (
-      immerState,
-      { payload: pricePoints }: { payload: PricePoint[] }
-    ) => {
-      pricePoints.forEach((pricePoint) => {
-        const fiatCurrency = pricePoint.pair.find((asset) =>
-          FIAT_CURRENCIES_SYMBOL.includes(asset.symbol)
-        )
-        const [pricedAsset] = pricePoint.pair.filter(
-          (asset) => asset !== fiatCurrency
-        )
-        if (fiatCurrency && pricedAsset) {
-          const index = findClosestAssetIndex(pricedAsset, immerState)
-          if (typeof index !== "undefined") {
-            immerState[index].recentPrices[fiatCurrency.symbol] = pricePoint
-          }
-        }
-      })
-    },
     removeAsset: (
       immerState,
       { payload: removedAsset }: { payload: AnyAsset }
@@ -153,7 +119,7 @@ const assetsSlice = createSlice({
   },
 })
 
-export const { assetsLoaded, newPricePoints, removeAsset } = assetsSlice.actions
+export const { assetsLoaded, removeAsset } = assetsSlice.actions
 
 export default assetsSlice.reducer
 
@@ -192,9 +158,7 @@ export const refreshAsset = createBackgroundAsyncThunk(
     },
     { dispatch }
   ) => {
-    // Update assets slice
     await dispatch(assetsLoaded([asset]))
-    // Update accounts slice cached data about this asset
     await dispatch(updateAssetReferences(asset))
   }
 )
@@ -390,7 +354,6 @@ export const transferAsset = createBackgroundAsyncThunk(
 
     const provider = getProvider()
     const signer = provider.getSigner()
-    console.log(await signer.getAddress())
 
     if (isBuiltInNetworkBaseAsset(assetAmount.asset, fromNetwork)) {
       logger.debug(
@@ -455,7 +418,6 @@ function genQuaiRawTransaction(
   }
 
   if (isExternal) {
-    // is external this time
     type = 2
   } else {
     type = 0
@@ -476,7 +438,6 @@ function genQuaiRawTransaction(
   }
 
   if (isExternal) {
-    // is external this time
     tx.externalGasLimit = BigInt(100000)
     tx.externalGasPrice =
       tx.maxFeePerGas * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
@@ -521,9 +482,8 @@ export const selectAssetPricePoint = createSelector(
       if (
         (assetToFind.metadata?.tokenLists?.length ?? 0) < 1 &&
         !isBuiltInNetworkBaseAsset(assetToFind, assetToFind.homeNetwork)
-      ) {
+      )
         return undefined
-      }
     }
 
     /* Otherwise, find a best-effort match by looking for assets with the same symbol  */
@@ -567,7 +527,6 @@ export const selectAssetPricePoint = createSelector(
       return pricePoint
     }
 
-    // If no matching priced asset was found, return undefined.
     return undefined
   }
 )
@@ -604,7 +563,6 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
         network,
       })
     } catch (error) {
-      // FIXME: Rejected thunks return undefined instead of throwing
       console.log(error)
       return null
     }
@@ -614,13 +572,11 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
 transactionConstructionSliceEmitter.on(
   "signedTransactionResult",
   async (tx) => {
-    console.log("transaction signed", tx)
     const provider = globalThis.main.chainService.providerForNetworkOrThrow(
       tx.network
     )
     try {
-      const res = await provider.sendTransaction(serializeSigned(tx))
-      console.log(res)
+      await provider.sendTransaction(serializeSigned(tx))
       globalThis.main.chainService.saveTransaction(tx, "local")
     } catch (error: any) {
       if (error.toString().includes("insufficient funds")) {
@@ -668,7 +624,7 @@ function serializeSigned(transaction: SignedTransaction): string {
     formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
     formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
     formatNumber(transaction.gasLimit || 0, "gasLimit"),
-    transaction.to, // presuming it's valid as it's already signed
+    transaction.to,
     formatNumber(transaction.value || 0, "value"),
     transaction.input || "0x",
     formatAccessList([]),
@@ -721,7 +677,6 @@ export function calcEtxFeeMultiplier(fromShard: string, toShard: string) {
     (fromShard.includes("paxos") && toShard.includes("paxos")) ||
     (fromShard.includes("hydra") && toShard.includes("hydra"))
   ) {
-    // same region
     multiplier = NUM_ZONES_IN_REGION
   } else {
     multiplier = NUM_ZONES_IN_REGION * NUM_REGIONS_IN_PRIME

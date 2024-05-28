@@ -1,7 +1,6 @@
 // Disable parameter reassign rule to be able to modify the activities object freely
 // that way we can avoid nested object iteration and we can initialize object fields
 /* eslint-disable no-param-reassign */
-
 import { createSlice } from "@reduxjs/toolkit"
 import { AddressOnNetwork } from "../accounts"
 import {
@@ -62,9 +61,8 @@ const addActivityToState =
         transaction.from,
         "0x0000000000000000000000000000000000000000"
       )
-    ) {
+    )
       return
-    }
 
     const activity = getActivity(transaction)
     const normalizedAddress = normalizeEVMAddress(address)
@@ -102,7 +100,6 @@ const initializeActivitiesFromTransactions = ({
     normalizeAddressOnNetwork(account)
   )
 
-  // Add transactions
   transactions.forEach((transaction) => {
     const { to, from, network } = transaction
     const isTrackedTo = normalizedAccounts.some(
@@ -128,7 +125,6 @@ const initializeActivitiesFromTransactions = ({
     }
   })
 
-  // Sort and reduce # of transactions
   normalizedAccounts.forEach(({ address, network }) =>
     cleanActivitiesArray(activities[address]?.[network.chainID])
   )

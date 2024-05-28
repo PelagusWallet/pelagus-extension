@@ -35,10 +35,7 @@ export function truncateDecimalAmount(
   maxDecimalLength = decimalLength
 ): string {
   const valueString = value.toString()
-
-  if (!valueString.includes(".")) {
-    return valueString
-  }
+  if (!valueString.includes(".")) return valueString
 
   const [integer, decimals] = valueString.split(".")
 
@@ -58,12 +55,9 @@ export function truncateDecimalAmount(
 
   // If the truncation point includes no significant decimals, don't include
   // the decimal component at all.
-  if (decimalTruncationLength < firstSignificantDecimalDigit) {
-    return integer
-  }
+  if (decimalTruncationLength < firstSignificantDecimalDigit) return integer
 
   const decimalsTruncated = decimals.substring(0, decimalTruncationLength)
-
   return `${integer}.${decimalsTruncated}`
 }
 
@@ -76,9 +70,9 @@ export function sameEVMAddress(
     typeof address2 === "undefined" ||
     address1 === null ||
     address2 === null
-  ) {
+  )
     return false
-  }
+
   return normalizeHexAddress(address1) === normalizeHexAddress(address2)
 }
 
@@ -87,16 +81,15 @@ export function gweiToWei(value: number | bigint): bigint {
 }
 
 export function convertToEth(value: string | number | bigint): string {
-  if (value && value >= 1) {
-    return utils.formatUnits(BigInt(value))
-  }
+  if (value && value >= 1) return utils.formatUnits(BigInt(value))
+
   return "0"
 }
 
 export function weiToGwei(value: string | number | bigint): string {
-  if (value && value >= 1) {
+  if (value && value >= 1)
     return truncateDecimalAmount(utils.formatUnits(BigInt(value), "gwei"), 2)
-  }
+
   return ""
 }
 
@@ -107,9 +100,8 @@ export function weiToGwei(value: string | number | bigint): string {
  */
 export function encodeJSON(input: unknown): string {
   return JSON.stringify(input, (_, value) => {
-    if (typeof value === "bigint") {
-      return { B_I_G_I_N_T: value.toString() }
-    }
+    if (typeof value === "bigint") return { B_I_G_I_N_T: value.toString() }
+
     return value
   })
 }
@@ -130,10 +122,7 @@ export function decodeJSON(input: string): unknown {
 }
 
 export function isProbablyEVMAddress(str: string): boolean {
-  if (normalizeHexAddress(str).startsWith("0x") && str.length === 42) {
-    return true
-  }
-  return false
+  return normalizeHexAddress(str).startsWith("0x") && str.length === 42
 }
 
 export function truncateAddress(address: string): string {

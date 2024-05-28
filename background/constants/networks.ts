@@ -1,12 +1,12 @@
 import { indexOf } from "lodash"
+import logger from "../lib/logger"
+import { QUAI, QUAI_LOCAL } from "./"
+import { EVMNetwork } from "../networks"
 import {
   JsonRpcProvider as QuaisJsonRpcProvider,
   WebSocketProvider as QuaisWebSocketProvider,
 } from "@quais/providers"
-import logger from "../lib/logger"
-import { EVMNetwork } from "../networks"
 import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
-import { QUAI, QUAI_LOCAL } from "./currencies"
 
 export const VALID_SHARDS: Array<string> = [
   "cyprus-1",
@@ -19,6 +19,7 @@ export const VALID_SHARDS: Array<string> = [
   "hydra-2",
   "hydra-3",
 ]
+
 export const VALID_SHARDS_NAMES: Array<string> = [
   "Cyprus 1",
   "Cyprus 2",
@@ -230,7 +231,7 @@ export const DEFAULT_QUAI_LOCAL = {
 } as Network
 
 export const QUAI_NETWORK: EVMNetwork = {
-  name: "Quai Network", // maybe add "Colosseum"
+  name: "Quai Network",
   baseAsset: QUAI,
   chainID: "9000",
   family: "EVM",
@@ -249,7 +250,6 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   isQuai: true,
 }
 
-// FIXME consider how to properly separate testnet and mainnet in the wallet
 export const DEFAULT_NETWORKS = [QUAI_NETWORK]
 export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_LOCAL]
 
@@ -284,44 +284,20 @@ export const NETWORK_BY_CHAIN_ID = {
 export const TEST_NETWORK_BY_CHAIN_ID = new Set(
   DEFAULT_TEST_NETWORKS.map((network) => network.chainID)
 )
-/**
- * Method list, to describe which rpc method calls on which networks
- *
- * The method names can be full or the starting parts of the method name.
- * This allows us to use "namespaces" for providers eg `qn_...`
- *
- * The structure is network specific with an extra `everyChain` option.
- */
-export const RPC_METHOD_PROVIDER_ROUTING = {
-  everyChain: [
-    "quai_sendRawTransaction", // broadcast should always go to alchemy
-    "quai_subscribe", // generic http providers do not support this, but dapps need this
-    "quai_estimateGas", // just want to be safe, when setting up a transaction
-  ],
-} as const
 
-// Network class contains data about a default or custom network.
 export class Network {
   name: string
-
   chains: ChainData[]
-
   isCustom: boolean
-
   chainCode: number
-
   chainID: number
 }
 
 export class ChainData {
   name: string
-
   shard: string
-
   blockExplorerUrl: string
-
   rpc: string
-
   multicall: string
 }
 
@@ -403,19 +379,16 @@ export const CHAIN_ID_TO_RPC_URLS: {
 }
 
 export const getShardFromAddress = function (address: string): string {
-  if (address === "") {
-    console.error("Address is empty or zero")
-    return "cyprus-1" // Technically zero address is in every shard, but we return a default instead
-  }
+  if (address === "") return "cyprus-1"
+
   const shardData = QUAI_CONTEXTS.filter((obj) => {
     const num = Number(address.substring(0, 4))
     const start = Number(`0x${obj.byte[0]}`)
     const end = Number(`0x${obj.byte[1]}`)
     return num >= start && num <= end
   })
-  if (shardData.length === 0) {
-    throw new Error("Invalid address")
-  }
+  if (shardData.length === 0) throw new Error("Invalid address")
+
   return shardData[0].shard
 }
 
@@ -424,7 +397,6 @@ export function setProviderForShard(
 ): SerialFallbackProvider {
   const shard = globalThis.main.SelectedShard
   if (shard === undefined || shard == "") {
-    console.error("Shard is undefined")
     globalThis.main.SetCorrectShard()
     return providers
   }
@@ -443,7 +415,6 @@ export function setProviderForShard(
         return providers
       }
       logger.error("Provider is not a Quais provider")
-      console.log(providers.providerCreators)
     } else if (
       provider.rpcUrl !== undefined &&
       ShardFromRpcUrl(provider.rpcUrl) === shard
@@ -460,11 +431,9 @@ export function setProviderForShard(
         return providers
       }
       logger.error("Provider is not a Quais provider")
-      console.log(providers.providerCreators)
     }
   }
   logger.error(`No provider found for shard: ${shard}`)
-  console.log(providers.providerCreators)
   return providers
 }
 
@@ -473,7 +442,6 @@ export function getProviderForGivenShard(
   shard: string
 ): QuaisJsonRpcProvider | QuaisWebSocketProvider {
   if (shard === undefined || shard == "") {
-    console.error("No shard given")
     globalThis.main.SetCorrectShard()
     return providers
   }
@@ -484,11 +452,10 @@ export function getProviderForGivenShard(
       if (
         quaisProvider instanceof QuaisJsonRpcProvider ||
         quaisProvider instanceof QuaisWebSocketProvider
-      ) {
+      )
         return quaisProvider
-      }
+
       logger.error("Provider is not a Quais provider")
-      console.log(providers.providerCreators)
     } else if (
       provider.rpcUrl !== undefined &&
       ShardFromRpcUrl(provider.rpcUrl) === shard
@@ -497,30 +464,26 @@ export function getProviderForGivenShard(
       if (
         quaisProvider instanceof QuaisJsonRpcProvider ||
         quaisProvider instanceof QuaisWebSocketProvider
-      ) {
+      )
         return quaisProvider
-      }
+
       logger.error("Provider is not a Quais provider")
-      console.log(providers.providerCreators)
     }
   }
   logger.error(`No provider found for shard: ${shard}`)
-  console.log(providers.providerCreators)
   return providers
 }
 
 export function ShardFromRpcUrl(url: string): string {
   for (const network of DEFAULT_QUAI_NETWORKS) {
     for (const chain of network.chains) {
-      if (chain.rpc === url) {
-        return chain.shard
-      }
+      if (chain.rpc === url) return chain.shard
+
       if (
         new URL(chain.rpc).port === new URL(url).port &&
         new URL(chain.rpc).port !== ""
-      ) {
+      )
         return chain.shard
-      }
     }
   }
   logger.error(`Unknown shard for rpc url: ${url}`)
@@ -528,14 +491,10 @@ export function ShardFromRpcUrl(url: string): string {
 }
 
 export function ShardToMulticall(shard: string, network: EVMNetwork): string {
-  if (network.chains === undefined) {
-    console.log(`Network ${network.name} has no chains`)
-    return ""
-  }
+  if (network.chains === undefined) return ""
+
   for (const chain of network.chains) {
-    if (chain.shard === shard) {
-      return chain.multicall
-    }
+    if (chain.shard === shard) return chain.multicall
   }
   logger.error(`Unknown mutlicall for shard: ${shard}`)
   return ""
@@ -558,14 +517,10 @@ export function CurrentShardToExplorer(
     currentShard = globalThis.main.SelectedShard
   }
 
-  if (network.chains === undefined) {
-    console.log(`Network ${network.name} has no chains`)
-    return ""
-  }
+  if (network.chains === undefined) return ""
+
   for (const chain of network.chains) {
-    if (chain.shard === currentShard) {
-      return chain.blockExplorerUrl
-    }
+    if (chain.shard === currentShard) return chain.blockExplorerUrl
   }
   logger.error(`Unknown explorer for shard: ${currentShard}`)
   return ""

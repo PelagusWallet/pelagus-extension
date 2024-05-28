@@ -6,7 +6,6 @@ import { ERC20TransferLog } from "../../lib/erc20"
 import { normalizeEVMAddress, sameEVMAddress } from "../../lib/utils"
 import { AddressOnNetwork } from "../../accounts"
 import dayjs from "dayjs"
-import NameService from "../name"
 import { SmartContractFungibleAsset } from "../../assets"
 
 export function isEIP2612TypedData(
@@ -30,7 +29,6 @@ export function isEIP2612TypedData(
 
 export async function enrichEIP2612SignTypedDataRequest(
   typedData: EIP2612TypedData,
-  nameService: NameService,
   asset: SmartContractFungibleAsset | undefined
 ): Promise<EIP2612SignTypedDataAnnotation> {
   const { message, domain } = typedData
@@ -134,9 +132,7 @@ export function getRelevantTransactionAddresses(
   const { address: recipientAddress } = getRecipient(transaction)
   const { address: senderAddress } = getSender(transaction)
 
-  if (!senderAddress) {
-    return []
-  }
+  if (!senderAddress) return []
 
   if (
     recipientAddress &&

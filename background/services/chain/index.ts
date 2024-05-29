@@ -1060,23 +1060,28 @@ export default class ChainService extends BaseService<Events> {
   async getTransaction(
     network: EVMNetwork,
     txHash: HexString
-  ): Promise<AnyEVMTransaction> {
-    const cachedTx = await this.db.getTransaction(network, txHash)
-    // If tx is cached and already included in a block, don't need to query provider
-    if (cachedTx && cachedTx.blockHash != undefined) return cachedTx
+  ): Promise<AnyEVMTransaction | null> {
+    const provider = this.providerForNetworkOrThrow(network)
+    const gethResult = await provider.getTransaction(txHash)
 
-    const gethResult = await this.providerForNetworkOrThrow(
-      network
-    ).getTransaction(txHash)
-    const newTransaction = transactionFromEthersTransaction(gethResult, network)
+    if (gethResult) {
+      const newTransaction = transactionFromEthersTransaction(
+        gethResult,
+        network
+      )
 
-    if (!newTransaction.blockHash && !newTransaction.blockHeight) {
-      this.subscribeToTransactionConfirmation(network, newTransaction)
+      if (!newTransaction.blockHash && !newTransaction.blockHeight) {
+        this.subscribeToTransactionConfirmation(network, newTransaction)
+      }
+
+      this.saveTransaction(newTransaction, "local")
+      return newTransaction
     }
 
-    // TODO proper provider string
-    this.saveTransaction(newTransaction, "local")
-    return newTransaction
+    const cachedTx = await this.db.getTransaction(network, txHash)
+    if (cachedTx) return cachedTx
+
+    return null
   }
 
   /**

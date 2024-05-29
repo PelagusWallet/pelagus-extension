@@ -751,6 +751,8 @@ export default class Main extends BaseService<never> {
       addressNetwork.network,
       txHash
     )
+    if (!transaction) return
+
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
       transaction,
       2
@@ -1608,6 +1610,8 @@ export default class Main extends BaseService<never> {
       addressNetwork.network,
       txHash
     )
+    if (!transaction) return []
+
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
       transaction,
       2

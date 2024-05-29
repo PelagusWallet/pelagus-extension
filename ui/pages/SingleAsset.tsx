@@ -40,7 +40,9 @@ const MAX_SYMBOL_LENGTH = 10
 export default function SingleAsset(): ReactElement {
   const { t } = useTranslation()
   const location = useLocation<AnyAsset>()
-  const locationAsset = location.state
+  const currentAccount = useBackgroundSelector(selectCurrentAccount)
+  const locationAsset = location.state ?? currentAccount.network.baseAsset
+
   const { symbol } = locationAsset
   const contractAddress =
     "contractAddress" in locationAsset

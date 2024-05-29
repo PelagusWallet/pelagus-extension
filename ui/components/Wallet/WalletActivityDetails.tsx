@@ -193,7 +193,7 @@ export default function WalletActivityDetails(
         />
       </div>
       <ul>
-        {details.length ? (
+        {details?.length ? (
           <></>
         ) : (
           Array.from({ length: 7 }).map(() => (
@@ -203,7 +203,7 @@ export default function WalletActivityDetails(
             />
           ))
         )}
-        {details.map(({ assetIconUrl, label, value }) => {
+        {details?.map(({ assetIconUrl, label, value }) => {
           return (
             <DetailRowItem
               key={label}

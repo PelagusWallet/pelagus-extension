@@ -4,7 +4,7 @@ import SharedIcon from "./SharedIcon"
 
 interface SharedConfirmationModalProps {
   headerTitle: string
-  icon: { src: string; width: string; height?: string; color?: string }
+  icon?: { src: string; width: string; height?: string; color?: string }
   title?: string
   subtitle?: string
   link?: { text: string; url: string }
@@ -115,7 +115,7 @@ const SharedConfirmationModal = ({
           }
 
           .confirmation-link:hover {
-            color: var(--green-20);
+            color: var(--white);
           }
 
           .confirmation-btn {
@@ -131,8 +131,8 @@ const SharedConfirmationModal = ({
           }
 
           .confirmation-btn:hover {
-            border-color: var(--green-20);
-            color: var(--green-20);
+            border-color: var(--white);
+            color: var(--white);
           }
         `}
       </style>

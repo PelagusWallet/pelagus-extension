@@ -27,7 +27,7 @@ export default function SelectAccountListItem({
         <div className="account-info">
           <div className="name">{account.shortName}</div>
           <div className="details">
-            {account?.accountSigner?.type === "keyring" &&
+            {account?.accountSigner?.type !== "read-only" &&
               `${account?.accountSigner?.shard} • `}
             {account?.shortenedAddress}
           </div>

@@ -44,6 +44,7 @@ export type KeyringAccountSigner = {
 export type PrivateKeyAccountSigner = {
   type: "private-key"
   walletID: string
+  shard: string
 }
 
 type SerializedPrivateKey = {

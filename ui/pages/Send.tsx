@@ -50,9 +50,14 @@ import {
 import SharedLoadingSpinner from "../components/Shared/SharedLoadingSpinner"
 import ReadOnlyNotice from "../components/Shared/ReadOnlyNotice"
 import SharedIcon from "../components/Shared/SharedIcon"
+import SharedConfirmationModal from "../components/Shared/SharedConfirmationModal"
+import { getBlockExplorerURL } from "../utils/networks"
 
 export default function Send(): ReactElement {
   const { t } = useTranslation()
+  const { t: confirmationLocales } = useTranslation("translation", {
+    keyPrefix: "drawers.transactionConfirmation",
+  })
   const isMounted = useRef(false)
   const location = useLocation<FungibleAsset>()
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
@@ -63,6 +68,8 @@ export default function Send(): ReactElement {
   const [selectedAsset, setSelectedAsset] = useState<FungibleAsset>(
     location.state ?? currentAccount.network.baseAsset
   )
+
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(false)
 
   const [assetType, setAssetType] = useState<"token">("token")
 
@@ -123,6 +130,13 @@ export default function Send(): ReactElement {
   const dispatch = useBackgroundDispatch()
   const balanceData = useBackgroundSelector(selectCurrentAccountBalances)
   const mainCurrencySymbol = useBackgroundSelector(selectMainCurrencySymbol)
+  const { signedTransaction } = useBackgroundSelector(
+    (state) => state.transactionConstruction
+  )
+  const blockExplorerUrl = getBlockExplorerURL(
+    currentNetwork,
+    currentAccount.address
+  )
 
   const fungibleAssetAmounts =
     // Only look at fungible assets that have a balance greater than zero.
@@ -188,12 +202,10 @@ export default function Send(): ReactElement {
           maxFeePerGas: maxFeePerGas.toBigInt(),
           maxPriorityFeePerGas: maxPriorityFeePerGas.toBigInt(),
         })
-      )
+      ).then(() => setIsOpenConfirmationModal(true))
     } finally {
       setIsSendingTransactionRequest(false)
     }
-
-    history.push("/singleAsset", assetAmount.asset)
   }, [assetAmount, currentAccount, destinationAddress, dispatch, history])
 
   const copyAddress = useCallback(() => {
@@ -220,6 +232,29 @@ export default function Send(): ReactElement {
     addressErrorMessage === undefined &&
     destinationAddress !== undefined &&
     !sameEVMAddress(destinationAddress, userAddressValue)
+
+  const onCloseConfirmationModal = () => {
+    history.push("/singleAsset", assetAmount?.asset)
+    setIsOpenConfirmationModal(false)
+  }
+
+  if (isOpenConfirmationModal) {
+    return (
+      <SharedConfirmationModal
+        headerTitle={confirmationLocales("send.headerTitle")}
+        title={`${assetAmount?.asset?.symbol} ${confirmationLocales(
+          "transfer"
+        )}!`}
+        subtitle={confirmationLocales("send.subtitle")}
+        link={{
+          text: confirmationLocales("viewTransaction"),
+          url: `${blockExplorerUrl}/tx/${signedTransaction?.hash}`,
+        }}
+        isOpen={isOpenConfirmationModal}
+        onClose={onCloseConfirmationModal}
+      />
+    )
+  }
 
   return (
     <>

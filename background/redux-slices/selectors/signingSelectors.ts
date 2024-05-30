@@ -60,12 +60,14 @@ export const selectAccountSignersByAddress = createSelector(
           if (wallet.id === null) return undefined
 
           allAccountsSeen.add(address)
+          const shard = getShardFromAddress(address)
 
           return [
             address,
             {
               type: "private-key",
               walletID: wallet.id,
+              shard,
             },
           ]
         }

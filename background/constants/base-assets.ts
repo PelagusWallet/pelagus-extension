@@ -1,12 +1,12 @@
 import { NetworkBaseAsset } from "../networks"
-import { coinTypesByAssetSymbol } from "./coin-types"
+import { COIN_TYPES_BY_ASSET_SYMBOL } from "./coin-types"
 
 export const QUAI: NetworkBaseAsset = {
   chainID: "9000",
   name: "Quai Network",
   symbol: "QUAI",
   decimals: 18,
-  coinType: coinTypesByAssetSymbol.QUAI,
+  coinType: COIN_TYPES_BY_ASSET_SYMBOL.QUAI,
   metadata: {
     tokenLists: [],
     websiteURL: "https://qu.ai/",
@@ -17,7 +17,7 @@ export const QUAI_LOCAL: NetworkBaseAsset = {
   name: "Quai Network Local",
   symbol: "QUAI",
   decimals: 18,
-  coinType: coinTypesByAssetSymbol.QUAI,
+  coinType: COIN_TYPES_BY_ASSET_SYMBOL.QUAI,
   metadata: {
     tokenLists: [],
     websiteURL: "https://qu.ai/",

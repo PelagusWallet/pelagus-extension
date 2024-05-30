@@ -10,7 +10,12 @@ import {
   PricePoint,
   SmartContractFungibleAsset,
 } from "../assets"
-import { QUAI, QUAI_NETWORK, USD } from "../constants"
+import {
+  COIN_TYPES_BY_ASSET_SYMBOL,
+  QUAI,
+  QUAI_NETWORK,
+  USD,
+} from "../constants"
 import { normalizeEVMAddress } from "../lib/utils"
 import {
   AnyEVMBlock,
@@ -345,7 +350,7 @@ export const createNetworkBaseAsset = (
     name: `${symbol} Network`,
     symbol,
     decimals: 18,
-    coinType: 69,
+    coinType: COIN_TYPES_BY_ASSET_SYMBOL.QUAI,
     chainID: "1",
     contractAddress: createRandom0xHash(),
   }

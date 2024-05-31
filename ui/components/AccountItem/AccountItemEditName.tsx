@@ -80,18 +80,20 @@ export default function AccountItemEditName({
         onKeyDown={(e) => e.stopPropagation()}
       >
         <form onSubmit={onSubmit}>
-          <SharedInput
-            label=""
-            placeholder={t("typeNewName")}
-            errorMessage={error}
-            autoFocus
-            onChange={(value) => {
-              if (!touched) {
-                setTouched(true)
-              }
-              setNewName(value)
-            }}
-          />
+          <div>
+            <SharedInput
+              label=""
+              placeholder={t("typeNewName")}
+              errorMessage={error}
+              autoFocus
+              onChange={(value) => {
+                if (!touched) {
+                  setTouched(true)
+                }
+                setNewName(value)
+              }}
+            />
+          </div>
         </form>
       </div>
       <div className="button_container">
@@ -112,9 +114,11 @@ export default function AccountItemEditName({
       <style jsx>{`
         li {
         }
+
         .header {
           height: 24px;
         }
+
         .edit_address_name {
           margin-left: 20px;
           margin-right: 20px;
@@ -122,9 +126,11 @@ export default function AccountItemEditName({
           flex-direction: column;
           height: 95%;
         }
+
         form {
           margin-top: 0px;
         }
+
         .details {
           display: flex;
           flex-direction: column;
@@ -132,22 +138,24 @@ export default function AccountItemEditName({
           font-size: 16px;
           margin-top: 21px;
         }
+
         .button_container {
           margin-top: 52px;
           display: flex;
           flex-direction: row;
           justify-content: space-between;
         }
+
         .account_container {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin: 0 auto;
-          width: 336px;
+          width: 100%;
+          max-width: 336px;
+          box-sizing: border-box;
           height: 52px;
-          margin-top: 15px;
+          margin: 15px auto 0;
           background-color: var(--hunter-green);
-          padding: 5px;
           border-radius: 16px;
         }
       `}</style>

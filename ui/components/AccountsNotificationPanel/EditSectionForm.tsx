@@ -155,10 +155,6 @@ function EditSectionForm({
           margin: 0;
         }
         .details {
-          display: flex;
-          flex-direction: column;
-          line-height: 24px;
-          font-size: 16px;
           margin-top: 16px;
         }
         .button_container {

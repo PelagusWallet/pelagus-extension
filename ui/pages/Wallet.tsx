@@ -109,11 +109,7 @@ export default function Wallet(): ReactElement {
             panelNumber={panelNumber}
             panelNames={panelNames}
           />
-          <div
-            className={classNames("panel standard_width", {
-              no_padding: panelNumber === 1,
-            })}
-          >
+          <div className={classNames("panel standard_width")}>
             {panelNumber === 0 && (
               <>
                 <WalletAssetList

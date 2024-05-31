@@ -391,7 +391,6 @@ export default function SettingsAddCustomAsset(): ReactElement {
             />
             <div className="alert_content">
               <div className="title">{t("warning.alreadyExists.title")}</div>
-              <div className="desc">{t("warning.alreadyExists.desc")}</div>
             </div>
           </div>
         ) : (
@@ -428,17 +427,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
           font-size: 16px;
           font-weight: 500;
           line-height: 24px;
-          letter-spacing: 0em;
-          text-align: left;
-        }
-
-        .alert .desc {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 24px;
           letter-spacing: 0;
           text-align: left;
-          color: var(--green-40);
         }
       `}</style>
       <footer>

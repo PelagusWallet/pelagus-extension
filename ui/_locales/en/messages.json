@@ -328,7 +328,6 @@
       "asset.label.balance": "Balance",
       "asset.label.symbol": "Name",
       "warning.alreadyExists.title": "Asset already exists, you will see it once your balance is over 0",
-      "warning.alreadyExists.desc": "If you still have issues seeing an asset, turn off “Hide asset balances under 2$” from Settings",
       "warning.dust.title": "Asset balance is under <$2, you wil see it once your balance is over $2",
       "error.invalidToken": "Invalid contract address",
       "submit": "Add asset",

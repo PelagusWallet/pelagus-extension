@@ -186,10 +186,6 @@ export default function Wallet(): ReactElement {
             display: none;
           }
 
-          .no_padding {
-            padding-top: 0;
-          }
-
           .add_custom_asset {
             display: flex;
             flex-direction: column;

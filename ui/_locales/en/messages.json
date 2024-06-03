@@ -563,10 +563,11 @@
     },
     "transactionConfirmation": {
       "viewTransaction": "View Transaction",
-      "transfer": "Transfer",
       "send": {
-        "headerTitle": "Transaction Initiated",
-        "subtitle": "To view the details of your transaction on the block explorer, click the link below"
+        "headerTitle": "{{network}} Sent!",
+        "title": "Your transaction was successfully submitted",
+        "errorHeadline": "Uh oh!",
+        "errorSubtitle": "An error occurred when submitting your transaction. Make sure the transaction you are submitting is valid and try again"
       }
     }
   }

@@ -19,7 +19,6 @@ import { getProvider } from "./utils/contract-utils"
 import {
   EIP1559TransactionRequest,
   EVMNetwork,
-  KnownTxTypes,
   SignedTransaction,
   sameNetwork,
 } from "../networks"
@@ -264,66 +263,54 @@ export const transferAsset = createBackgroundAsyncThunk(
     maxPriorityFeePerGas?: bigint
     maxFeePerGas?: bigint
     accountSigner: AccountSigner
-  }) => {
-    let {
-      fromAddressNetwork: { address: fromAddress, network: fromNetwork },
-      toAddressNetwork: { address: toAddress, network: toNetwork },
-      assetAmount,
-      gasLimit,
-      nonce,
-      maxPriorityFeePerGas,
-      maxFeePerGas,
-      accountSigner,
-    } = transferDetails
+  }): Promise<{ success: boolean; errorMessage?: string }> => {
+    try {
+      let {
+        fromAddressNetwork: { address: fromAddress, network: fromNetwork },
+        toAddressNetwork: { address: toAddress, network: toNetwork },
+        assetAmount,
+        gasLimit,
+        nonce,
+        maxPriorityFeePerGas,
+        maxFeePerGas,
+        accountSigner,
+      } = transferDetails
 
-    if (!sameNetwork(fromNetwork, toNetwork)) {
-      throw new Error("Only same-network transfers are supported for now.")
-    }
-
-    if (fromNetwork.isQuai) {
-      let data = ""
-      const provider =
-        globalThis.main.chainService.providerForNetworkOrThrow(fromNetwork)
-      if (nonce == undefined) {
-        nonce = await provider.getTransactionCount(fromAddress)
+      if (!sameNetwork(fromNetwork, toNetwork)) {
+        return {
+          success: false,
+          errorMessage: "Only same-network transfers are supported for now.",
+        }
       }
-      if (isSmartContractFungibleAsset(assetAmount.asset)) {
-        logger.debug(
-          `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
-            `${fromAddress} to ${toAddress} as an ERC20 transfer.`
-        )
-        const token = new quais.Contract(
-          assetAmount.asset.contractAddress,
-          ERC20_INTERFACE,
-          provider
-        )
-        const fromShard = getShardFromAddress(fromAddress)
-        const toShard = getShardFromAddress(toAddress)
-        if (fromShard != toShard) {
-          // ERC20x cross-chain transfer
-          const minerTip =
-            BigInt(1000000000) *
-            BigInt(calcEtxFeeMultiplier(fromShard, toShard))
-          const baseFee =
-            BigInt(2000000000) *
-            BigInt(calcEtxFeeMultiplier(fromShard, toShard))
-          const gasLimit = BigInt(100000)
-          const amount = (baseFee + minerTip) * gasLimit
-          const transactionDetails =
-            await token.populateTransaction.crossChainTransfer(
-              toAddress,
-              assetAmount.amount,
-              gasLimit,
-              minerTip,
-              baseFee
-            )
-          toAddress = transactionDetails.to ? transactionDetails.to : ""
-          data = transactionDetails.data ? transactionDetails.data : ""
-          assetAmount = {
-            asset: QUAI,
-            amount,
-          }
-        } else {
+
+      const fromShard = getShardFromAddress(fromAddress)
+      const toShard = getShardFromAddress(toAddress)
+
+      if (fromShard !== toShard) {
+        return {
+          success: false,
+          errorMessage: "Only same-shard transfers are supported for now.",
+        }
+      }
+
+      if (fromNetwork.isQuai) {
+        let data = ""
+        const provider =
+          globalThis.main.chainService.providerForNetworkOrThrow(fromNetwork)
+        if (!nonce) {
+          nonce = await provider.getTransactionCount(fromAddress)
+        }
+        if (isSmartContractFungibleAsset(assetAmount.asset)) {
+          logger.debug(
+            `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
+              `${fromAddress} to ${toAddress} as an ERC20 transfer.`
+          )
+          const token = new quais.Contract(
+            assetAmount.asset.contractAddress,
+            ERC20_INTERFACE,
+            provider
+          )
+
           const transactionDetails = await token.populateTransaction.transfer(
             toAddress,
             assetAmount.amount
@@ -335,63 +322,71 @@ export const transferAsset = createBackgroundAsyncThunk(
             amount: BigInt(0),
           }
         }
+        const tx = genQuaiRawTransaction(
+          fromNetwork,
+          fromAddress,
+          toAddress,
+          assetAmount,
+          nonce,
+          fromNetwork.chainID,
+          data,
+          gasLimit ?? BigInt(200000),
+          maxFeePerGas ?? BigInt(2000000000),
+          maxPriorityFeePerGas ?? BigInt(1000000000)
+        )
+        signData({ transaction: tx, accountSigner })
+        return { success: true }
       }
-      const tx = genQuaiRawTransaction(
-        fromNetwork,
-        fromAddress,
-        toAddress,
-        assetAmount,
-        nonce,
-        fromNetwork.chainID,
-        data,
-        gasLimit ?? BigInt(200000),
-        maxFeePerGas ?? BigInt(2000000000),
-        maxPriorityFeePerGas ?? BigInt(1000000000)
-      )
-      signData({ transaction: tx, accountSigner })
-      return
-    }
 
-    const provider = getProvider()
-    const signer = provider.getSigner()
+      const provider = getProvider()
+      const signer = provider.getSigner()
 
-    if (isBuiltInNetworkBaseAsset(assetAmount.asset, fromNetwork)) {
-      logger.debug(
-        `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
-          `${fromAddress} to ${toAddress} as a base asset transfer.`
-      )
-      await signer.sendTransaction({
-        from: fromAddress,
-        to: toAddress,
-        value: assetAmount.amount,
-        gasLimit,
-        nonce,
-      })
-    } else if (isSmartContractFungibleAsset(assetAmount.asset)) {
-      logger.debug(
-        `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
-          `${fromAddress} to ${toAddress} as an ERC20 transfer.`
-      )
-      const token = new ethers.Contract(
-        assetAmount.asset.contractAddress,
-        ERC20_INTERFACE,
-        signer
-      )
+      if (isBuiltInNetworkBaseAsset(assetAmount.asset, fromNetwork)) {
+        logger.debug(
+          `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
+            `${fromAddress} to ${toAddress} as a base asset transfer.`
+        )
+        await signer.sendTransaction({
+          from: fromAddress,
+          to: toAddress,
+          value: assetAmount.amount,
+          gasLimit,
+          nonce,
+        })
+      } else if (isSmartContractFungibleAsset(assetAmount.asset)) {
+        logger.debug(
+          `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
+            `${fromAddress} to ${toAddress} as an ERC20 transfer.`
+        )
+        const token = new ethers.Contract(
+          assetAmount.asset.contractAddress,
+          ERC20_INTERFACE,
+          signer
+        )
 
-      const transactionDetails = await token.populateTransaction.transfer(
-        toAddress,
-        assetAmount.amount
-      )
+        const transactionDetails = await token.populateTransaction.transfer(
+          toAddress,
+          assetAmount.amount
+        )
 
-      await signer.sendUncheckedTransaction({
-        ...transactionDetails,
-        gasLimit: gasLimit ?? transactionDetails.gasLimit,
-        nonce,
-      })
-    } else {
-      throw new Error(
-        "Only base and fungible smart contract asset transfers are supported for now."
-      )
+        await signer.sendUncheckedTransaction({
+          ...transactionDetails,
+          gasLimit: gasLimit ?? transactionDetails.gasLimit,
+          nonce,
+        })
+      } else {
+        return {
+          success: false,
+          errorMessage:
+            "Only base and fungible smart contract asset transfers are supported for now.",
+        }
+      }
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        errorMessage: `Transfer failed: ${error}`,
+      }
     }
   }
 )
@@ -408,22 +403,7 @@ function genQuaiRawTransaction(
   maxFeePerGas: bigint,
   maxPriorityFeePerGas: bigint
 ): EIP1559TransactionRequest {
-  let isExternal = false
-  let type = 0
-  const fromShard = getShardFromAddress(fromAddress)
-  const toShard = getShardFromAddress(toAddress)
-
-  if (fromShard != toShard) {
-    isExternal = true
-  }
-
-  if (isExternal) {
-    type = 2
-  } else {
-    type = 0
-  }
-
-  const tx: EIP1559TransactionRequest = {
+  return {
     to: toAddress,
     from: fromAddress,
     value: assetAmount.amount,
@@ -431,20 +411,11 @@ function genQuaiRawTransaction(
     gasLimit: gasLimit ?? BigInt(200000),
     maxFeePerGas,
     maxPriorityFeePerGas,
-    type: type as KnownTxTypes,
+    type: 0,
     chainID: chainId,
     input: data,
     network,
   }
-
-  if (isExternal) {
-    tx.externalGasLimit = BigInt(100000)
-    tx.externalGasPrice =
-      tx.maxFeePerGas * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
-    tx.externalGasTip =
-      tx.maxPriorityFeePerGas * BigInt(calcEtxFeeMultiplier(fromShard, toShard))
-  }
-  return tx
 }
 
 /**

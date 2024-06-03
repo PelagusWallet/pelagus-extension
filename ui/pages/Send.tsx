@@ -70,6 +70,7 @@ export default function Send(): ReactElement {
   )
 
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(false)
+  const [isTransactionError, setIsTransactionError] = useState(false)
 
   const [assetType, setAssetType] = useState<"token">("token")
 
@@ -202,9 +203,16 @@ export default function Send(): ReactElement {
           maxFeePerGas: maxFeePerGas.toBigInt(),
           maxPriorityFeePerGas: maxPriorityFeePerGas.toBigInt(),
         })
-      ).then(() => setIsOpenConfirmationModal(true))
+      ).then((data) =>
+        data?.success
+          ? setIsTransactionError(false)
+          : setIsTransactionError(true)
+      )
+    } catch (e) {
+      setIsTransactionError(true)
     } finally {
       setIsSendingTransactionRequest(false)
+      setIsOpenConfirmationModal(true)
     }
   }, [assetAmount, currentAccount, destinationAddress, dispatch, history])
 
@@ -233,25 +241,47 @@ export default function Send(): ReactElement {
     destinationAddress !== undefined &&
     !sameEVMAddress(destinationAddress, userAddressValue)
 
-  const onCloseConfirmationModal = () => {
-    history.push("/singleAsset", assetAmount?.asset)
-    setIsOpenConfirmationModal(false)
-  }
-
   if (isOpenConfirmationModal) {
+    const onCloseConfirmationModal = () => {
+      history.push("/singleAsset", assetAmount?.asset)
+      setIsOpenConfirmationModal(false)
+    }
+
+    const confirmationModalProps = isTransactionError
+      ? {
+          headerTitle: confirmationLocales("send.errorHeadline"),
+          subtitle: confirmationLocales("send.errorSubtitle"),
+          icon: {
+            src: "icons/s/notif-wrong.svg",
+            height: "43",
+            width: "43",
+            color: "var(--error)",
+            padding: "32px",
+          },
+          isOpen: isOpenConfirmationModal,
+          onClose: onCloseConfirmationModal,
+        }
+      : {
+          headerTitle: confirmationLocales("send.headerTitle", {
+            network: assetAmount?.asset?.symbol,
+          }),
+          title: confirmationLocales("send.title"),
+          link: {
+            text: confirmationLocales("viewTransaction"),
+            url: `${blockExplorerUrl}/tx/${signedTransaction?.hash}`,
+          },
+          isOpen: isOpenConfirmationModal,
+          onClose: onCloseConfirmationModal,
+        }
     return (
       <SharedConfirmationModal
-        headerTitle={confirmationLocales("send.headerTitle")}
-        title={`${assetAmount?.asset?.symbol} ${confirmationLocales(
-          "transfer"
-        )}!`}
-        subtitle={confirmationLocales("send.subtitle")}
-        link={{
-          text: confirmationLocales("viewTransaction"),
-          url: `${blockExplorerUrl}/tx/${signedTransaction?.hash}`,
-        }}
-        isOpen={isOpenConfirmationModal}
-        onClose={onCloseConfirmationModal}
+        headerTitle={confirmationModalProps.headerTitle}
+        title={confirmationModalProps.title}
+        subtitle={confirmationModalProps.subtitle}
+        link={confirmationModalProps.link}
+        isOpen={confirmationModalProps.isOpen}
+        onClose={confirmationModalProps.onClose}
+        icon={confirmationModalProps.icon}
       />
     )
   }

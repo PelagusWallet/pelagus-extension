@@ -4,7 +4,13 @@ import SharedIcon from "./SharedIcon"
 
 interface SharedConfirmationModalProps {
   headerTitle: string
-  icon?: { src: string; width: string; height?: string; color?: string }
+  icon?: {
+    src: string
+    width?: string
+    height?: string
+    color?: string
+    padding?: string
+  }
   title?: string
   subtitle?: string
   link?: { text: string; url: string }
@@ -21,6 +27,7 @@ const SharedConfirmationModal = ({
     height: "35",
     width: "43",
     color: "var(--success)",
+    padding: "35px 32px",
   },
   title = "",
   subtitle = "",
@@ -82,7 +89,7 @@ const SharedConfirmationModal = ({
             flex-grow: 1;
           }
           .confirmation-icon-wrapper {
-            padding: 35px 32px;
+            padding: ${icon?.padding};
             background-color: var(--green-95);
             border-radius: 50%;
           }

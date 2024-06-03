@@ -25,9 +25,9 @@ import {
 import PreferenceService from "../preferences"
 import ChainService from "../chain"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
-import { getOrCreateDb, IndexingDatabase } from "./db"
+import { CustomAsset, getOrCreateDb, IndexingDatabase } from "./db"
 import BaseService from "../base"
-import { EnrichedEVMTransaction } from "../enrichment/types"
+import { EnrichedEVMTransaction } from "../enrichment"
 import {
   normalizeAddressOnNetwork,
   normalizeEVMAddress,
@@ -614,12 +614,10 @@ export default class IndexingService extends BaseService<Events> {
    * If the asset has already been cached, use that. Otherwise, infer asset
    * details from the contract and outside services.
    *
-   * @param addressOnNetwork the account and network on which this asset should
-   *        be tracked
+   * @param network the account and network on which this asset should be tracked
    * @param contractAddress the address of the token contract on this network
-   * @param decimals optionally include the number of decimals tracked by a
-   *        fungible asset. Useful in case this asset isn't found in existing
-   *        metadata.
+   * @param metadata optionally include the number of decimals tracked by a
+   *        fungible asset. Useful in case this asset isn't found in existing metadata.
    */
   async addTokenToTrackByContract(
     network: EVMNetwork,
@@ -632,35 +630,40 @@ export default class IndexingService extends BaseService<Events> {
       network,
       normalizedAddress
     )
-
     if (knownAsset) {
       await this.addAssetToTrack(knownAsset)
       return knownAsset
     }
 
-    let customAsset = await this.db.getCustomAssetByAddressAndNetwork(
-      network,
-      normalizedAddress
-    )
+    // Attempt to retrieve the custom asset from the database
+    // If it does not exist in the database, fetch its metadata using the provider
+    const customAsset: CustomAsset | undefined =
+      (await this.db.getCustomAssetByAddressAndNetwork(
+        network,
+        normalizedAddress
+      )) ||
+      (await this.chainService.assetData.getTokenMetadata({
+        contractAddress: normalizedAddress,
+        homeNetwork: network,
+      }))
+    if (!customAsset) return undefined
 
-    if (customAsset) {
-      const isRemoved = customAsset?.metadata?.removed ?? false
-      const isVerified = metadata.verified ?? false
-      // If the asset has been removed, it should be added again when the user did it manually by import.
-      if (!isRemoved || (isRemoved && isVerified)) {
-        if (Object.keys(metadata).length !== 0) {
-          customAsset.metadata ??= {}
-          Object.assign(customAsset.metadata, metadata)
+    const isRemoved = customAsset.metadata?.removed ?? false
+    const { verified } = metadata
+    const shouldAddRemovedAssetAgain = isRemoved && verified
 
-          if (isRemoved) {
-            customAsset.metadata.removed = false
-          }
-        }
-        await this.addOrUpdateCustomAsset(customAsset)
-        this.emitter.emit("refreshAsset", customAsset)
-        // TODO if we still don't have anything, use a contract read + a
-        await this.addAssetToTrack(customAsset)
+    // If the asset has not been removed, or if it has been removed and should be re-added
+    if (!isRemoved || shouldAddRemovedAssetAgain) {
+      if (Object.keys(metadata).length) {
+        customAsset.metadata ??= {}
+        Object.assign(customAsset.metadata, metadata)
+
+        if (isRemoved) customAsset.metadata.removed = false
       }
+
+      await this.addOrUpdateCustomAsset(customAsset)
+      await this.emitter.emit("refreshAsset", customAsset)
+      await this.addAssetToTrack(customAsset)
     }
 
     return customAsset

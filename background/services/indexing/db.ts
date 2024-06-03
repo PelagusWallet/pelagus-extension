@@ -57,7 +57,7 @@ export type CachedTokenList = TokenListCitation & {
  * Used only for checking if an unverified, discovered (not added) asset should be added to the asset list.
  *
  */
-type CustomAsset = Omit<SmartContractFungibleAsset, "metadata"> & {
+export type CustomAsset = Omit<SmartContractFungibleAsset, "metadata"> & {
   metadata?: NetworkSpecificAssetMetadata & { removed?: boolean }
 }
 

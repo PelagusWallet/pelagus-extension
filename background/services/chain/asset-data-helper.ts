@@ -90,7 +90,10 @@ export default class AssetDataHelper {
     return []
   }
 
-  // REFACTOR maybe remove
+  /**
+   * Retrieves metadata for a custom asset (e.g. when adding Custom Asset),
+   * using the provider associated with the QUAI network to obtain the token's metadata.
+   */
   async getTokenMetadata(
     tokenSmartContract: SmartContract
   ): Promise<SmartContractFungibleAsset | undefined> {

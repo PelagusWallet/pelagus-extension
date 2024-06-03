@@ -567,7 +567,8 @@
         "headerTitle": "{{network}} Sent!",
         "title": "Your transaction was successfully submitted",
         "errorHeadline": "Uh oh!",
-        "errorSubtitle": "An error occurred when submitting your transaction. Make sure the transaction you are submitting is valid and try again"
+        "errorTitle": "An error occurred when submitting your transaction",
+        "errorSubtitle": "Make sure the transaction you are submitting is valid and try again"
       }
     }
   }

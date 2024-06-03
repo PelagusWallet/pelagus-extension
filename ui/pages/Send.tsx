@@ -251,6 +251,7 @@ export default function Send(): ReactElement {
       ? {
           headerTitle: confirmationLocales("send.errorHeadline"),
           subtitle: confirmationLocales("send.errorSubtitle"),
+          title: `${confirmationLocales("send.errorTitle")}!`,
           icon: {
             src: "icons/s/notif-wrong.svg",
             height: "43",

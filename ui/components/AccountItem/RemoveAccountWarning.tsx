@@ -25,16 +25,16 @@ const LastAccountWarning = () => {
 }
 type RemoveAccountWarningProps = {
   lastAddressInAccount: boolean
-  lastAccountInTallyWallet: boolean
+  lastAccountInPelagusWallet: boolean
   isReadOnlyAccount: boolean
 }
 
 export default function RemoveAccountWarning({
   lastAddressInAccount,
-  lastAccountInTallyWallet,
+  lastAccountInPelagusWallet,
   isReadOnlyAccount,
 }: RemoveAccountWarningProps): ReactElement {
-  if (lastAccountInTallyWallet) {
+  if (lastAccountInPelagusWallet) {
     return <LastAccountWarning />
   }
 

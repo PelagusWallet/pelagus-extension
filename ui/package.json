@@ -30,7 +30,7 @@
     "@ethersproject/web": "^5.5.1",
     "@pelagus/pelagus-background": "0.7.0",
     "@reduxjs/toolkit": "^1.6.0",
-    "@tallyho/provider-bridge-shared": "0.7.0",
+    "@pelagus-provider/provider-bridge-shared": "0.7.0",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "12.1.5",
     "@testing-library/user-event": "14.4.3",

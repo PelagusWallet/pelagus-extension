@@ -1,4 +1,4 @@
-import { isAllowedQueryParamPage } from "@tallyho/provider-bridge-shared"
+import { isAllowedQueryParamPage } from "@pelagus-provider/provider-bridge-shared"
 
 import { useState, useEffect, ReactElement, ReactNode } from "react"
 import { getAllAddresses } from "@pelagus/pelagus-background/redux-slices/selectors/accountsSelectors"

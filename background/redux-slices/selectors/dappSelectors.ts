@@ -1,5 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit"
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { RootState } from ".."
 import { DAppPermissionState } from "../dapp"
 import { selectCurrentAccount } from "./uiSelectors"

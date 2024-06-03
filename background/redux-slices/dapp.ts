@@ -3,7 +3,7 @@ import Emittery from "emittery"
 import {
   DenyPermissionRequest,
   PermissionRequest,
-} from "@tallyho/provider-bridge-shared"
+} from "@pelagus-provider/provider-bridge-shared"
 import { createBackgroundAsyncThunk } from "./utils"
 import { keyPermissionsByChainIdAddressOrigin } from "../services/provider-bridge/utils"
 import { QUAI_NETWORK } from "../constants"

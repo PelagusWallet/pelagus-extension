@@ -50,7 +50,7 @@ export default function AccountItemRemovalConfirm({
   const lastAddressInAccount = keyring?.addresses.length === 1
 
   const allAddresses = useBackgroundSelector(getAllAddresses)
-  const lastAccountInTallyWallet = Object.keys(allAddresses).length === 1
+  const lastAccountInPelagusWallet = Object.keys(allAddresses).length === 1
 
   return (
     <div className="remove_address_option">
@@ -75,7 +75,7 @@ export default function AccountItemRemovalConfirm({
         <RemoveAccountWarning
           isReadOnlyAccount={readOnlyAccount}
           lastAddressInAccount={lastAddressInAccount}
-          lastAccountInTallyWallet={lastAccountInTallyWallet}
+          lastAccountInPelagusWallet={lastAccountInPelagusWallet}
         />
       </div>
       <div className="button_container">
@@ -104,7 +104,7 @@ export default function AccountItemRemovalConfirm({
                 })
               )
 
-              if (lastAccountInTallyWallet) {
+              if (lastAccountInPelagusWallet) {
                 window.open(ONBOARDING_ROOT)
                 window.close()
                 return

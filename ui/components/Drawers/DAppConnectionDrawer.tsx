@@ -1,6 +1,6 @@
 import React, { ReactElement, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { getShardFromAddress } from "@pelagus/pelagus-background/constants"
 import {

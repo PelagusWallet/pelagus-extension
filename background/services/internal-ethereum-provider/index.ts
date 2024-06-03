@@ -1,11 +1,11 @@
 import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
 import { serialize as serializeQuaiTransaction } from "@quais/transactions"
 import {
-  EIP1193Error,
   EIP1193_ERROR_CODES,
+  EIP1193Error,
   RPCRequest,
-} from "@tallyho/provider-bridge-shared"
-import { hexlify, toUtf8Bytes, _TypedDataEncoder } from "ethers/lib/utils"
+} from "@pelagus-provider/provider-bridge-shared"
+import { _TypedDataEncoder, hexlify, toUtf8Bytes } from "ethers/lib/utils"
 import { normalizeHexAddress } from "@pelagus/hd-keyring"
 import logger from "../../lib/logger"
 import BaseService from "../base"
@@ -24,12 +24,12 @@ import {
 import PreferenceService from "../preferences"
 import { internalProviderPort } from "../../redux-slices/utils/contract-utils"
 import {
-  SignTypedDataRequest,
   MessageSigningRequest,
   parseSigningData,
+  SignTypedDataRequest,
 } from "../../utils/signing"
 import { getOrCreateDB, InternalEthereumProviderDatabase } from "./db"
-import { TALLY_INTERNAL_ORIGIN } from "./constants"
+import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import {
   EnrichedEVMTransactionRequest,
   TransactionAnnotation,
@@ -137,7 +137,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           result: await this.routeSafeRPCRequest(
             event.request.method,
             event.request.params,
-            TALLY_INTERNAL_ORIGIN
+            PELAGUS_INTERNAL_ORIGIN
           ),
         }
         logger.debug("internal response:", response)
@@ -178,10 +178,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         // allowed to have an RPC call made to it. Ideally this would be based
         // on a user's idea of a dApp connection rather than a network-specific
         // modality, requiring it to be constantly "switched"
-        return toHexChainID(
-          (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
-        )
-      case "eth_chainId":
         return toHexChainID(
           (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
         )
@@ -230,7 +226,6 @@ export default class InternalEthereumProviderService extends BaseService<Events>
           params,
           await this.getCurrentOrDefaultNetworkForOrigin(origin)
         )
-      case "eth_accounts":
       case "quai_accounts": {
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
@@ -259,7 +254,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
             }
           )
         )
-      case "quai_sign": // --- important wallet methods ---
+      case "quai_sign":
         return this.signData(
           {
             input: params[1] as string,
@@ -340,15 +335,8 @@ export default class InternalEthereumProviderService extends BaseService<Events>
         })
         return true
       }
-      case "metamask_getProviderState": // --- important MM only methods ---
-      case "metamask_sendDomainMetadata":
       case "wallet_requestPermissions":
       case "estimateGas": // --- eip1193-bridge only method --
-      case "metamask_accountsChanged":
-      case "metamask_chainChanged":
-      case "metamask_logWeb3ShimUsage":
-      case "metamask_unlockStateChanged":
-      case "metamask_watchAsset":
       case "net_peerCount":
       case "wallet_accountsChanged":
       case "wallet_registerOnboarding":
@@ -359,7 +347,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
 
   private async getCurrentInternalNetwork(): Promise<EVMNetwork> {
     return this.db.getCurrentNetworkForOrigin(
-      TALLY_INTERNAL_ORIGIN
+      PELAGUS_INTERNAL_ORIGIN
     ) as Promise<EVMNetwork>
   }
 
@@ -370,8 +358,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
     if (!currentNetwork) {
       // If this is a new dapp or the dapp has not implemented wallet_switchEthereumChain
       // use the default network.
-      const defaultNetwork = await this.getCurrentInternalNetwork()
-      return defaultNetwork
+      return await this.getCurrentInternalNetwork()
     }
     return currentNetwork
   }
@@ -385,7 +372,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
     origin: string
   ): Promise<SignedTransaction> {
     const annotation =
-      origin === TALLY_INTERNAL_ORIGIN &&
+      origin === PELAGUS_INTERNAL_ORIGIN &&
       "annotation" in transactionRequest &&
       transactionRequest.annotation !== undefined
         ? // We use  `as` here as we know it's from a trusted source.

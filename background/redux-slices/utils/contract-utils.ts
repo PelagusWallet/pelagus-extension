@@ -1,6 +1,6 @@
-import TallyWindowProvider from "@tallyho/window-provider"
+import PelagusWindowProvider from "@pelagus-provider/window-provider"
 import Emittery from "emittery"
-import TallyWeb3Provider from "../../tally-provider"
+import PelagusWeb3Provider from "../../pelagus-provider"
 
 type InternalProviderPortEvents = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -9,7 +9,7 @@ type InternalProviderPortEvents = {
 
 /* eslint-disable @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types */
 // This is a compatibility shim that allows treating the internal provider as
-// if it's communicating over a port, so that the TallyWindowProvider can
+// if it's communicating over a port, so that the PelagusWindowProvider can
 // interact with it directly.
 export const internalProviderPort = {
   listeners: [] as ((message: any) => unknown)[],
@@ -30,8 +30,8 @@ export const internalProviderPort = {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types */
 
-export const internalProvider = new TallyWindowProvider(internalProviderPort)
+export const internalProvider = new PelagusWindowProvider(internalProviderPort)
 
-export function getProvider(this: unknown): TallyWeb3Provider {
-  return new TallyWeb3Provider(internalProvider)
+export function getProvider(this: unknown): PelagusWeb3Provider {
+  return new PelagusWeb3Provider(internalProvider)
 }

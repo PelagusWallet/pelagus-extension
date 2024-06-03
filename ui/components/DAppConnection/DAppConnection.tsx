@@ -1,4 +1,4 @@
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { selectAllowedPages } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { browser } from "@pelagus/pelagus-background"
 import React, { ReactElement, useCallback, useEffect, useState } from "react"

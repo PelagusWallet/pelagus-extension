@@ -1,4 +1,4 @@
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import Dexie from "dexie"
 import { keyPermissionsByChainIdAddressOrigin, PermissionMap } from "./utils"
 

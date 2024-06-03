@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill"
-import { AllowedQueryParamPageType } from "@tallyho/provider-bridge-shared"
+import { AllowedQueryParamPageType } from "@pelagus-provider/provider-bridge-shared"
 
 export default async function showExtensionPopup(
   url: AllowedQueryParamPageType,

@@ -1,7 +1,7 @@
 import {
-  injectTallyWindowProvider,
-  connectProviderBridge,
-} from "@tallyho/provider-bridge"
+  initializePelagusProviderBridge,
+  injectPelagusWindowProvider,
+} from "@pelagus-provider/provider-bridge"
 
-injectTallyWindowProvider()
-connectProviderBridge()
+injectPelagusWindowProvider()
+initializePelagusProviderBridge()

@@ -1,7 +1,7 @@
 import {
   EIP1193Error,
   EIP1193_ERROR_CODES,
-} from "@tallyho/provider-bridge-shared"
+} from "@pelagus-provider/provider-bridge-shared"
 import { handleRPCErrorResponse } from "../utils"
 
 describe("Utils", () => {

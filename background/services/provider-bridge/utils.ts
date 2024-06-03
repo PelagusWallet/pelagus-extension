@@ -5,7 +5,7 @@ import {
   isEIP1193Error,
   EIP1193ErrorPayload,
   RPCRequest,
-} from "@tallyho/provider-bridge-shared"
+} from "@pelagus-provider/provider-bridge-shared"
 import { AddEthereumChainParameter } from "../internal-ethereum-provider"
 import { sameEVMAddress } from "../../lib/utils"
 import { HexString } from "../../types"
@@ -92,7 +92,7 @@ export function handleRPCErrorResponse(error: unknown): unknown {
   )
 }
 
-// Lets start with all required and work backwards
+// Let's start with all required and work backwards
 export type ValidatedAddEthereumChainParameter = {
   chainId: string
   blockExplorerUrl: string
@@ -147,7 +147,7 @@ export const validateAddEthereumChainParameter = ({
 
 /**
  * Try to fix request params for dapps that are sending requests with flipped params order.
- * For now it only affects eth_call and personal_sign as message and address order is sometimes reversed.
+ * For now, it only affects eth_call and personal_sign as message and address order is sometimes reversed.
  *
  * @returns JSON RPC request's params - unchanged or flipped
  */
@@ -157,7 +157,6 @@ export function parseRPCRequestParams(
   params: RPCRequest["params"]
 ): RPCRequest["params"] {
   switch (method) {
-    case "eth_sign":
     case "quai_sign":
       return sameEVMAddress(
         params[0] as HexString,

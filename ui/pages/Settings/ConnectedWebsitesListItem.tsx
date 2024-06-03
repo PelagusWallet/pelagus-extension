@@ -1,4 +1,4 @@
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
 import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { useCallback } from "react"

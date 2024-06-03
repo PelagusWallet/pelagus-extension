@@ -1,11 +1,17 @@
 import {
   WindowResponseEvent,
   PortResponseEvent,
-  TallyConfigPayload,
-  TallyInternalCommunication,
-  TallyAccountPayload,
+  PelagusConfigPayload,
+  PelagusInternalCommunication,
+  PelagusAccountPayload,
   PortHealthResponseEvent,
 } from "./types"
+import {
+  PELAGUS_ACCOUNT_CHANGED_METHOD,
+  PELAGUS_GET_CONFIG_METHOD,
+  PELAGUS_HEALTH_CHECK_METHOD,
+  PELAGUS_INTERNAL_COMMUNICATION_ID,
+} from "./constants"
 
 export function getType(arg: unknown): string {
   return Object.prototype.toString.call(arg).slice("[object ".length, -1)
@@ -72,28 +78,30 @@ export function isAllowedQueryParamPage(
   return Object.values<unknown>(AllowedQueryParamPage).includes(url)
 }
 
-export function isTallyPortHealthCheck(
+export function isPelagusPortHealthCheck(
   arg: unknown
 ): arg is PortHealthResponseEvent {
-  return isObject(arg) && arg.method === "tally_healthCheck"
+  return isObject(arg) && arg.method === PELAGUS_HEALTH_CHECK_METHOD
 }
 
-export function isTallyInternalCommunication(
+export function isPelagusInternalCommunication(
   arg: unknown
-): arg is TallyInternalCommunication {
-  return isObject(arg) && arg.id === "tallyHo"
+): arg is PelagusInternalCommunication {
+  return isObject(arg) && arg.id === PELAGUS_INTERNAL_COMMUNICATION_ID
 }
 
-export function isTallyConfigPayload(arg: unknown): arg is TallyConfigPayload {
-  return isObject(arg) && arg.method === "tally_getConfig"
-}
-
-export function isTallyAccountPayload(
+export function isPelagusConfigPayload(
   arg: unknown
-): arg is TallyAccountPayload {
+): arg is PelagusConfigPayload {
+  return isObject(arg) && arg.method === PELAGUS_GET_CONFIG_METHOD
+}
+
+export function isPelagusAccountPayload(
+  arg: unknown
+): arg is PelagusAccountPayload {
   return (
     isObject(arg) &&
-    arg.method === "tally_accountChanged" &&
+    arg.method === PELAGUS_ACCOUNT_CHANGED_METHOD &&
     isArray(arg.address)
   )
 }

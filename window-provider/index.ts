@@ -1,91 +1,30 @@
+import { EventEmitter } from "events"
 import {
   PROVIDER_BRIDGE_TARGET,
   WINDOW_PROVIDER_TARGET,
   ProviderTransport,
+  RequestArgument,
+  EthersSendCallback,
+  PelagusConfigPayload,
+  PelagusAccountPayload,
   isObject,
   isWindowResponseEvent,
   isPortResponseEvent,
-  RequestArgument,
-  EthersSendCallback,
-  isTallyConfigPayload,
-  TallyConfigPayload,
+  isPelagusConfigPayload,
   isEIP1193Error,
-  isTallyInternalCommunication,
-  TallyAccountPayload,
-  isTallyAccountPayload,
-} from "@tallyho/provider-bridge-shared"
-import { EventEmitter } from "events"
+  isPelagusInternalCommunication,
+  isPelagusAccountPayload,
+} from "@pelagus-provider/provider-bridge-shared"
 
-// TODO: we don't want to impersonate MetaMask everywhere to not break existing integrations,
-//       so let's do this only on the websites that need this feature
-const impersonateMetamaskWhitelist = [
-  "traderjoexyz.com",
-  "transferto.xyz",
-  "opensea.io",
-  "polygon.technology",
-  "gmx.io",
-  "app.lyra.finance",
-  "matcha.xyz",
-  "bridge.umbria.network",
-  "galaxy.eco",
-  "galxe.com",
-  "dydx.exchange",
-  "app.euler.finance",
-  "stargate.finance",
-  "etherscan.io",
-  "swapr.eth.link",
-  "apex.exchange",
-  "aboard.exchange",
-  "portal.zksync.io",
-  "blur.io",
-  "app.benqi.fi",
-  "snowtrace.io",
-  "core.app",
-  "cbridge.celer.network",
-  "stargate.finance",
-  "app.multchain.cn",
-  "app.venus.io",
-  "app.alpacafinance.org",
-  "pancakeswap.finance",
-  "liquidifty.io",
-  "ankr.com",
-  "mint.xencrypto.io",
-  "bscscan.com",
-  "cow.fi",
-  "tally.xyz",
-  "kyberswap.com",
-  "space.id",
-  "app.0xsplits.xyz",
-  "altlayer.io",
-]
-
-const METAMASK_STATE_MOCK = {
-  accounts: null,
-  isConnected: false,
-  isUnlocked: false,
-  initialized: false,
-  isPermanentlyDisconnected: false,
-}
-
-export default class TallyWindowProvider extends EventEmitter {
-  // TODO: This should come from the background with onConnect when any interaction is initiated by the dApp.
-  // onboard.js relies on this, or uses a deprecated api. It seemed to be a reasonable workaround for now.
+export default class PelagusWindowProvider extends EventEmitter {
   chainId = "0x1"
-
   selectedAddress: string | undefined
-
   connected = false
-
   isPelagus = true
-
   isTally = true
-
   isMetaMask = false
-
   pelagusSetAsDefault = false
-
   isWeb3 = true
-
   requestResolvers = new Map<
     string,
     {
@@ -98,9 +37,6 @@ export default class TallyWindowProvider extends EventEmitter {
       }
     }
   >()
-
-  _state?: typeof METAMASK_STATE_MOCK
-
   providerInfo = {
     label: "Pelagus",
     injectedNamespace: "tally",
@@ -110,91 +46,63 @@ export default class TallyWindowProvider extends EventEmitter {
       !!provider && !!provider.isTally,
   } as const
 
+  private requestID = 0n
+
   constructor(public transport: ProviderTransport) {
     super()
 
-    const internalListener = (event: unknown) => {
-      let result: TallyConfigPayload | TallyAccountPayload
-      if (
-        isWindowResponseEvent(event) &&
-        isTallyInternalCommunication(event.data)
-      ) {
-        if (
-          event.origin !== this.transport.origin || // filter to messages claiming to be from the provider-bridge script
-          event.source !== window || // we want to recieve messages only from the provider-bridge script
-          event.data.target !== WINDOW_PROVIDER_TARGET
-        ) {
-          return
-        }
-
-        ;({ result } = event.data)
-      } else if (
-        isPortResponseEvent(event) &&
-        isTallyInternalCommunication(event)
-      ) {
-        ;({ result } = event)
-      } else {
-        return
-      }
-
-      if (isTallyConfigPayload(result)) {
-        window.walletRouter?.shouldSetPelagusForCurrentProvider(
-          result.defaultWallet,
-          result.shouldReload
-        )
-        const currentHost = window.location.host
-        if (
-          impersonateMetamaskWhitelist.some((host) =>
-            currentHost.includes(host)
-          )
-        ) {
-          this.isMetaMask = result.defaultWallet
-
-          if (
-            this.isMetaMask &&
-            // This is internal to MetaMask but accessed by this dApp
-            // TODO: Improve MetaMask provider impersonation
-            currentHost.includes("core.app")
-          ) {
-            // eslint-disable-next-line no-underscore-dangle
-            this._state = METAMASK_STATE_MOCK
-          }
-
-          this.pelagusSetAsDefault = result.defaultWallet
-        }
-        if (result.chainId && result.chainId !== this.chainId) {
-          this.handleChainIdChange(result.chainId)
-        }
-      } else if (isTallyAccountPayload(result)) {
-        this.handleAddressChange(result.address)
-      }
-    }
-
-    /**
-     * Some dApps may have a problem with preserving a reference to a provider object.
-     * This is the result of incorrect assignment.
-     * In such a case, the object this is undefined
-     * which results in an error in the execution of the request.
-     * The request function should always have a provider object set.
-     */
     this.request = this.request.bind(this)
-    this.transport.addEventListener(internalListener)
-    this.transport.addEventListener(this.internalBridgeListener.bind(this))
+    this.transport.addEventListener(this.backgroundEventsListener.bind(this))
+    this.transport.addEventListener(this.backgroundResponsesListener.bind(this))
   }
 
-  private internalBridgeListener(event: unknown): void {
-    let id
-    let result: unknown
+  private backgroundEventsListener(event: unknown): void {
+    let result: PelagusConfigPayload | PelagusAccountPayload
+
+    if (
+      isWindowResponseEvent(event) &&
+      isPelagusInternalCommunication(event.data)
+    ) {
+      if (
+        event.origin !== this.transport.origin || // filter to messages claiming to be from the provider-bridge script
+        event.source !== window || // we want to receive messages only from the provider-bridge script
+        event.data.target !== WINDOW_PROVIDER_TARGET
+      )
+        return
+      ;({ result } = event.data)
+    } else if (
+      isPortResponseEvent(event) &&
+      isPelagusInternalCommunication(event)
+    ) {
+      ;({ result } = event)
+    } else {
+      return
+    }
+
+    if (isPelagusConfigPayload(result)) {
+      window.walletRouter?.shouldSetPelagusForCurrentProvider(
+        result.defaultWallet,
+        result.shouldReload
+      )
+
+      if (result.chainId && result.chainId !== this.chainId) {
+        this.emitChainIdChange(result.chainId)
+      }
+    } else if (isPelagusAccountPayload(result)) {
+      this.emitAddressChange(result.address)
+    }
+  }
+
+  private backgroundResponsesListener(event: unknown): void {
+    let id, result: unknown
 
     if (isWindowResponseEvent(event)) {
       if (
         event.origin !== this.transport.origin || // filter to messages claiming to be from the provider-bridge script
-        event.source !== window || // we want to recieve messages only from the provider-bridge script
+        event.source !== window || // we want to receive messages only from the provider-bridge script
         event.data.target !== WINDOW_PROVIDER_TARGET
-      ) {
+      )
         return
-      }
-
       ;({ id, result } = event.data)
     } else if (isPortResponseEvent(event)) {
       ;({ id, result } = event)
@@ -203,7 +111,6 @@ export default class TallyWindowProvider extends EventEmitter {
     }
 
     const requestResolver = this.requestResolvers.get(id)
-
     if (!requestResolver) return
 
     const { sendData, reject, resolve } = requestResolver
@@ -216,48 +123,66 @@ export default class TallyWindowProvider extends EventEmitter {
       reject(result)
     }
 
-    // let's emit connected on the first successful response from background
     if (!this.connected) {
       this.connected = true
       this.emit("connect", { chainId: this.chainId })
     }
 
-    switch (sentMethod) {
-      case "wallet_switchEthereumChain":
+    this.handleResponseByMethod(sentMethod, result, sendData)
+
+    resolve(result)
+  }
+
+  private handleResponseByMethod(
+    method: string,
+    result: unknown,
+    sendData: any
+  ): void {
+    switch (method) {
       case "wallet_addEthereumChain":
-        // null result indicates successful chain change https://eips.ethereum.org/EIPS/eip-3326#specification
+      case "wallet_switchEthereumChain":
+        // null result indicates successful chain change EIP-3326
         if (result === null) {
-          this.handleChainIdChange(
+          this.emitChainIdChange(
             (sendData.request.params[0] as { chainId: string }).chainId
           )
         }
         break
-
-      case "quai_chainId":
-      case "eth_chainId":
       case "net_version":
+      case "quai_chainId":
         if (
           typeof result === "string" &&
           Number(this.chainId) !== Number(result)
         ) {
-          this.handleChainIdChange(result)
+          this.emitChainIdChange(result)
         }
         break
-
       case "quai_accounts":
-      case "eth_accounts":
-      case "eth_requestAccounts":
       case "quai_requestAccounts":
         if (Array.isArray(result) && result.length !== 0) {
-          this.handleAddressChange(result)
+          this.emitAddressChange(result)
         }
         break
-
       default:
         break
     }
+  }
 
-    resolve(result)
+  emitChainIdChange(chainId: string): void {
+    this.chainId = chainId
+    this.emit("chainChanged", chainId)
+    this.emit("networkChanged", Number(chainId).toString())
+  }
+  emitAddressChange(address: Array<string>): void {
+    if (this.selectedAddress !== address[0]) {
+      this.selectedAddress = address[0]
+      this.emit("accountsChanged", address)
+    }
+  }
+
+  // Methods listed below are accessible to dApps for interaction
+  isConnected(): boolean {
+    return this.connected
   }
 
   // deprecated EIP-1193 method
@@ -265,15 +190,9 @@ export default class TallyWindowProvider extends EventEmitter {
     return this.request({ method: "quai_requestAccounts" })
   }
 
-  isConnected(): boolean {
-    return this.connected
-  }
-
-  // deprecated EIP1193 send for web3-react injected provider Send type:
-  // https://github.com/NoahZinsmeister/web3-react/blob/d0b038c748a42ec85641a307e6c588546d86afc2/packages/injected-connector/src/types.ts#L4
+  // deprecated EIP1193 send for web3-react injected provider
   send(method: string, params: Array<unknown>): Promise<unknown>
-  // deprecated EIP1193 send for ethers.js Web3Provider > ExternalProvider:
-  // https://github.com/ethers-io/ethers.js/blob/73a46efea32c3f9a4833ed77896a216e3d3752a0/packages/providers/src.ts/web3-provider.ts#L19
+  // deprecated EIP1193 send for ethers.js Web3Provider > ExternalProvider
   send(
     request: RequestArgument,
     callback: (error: unknown, response: unknown) => void
@@ -297,7 +216,6 @@ export default class TallyWindowProvider extends EventEmitter {
   }
 
   // deprecated EIP-1193 method
-  // added as some dapps are still using it
   sendAsync(
     request: RequestArgument & { id?: number; jsonrpc?: string },
     callback: (error: unknown, response: unknown) => void
@@ -313,14 +231,8 @@ export default class TallyWindowProvider extends EventEmitter {
     )
   }
 
-  // Provider-wide counter for requests.
-  private requestID = 0n
-
   request(arg: RequestArgument): Promise<unknown> {
     const { method, params = [] } = arg
-    if (typeof method !== "string") {
-      return Promise.reject(new Error(`unsupported method type: ${method}`))
-    }
 
     const sendData = {
       id: this.requestID.toString(),
@@ -332,7 +244,6 @@ export default class TallyWindowProvider extends EventEmitter {
     }
 
     this.requestID += 1n
-
     this.transport.postMessage(sendData)
 
     return new Promise<unknown>((resolve, reject) => {
@@ -342,19 +253,5 @@ export default class TallyWindowProvider extends EventEmitter {
         sendData,
       })
     })
-  }
-
-  handleChainIdChange(chainId: string): void {
-    this.chainId = chainId
-    this.emit("chainChanged", chainId)
-    this.emit("networkChanged", Number(chainId).toString())
-  }
-
-  handleAddressChange(address: Array<string>): void {
-    if (this.selectedAddress !== address[0]) {
-      // eslint-disable-next-line prefer-destructuring
-      this.selectedAddress = address[0]
-      this.emit("accountsChanged", address)
-    }
   }
 }

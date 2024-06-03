@@ -32,7 +32,7 @@ const baseConfig: Configuration = {
     rules: [
       {
         test: /\.(tsx|ts|jsx)?$/,
-        exclude: /node_modules(?!\/@tallyho)|webpack/,
+        exclude: /node_modules(?!\/@pelagus-provider)|webpack/,
         use: [
           {
             loader: "babel-loader",
@@ -54,7 +54,6 @@ const baseConfig: Configuration = {
     fallback: {
       stream: require.resolve("stream-browserify"),
       process: require.resolve("process/browser"),
-      // these are required for @tallyho/keyring-controller
       crypto: require.resolve("crypto-browserify"),
     },
   },

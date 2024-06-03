@@ -1,6 +1,6 @@
 import React, { ReactElement, useState, useEffect, useCallback } from "react"
 import { browser } from "@pelagus/pelagus-background"
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { selectAllowedPagesForAllAcccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   FeatureFlags,

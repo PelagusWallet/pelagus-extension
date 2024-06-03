@@ -10,7 +10,7 @@ import {
 import { Store } from "webext-redux"
 import { Provider } from "react-redux"
 import { TransitionGroup, CSSTransition } from "react-transition-group"
-import { isAllowedQueryParamPage } from "@tallyho/provider-bridge-shared"
+import { isAllowedQueryParamPage } from "@pelagus-provider/provider-bridge-shared"
 import { runtime } from "webextension-polyfill"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { popupMonitorPortName } from "@pelagus/pelagus-background/main"

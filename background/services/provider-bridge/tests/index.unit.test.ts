@@ -1,7 +1,7 @@
 import {
   EIP1193_ERROR_CODES,
   PermissionRequest,
-} from "@tallyho/provider-bridge-shared"
+} from "@pelagus-provider/provider-bridge-shared"
 import sinon from "sinon"
 import browser from "webextension-polyfill"
 // eslint-disable-next-line import/no-extraneous-dependencies

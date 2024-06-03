@@ -1,3 +1,10 @@
+import {
+  PELAGUS_ACCOUNT_CHANGED_METHOD,
+  PELAGUS_GET_CONFIG_METHOD,
+  PELAGUS_HEALTH_CHECK_METHOD,
+  PELAGUS_INTERNAL_COMMUNICATION_ID,
+} from "./constants"
+
 export type PermissionRequest = {
   key: string
   origin: string
@@ -38,7 +45,7 @@ export type PortResponseEvent = {
 export type PortHealthResponseEvent = {
   jsonrpc: "2.0"
   result: unknown
-  method: "tally_healthCheck"
+  method: typeof PELAGUS_HEALTH_CHECK_METHOD
 }
 
 export type PortRequestEvent = {
@@ -68,20 +75,20 @@ export type PortTransport = {
 
 export type EthersSendCallback = (error: unknown, response: unknown) => void
 
-export type TallyInternalCommunication = {
-  id: "tallyHo"
-  result: TallyConfigPayload | TallyAccountPayload
+export type PelagusInternalCommunication = {
+  id: typeof PELAGUS_INTERNAL_COMMUNICATION_ID
+  result: PelagusConfigPayload | PelagusAccountPayload
 }
 
-export type TallyConfigPayload = {
-  method: "tally_getConfig"
+export type PelagusConfigPayload = {
+  method: typeof PELAGUS_GET_CONFIG_METHOD
   defaultWallet: boolean
   chainId?: string
   shouldReload?: boolean
   [prop: string]: unknown
 }
 
-export type TallyAccountPayload = {
-  method: "tally_accountChanged"
+export type PelagusAccountPayload = {
+  method: typeof PELAGUS_ACCOUNT_CHANGED_METHOD
   address: Array<string>
 }

@@ -10,7 +10,7 @@ import { encodeJSON } from "./lib/utils"
 import { toHexChainID, EVMNetwork } from "./networks"
 import { TransactionAnnotation } from "./services/enrichment"
 
-interface TallyInternalJsonRpcSigner extends JsonRpcSigner {
+interface PelagusInternalJsonRpcSigner extends JsonRpcSigner {
   sendTransaction(
     transaction: Deferrable<
       TransactionRequest & { annotation?: TransactionAnnotation }
@@ -18,7 +18,7 @@ interface TallyInternalJsonRpcSigner extends JsonRpcSigner {
   ): Promise<TransactionResponse>
 }
 
-export default class TallyWeb3Provider extends Web3Provider {
+export default class PelagusWeb3Provider extends Web3Provider {
   switchChain(network: EVMNetwork): Promise<unknown> {
     return this.send("wallet_switchEthereumChain", [
       {
@@ -29,7 +29,7 @@ export default class TallyWeb3Provider extends Web3Provider {
 
   override getSigner(
     addressOrIndex?: string | number
-  ): TallyInternalJsonRpcSigner {
+  ): PelagusInternalJsonRpcSigner {
     return super.getSigner(addressOrIndex)
   }
 

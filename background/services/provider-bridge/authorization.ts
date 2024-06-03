@@ -3,7 +3,7 @@ import {
   EIP1193Error,
   EIP1193_ERROR_CODES,
   PermissionRequest,
-} from "@tallyho/provider-bridge-shared"
+} from "@pelagus-provider/provider-bridge-shared"
 import { sameEVMAddress } from "../../lib/utils"
 import { toHexChainID } from "../../networks"
 import { HexString } from "../../types"

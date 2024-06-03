@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { useTranslation } from "react-i18next"
 import {
   FeatureFlags,

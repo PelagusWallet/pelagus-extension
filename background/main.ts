@@ -3,7 +3,7 @@ import { alias, wrapStore } from "webext-redux"
 import deepDiff from "webext-redux/lib/strategies/deepDiff/diff"
 import { configureStore, isPlain, Middleware } from "@reduxjs/toolkit"
 import { devToolsEnhancer } from "@redux-devtools/remote"
-import { PermissionRequest } from "@tallyho/provider-bridge-shared"
+import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
 import { utils } from "ethers"
 import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers"
@@ -111,7 +111,7 @@ import {
   REDUX_STATE_VERSION,
 } from "./redux-slices/migrations"
 import { PermissionMap } from "./services/provider-bridge/utils"
-import { TALLY_INTERNAL_ORIGIN } from "./services/internal-ethereum-provider/constants"
+import { PELAGUS_INTERNAL_ORIGIN } from "./services/internal-ethereum-provider/constants"
 import {
   ActivityDetail,
   addActivity,
@@ -1381,7 +1381,7 @@ export default class Main extends BaseService<never> {
       this.internalEthereumProviderService.routeSafeRPCRequest(
         "wallet_switchEthereumChain",
         [{ chainId: network.chainID }],
-        TALLY_INTERNAL_ORIGIN
+        PELAGUS_INTERNAL_ORIGIN
       )
       this.chainService.pollBlockPricesForNetwork(network.chainID)
       this.store.dispatch(clearCustomGas())

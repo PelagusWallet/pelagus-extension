@@ -1,16 +1,21 @@
 import browser, { Runtime } from "webextension-polyfill"
 import {
-  EXTERNAL_PORT_NAME,
-  PermissionRequest,
   AllowedQueryParamPage,
+  EIP1193_ERROR_CODES,
+  EXTERNAL_PORT_NAME,
+  PELAGUS_INTERNAL_COMMUNICATION_ID,
+  PELAGUS_GET_CONFIG_METHOD,
+  PELAGUS_HEALTH_CHECK_METHOD,
+  PELAGUS_METHODS_PREFIX,
+  PELAGUS_ACCOUNT_CHANGED_METHOD,
+  isPelagusConfigPayload,
+  isPelagusPortHealthCheck,
+  EIP1193Error,
+  PermissionRequest,
   PortRequestEvent,
   PortResponseEvent,
-  EIP1193Error,
   RPCRequest,
-  EIP1193_ERROR_CODES,
-  isTallyConfigPayload,
-  isTallyPortHealthCheck,
-} from "@tallyho/provider-bridge-shared"
+} from "@pelagus-provider/provider-bridge-shared"
 import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
 import BaseService from "../base"
 import InternalEthereumProviderService, {
@@ -21,21 +26,21 @@ import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import PreferenceService from "../preferences"
 import logger from "../../lib/logger"
 import {
-  checkPermissionSignTypedData,
   checkPermissionSign,
   checkPermissionSignTransaction,
+  checkPermissionSignTypedData,
 } from "./authorization"
 import showExtensionPopup from "./show-popup"
 import { HexString } from "../../types"
 import {
   handleRPCErrorResponse,
+  parseRPCRequestParams,
   PermissionMap,
   validateAddEthereumChainParameter,
   ValidatedAddEthereumChainParameter,
-  parseRPCRequestParams,
 } from "./utils"
 import { toHexChainID } from "../../networks"
-import { TALLY_INTERNAL_ORIGIN } from "../internal-ethereum-provider/constants"
+import { PELAGUS_INTERNAL_ORIGIN } from "../internal-ethereum-provider/constants"
 
 type Events = ServiceLifecycleEvents & {
   requestPermission: PermissionRequest
@@ -112,10 +117,10 @@ export default class ProviderBridgeService extends BaseService<Events> {
         // so we can set our provider into the correct state, BEFORE the page has a chance to
         // to cache it, store it etc.
         port.postMessage({
-          id: "tallyHo",
+          id: PELAGUS_INTERNAL_COMMUNICATION_ID,
           jsonrpc: "2.0",
           result: {
-            method: "tally_getConfig",
+            method: PELAGUS_GET_CONFIG_METHOD,
             defaultWallet: await this.preferenceService.getDefaultWallet(),
           },
         })
@@ -126,7 +131,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService() // Not needed, but better to stick to the patterns
-    this.emitter.emit(
+    await this.emitter.emit(
       "initializeAllowedPages",
       await this.db.getAllPermission()
     )
@@ -152,26 +157,28 @@ export default class ProviderBridgeService extends BaseService<Events> {
       )
 
     const originPermission = await this.checkPermission(origin, network.chainID)
-    if (origin === TALLY_INTERNAL_ORIGIN) {
+    if (origin === PELAGUS_INTERNAL_ORIGIN) {
       // Explicitly disallow anyone who has managed to pretend to be the
       // internal provider.
       response.result = new EIP1193Error(
         EIP1193_ERROR_CODES.unauthorized
       ).toJSON()
-    } else if (isTallyConfigPayload(event.request)) {
+    } else if (isPelagusConfigPayload(event.request)) {
       // let's start with the internal communication
-      response.id = "tallyHo"
+      response.id = PELAGUS_INTERNAL_COMMUNICATION_ID
       response.result = {
         method: event.request.method,
         defaultWallet: await this.preferenceService.getDefaultWallet(),
         chainId: toHexChainID(network.chainID),
       }
-    } else if (isTallyPortHealthCheck(event.request)) {
-      logger.info(`keeping port health 'tally_healthCheck' request`)
+    } else if (isPelagusPortHealthCheck(event.request)) {
+      logger.info(
+        `keeping port health '${PELAGUS_HEALTH_CHECK_METHOD}' request`
+      )
       response.result = {
         method: event.request.method,
       }
-    } else if (event.request.method.startsWith("tally_")) {
+    } else if (event.request.method.startsWith(PELAGUS_METHODS_PREFIX)) {
       switch (event.request.method) {
         default:
           logger.debug(
@@ -205,10 +212,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
         event.request.params,
         origin
       )
-    } else if (
-      event.request.method === "quai_requestAccounts" ||
-      event.request.method == "eth_requestAccounts"
-    ) {
+    } else if (event.request.method === "quai_requestAccounts") {
       // if it's external communication AND the dApp does not have permission BUT asks for it
       // then let's ask the user what he/she thinks
       const selectedAccount = await this.preferenceService.getSelectedAccount()
@@ -294,9 +298,9 @@ export default class ProviderBridgeService extends BaseService<Events> {
   notifyContentScriptAboutConfigChange(newDefaultWalletValue: boolean): void {
     this.openPorts.forEach((p) => {
       p.postMessage({
-        id: "tallyHo",
+        id: PELAGUS_INTERNAL_COMMUNICATION_ID,
         result: {
-          method: "tally_getConfig",
+          method: PELAGUS_GET_CONFIG_METHOD,
           defaultWallet: newDefaultWalletValue,
           shouldReload: true,
         },
@@ -313,17 +317,17 @@ export default class ProviderBridgeService extends BaseService<Events> {
         )
       if (await this.checkPermission(origin, chainID)) {
         port.postMessage({
-          id: "tallyHo",
+          id: PELAGUS_INTERNAL_COMMUNICATION_ID,
           result: {
-            method: "tally_accountChanged",
+            method: PELAGUS_ACCOUNT_CHANGED_METHOD,
             address: [newAddress],
           },
         })
       } else {
         port.postMessage({
-          id: "tallyHo",
+          id: PELAGUS_INTERNAL_COMMUNICATION_ID,
           result: {
-            method: "tally_accountChanged",
+            method: PELAGUS_ACCOUNT_CHANGED_METHOD,
             address: [],
           },
         })
@@ -446,9 +450,8 @@ export default class ProviderBridgeService extends BaseService<Events> {
   ): Promise<PermissionRequest | undefined> {
     const { address: selectedAddress } =
       await this.preferenceService.getSelectedAccount()
-    const currentAddress = selectedAddress
     // TODO make this multi-network friendly
-    return this.db.checkPermission(origin, currentAddress, chainID)
+    return this.db.checkPermission(origin, selectedAddress, chainID)
   }
 
   async revokePermissionsForChain(chainId: string): Promise<void> {
@@ -461,7 +464,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     origin: string,
     popupPromise: Promise<browser.Windows.Window>
   ): Promise<unknown> {
-    const response = await this.internalEthereumProviderService
+    return await this.internalEthereumProviderService
       .routeSafeRPCRequest(method, params, origin)
       .finally(async () => {
         const popup = await popupPromise
@@ -469,7 +472,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
           browser.windows.remove(popup.id)
         }
       })
-    return response
   }
 
   async routeContentScriptRPCRequest(
@@ -483,18 +485,12 @@ export default class ProviderBridgeService extends BaseService<Events> {
     try {
       switch (method) {
         case "quai_requestAccounts":
-        case "eth_requestAccounts":
-        case "eth_accounts":
         case "quai_accounts":
           return [enablingPermission.accountAddress]
         case "quai_signTypedData":
         case "quai_signTypedData_v1":
         case "quai_signTypedData_v3":
         case "quai_signTypedData_v4":
-        case "eth_signTypedData":
-        case "eth_signTypedData_v1":
-        case "eth_signTypedData_v3":
-        case "eth_signTypedData_v4":
           checkPermissionSignTypedData(
             params[0] as HexString,
             enablingPermission
@@ -506,7 +502,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.signData)
           )
-        case "eth_sign":
         case "quai_sign":
           checkPermissionSign(params[0] as HexString, enablingPermission)
 
@@ -525,8 +520,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
-        case "eth_signTransaction":
-        case "eth_sendTransaction":
         case "quai_signTransaction":
         case "quai_sendTransaction":
           checkPermissionSignTransaction(

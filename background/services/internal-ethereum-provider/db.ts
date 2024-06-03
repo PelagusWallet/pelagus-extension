@@ -1,7 +1,7 @@
 import Dexie from "dexie"
 import { QUAI_NETWORK } from "../../constants"
 import { EVMNetwork } from "../../networks"
-import { TALLY_INTERNAL_ORIGIN } from "./constants"
+import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 
 type NetworkForOrigin = {
   origin: string
@@ -42,7 +42,7 @@ export class InternalEthereumProviderDatabase extends Dexie {
     this.on("populate", (tx) => {
       return tx.db
         .table("currentNetwork")
-        .add({ origin: TALLY_INTERNAL_ORIGIN, network: QUAI_NETWORK })
+        .add({ origin: PELAGUS_INTERNAL_ORIGIN, network: QUAI_NETWORK })
     })
   }
 

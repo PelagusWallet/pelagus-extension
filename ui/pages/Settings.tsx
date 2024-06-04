@@ -332,7 +332,7 @@ export default function Settings(): ReactElement {
           .action_icons {
             display: flex;
             justify-content: center;
-            gap: 24px;
+            gap: 18px;
           }
 
           .group {

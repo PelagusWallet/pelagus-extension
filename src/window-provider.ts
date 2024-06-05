@@ -4,6 +4,13 @@ import {
 } from "@pelagus-provider/provider-bridge-shared"
 import PelagusWindowProvider from "@pelagus-provider/window-provider"
 
+const TALLY_OBJECT_PROPERTY = "tally"
+const PELAGUS_OBJECT_PROPERTY = "pelagus"
+const ETHEREUM_OBJECT_PROPERTY = "ethereum"
+const WALLET_ROUTER_OBJECT_PROPERTY = "walletRouter"
+
+const DETECT_PROVIDER_INITIALIZATION_EVENT = "quai#initialized"
+
 const pelagusWindowProvider: PelagusWindowProvider = new PelagusWindowProvider({
   postMessage: (data: WindowRequestEvent) =>
     window.postMessage(data, window.location.origin),
@@ -17,19 +24,19 @@ const pelagusWindowProvider: PelagusWindowProvider = new PelagusWindowProvider({
 // The window object is considered unsafe, because other extensions could have modified them before this script is run.
 // For 100% certainty we could create an iframe here, store the references and then destroy the iframe.
 // https://speakerdeck.com/fransrosen/owasp-appseceu-2018-attacking-modern-web-technologies?slide=95
-Object.defineProperty(window, "tally", {
+Object.defineProperty(window, TALLY_OBJECT_PROPERTY, {
   value: pelagusWindowProvider,
   writable: false,
   configurable: false,
 })
-Object.defineProperty(window, "pelagus", {
+Object.defineProperty(window, PELAGUS_OBJECT_PROPERTY, {
   value: pelagusWindowProvider,
   writable: false,
   configurable: false,
 })
 
 if (!window.walletRouter) {
-  Object.defineProperty(window, "walletRouter", {
+  Object.defineProperty(window, WALLET_ROUTER_OBJECT_PROPERTY, {
     value: {
       currentProvider: window.pelagus,
       lastInjectedProvider: window.ethereum,
@@ -82,11 +89,11 @@ let cachedWindowEthereumProxy: WindowEthereum
 // default wallet is changed we are switching the underlying provider.
 let cachedCurrentProvider: WalletProvider
 
-Object.defineProperty(window, "ethereum", {
+Object.defineProperty(window, ETHEREUM_OBJECT_PROPERTY, {
   get() {
     if (!window.walletRouter) {
       throw new Error(
-        "window.walletRouter is expected to be set to change the injected provider on window.ethereum."
+        `window.${WALLET_ROUTER_OBJECT_PROPERTY} is expected to be set to change the injected provider on window.${ETHEREUM_OBJECT_PROPERTY}.`
       )
     }
 
@@ -120,3 +127,5 @@ Object.defineProperty(window, "ethereum", {
   },
   configurable: false,
 })
+
+window.dispatchEvent(new Event(DETECT_PROVIDER_INITIALIZATION_EVENT))

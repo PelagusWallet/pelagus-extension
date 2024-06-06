@@ -294,6 +294,15 @@ export default class ChainService extends BaseService<Events> {
           this.pollBlockPrices()
         },
       },
+      availableTestNetworks: {
+        schedule: {
+          periodInMinutes: 1,
+        },
+        handler: () => {
+          this.getTestNetworksWithAvailabilityFlag()
+        },
+        runAtStart: true,
+      },
     })
 
     this.trackedNetworks = []
@@ -308,7 +317,6 @@ export default class ChainService extends BaseService<Events> {
 
     await this.db.initialize()
     await this.initializeNetworks()
-    await this.getTestNetworksWithAvailabilityFlag()
     const accounts = await this.getAccountsToTrack()
     const trackedNetworks = await this.getTrackedNetworks()
     const transactions = await this.db.getAllTransactions()

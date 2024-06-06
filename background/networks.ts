@@ -70,6 +70,11 @@ export type EVMNetwork = Network & {
   isQuai?: boolean
 }
 
+export type EVMTestNetwork = Network &
+  EVMNetwork & {
+    isAvailable: boolean
+  }
+
 export type ChainIdWithError = {
   chainId: string
   error: boolean

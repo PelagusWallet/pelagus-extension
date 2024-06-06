@@ -1,15 +1,19 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import {
+  EVMNetwork,
+  EVMTestNetwork,
+} from "@pelagus/pelagus-background/networks"
 import { useTranslation } from "react-i18next"
+import { isEnabled } from "@pelagus/pelagus-background/features"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
 import SharedTooltip from "../Shared/SharedTooltip"
 
 type TopMenuProtocolListItemGAProps = {
-  network: EVMNetwork
+  network: EVMNetwork | EVMTestNetwork
   isSelected: boolean
   isDisabled?: boolean
-  onSelect: (network: EVMNetwork) => void
+  onSelect: (network: EVMNetwork | EVMTestNetwork) => void
 }
 
 export default function TopMenuProtocolListItemGA({
@@ -21,6 +25,13 @@ export default function TopMenuProtocolListItemGA({
   const { t } = useTranslation("translation", {
     keyPrefix: "drawers.selectNetwork",
   })
+
+  const getTooltipMsg = () => {
+    if (!isEnabled("SUPPORT_TEST_NETWORKS")) {
+      return t("globalDisabledTestNetworks")
+    }
+    return t("localDisabledTestNetworks")
+  }
   return (
     <div
       className={classNames("networks-list-item", {
@@ -47,7 +58,7 @@ export default function TopMenuProtocolListItemGA({
           horizontalShift={50}
           customStyles={{ cursor: "default", textAlign: "center" }}
         >
-          {t("unavailableTestNetworks")}
+          {getTooltipMsg()}
         </SharedTooltip>
       )}
       <style jsx>

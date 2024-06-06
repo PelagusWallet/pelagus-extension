@@ -56,7 +56,11 @@ import {
   updateKeyrings,
   setKeyringToVerify,
 } from "./redux-slices/keyrings"
-import { blockSeen, setEVMNetworks } from "./redux-slices/networks"
+import {
+  blockSeen,
+  setEVMNetworks,
+  setTestNetworksWithAvailabilityFlag,
+} from "./redux-slices/networks"
 import {
   initializationLoadingTimeHitLimit,
   emitter as uiSliceEmitter,
@@ -860,6 +864,13 @@ export default class Main extends BaseService<never> {
     this.chainService.emitter.on("supportedNetworks", (supportedNetworks) => {
       this.store.dispatch(setEVMNetworks(supportedNetworks))
     })
+
+    this.chainService.emitter.on(
+      "testNetworksWithAvailabilityFlag",
+      (networks) => {
+        this.store.dispatch(setTestNetworksWithAvailabilityFlag(networks))
+      }
+    )
 
     this.chainService.emitter.on("block", (block) => {
       this.store.dispatch(blockSeen(block))

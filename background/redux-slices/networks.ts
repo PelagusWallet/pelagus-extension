@@ -1,7 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "."
 import { QUAI_NETWORK } from "../constants"
-import { EIP1559Block, AnyEVMBlock, EVMNetwork } from "../networks"
+import {
+  EIP1559Block,
+  AnyEVMBlock,
+  EVMNetwork,
+  EVMTestNetwork,
+} from "../networks"
 import { removeChainBalances } from "./accounts"
 import { selectCurrentNetwork } from "./selectors/uiSelectors"
 import { setSelectedNetwork } from "./ui"
@@ -16,6 +21,9 @@ export type NetworksState = {
   evmNetworks: {
     [chainID: string]: EVMNetwork
   }
+  testNetworksWithAvailabilityFlag: {
+    [chainID: string]: EVMTestNetwork
+  }
   blockInfo: {
     [chainID: string]: NetworkState
   }
@@ -23,6 +31,7 @@ export type NetworksState = {
 
 export const initialState: NetworksState = {
   evmNetworks: {},
+  testNetworksWithAvailabilityFlag: {},
   blockInfo: {
     "1": {
       blockHeight: null,
@@ -74,10 +83,35 @@ const networksSlice = createSlice({
         }
       })
     },
+
+    setTestNetworksWithAvailabilityFlag: (
+      immerState,
+      { payload }: { payload: EVMTestNetwork[] }
+    ) => {
+      const chainIds = payload.map((network) => network.chainID)
+
+      payload.forEach((network) => {
+        immerState.testNetworksWithAvailabilityFlag[network.chainID] = network
+      })
+
+      // Remove payload missing networks from state
+      Object.keys(immerState.testNetworksWithAvailabilityFlag).forEach(
+        (chainID) => {
+          if (!chainIds.includes(chainID)) {
+            delete immerState.testNetworksWithAvailabilityFlag[chainID]
+            delete immerState.blockInfo[chainID]
+          }
+        }
+      )
+    },
   },
 })
 
-export const { blockSeen, setEVMNetworks } = networksSlice.actions
+export const {
+  blockSeen,
+  setEVMNetworks,
+  setTestNetworksWithAvailabilityFlag,
+} = networksSlice.actions
 
 export default networksSlice.reducer
 

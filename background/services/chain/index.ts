@@ -16,6 +16,7 @@ import {
   SignedTransaction,
   toHexChainID,
   sameChainID,
+  EVMTestNetwork,
 } from "../../networks"
 import {
   AnyAssetAmount,
@@ -33,6 +34,7 @@ import {
   QUAI_NETWORK,
   getProviderForGivenShard,
   EIP_1559_COMPLIANT_CHAIN_IDS,
+  DEFAULT_TEST_NETWORKS,
 } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -109,6 +111,7 @@ interface Events extends ServiceLifecycleEvents {
     source: "import" | "internal" | null
   }
   supportedNetworks: EVMNetwork[]
+  testNetworksWithAvailabilityFlag: EVMTestNetwork[]
   accountsWithBalances: {
     /**
      * Retrieved balance for the network's base asset
@@ -305,6 +308,7 @@ export default class ChainService extends BaseService<Events> {
 
     await this.db.initialize()
     await this.initializeNetworks()
+    await this.getTestNetworksWithAvailabilityFlag()
     const accounts = await this.getAccountsToTrack()
     const trackedNetworks = await this.getTrackedNetworks()
     const transactions = await this.db.getAllTransactions()
@@ -2062,6 +2066,28 @@ export default class ChainService extends BaseService<Events> {
 
     this.supportedNetworks = supportedNetworks
     this.emitter.emit("supportedNetworks", supportedNetworks)
+  }
+
+  async getTestNetworksWithAvailabilityFlag(): Promise<void> {
+    const rpcUrls = await this.db.getAllRpcUrls()
+
+    const testNetworksWithFlag = DEFAULT_TEST_NETWORKS.map((network) => {
+      makeSerialFallbackProvider(
+        network.chainID,
+        rpcUrls.find((v) => v.chainID === network.chainID)?.rpcUrls || []
+      )
+        ?.getBlockNumber()
+        .then(() => {
+          // eslint-disable-next-line no-param-reassign
+          network.isAvailable = true
+        })
+
+      return network
+    })
+    await this.emitter.emit(
+      "testNetworksWithAvailabilityFlag",
+      testNetworksWithFlag
+    )
   }
 
   async queryAccountTokenDetails(

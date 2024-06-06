@@ -1,7 +1,7 @@
 import { indexOf } from "lodash"
 import logger from "../lib/logger"
 import { QUAI, QUAI_LOCAL } from "./"
-import { EVMNetwork } from "../networks"
+import { EVMNetwork, EVMTestNetwork } from "../networks"
 import {
   JsonRpcProvider as QuaisJsonRpcProvider,
   WebSocketProvider as QuaisWebSocketProvider,
@@ -240,7 +240,7 @@ export const QUAI_NETWORK: EVMNetwork = {
   isQuai: true,
 }
 
-export const QUAI_NETWORK_LOCAL: EVMNetwork = {
+export const QUAI_NETWORK_LOCAL: EVMTestNetwork = {
   name: "Quai Network Local",
   baseAsset: QUAI_LOCAL,
   chainID: "1337",
@@ -248,6 +248,7 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   chains: DEFAULT_QUAI_LOCAL.chains,
   derivationPath: "m/44'/1'/0'/0",
   isQuai: true,
+  isAvailable: false,
 }
 
 export const DEFAULT_NETWORKS = [QUAI_NETWORK]

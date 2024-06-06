@@ -22,12 +22,8 @@ export default function DAppAccountsList({
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
 
-  const isAccountConnected = (account: ListAccount): boolean => {
-    return account &&
-      sameEVMAddress(account.address, currentSelectedAccount.address)
-      ? true
-      : false
-  }
+  const isAccountConnected = (account: ListAccount): boolean =>
+    account && sameEVMAddress(account.address, currentSelectedAccount.address)
 
   const onSwitchAccountClick = (address: string) => {
     dispatch(
@@ -56,10 +52,9 @@ export default function DAppAccountsList({
           .dApp-accounts-list {
             display: flex;
             flex-direction: column;
-            min-height: auto;
             overflow-y: auto;
-            overflow-x: hidden;
             margin: 0 -16px;
+            max-height: 342px;
           }
           .dApp-accounts-list-wrapper {
             display: flex;

@@ -9,7 +9,7 @@ import { waitFor } from "@testing-library/dom"
 import * as featureFlags from "../../../features"
 import { wait } from "../../../lib/utils"
 import { createProviderBridgeService } from "../../../tests/factories"
-import { AddEthereumChainParameter } from "../../internal-ethereum-provider"
+import { AddEthereumChainParameter } from "../../internal-quai-provider"
 import ProviderBridgeService from "../index"
 import { validateAddEthereumChainParameter } from "../utils"
 
@@ -143,8 +143,8 @@ describe("ProviderBridgeService", () => {
       )
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const IEP = providerBridgeService["internalEthereumProviderService"]
-      const spy = jest.spyOn(IEP, "routeSafeRPCRequest")
+      const IQP = providerBridgeService["internalQuaiProviderService"]
+      const spy = jest.spyOn(IQP, "routeSafeRPCRequest")
 
       await wait(0) // wait next tick to setup popup
 

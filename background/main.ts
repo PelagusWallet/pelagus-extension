@@ -23,7 +23,7 @@ import {
   ChainService,
   EnrichmentService,
   IndexingService,
-  InternalEthereumProviderService,
+  InternalQuaiProviderService,
   KeyringService,
   NameService,
   PreferenceService,
@@ -111,7 +111,7 @@ import {
   REDUX_STATE_VERSION,
 } from "./redux-slices/migrations"
 import { PermissionMap } from "./services/provider-bridge/utils"
-import { PELAGUS_INTERNAL_ORIGIN } from "./services/internal-ethereum-provider/constants"
+import { PELAGUS_INTERNAL_ORIGIN } from "./services/internal-quai-provider/constants"
 import {
   ActivityDetail,
   addActivity,
@@ -276,10 +276,12 @@ export default class Main extends BaseService<never> {
       indexingService,
       nameService
     )
-    const internalEthereumProviderService =
-      InternalEthereumProviderService.create(chainService, preferenceService)
+    const internalQuaiProviderService = InternalQuaiProviderService.create(
+      chainService,
+      preferenceService
+    )
     const providerBridgeService = ProviderBridgeService.create(
-      internalEthereumProviderService,
+      internalQuaiProviderService,
       preferenceService
     )
     const telemetryService = TelemetryService.create()
@@ -322,7 +324,7 @@ export default class Main extends BaseService<never> {
       await indexingService,
       await keyringService,
       await nameService,
-      await internalEthereumProviderService,
+      await internalQuaiProviderService,
       await providerBridgeService,
       await telemetryService,
       await signingService,
@@ -364,10 +366,10 @@ export default class Main extends BaseService<never> {
      */
     private nameService: NameService,
     /**
-     * A promise to the internal ethereum provider service, which acts as
-     * web3 / ethereum provider for the internal and external dApps to use.
+     * A promise to the internal quai provider service, which acts as
+     * web3 / quai provider for the internal and external dApps to use.
      */
-    private internalEthereumProviderService: InternalEthereumProviderService,
+    private internalQuaiProviderService: InternalQuaiProviderService,
     /**
      * A promise to the provider bridge service, handling and validating
      * the communication coming from dApps according to EIP-1193 and some tribal
@@ -588,7 +590,7 @@ export default class Main extends BaseService<never> {
       this.enrichmentService.startService(),
       this.keyringService.startService(),
       this.nameService.startService(),
-      this.internalEthereumProviderService.startService(),
+      this.internalQuaiProviderService.startService(),
       this.providerBridgeService.startService(),
       this.telemetryService.startService(),
       this.signingService.startService(),
@@ -607,7 +609,7 @@ export default class Main extends BaseService<never> {
       this.enrichmentService.stopService(),
       this.keyringService.stopService(),
       this.nameService.stopService(),
-      this.internalEthereumProviderService.stopService(),
+      this.internalQuaiProviderService.stopService(),
       this.providerBridgeService.stopService(),
       this.telemetryService.stopService(),
       this.signingService.stopService(),
@@ -623,7 +625,7 @@ export default class Main extends BaseService<never> {
     this.connectIndexingService()
     this.connectKeyringService()
     this.connectNameService()
-    this.connectInternalEthereumProviderService()
+    this.connectInternalQuaiProviderService()
     this.connectProviderBridgeService()
     this.connectPreferenceService()
     this.connectEnrichmentService()
@@ -1205,8 +1207,8 @@ export default class Main extends BaseService<never> {
     })
   }
 
-  async connectInternalEthereumProviderService(): Promise<void> {
-    this.internalEthereumProviderService.emitter.on(
+  async connectInternalQuaiProviderService(): Promise<void> {
+    this.internalQuaiProviderService.emitter.on(
       "transactionSignatureRequest",
       async ({ payload, resolver, rejecter }) => {
         await this.signingService.prepareForSigningRequest()
@@ -1254,7 +1256,7 @@ export default class Main extends BaseService<never> {
         )
       }
     )
-    this.internalEthereumProviderService.emitter.on(
+    this.internalQuaiProviderService.emitter.on(
       "signTypedDataRequest",
       async ({
         payload,
@@ -1311,7 +1313,7 @@ export default class Main extends BaseService<never> {
         signingSliceEmitter.on("signatureRejected", rejectAndClear)
       }
     )
-    this.internalEthereumProviderService.emitter.on(
+    this.internalQuaiProviderService.emitter.on(
       "signDataRequest",
       async ({
         payload,
@@ -1370,7 +1372,7 @@ export default class Main extends BaseService<never> {
         signingSliceEmitter.on("signatureRejected", rejectAndClear)
       }
     )
-    this.internalEthereumProviderService.emitter.on(
+    this.internalQuaiProviderService.emitter.on(
       "selectedNetwork",
       (network) => {
         this.store.dispatch(setSelectedNetwork(network))
@@ -1378,7 +1380,7 @@ export default class Main extends BaseService<never> {
     )
 
     uiSliceEmitter.on("newSelectedNetwork", (network) => {
-      this.internalEthereumProviderService.routeSafeRPCRequest(
+      this.internalQuaiProviderService.routeSafeRPCRequest(
         "wallet_switchEthereumChain",
         [{ chainId: network.chainID }],
         PELAGUS_INTERNAL_ORIGIN
@@ -1387,7 +1389,7 @@ export default class Main extends BaseService<never> {
       this.store.dispatch(clearCustomGas())
     })
 
-    this.internalEthereumProviderService.emitter.on(
+    this.internalQuaiProviderService.emitter.on(
       "watchAssetRequest",
       async ({ contractAddress, network }) => {
         const { address } = this.store.getState().ui.selectedAccount
@@ -1743,9 +1745,7 @@ export default class Main extends BaseService<never> {
 
   async removeEVMNetwork(chainID: string): Promise<void> {
     // Per origin chain id settings
-    await this.internalEthereumProviderService.removePrefererencesForChain(
-      chainID
-    )
+    await this.internalQuaiProviderService.removePrefererencesForChain(chainID)
     // Connected dApps
     await this.providerBridgeService.revokePermissionsForChain(chainID)
     await this.chainService.removeCustomChain(chainID)

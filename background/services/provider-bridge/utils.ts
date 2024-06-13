@@ -6,7 +6,7 @@ import {
   EIP1193ErrorPayload,
   RPCRequest,
 } from "@pelagus-provider/provider-bridge-shared"
-import { AddEthereumChainParameter } from "../internal-ethereum-provider"
+import { AddEthereumChainParameter } from "../internal-quai-provider"
 import { sameEVMAddress } from "../../lib/utils"
 import { HexString } from "../../types"
 

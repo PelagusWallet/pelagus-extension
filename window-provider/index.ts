@@ -2,6 +2,11 @@ import { EventEmitter } from "events"
 import {
   PROVIDER_BRIDGE_TARGET,
   WINDOW_PROVIDER_TARGET,
+  PELAGUS_WINDOW_PROVIDER_CHAIN_ID,
+  PELAGUS_WINDOW_PROVIDER_LABEL,
+  PELAGUS_WINDOW_PROVIDER_INJECTED_NAMESPACE,
+  PELAGUS_WINDOW_PROVIDER_ICON_URL,
+  PELAGUS_WINDOW_PROVIDER_IDENTITY_FLAG,
   ProviderTransport,
   RequestArgument,
   EthersSendCallback,
@@ -16,12 +21,28 @@ import {
   isPelagusAccountPayload,
 } from "@pelagus-provider/provider-bridge-shared"
 
+type ProviderInfo = {
+  label: string
+  injectedNamespace: string
+  iconURL: string
+  identityFlag?: string
+  checkIdentity?: (provider: WalletProvider) => boolean
+}
+
+const providerInfo: ProviderInfo = {
+  label: PELAGUS_WINDOW_PROVIDER_LABEL,
+  injectedNamespace: PELAGUS_WINDOW_PROVIDER_INJECTED_NAMESPACE,
+  iconURL: PELAGUS_WINDOW_PROVIDER_ICON_URL,
+  identityFlag: PELAGUS_WINDOW_PROVIDER_IDENTITY_FLAG,
+  checkIdentity: (provider: WalletProvider) =>
+    !!provider && !!provider.isPelagus,
+}
+
 export default class PelagusWindowProvider extends EventEmitter {
-  chainId = "0x1"
+  chainId = PELAGUS_WINDOW_PROVIDER_CHAIN_ID
   selectedAddress: string | undefined
   connected = false
   isPelagus = true
-  isTally = true
   isMetaMask = false
   pelagusSetAsDefault = false
   isWeb3 = true
@@ -37,14 +58,7 @@ export default class PelagusWindowProvider extends EventEmitter {
       }
     }
   >()
-  providerInfo = {
-    label: "Pelagus",
-    injectedNamespace: "tally",
-    iconURL: "TODO",
-    identityFlag: "isTally",
-    checkIdentity: (provider: WalletProvider) =>
-      !!provider && !!provider.isTally,
-  } as const
+  providerInfo = providerInfo
 
   private requestID = 0n
 

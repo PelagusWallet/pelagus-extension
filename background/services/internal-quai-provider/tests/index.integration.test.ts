@@ -1,10 +1,10 @@
 import sinon from "sinon"
-import InternalEthereumProviderService from ".."
+import InternalQuaiProviderService from ".."
 import * as featureFlags from "../../../features"
 import { EVMNetwork } from "../../../networks"
 import {
   createChainService,
-  createInternalEthereumProviderService,
+  createInternalQuaiProviderService,
 } from "../../../tests/factories"
 import { validateAddEthereumChainParameter } from "../../provider-bridge/utils"
 import { QUAI_NETWORK } from "../../../constants"
@@ -13,18 +13,18 @@ import { EIP712TypedData } from "../../../types"
 
 const TEST_ADDRESS = "0x208e94d5661a73360d9387d3ca169e5c130090cd"
 
-describe("Internal Ethereum Provider Service", () => {
+describe("Internal Quai Provider Service", () => {
   const sandbox = sinon.createSandbox()
-  let IEPService: InternalEthereumProviderService
+  let IQPService: InternalQuaiProviderService
 
   beforeEach(async () => {
     sandbox.restore()
-    IEPService = await createInternalEthereumProviderService()
-    await IEPService.startService()
+    IQPService = await createInternalQuaiProviderService()
+    await IQPService.startService()
   })
 
   afterEach(async () => {
-    await IEPService.stopService()
+    await IQPService.stopService()
   })
 
   it("should correctly persist chains sent in via wallet_addEthereumChain", async () => {
@@ -32,10 +32,10 @@ describe("Internal Ethereum Provider Service", () => {
 
     jest.spyOn(featureFlags, "isEnabled").mockImplementation(() => true)
 
-    IEPService = await createInternalEthereumProviderService({ chainService })
+    IQPService = await createInternalQuaiProviderService({ chainService })
     const startedChainService = await chainService
     await startedChainService.startService()
-    await IEPService.startService()
+    await IQPService.startService()
     const method = "wallet_addEthereumChain"
     const origin = "https://chainlist.org"
 
@@ -55,7 +55,7 @@ describe("Internal Ethereum Provider Service", () => {
       "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
     ]
 
-    await IEPService.routeSafeRPCRequest(method, EIP3085Params, origin)
+    await IQPService.routeSafeRPCRequest(method, EIP3085Params, origin)
 
     expect(
       startedChainService.supportedNetworks.find(
@@ -116,15 +116,15 @@ describe("Internal Ethereum Provider Service", () => {
 
       const EIP712Params = [TEST_ADDRESS, JSON.stringify(EIP712Object)]
 
-      jest.spyOn(IEPService.emitter, "emit")
+      jest.spyOn(IQPService.emitter, "emit")
 
-      IEPService.emitter.on("signTypedDataRequest", ({ resolver }) => {
+      IQPService.emitter.on("signTypedDataRequest", ({ resolver }) => {
         resolver("") // We have to manually resolve promise here
       })
 
-      await IEPService.routeSafeRPCRequest(method, EIP712Params, origin)
+      await IQPService.routeSafeRPCRequest(method, EIP712Params, origin)
 
-      expect(IEPService.emitter.emit).toHaveBeenCalledWith(
+      expect(IQPService.emitter.emit).toHaveBeenCalledWith(
         "signTypedDataRequest",
         expect.objectContaining({
           payload: EIP712ObjectFiltered,

@@ -28,7 +28,7 @@ import {
   parseSigningData,
   SignTypedDataRequest,
 } from "../../utils/signing"
-import { getOrCreateDB, InternalEthereumProviderDatabase } from "./db"
+import { getOrCreateDB, InternalQuaiProviderDatabase } from "./db"
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import {
   EnrichedEVMTransactionRequest,
@@ -109,10 +109,10 @@ type Events = ServiceLifecycleEvents & {
   watchAssetRequest: { contractAddress: string; network: EVMNetwork }
 }
 
-export default class InternalEthereumProviderService extends BaseService<Events> {
+export default class InternalQuaiProviderService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
-    InternalEthereumProviderService,
+    InternalQuaiProviderService,
     [Promise<ChainService>, Promise<PreferenceService>]
   > = async (chainService, preferenceService) => {
     return new this(
@@ -123,7 +123,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
   }
 
   private constructor(
-    private db: InternalEthereumProviderDatabase,
+    private db: InternalQuaiProviderDatabase,
     private chainService: ChainService,
     private preferenceService: PreferenceService
   ) {
@@ -437,9 +437,7 @@ export default class InternalEthereumProviderService extends BaseService<Events>
     if (trackedNetwork) return trackedNetwork
 
     try {
-      const newlyTrackedNetwork =
-        await this.chainService.startTrackingNetworkOrThrow(chainID)
-      return newlyTrackedNetwork
+      return await this.chainService.startTrackingNetworkOrThrow(chainID)
     } catch (e) {
       logger.warn(e)
       return undefined

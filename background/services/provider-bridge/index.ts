@@ -18,9 +18,9 @@ import {
 } from "@pelagus-provider/provider-bridge-shared"
 import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
 import BaseService from "../base"
-import InternalEthereumProviderService, {
+import InternalQuaiProviderService, {
   AddEthereumChainParameter,
-} from "../internal-ethereum-provider"
+} from "../internal-quai-provider"
 import { getOrCreateDB, ProviderBridgeServiceDatabase } from "./db"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import PreferenceService from "../preferences"
@@ -40,7 +40,7 @@ import {
   ValidatedAddEthereumChainParameter,
 } from "./utils"
 import { toHexChainID } from "../../networks"
-import { PELAGUS_INTERNAL_ORIGIN } from "../internal-ethereum-provider/constants"
+import { PELAGUS_INTERNAL_ORIGIN } from "../internal-quai-provider/constants"
 
 type Events = ServiceLifecycleEvents & {
   requestPermission: PermissionRequest
@@ -85,18 +85,18 @@ export default class ProviderBridgeService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     ProviderBridgeService,
-    [Promise<InternalEthereumProviderService>, Promise<PreferenceService>]
-  > = async (internalEthereumProviderService, preferenceService) => {
+    [Promise<InternalQuaiProviderService>, Promise<PreferenceService>]
+  > = async (internalQuaiProviderService, preferenceService) => {
     return new this(
       await getOrCreateDB(),
-      await internalEthereumProviderService,
+      await internalQuaiProviderService,
       await preferenceService
     )
   }
 
   private constructor(
     private db: ProviderBridgeServiceDatabase,
-    private internalEthereumProviderService: InternalEthereumProviderService,
+    private internalQuaiProviderService: InternalQuaiProviderService,
     private preferenceService: PreferenceService
   ) {
     super()
@@ -152,7 +152,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       result: [],
     }
     const network =
-      await this.internalEthereumProviderService.getCurrentOrDefaultNetworkForOrigin(
+      await this.internalQuaiProviderService.getCurrentOrDefaultNetworkForOrigin(
         origin
       )
 
@@ -194,11 +194,11 @@ export default class ProviderBridgeService extends BaseService<Events> {
       // we need to send back the chainId and net_version (a deprecated
       // precursor to eth_chainId) independent of dApp permission if we want to
       // be compliant with MM and web3-react We are calling the
-      // `internalEthereumProviderService.routeSafeRPCRequest` directly here,
+      // `internalQuaiProviderService.routeSafeRPCRequest` directly here,
       // because the point of this exception is to provide the proper chainId
       // for the dApp, independent from the permissions.
       response.result =
-        await this.internalEthereumProviderService.routeSafeRPCRequest(
+        await this.internalQuaiProviderService.routeSafeRPCRequest(
           event.request.method,
           event.request.params,
           origin
@@ -220,7 +220,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
       // @TODO 7/12/21 Figure out underlying cause here
       const dAppChainID = Number(
-        (await this.internalEthereumProviderService.routeSafeRPCRequest(
+        (await this.internalQuaiProviderService.routeSafeRPCRequest(
           "quai_chainId",
           [],
           origin
@@ -255,7 +255,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
         )
 
         // on dApp connection, persist the current network/origin state
-        await this.internalEthereumProviderService.switchToSupportedNetwork(
+        await this.internalQuaiProviderService.switchToSupportedNetwork(
           origin,
           network
         )
@@ -267,7 +267,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       }
     } else if (event.request.method === "quai_accounts") {
       const dAppChainID = Number(
-        (await this.internalEthereumProviderService.routeSafeRPCRequest(
+        (await this.internalQuaiProviderService.routeSafeRPCRequest(
           "quai_chainId",
           [],
           origin
@@ -312,7 +312,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     this.openPorts.forEach(async (port) => {
       const { origin } = new URL(port.sender?.url as string)
       const { chainID } =
-        await this.internalEthereumProviderService.getCurrentOrDefaultNetworkForOrigin(
+        await this.internalQuaiProviderService.getCurrentOrDefaultNetworkForOrigin(
           origin
         )
       if (await this.checkPermission(origin, chainID)) {
@@ -464,7 +464,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     origin: string,
     popupPromise: Promise<browser.Windows.Window>
   ): Promise<unknown> {
-    return await this.internalEthereumProviderService
+    return await this.internalQuaiProviderService
       .routeSafeRPCRequest(method, params, origin)
       .finally(async () => {
         const popup = await popupPromise
@@ -541,7 +541,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
           )
 
         case "wallet_switchEthereumChain":
-          return await this.internalEthereumProviderService.routeSafeRPCRequest(
+          return await this.internalQuaiProviderService.routeSafeRPCRequest(
             method,
             params,
             origin
@@ -590,14 +590,14 @@ export default class ProviderBridgeService extends BaseService<Events> {
             chainID: validatedData.chainId,
           })
 
-          return await this.internalEthereumProviderService.routeSafeRPCRequest(
+          return await this.internalQuaiProviderService.routeSafeRPCRequest(
             method,
             [validatedData, address],
             origin
           )
         }
         default: {
-          return await this.internalEthereumProviderService.routeSafeRPCRequest(
+          return await this.internalQuaiProviderService.routeSafeRPCRequest(
             method,
             params,
             origin

@@ -8,7 +8,7 @@ type NetworkForOrigin = {
   network: EVMNetwork
 }
 
-export class InternalEthereumProviderDatabase extends Dexie {
+export class InternalQuaiProviderDatabase extends Dexie {
   private currentNetwork!: Dexie.Table<NetworkForOrigin, string>
 
   constructor() {
@@ -65,6 +65,6 @@ export class InternalEthereumProviderDatabase extends Dexie {
   }
 }
 
-export async function getOrCreateDB(): Promise<InternalEthereumProviderDatabase> {
-  return new InternalEthereumProviderDatabase()
+export async function getOrCreateDB(): Promise<InternalQuaiProviderDatabase> {
+  return new InternalQuaiProviderDatabase()
 }

@@ -4,7 +4,6 @@ import {
 } from "@pelagus-provider/provider-bridge-shared"
 import PelagusWindowProvider from "@pelagus-provider/window-provider"
 
-const TALLY_OBJECT_PROPERTY = "tally"
 const PELAGUS_OBJECT_PROPERTY = "pelagus"
 const ETHEREUM_OBJECT_PROPERTY = "ethereum"
 const WALLET_ROUTER_OBJECT_PROPERTY = "walletRouter"
@@ -24,11 +23,6 @@ const pelagusWindowProvider: PelagusWindowProvider = new PelagusWindowProvider({
 // The window object is considered unsafe, because other extensions could have modified them before this script is run.
 // For 100% certainty we could create an iframe here, store the references and then destroy the iframe.
 // https://speakerdeck.com/fransrosen/owasp-appseceu-2018-attacking-modern-web-technologies?slide=95
-Object.defineProperty(window, TALLY_OBJECT_PROPERTY, {
-  value: pelagusWindowProvider,
-  writable: false,
-  configurable: false,
-})
 Object.defineProperty(window, PELAGUS_OBJECT_PROPERTY, {
   value: pelagusWindowProvider,
   writable: false,
@@ -41,11 +35,9 @@ if (!window.walletRouter) {
       currentProvider: window.pelagus,
       lastInjectedProvider: window.ethereum,
       pelagusProvider: window.pelagus,
-      tallyProvider: window.tally,
       providers: [
         ...new Set([
           window.pelagus,
-          window.tally,
           // eslint-disable-next-line no-nested-ternary
           ...(window.ethereum
             ? // let's use the providers that has already been registered

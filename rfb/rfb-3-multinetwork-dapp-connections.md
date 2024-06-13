@@ -118,21 +118,21 @@ This changes when the dApp uses the RPC methods eg. `wallet_switchEthereumChain`
 }
 ```
 
-##### InternalEthereumProviderService
+##### InternalQuaiProviderService
 
-The current connections for the dApps will be stored in the `InternalEthereumProviderService` because the augmentation of current network will be necessary for our internal dApps as well.
+The current connections for the dApps will be stored in the `InternalQuaiProviderService` because the augmentation of current network will be necessary for our internal dApps as well.
 
 Our internal dApps — swap, send etc — will use the global account and network selected.
 
-⚠️ Note: the selected account related solution is currently located in the `PreferenceService`. We need to move the logic to the `InternalEthereumProvider` and migrate the existing settings. We do this migration in the `main.ts` but we will need to clean up `PreferenceService` after this implementation is released.
+⚠️ Note: the selected account related solution is currently located in the `PreferenceService`. We need to move the logic to the `InternalQuaiProvider` and migrate the existing settings. We do this migration in the `main.ts` but we will need to clean up `PreferenceService` after this implementation is released.
 
 ⚠️ Note: the [else here](https://github.com/tallycash/extension/blob/0c12499d711290a0de9f28898be44f87fe6d664f/background/main.ts#L1098) should be removed as part of this work.
 
 ###### Initialization flow
 
-- `InternalEthereumService`
+- `InternalQuaiService`
   - on first db initialization it creates the db with the schema
-    - migration will happen in main to avoid dependency circles between `ProviderBridgeService` and `InternalEthereumProvider`
+    - migration will happen in main to avoid dependency circles between `ProviderBridgeService` and `InternalQuaiProvider`
   - in `internalStartService`
     - it reads
       - all the persisted account + network for every dApp that has been granted permission
@@ -149,7 +149,7 @@ Our internal dApps — swap, send etc — will use the global account and networ
   - migration mode: (if the payload is empty): it reads all the dapp permissions that has already been granted and
     - reads all the permissions granted from `ProviderBridgeService` and the selected address
     - populates the payload with current selected address and network and dispatches the `setSelectedAddressOnNetwork`
-    - calls the `setSelectedAddressOnNetwork` method on `InternalEthereumProvider` which persists all dApps with the current address and network information
+    - calls the `setSelectedAddressOnNetwork` method on `InternalQuaiProvider` which persists all dApps with the current address and network information
   - normal mode: (if the payload is not empty) dispatches `setSelectedAddressOnNetwork` which overwrites the data in redux
 
 ###### Update flow
@@ -159,14 +159,14 @@ Our internal dApps — swap, send etc — will use the global account and networ
   - ⚠️ note: We don't make the distinction here whether the account or the network was changed. This information will be important in the `window-provider` but it will take care of it in it's own scope.
   - redux is updated for every dApp that has been granted permission
 - in main we update the [uiSliceEmitter > newAddressOnNetwork listener](https://github.com/tallycash/extension/blob/0c12499d711290a0de9f28898be44f87fe6d664f/background/main.ts#L1110)
-  - persist the change in `InternalEthereumProvider` for every dApp that has been granted permission
+  - persist the change in `InternalQuaiProvider` for every dApp that has been granted permission
   - notify the content scripts for every dApp that has an live connection / open port
   - check referrals
 
 ###### Incoming RPC call augmentation flow
 
 Every incoming RPC call from the dApps should be augmented with the information of selected networks.
-This will be done in `InternalEthereumProvider` when calling `ChainService` as an additional argument for the method calls.
+This will be done in `InternalQuaiProvider` when calling `ChainService` as an additional argument for the method calls.
 
 ‼️ Security concern:
 Based on the [ethereum JSON RPC APIs spec](https://github.com/ethereum/execution-apis) calls that have transactions as a parameter have the chainID. We need to validate, that the call param is the same as one that the user has selected.

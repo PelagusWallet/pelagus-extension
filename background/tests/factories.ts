@@ -29,7 +29,7 @@ import {
   AnalyticsService,
   ChainService,
   IndexingService,
-  InternalEthereumProviderService,
+  InternalQuaiProviderService,
   KeyringService,
   NameService,
   PreferenceService,
@@ -102,11 +102,11 @@ type CreateSigningServiceOverrides = {
 }
 
 type CreateProviderBridgeServiceOverrides = {
-  internalEthereumProviderService?: Promise<InternalEthereumProviderService>
+  internalQuaiProviderService?: Promise<InternalQuaiProviderService>
   preferenceService?: Promise<PreferenceService>
 }
 
-type CreateInternalEthereumProviderServiceOverrides = {
+type CreateInternalQuaiProviderServiceOverrides = {
   chainService?: Promise<ChainService>
   preferenceService?: Promise<PreferenceService>
 }
@@ -129,10 +129,10 @@ export const createSigningService = async (
   )
 }
 
-export const createInternalEthereumProviderService = async (
-  overrides: CreateInternalEthereumProviderServiceOverrides = {}
-): Promise<InternalEthereumProviderService> => {
-  return InternalEthereumProviderService.create(
+export const createInternalQuaiProviderService = async (
+  overrides: CreateInternalQuaiProviderServiceOverrides = {}
+): Promise<InternalQuaiProviderService> => {
+  return InternalQuaiProviderService.create(
     overrides.chainService ?? createChainService(),
     overrides.preferenceService ?? createPreferenceService()
   )
@@ -144,8 +144,8 @@ export const createProviderBridgeService = async (
   const preferenceService =
     overrides?.preferenceService ?? createPreferenceService()
   return ProviderBridgeService.create(
-    overrides.internalEthereumProviderService ??
-      createInternalEthereumProviderService({ preferenceService }),
+    overrides.internalQuaiProviderService ??
+      createInternalQuaiProviderService({ preferenceService }),
     preferenceService
   )
 }

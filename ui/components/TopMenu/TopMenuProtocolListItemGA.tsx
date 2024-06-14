@@ -1,13 +1,19 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import {
+  EVMNetwork,
+  EVMTestNetwork,
+} from "@pelagus/pelagus-background/networks"
+import { useTranslation } from "react-i18next"
+import { isEnabled } from "@pelagus/pelagus-background/features"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
+import SharedTooltip from "../Shared/SharedTooltip"
 
 type TopMenuProtocolListItemGAProps = {
-  network: EVMNetwork
+  network: EVMNetwork | EVMTestNetwork
   isSelected: boolean
   isDisabled?: boolean
-  onSelect: (network: EVMNetwork) => void
+  onSelect: (network: EVMNetwork | EVMTestNetwork) => void
 }
 
 export default function TopMenuProtocolListItemGA({
@@ -16,6 +22,16 @@ export default function TopMenuProtocolListItemGA({
   onSelect,
   isDisabled = false,
 }: TopMenuProtocolListItemGAProps): ReactElement {
+  const { t } = useTranslation("translation", {
+    keyPrefix: "drawers.selectNetwork",
+  })
+
+  const getTooltipMsg = () => {
+    if (!isEnabled("SUPPORT_TEST_NETWORKS")) {
+      return t("globalDisabledTestNetworks")
+    }
+    return t("localDisabledTestNetworks")
+  }
   return (
     <div
       className={classNames("networks-list-item", {
@@ -35,6 +51,16 @@ export default function TopMenuProtocolListItemGA({
       <div className="list-item-right">
         <div className="item-title">{network.name}</div>
       </div>
+      {isDisabled && (
+        <SharedTooltip
+          width={120}
+          verticalPosition="top"
+          horizontalShift={50}
+          customStyles={{ cursor: "default", textAlign: "center" }}
+        >
+          {getTooltipMsg()}
+        </SharedTooltip>
+      )}
       <style jsx>
         {`
           .networks-list-item {
@@ -92,10 +118,13 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .disabled {
-            cursor: default;
+            cursor: not-allowed;
           }
           .disabled .item-title {
-            color: var(--green-95);
+            color: var(--disabled);
+          }
+          .disabled .item-icon-wrap {
+            opacity: 0.4;
           }
         `}
       </style>

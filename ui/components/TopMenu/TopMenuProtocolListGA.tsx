@@ -1,11 +1,19 @@
 import React, { ReactElement, useMemo } from "react"
 import {
   isBuiltInNetwork,
-  DEFAULT_TEST_NETWORKS,
+  isTestNetwork,
 } from "@pelagus/pelagus-background/constants"
-import { EVMNetwork, sameNetwork } from "@pelagus/pelagus-background/networks"
+import {
+  EVMNetwork,
+  sameNetwork,
+  EVMTestNetwork,
+} from "@pelagus/pelagus-background/networks"
 import { selectShowTestNetworks } from "@pelagus/pelagus-background/redux-slices/ui"
-import { selectProductionEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
+import {
+  selectProductionEVMNetworks,
+  selectTestNetworksWithAvailabilityFlag,
+} from "@pelagus/pelagus-background/redux-slices/selectors/networks"
+import { isEnabled } from "@pelagus/pelagus-background/features"
 import { useBackgroundSelector } from "../../hooks"
 import TopMenuProtocolListItemGA from "./TopMenuProtocolListItemGA"
 
@@ -20,14 +28,23 @@ export default function TopMenuProtocolListGA({
 }: TopMenuProtocolListGAProps): ReactElement {
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
   const productionNetworks = useBackgroundSelector(selectProductionEVMNetworks)
-
-  const networks: EVMNetwork[] = useMemo(() => {
+  const testNetworksWithAvailabilityFlag = useBackgroundSelector(
+    selectTestNetworksWithAvailabilityFlag
+  )
+  const networks: EVMNetwork[] | EVMTestNetwork[] = useMemo(() => {
     const builtinNetworks = productionNetworks.filter(isBuiltInNetwork)
 
     return showTestNetworks
-      ? [...builtinNetworks, ...DEFAULT_TEST_NETWORKS]
+      ? [...builtinNetworks, ...testNetworksWithAvailabilityFlag]
       : builtinNetworks
-  }, [showTestNetworks, productionNetworks])
+  }, [showTestNetworks, productionNetworks, testNetworksWithAvailabilityFlag])
+
+  const isDisabledHandle = (network: EVMNetwork & EVMTestNetwork) => {
+    if (isTestNetwork(network) && !isEnabled("SUPPORT_TEST_NETWORKS")) {
+      return true
+    }
+    return isTestNetwork(network) && !network?.isAvailable
+  }
 
   return (
     <div className="networks-list">
@@ -38,6 +55,7 @@ export default function TopMenuProtocolListGA({
             network={network}
             isSelected={sameNetwork(currentNetwork, network)}
             onSelect={onProtocolListItemSelect}
+            isDisabled={isDisabledHandle(network as EVMTestNetwork)}
           />
         ))}
       </div>

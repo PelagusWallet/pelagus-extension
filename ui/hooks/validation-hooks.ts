@@ -1,9 +1,9 @@
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
-import { isProbablyEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { resolveNameOnNetwork } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { HexString } from "@pelagus/pelagus-background/types"
 import { useRef, useState, useCallback } from "react"
+import { isQuaiAddress } from "quais"
 import { useBackgroundDispatch, useBackgroundSelector } from "./redux-hooks"
 
 /**
@@ -133,9 +133,11 @@ export const useAddressOrNameValidation: AsyncValidationHook<
       setErrorMessage(undefined)
       if (trimmed === "") {
         onValidChange(undefined)
-      } else if (isProbablyEVMAddress(trimmed)) {
-        // Apply checksum validation only for RSK network
+      } else if (isQuaiAddress(trimmed)) {
         onValidChange({ address: trimmed })
+      } else if (!isQuaiAddress(trimmed)) {
+        onValidChange(undefined)
+        setErrorMessage("Iron Age addresses are not supported")
       } else {
         setIsValidating(true)
         validatingValue.current = trimmed

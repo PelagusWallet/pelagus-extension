@@ -2,9 +2,9 @@ import React, { ReactElement, useState, useEffect } from "react"
 import {
   getNetworkIcon,
   getNetworkIconFallbackColor,
-  getNetworkIconSquared,
 } from "../../utils/networks"
 import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { QuaiLocalNetworkGA } from "@pelagus/pelagus-background/constants/networks/networks"
 
 export default function SharedNetworkIcon(props: {
   network: NetworkInterfaceGA
@@ -12,7 +12,6 @@ export default function SharedNetworkIcon(props: {
   hasBackground?: boolean
   backgroundOpacity?: number
   padding?: number
-  squared?: boolean
 }): ReactElement {
   const {
     network,
@@ -20,14 +19,12 @@ export default function SharedNetworkIcon(props: {
     hasBackground = false,
     backgroundOpacity = 1,
     padding = 0,
-    squared,
   } = props
   const [currentSource, setCurrentSource] = useState(0)
 
-  const sources = [
-    squared && getNetworkIconSquared(network),
-    getNetworkIcon(network),
-  ].filter((source): source is string => Boolean(source))
+  const sources = [getNetworkIcon(network)].filter((source): source is string =>
+    Boolean(source)
+  )
 
   const hasIconAvailable = currentSource < sources.length
 
@@ -90,8 +87,11 @@ export default function SharedNetworkIcon(props: {
           background-size: cover;
           height: ${size - padding}px;
           width: ${size - padding}px;
-          border-radius: 4px;
           z-index: 1;
+          border-radius: 50%;
+          background-color: ${network.chainID === QuaiLocalNetworkGA.chainID
+            ? "var(--green-40)"
+            : "transparent"};
         }
       `}</style>
     </div>

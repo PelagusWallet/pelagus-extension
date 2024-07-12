@@ -1,12 +1,14 @@
 import Dexie, { Transaction } from "dexie"
 import { FiatCurrency } from "../../assets"
-import { AddressOnNetwork } from "../../accounts"
 import DEFAULT_PREFERENCES from "./defaults"
-import { AccountSignerSettings } from "../../ui"
-import { AccountSignerWithId } from "../../signing"
+import {
+  AddressOnNetwork,
+  AccountSignerSettings,
+  AccountSignerWithId,
+} from "../../accounts"
 import { AnalyticsPreferences } from "./types"
-import { NETWORK_BY_CHAIN_ID } from "../../constants"
-import { getShardFromAddress } from "../../redux-slices/selectors"
+import { getExtendedZoneForAddress } from "../chain/utils"
+import { NetworksArray, QuaiNetworkGA } from "../../constants/networks/networks"
 
 type SignerRecordId = `${AccountSignerWithId["type"]}/${string}`
 
@@ -35,6 +37,7 @@ export interface Preferences {
     hasDefaultOnBeenTurnedOn: boolean
   }
   showDefaultWalletBanner: boolean
+  showAlphaWalletBanner: boolean
 }
 
 export class PreferenceDatabase extends Dexie {
@@ -314,7 +317,9 @@ export class PreferenceDatabase extends Dexie {
         .modify((storedPreferences: Preferences) => {
           const { selectedAccount } = storedPreferences
           selectedAccount.network =
-            NETWORK_BY_CHAIN_ID[selectedAccount.network.chainID]
+            NetworksArray.find(
+              (net) => net.chainID === selectedAccount.network?.chainID
+            ) ?? QuaiNetworkGA
         })
     })
 
@@ -360,6 +365,18 @@ export class PreferenceDatabase extends Dexie {
       })
   }
 
+  async setShowAlphaWalletBanner(newValue: boolean): Promise<void> {
+    await this.preferences
+      .toCollection()
+      .modify((storedPreferences: Preferences) => {
+        const update: Partial<Preferences> = {
+          showAlphaWalletBanner: newValue,
+        }
+
+        Object.assign(storedPreferences, update)
+      })
+  }
+
   async upsertAnalyticsPreferences(
     analyticsPreferences: Partial<AnalyticsPreferences>
   ): Promise<void> {
@@ -378,7 +395,7 @@ export class PreferenceDatabase extends Dexie {
   }
 
   async setSelectedAccount(addressNetwork: AddressOnNetwork): Promise<void> {
-    const shard = getShardFromAddress(addressNetwork.address)
+    const shard = getExtendedZoneForAddress(addressNetwork.address)
     globalThis.main.SetShard(shard)
     globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await this.preferences

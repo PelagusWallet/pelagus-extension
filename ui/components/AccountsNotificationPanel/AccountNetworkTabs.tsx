@@ -1,8 +1,7 @@
 import React from "react"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 
 interface AccountNetworkTabsProps {
-  selectedNetwork: EVMNetwork
+  selectedNetwork: NetworkInformation
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const AccountNetworkTabs = ({ selectedNetwork }: AccountNetworkTabsProps) => {

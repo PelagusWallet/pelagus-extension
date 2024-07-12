@@ -1,8 +1,8 @@
 import { AddressOnNetwork } from "../../accounts"
-import { getShardFromAddress } from "../../constants"
 import ChainService from "../chain"
 import NameService from "../name"
 import { AddressOnNetworkAnnotation, EnrichedAddressOnNetwork } from "./types"
+import { getExtendedZoneForAddress } from "../chain/utils"
 
 // TODO look up whether contracts are verified on EtherScan
 // TODO ABIs
@@ -11,10 +11,10 @@ export async function resolveAddressAnnotation(
   nameService: NameService,
   addressOnNetwork: AddressOnNetwork
 ): Promise<AddressOnNetworkAnnotation> {
-  const { address, network } = addressOnNetwork
+  const { address } = addressOnNetwork
   const prevShard = globalThis.main.GetShard()
-  globalThis.main.SetShard(getShardFromAddress(address))
-  const provider = chainService.providerForNetworkOrThrow(network)
+  globalThis.main.SetShard(getExtendedZoneForAddress(address))
+  const { jsonRpc: provider } = chainService.getCurrentProvider()
   const codeHex = await provider.getCode(address)
   globalThis.main.SetShard(prevShard)
   const [balance, nameRecord] = await Promise.all([

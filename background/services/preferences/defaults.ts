@@ -1,5 +1,6 @@
-import { QUAI_NETWORK, USD } from "../../constants"
+import { USD } from "../../constants"
 import { Preferences } from "./types"
+import { QuaiNetworkGA } from "../../constants/networks/networks"
 
 const defaultPreferences: Preferences = {
   tokenLists: {
@@ -10,7 +11,7 @@ const defaultPreferences: Preferences = {
   defaultWallet: false,
   selectedAccount: {
     address: "",
-    network: QUAI_NETWORK,
+    network: QuaiNetworkGA,
   },
   accountSignersSettings: [],
   analytics: {

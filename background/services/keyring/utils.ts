@@ -1,70 +1,16 @@
-import { SignedTransaction } from "../../networks"
+import { randomBytes } from "quais"
+import {
+  InternalSignerPrivateKey,
+  InternalSignerWithType,
+  SignerSourceTypes,
+} from "./types"
 
-export const parseAndValidateSignedTransaction = (
-  tx: any,
-  network: any
-): SignedTransaction => {
-  if (!tx.hash || !tx.from || !tx.r || !tx.s || typeof tx.v === "undefined") {
-    throw new Error("Transaction doesn't appear to have been signed.")
-  }
+export const isSignerPrivateKeyType = (
+  signer: InternalSignerWithType
+): signer is InternalSignerPrivateKey =>
+  signer.type === SignerSourceTypes.privateKey
 
-  const {
-    to,
-    gasPrice,
-    gasLimit,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    externalGasLimit,
-    externalGasPrice,
-    externalGasTip,
-    hash,
-    from,
-    nonce,
-    data,
-    value,
-    type,
-    r,
-    s,
-    v,
-  } = tx
-
-  const baseSignedTx = {
-    hash,
-    from,
-    to,
-    nonce,
-    input: data,
-    value: value.toBigInt(),
-    type: type as 0,
-    gasLimit: gasLimit.toBigInt(),
-    r,
-    s,
-    v,
-    blockHash: null,
-    blockHeight: null,
-    asset: network.baseAsset,
-    network: network,
-  }
-
-  const signedTx: SignedTransaction =
-    typeof maxPriorityFeePerGas === "undefined" ||
-    typeof maxFeePerGas === "undefined"
-      ? {
-          ...baseSignedTx,
-          gasPrice: gasPrice?.toBigInt() ?? null,
-          maxFeePerGas: null,
-          maxPriorityFeePerGas: null,
-        }
-      : {
-          ...baseSignedTx,
-          gasPrice: null,
-          maxFeePerGas: maxFeePerGas.toBigInt(),
-          maxPriorityFeePerGas: maxPriorityFeePerGas.toBigInt(),
-          externalGasLimit: externalGasLimit?.toBigInt(),
-          externalGasPrice: externalGasPrice?.toBigInt(),
-          externalGasTip: externalGasTip?.toBigInt(),
-          type: type as 0 | 2 | 1 | 100 | null,
-        }
-
-  return signedTx
+export const generateRandomBytes = (numWords: number): Uint8Array => {
+  const strength = (numWords / 3) * 32
+  return randomBytes(strength / 8)
 }

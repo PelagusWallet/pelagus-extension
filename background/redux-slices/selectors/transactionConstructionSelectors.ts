@@ -1,4 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit"
+import { toBigInt } from "quais"
 import { PricePoint } from "../../assets"
 import { selectCurrentNetwork } from "."
 import { NetworksState } from "../networks"
@@ -12,7 +13,7 @@ import { selectAssetPricePoint } from "../assets"
 
 export const selectTransactionNetwork = createSelector(
   (state: { transactionConstruction: TransactionConstruction }) =>
-    state.transactionConstruction.transactionRequest?.network,
+    state.transactionConstruction.transactionRequest?.network, // TODO-MIGRATION
   (network) => network
 )
 
@@ -36,7 +37,9 @@ export const selectDefaultNetworkFeeSettings = createSelector(
     return {
       feeType: transactionConstruction.feeTypeSelected,
       gasLimit: undefined,
-      suggestedGasLimit: transactionConstruction.transactionRequest?.gasLimit,
+      suggestedGasLimit: toBigInt(
+        transactionConstruction.transactionRequest?.gasLimit ?? 0
+      ),
       values: {
         maxFeePerGas: selectedFeesPerGas?.maxFeePerGas ?? 0n,
         maxPriorityFeePerGas: selectedFeesPerGas?.maxPriorityFeePerGas ?? 0n,
@@ -62,7 +65,7 @@ export const selectEstimatedFeesPerGas = createSelector(
 
 export const selectBaseAsset = createSelector(
   (state: { transactionConstruction: TransactionConstruction }) =>
-    state.transactionConstruction.transactionRequest?.network.baseAsset,
+    state.transactionConstruction.transactionRequest?.network.baseAsset, // TODO-MIGRATION
   (baseAsset) => baseAsset
 )
 

@@ -1,13 +1,13 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 
 type TopMenuProtocolListItemGAProps = {
-  network: EVMNetwork
+  network: NetworkInterfaceGA
   isSelected: boolean
   isDisabled?: boolean
-  onSelect: (network: EVMNetwork) => void
+  onSelect: (network: NetworkInterfaceGA) => void
 }
 
 export default function TopMenuProtocolListItemGA({
@@ -33,7 +33,7 @@ export default function TopMenuProtocolListItemGA({
         </div>
       </div>
       <div className="list-item-right">
-        <div className="item-title">{network.name}</div>
+        <div className="item-title">{network.baseAsset.name}</div>
       </div>
       <style jsx>
         {`

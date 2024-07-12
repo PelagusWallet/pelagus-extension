@@ -1,22 +1,22 @@
 import React, { ReactElement } from "react"
 import { useDispatch } from "react-redux"
 import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
-import { EnrichedEVMTransactionRequest } from "@pelagus/pelagus-background/services/enrichment"
 import { useTranslation } from "react-i18next"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import SharedButton from "../../../Shared/SharedButton"
 
 export default function RawDataPanel({
   transactionRequest,
 }: {
-  transactionRequest: EnrichedEVMTransactionRequest
+  transactionRequest: QuaiTransactionRequestWithAnnotation
 }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "signTransaction" })
   const dispatch = useDispatch()
 
-  const { input } = transactionRequest
+  const { data } = transactionRequest
 
   const copyData = () => {
-    navigator.clipboard.writeText(input ?? "")
+    navigator.clipboard.writeText(data ?? "")
     dispatch(setSnackbarMessage(t("rawDataCopyMsg")))
   }
 
@@ -31,7 +31,7 @@ export default function RawDataPanel({
       >
         {t("copyRawData")}
       </SharedButton>
-      <div className="raw_data_text">{input} </div>
+      <div className="raw_data_text">{data} </div>
       <style jsx>{`
         .raw_data_wrap {
           margin-top: 15px;

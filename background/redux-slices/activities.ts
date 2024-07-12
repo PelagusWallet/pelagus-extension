@@ -3,13 +3,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from "@reduxjs/toolkit"
 import { AddressOnNetwork } from "../accounts"
-import {
-  normalizeAddressOnNetwork,
-  normalizeEVMAddress,
-  sameEVMAddress,
-} from "../lib/utils"
-import { Transaction } from "../services/chain/db"
-import { EnrichedEVMTransaction } from "../services/enrichment"
+import { sameQuaiAddress } from "../lib/utils"
 import { HexString } from "../types"
 import { createBackgroundAsyncThunk } from "./utils"
 import {
@@ -19,7 +13,11 @@ import {
   ActivityDetail,
   INFINITE_VALUE,
 } from "./utils/activities-utils"
-import { getShardFromAddress } from "../constants"
+import { getExtendedZoneForAddress } from "../services/chain/utils"
+import {
+  EnrichedQuaiTransaction,
+  QuaiTransactionState,
+} from "../services/chain/types"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
 export type Activities = {
@@ -30,6 +28,10 @@ export type Activities = {
 
 type ActivitiesState = {
   activities: Activities
+}
+
+const initialState: ActivitiesState = {
+  activities: {},
 }
 
 const ACTIVITIES_MAX_COUNT = 25
@@ -44,40 +46,41 @@ const addActivityToState =
   (
     address: string,
     chainID: string,
-    transaction: Transaction | EnrichedEVMTransaction
+    transaction: QuaiTransactionState | EnrichedQuaiTransaction
   ) => {
     const isEtx =
       transaction.to &&
-      getShardFromAddress(transaction.from) !==
-        getShardFromAddress(transaction.to)
-    // Don't add TX if it's an ETX and it's not from the null address, this will lead to duplicate transactions
+      transaction.from &&
+      getExtendedZoneForAddress(transaction.from, false) !==
+        getExtendedZoneForAddress(transaction.to, false)
+    // Don't add TX if it's an ETX, and it's not from the null address, this will lead to duplicate transactions
     // Example: 0xCyprus1 -> 0xCyprus2 (TX1) generates an ITX on Cyprus2 which is 0x00000 -> 0xCyprus2 (TX2)
     // 0xCyprus1 Activities: TX1
     // 0xCyprus2 Activities: TX1, TX2
     if (
       isEtx &&
-      sameEVMAddress(transaction.to, address) &&
-      !sameEVMAddress(
+      sameQuaiAddress(transaction.to, address) &&
+      !sameQuaiAddress(
         transaction.from,
         "0x0000000000000000000000000000000000000000"
       )
-    )
+    ) {
       return
+    }
 
     const activity = getActivity(transaction)
-    const normalizedAddress = normalizeEVMAddress(address)
 
-    activities[normalizedAddress] ??= {}
-    activities[normalizedAddress][chainID] ??= []
+    activities[address] ??= {}
+    activities[address][chainID] ??= []
 
-    const exisistingIndex = activities[normalizedAddress][chainID].findIndex(
+    const existingIndex = activities[address][chainID].findIndex(
       (tx) => tx.hash === transaction.hash
     )
 
-    if (exisistingIndex !== -1) {
-      activities[normalizedAddress][chainID][exisistingIndex] = activity
+    if (existingIndex !== -1) {
+      activities[address][chainID][existingIndex] = activity
     } else {
-      activities[normalizedAddress][chainID].push(activity)
+      activities[address][chainID].push(activity)
     }
   }
 
@@ -85,7 +88,7 @@ const initializeActivitiesFromTransactions = ({
   transactions,
   accounts,
 }: {
-  transactions: Transaction[]
+  transactions: QuaiTransactionState[]
   accounts: AddressOnNetwork[]
 }): Activities => {
   const activities: {
@@ -96,44 +99,38 @@ const initializeActivitiesFromTransactions = ({
 
   const addActivity = addActivityToState(activities)
 
-  const normalizedAccounts = accounts.map((account) =>
-    normalizeAddressOnNetwork(account)
-  )
-
   transactions.forEach((transaction) => {
-    const { to, from, network } = transaction
-    const isTrackedTo = normalizedAccounts.some(
+    const { to, from, chainId } = transaction
+
+    const isTrackedTo = accounts.some(
       ({ address, network: activeNetwork }) =>
-        network.chainID === activeNetwork.chainID && sameEVMAddress(to, address)
+        chainId === activeNetwork.chainID && sameQuaiAddress(to, address)
     )
-    const isTrackedFrom = normalizedAccounts.some(
+    const isTrackedFrom = accounts.some(
       ({ address, network: activeNetwork }) =>
-        network.chainID === activeNetwork.chainID &&
-        sameEVMAddress(from, address)
+        chainId === activeNetwork.chainID && sameQuaiAddress(from, address)
     )
 
     if (
       to &&
       isTrackedTo &&
-      (getShardFromAddress(to) === getShardFromAddress(from) ||
-        sameEVMAddress(from, "0x0000000000000000000000000000000000000000"))
+      from &&
+      (getExtendedZoneForAddress(to, false) ===
+        getExtendedZoneForAddress(from, false) ||
+        sameQuaiAddress(from, "0x0000000000000000000000000000000000000000"))
     ) {
-      addActivity(to, network.chainID, transaction)
+      addActivity(to, String(chainId), transaction)
     }
     if (from && isTrackedFrom) {
-      addActivity(from, network.chainID, transaction)
+      addActivity(from, String(chainId), transaction)
     }
   })
 
-  normalizedAccounts.forEach(({ address, network }) =>
+  accounts.forEach(({ address, network }) =>
     cleanActivitiesArray(activities[address]?.[network.chainID])
   )
 
   return activities
-}
-
-const initialState: ActivitiesState = {
-  activities: {},
 }
 
 const activitiesSlice = createSlice({
@@ -145,7 +142,10 @@ const activitiesSlice = createSlice({
       {
         payload,
       }: {
-        payload: { transactions: Transaction[]; accounts: AddressOnNetwork[] }
+        payload: {
+          transactions: QuaiTransactionState[]
+          accounts: AddressOnNetwork[]
+        }
       }
     ) => ({
       activities: initializeActivitiesFromTransactions(payload),
@@ -154,7 +154,12 @@ const activitiesSlice = createSlice({
       immerState,
       {
         payload: { transactions, account },
-      }: { payload: { transactions: Transaction[]; account: AddressOnNetwork } }
+      }: {
+        payload: {
+          transactions: QuaiTransactionState[]
+          account: AddressOnNetwork
+        }
+      }
     ) => {
       const {
         address,
@@ -163,9 +168,7 @@ const activitiesSlice = createSlice({
       transactions.forEach((transaction) =>
         addActivityToState(immerState.activities)(address, chainID, transaction)
       )
-      cleanActivitiesArray(
-        immerState.activities[normalizeEVMAddress(address)]?.[chainID]
-      )
+      cleanActivitiesArray(immerState.activities[address]?.[chainID])
     },
     removeActivities: (
       immerState,
@@ -179,16 +182,22 @@ const activitiesSlice = createSlice({
         payload: { transaction, forAccounts },
       }: {
         payload: {
-          transaction: EnrichedEVMTransaction
+          transaction: EnrichedQuaiTransaction
           forAccounts: string[]
         }
       }
     ) => {
-      const { chainID } = transaction.network
+      const { chainId } = transaction
+      if (!chainId) throw new Error("Failed het chainId from transaction")
+
       forAccounts.forEach((address) => {
-        addActivityToState(immerState.activities)(address, chainID, transaction)
+        addActivityToState(immerState.activities)(
+          address,
+          chainId.toString(),
+          transaction
+        )
         cleanActivitiesArray(
-          immerState.activities[normalizeEVMAddress(address)]?.[chainID]
+          immerState.activities[address]?.[chainId.toString()]
         )
       })
     },
@@ -202,16 +211,14 @@ export const {
   initializeActivitiesForAccount,
 } = activitiesSlice.actions
 
+export default activitiesSlice.reducer
+
 export const removeAccountActivities = createBackgroundAsyncThunk(
   "activities/removeAccountActivities",
   async (payload: HexString, { extra: { main } }) => {
-    const address = payload
-    const normalizedAddress = normalizeEVMAddress(address)
-    await main.removeAccountActivity(normalizedAddress)
+    await main.removeAccountActivity(payload)
   }
 )
-
-export default activitiesSlice.reducer
 
 export const fetchSelectedActivityDetails = createBackgroundAsyncThunk(
   "activities/fetchSelectedActivityDetails",

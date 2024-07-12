@@ -1,6 +1,7 @@
 import { AnyAssetAmount } from "./assets"
-import { EVMNetwork } from "./networks"
 import { HexString } from "./types"
+import { NetworkInterfaceGA } from "./constants/networks/networkTypes"
+import type { AccountSigner, ReadOnlyAccountSigner } from "./services/signing"
 
 /**
  * An account balance at a particular time and block height, on a particular
@@ -19,7 +20,7 @@ export type AccountBalance = {
   /**
    * The network on which the account balance was measured.
    */
-  network: EVMNetwork
+  network: NetworkInterfaceGA
   /**
    * The block height at while the balance measurement is valid.
    */
@@ -40,7 +41,7 @@ export type AccountBalance = {
  */
 export type AddressOnNetwork = {
   address: HexString
-  network: EVMNetwork
+  network: NetworkInterfaceGA
 }
 
 /**
@@ -48,5 +49,15 @@ export type AddressOnNetwork = {
  */
 export type NameOnNetwork = {
   name: string
-  network: EVMNetwork
+  network: NetworkInterfaceGA
+}
+
+export type AccountSignerWithId = Exclude<
+  AccountSigner,
+  typeof ReadOnlyAccountSigner
+>
+
+export type AccountSignerSettings = {
+  signer: AccountSignerWithId
+  title?: string
 }

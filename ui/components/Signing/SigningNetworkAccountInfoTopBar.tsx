@@ -21,7 +21,7 @@ export default function SigningNetworkAccountInfoTopBar({
           <SharedNetworkIcon network={network} size={16} />
         </div>
         <span className="network_name">
-          {network.name ?? t("signTransaction.unknownNetwork")}
+          {network.baseAsset.name ?? t("signTransaction.unknownNetwork")}
         </span>
       </div>
       <div className="row_part account">

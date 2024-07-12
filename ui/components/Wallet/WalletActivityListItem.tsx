@@ -1,15 +1,15 @@
 import React, { ReactElement, useEffect, useRef, useState } from "react"
 import dayjs from "dayjs"
 import {
-  sameEVMAddress,
+  sameQuaiAddress,
   truncateAddress,
 } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
+import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import SharedActivityIcon from "../Shared/SharedActivityIcon"
 import useActivityViewDetails from "../../hooks/activity-hooks"
-import { getShardFromAddress } from "../../../background/constants"
 
 interface Props {
   onClick: () => void
@@ -23,7 +23,7 @@ function isSendActivity(
 ): boolean {
   return activity.type === "asset-transfer" ||
     activity.type === "external-transfer"
-    ? sameEVMAddress(activity.sender?.address, activityInitiatorAddress)
+    ? sameQuaiAddress(activity.sender?.address, activityInitiatorAddress)
     : true
 }
 
@@ -77,20 +77,20 @@ export default function WalletActivityListItem(props: Props): ReactElement {
             ) : (
               <></>
             )}
-            {activity.status == 2 ||
+            {activity.status === 2 ||
             (activity.blockHash !== null &&
               activity.to &&
-              getShardFromAddress(activity.from) ==
-                getShardFromAddress(activity.to)) ? (
+              getExtendedZoneForAddress(activity.from, false) ===
+                getExtendedZoneForAddress(activity.to, false)) ? (
               <div className="status settled">{t("transactionSettled")}</div>
             ) : (
               <></>
             )}
             {activity.blockHash !== null &&
             activity.to &&
-            activity.status == 1 &&
-            getShardFromAddress(activity.from) !==
-              getShardFromAddress(activity.to) ? (
+            activity.status === 1 &&
+            getExtendedZoneForAddress(activity.from, false) !==
+              getExtendedZoneForAddress(activity.to, false) ? (
               <div className="status approved">{t("transactionApproved")}</div>
             ) : (
               <></>

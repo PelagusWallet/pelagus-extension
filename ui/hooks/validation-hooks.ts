@@ -1,8 +1,5 @@
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
-import {
-  isProbablyEVMAddress,
-  normalizeEVMAddress,
-} from "@pelagus/pelagus-background/lib/utils"
+import { isProbablyEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import { resolveNameOnNetwork } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { HexString } from "@pelagus/pelagus-background/types"
@@ -138,7 +135,7 @@ export const useAddressOrNameValidation: AsyncValidationHook<
         onValidChange(undefined)
       } else if (isProbablyEVMAddress(trimmed)) {
         // Apply checksum validation only for RSK network
-        onValidChange({ address: normalizeEVMAddress(trimmed) })
+        onValidChange({ address: trimmed })
       } else {
         setIsValidating(true)
         validatingValue.current = trimmed

@@ -1,5 +1,5 @@
 import {
-  generateNewKeyring,
+  generateQuaiHDWalletMnemonic,
   importKeyring,
   setKeyringToVerify,
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
@@ -16,7 +16,7 @@ import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-sli
 import {
   SignerImportSource,
   SignerSourceTypes,
-} from "@pelagus/pelagus-background/services/keyring"
+} from "@pelagus/pelagus-background/services/keyring/types"
 import OnboardingStepsIndicator from "../../../components/Onboarding/OnboardingStepsIndicator"
 import {
   useAreKeyringsUnlocked,
@@ -75,9 +75,9 @@ export default function NewSeed(): ReactElement {
   const { path } = useRouteMatch()
 
   const showNewSeedPhrase = () => {
-    dispatch(
-      generateNewKeyring(selectedNetwork.derivationPath ?? "m/44'/1'/0'/0")
-    ).then(() => history.push(NewSeedRoutes.REVIEW_SEED))
+    dispatch(generateQuaiHDWalletMnemonic()).then(() =>
+      history.push(NewSeedRoutes.REVIEW_SEED)
+    )
   }
 
   const showSeedVerification = () => {

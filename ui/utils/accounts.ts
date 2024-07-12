@@ -18,7 +18,7 @@ export const searchAccountsHandle = (
     const address = item.address?.toLowerCase()
     const shard =
       item?.accountSigner?.type === "keyring" &&
-      item.accountSigner?.shard?.toLowerCase()
+      item.accountSigner?.zone?.toLowerCase() // TODO-MIGRATION
 
     return (
       name?.includes(searchValueToLowerCase) ||

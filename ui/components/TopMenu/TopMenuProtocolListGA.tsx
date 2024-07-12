@@ -1,17 +1,15 @@
 import React, { ReactElement, useMemo } from "react"
-import {
-  isBuiltInNetwork,
-  DEFAULT_TEST_NETWORKS,
-} from "@pelagus/pelagus-background/constants"
-import { EVMNetwork, sameNetwork } from "@pelagus/pelagus-background/networks"
+import { sameNetwork } from "@pelagus/pelagus-background/networks"
 import { selectShowTestNetworks } from "@pelagus/pelagus-background/redux-slices/ui"
 import { selectProductionEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
 import { useBackgroundSelector } from "../../hooks"
 import TopMenuProtocolListItemGA from "./TopMenuProtocolListItemGA"
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
 
 type TopMenuProtocolListGAProps = {
-  currentNetwork: EVMNetwork
-  onProtocolListItemSelect: (network: EVMNetwork) => void
+  currentNetwork: NetworkInterfaceGA
+  onProtocolListItemSelect: (network: NetworkInterfaceGA) => void
 }
 
 export default function TopMenuProtocolListGA({
@@ -21,12 +19,9 @@ export default function TopMenuProtocolListGA({
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
   const productionNetworks = useBackgroundSelector(selectProductionEVMNetworks)
 
-  const networks: EVMNetwork[] = useMemo(() => {
-    const builtinNetworks = productionNetworks.filter(isBuiltInNetwork)
-
-    return showTestNetworks
-      ? [...builtinNetworks, ...DEFAULT_TEST_NETWORKS]
-      : builtinNetworks
+  const networks: NetworkInterfaceGA[] = useMemo(() => {
+    // TODO-MIGRATION: Add test network
+    return showTestNetworks ? NetworksArray : NetworksArray
   }, [showTestNetworks, productionNetworks])
 
   return (
@@ -34,7 +29,7 @@ export default function TopMenuProtocolListGA({
       <div className="networks-list-wrapper">
         {networks.map((network) => (
           <TopMenuProtocolListItemGA
-            key={network.name}
+            key={network.baseAsset.name}
             network={network}
             isSelected={sameNetwork(currentNetwork, network)}
             onSelect={onProtocolListItemSelect}

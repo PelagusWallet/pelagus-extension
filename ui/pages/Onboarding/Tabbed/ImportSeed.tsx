@@ -4,19 +4,14 @@ import {
   keyringNextPage,
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { Redirect, useHistory } from "react-router-dom"
-import { isValidMnemonic } from "@ethersproject/hdnode"
+import { Mnemonic } from "quais"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { useTranslation } from "react-i18next"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { sendEvent } from "@pelagus/pelagus-background/redux-slices/ui"
 import { OneTimeAnalyticsEvent } from "@pelagus/pelagus-background/lib/posthog"
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { langEs as es } from "@quais/wordlists/lib/lang-es"
+import { langEn } from "@quais/wordlists/lib/lang-en"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
-import {
-  SignerImportSource,
-  SignerSourceTypes,
-} from "@pelagus/pelagus-background/services/keyring"
 import SharedButton from "../../../components/Shared/SharedButton"
 import {
   useBackgroundDispatch,
@@ -25,6 +20,10 @@ import {
 } from "../../../hooks"
 import OnboardingRoutes from "./Routes"
 import SharedSelect from "../../../components/Shared/SharedSelect"
+import {
+  SignerImportSource,
+  SignerSourceTypes,
+} from "@pelagus/pelagus-background/services/keyring/types"
 
 type Props = {
   nextPage: string
@@ -70,7 +69,7 @@ export default function ImportSeed(props: Props): ReactElement {
       splitTrimmedRecoveryPhrase.length !== 24
     ) {
       setErrorMessage(t("errors.phraseLengthError"))
-    } else if (isValidMnemonic(plainRecoveryPhrase, es)) {
+    } else if (Mnemonic.isValidMnemonic(plainRecoveryPhrase, langEn)) {
       setIsImporting(true)
 
       const { success } = (await dispatch(

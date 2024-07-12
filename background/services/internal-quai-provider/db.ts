@@ -1,11 +1,11 @@
 import Dexie from "dexie"
-import { QUAI_NETWORK } from "../../constants"
-import { EVMNetwork } from "../../networks"
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
+import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { QuaiNetworkGA } from "../../constants/networks/networks"
 
 type NetworkForOrigin = {
   origin: string
-  network: EVMNetwork
+  network: NetworkInterfaceGA
 }
 
 export class InternalQuaiProviderDatabase extends Dexie {
@@ -42,20 +42,20 @@ export class InternalQuaiProviderDatabase extends Dexie {
     this.on("populate", (tx) => {
       return tx.db
         .table("currentNetwork")
-        .add({ origin: PELAGUS_INTERNAL_ORIGIN, network: QUAI_NETWORK })
+        .add({ origin: PELAGUS_INTERNAL_ORIGIN, network: QuaiNetworkGA })
     })
   }
 
   async setCurrentChainIdForOrigin(
     origin: string,
-    network: EVMNetwork
+    network: NetworkInterfaceGA
   ): Promise<string | undefined> {
     return this.currentNetwork.put({ origin, network })
   }
 
   async getCurrentNetworkForOrigin(
     origin: string
-  ): Promise<EVMNetwork | undefined> {
+  ): Promise<NetworkInterfaceGA | undefined> {
     const currentNetwork = await this.currentNetwork.get({ origin })
     return currentNetwork?.network
   }

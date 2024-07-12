@@ -1,24 +1,29 @@
-import { BaseProvider } from "@quais/providers"
-import { BigNumber, quais } from "quais"
 import {
-  EventFragment,
-  Fragment,
-  FunctionFragment,
+  toBigInt,
+  Interface,
   TransactionDescription,
-} from "ethers/lib/utils"
-import { SmartContractAmount, SmartContractFungibleAsset } from "../assets"
-import { EVMLog, SmartContract } from "../networks"
-import { HexString } from "../types"
-import { AddressOnNetwork } from "../accounts"
+  FunctionFragment,
+  Fragment,
+  EventFragment,
+  Contract,
+  ContractRunner,
+  JsonRpcProvider,
+  LogParams,
+} from "quais"
+import logger from "./logger"
 import {
   AggregateContractResponse,
-  CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES,
-  MULTICALL_ABI,
   MULTICALL_CONTRACT_ADDRESS,
-} from "./multicall"
-import logger from "./logger"
-import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
-import { ShardToMulticall, getShardFromAddress } from "../constants"
+  MULTICALL_INTERFACE,
+  CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES,
+} from "../contracts/multicall"
+import { HexString } from "../types"
+import { ShardToMulticall } from "../constants"
+import { SmartContract } from "../networks"
+import { AddressOnNetwork } from "../accounts"
+import { getExtendedZoneForAddress } from "../services/chain/utils"
+import { SmartContractAmount, SmartContractFungibleAsset } from "../assets"
+import { isQuaiHandle } from "../constants/networks/networkUtils"
 
 export const ERC20_FUNCTIONS = {
   allowance: FunctionFragment.from(
@@ -58,17 +63,17 @@ export const ERC20_ABI = Object.values<Fragment>(ERC20_FUNCTIONS).concat(
   Object.values(ERC20_EVENTS)
 )
 
-export const ERC20_INTERFACE = new quais.utils.Interface(ERC20_ABI)
+export const ERC20_INTERFACE = new Interface(ERC20_ABI)
 
 /*
  * Get an account's balance from an ERC20-compliant contract.
  */
 export async function getBalance(
-  provider: BaseProvider,
+  provider: ContractRunner,
   tokenAddress: string,
   account: string
 ): Promise<bigint> {
-  const token = new quais.Contract(tokenAddress, ERC20_ABI, provider)
+  const token = new Contract(tokenAddress, ERC20_ABI, provider)
   return BigInt((await token.balanceOf(account)).toString())
 }
 
@@ -77,12 +82,12 @@ export async function getBalance(
  * directly. Certain providers may support more efficient lookup strategies.
  */
 export async function getMetadata(
-  provider: BaseProvider,
+  provider: ContractRunner,
   tokenSmartContract: SmartContract
 ): Promise<SmartContractFungibleAsset> {
-  const token = new quais.Contract(
+  const token = new Contract(
     tokenSmartContract.contractAddress,
-    ERC20_ABI,
+    ERC20_INTERFACE,
     provider
   )
 
@@ -92,7 +97,7 @@ export async function getMetadata(
         ERC20_FUNCTIONS.symbol,
         ERC20_FUNCTIONS.name,
         ERC20_FUNCTIONS.decimals,
-      ].map(({ name: functionName }) => token.callStatic[functionName]())
+      ].map(({ name: functionName }) => token.functionName.staticCall())
     )
 
     return {
@@ -111,15 +116,13 @@ export async function getMetadata(
  * Parses a contract input/data field as if it were an ERC20 transaction.
  * Returns the parsed data if parsing succeeds, otherwise returns `undefined`.
  */
-export function parseERC20Tx(
-  input: string
-): TransactionDescription | undefined {
+export function parseERC20Tx(input: string): TransactionDescription | null {
   try {
     return ERC20_INTERFACE.parseTransaction({
       data: input,
     })
   } catch (err) {
-    return undefined
+    return null
   }
 }
 
@@ -148,9 +151,11 @@ export type ERC20TransferLog = {
  *         events. This does _not_ mean they are guaranteed to be ERC20
  *         `Transfer` events, simply that they can be parsed as such.
  */
-export function parseLogsForERC20Transfers(logs: EVMLog[]): ERC20TransferLog[] {
+export function parseLogsForERC20Transfers(
+  logs: readonly LogParams[]
+): ERC20TransferLog[] {
   return logs
-    .map(({ contractAddress, data, topics }) => {
+    .map(({ address: contractAddress, data, topics }) => {
       try {
         const decoded = ERC20_INTERFACE.decodeEventLog(
           ERC20_EVENTS.Transfer,
@@ -167,7 +172,7 @@ export function parseLogsForERC20Transfers(logs: EVMLog[]): ERC20TransferLog[] {
 
         return {
           contractAddress,
-          amount: (decoded.amount as BigNumber).toBigInt(),
+          amount: toBigInt(decoded.amount),
           senderAddress: decoded.from,
           recipientAddress: decoded.to,
         }
@@ -181,36 +186,40 @@ export function parseLogsForERC20Transfers(logs: EVMLog[]): ERC20TransferLog[] {
 export const getTokenBalances = async (
   { address, network }: AddressOnNetwork,
   tokenAddresses: HexString[],
-  provider: SerialFallbackProvider
+  provider: JsonRpcProvider
 ): Promise<SmartContractAmount[]> => {
   let multicallAddress =
     CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES[network.chainID] ||
     MULTICALL_CONTRACT_ADDRESS
-  if (network.isQuai) {
-    multicallAddress = ShardToMulticall(getShardFromAddress(address), network)
+  if (isQuaiHandle(network)) {
+    multicallAddress = ShardToMulticall(
+      getExtendedZoneForAddress(address),
+      network
+    )
   }
 
-  const contract = new quais.Contract(multicallAddress, MULTICALL_ABI, provider)
+  const contract = new Contract(multicallAddress, MULTICALL_INTERFACE, provider)
   const balanceOfCallData = ERC20_INTERFACE.encodeFunctionData("balanceOf", [
     address,
   ])
 
-  const response = (await contract.callStatic.tryBlockAndAggregate(
+  const response = (await contract.tryBlockAndAggregate.staticCall(
     false, // false === don't require all calls to succeed
     tokenAddresses.map((tokenAddress) =>
-      tokenAddress != "" &&
-      getShardFromAddress(address) == getShardFromAddress(tokenAddress)
+      tokenAddress &&
+      getExtendedZoneForAddress(address, false) ===
+        getExtendedZoneForAddress(tokenAddress, false)
         ? [tokenAddress, balanceOfCallData]
         : []
     )
   )) as AggregateContractResponse
 
   return response.returnData.flatMap((data, i) => {
-    if (data.success !== true) return []
+    if (!data.success) return []
     if (data.returnData === "0x00" || data.returnData === "0x") return []
 
     return {
-      amount: BigInt(BigNumber.from(data.returnData).toString()),
+      amount: toBigInt(data.returnData),
       smartContract: {
         contractAddress: tokenAddresses[i],
         homeNetwork: network,

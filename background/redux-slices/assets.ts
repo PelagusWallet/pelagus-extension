@@ -1,7 +1,8 @@
+import { Contract, getAddress, toBigInt } from "quais"
+import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { createSelector, createSlice } from "@reduxjs/toolkit"
-import { BigNumber, ethers } from "ethers"
-import { quais } from "quais"
-import { stripZeros, accessListify, hexConcat, RLP } from "quais/lib/utils"
+import { QRC20_INTERFACE } from "../contracts/qrc-20"
+
 import {
   AnyAsset,
   AnyAssetAmount,
@@ -16,28 +17,14 @@ import { AddressOnNetwork } from "../accounts"
 import { createBackgroundAsyncThunk } from "./utils"
 import { isBuiltInNetworkBaseAsset, isSameAsset } from "./utils/asset-utils"
 import { getProvider } from "./utils/contract-utils"
-import {
-  EIP1559TransactionRequest,
-  EVMNetwork,
-  SignedTransaction,
-  sameNetwork,
-} from "../networks"
-import { ERC20_INTERFACE } from "../lib/erc20"
-import logger from "../lib/logger"
-import {
-  NUM_REGIONS_IN_PRIME,
-  NUM_ZONES_IN_REGION,
-  QUAI,
-  getShardFromAddress,
-} from "../constants"
+import { sameNetwork } from "../networks"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { removeAssetReferences, updateAssetReferences } from "./accounts"
-import { NormalizedEVMAddress } from "../types"
 import type { RootState } from "."
 import { emitter as transactionConstructionSliceEmitter } from "./transaction-construction"
 import { AccountSigner } from "../services/signing"
-import { normalizeEVMAddress } from "../lib/utils"
 import { setSnackbarMessage } from "./ui"
+import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
 
 export type AssetWithRecentPrices<T extends AnyAsset = AnyAsset> = T & {
   recentPrices: {
@@ -190,57 +177,35 @@ export const removeAssetData = createBackgroundAsyncThunk(
     },
     { dispatch }
   ) => {
-    await dispatch(removeAsset(asset))
-    await dispatch(removeAssetReferences(asset))
+    dispatch(removeAsset(asset))
+    dispatch(removeAssetReferences(asset))
   }
 )
 
-export const getAccountNonceAndGasPrice = createBackgroundAsyncThunk(
-  "assets/getAccountNonceAndGasPrice",
+export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
+  "assets/getAccountGasPrice",
   async (
-    {
-      details,
-    }: {
-      details: {
-        network: EVMNetwork
-        address: string
-      }
-    },
+    _,
     { dispatch }
   ): Promise<{
-    nonce: number
-    maxFeePerGas: string
-    maxPriorityFeePerGas: string
+    maxFeePerGas: BigInt
+    maxPriorityFeePerGas: BigInt
   }> => {
-    const prevShard = globalThis.main.GetShard()
-    globalThis.main.SetShard(getShardFromAddress(details.address))
-    const provider = globalThis.main.chainService.providerForNetworkOrThrow(
-      details.network
-    )
-    const normalizedAddress = normalizeEVMAddress(details.address)
-    const nonce = await provider.getTransactionCount(
-      normalizedAddress,
-      "pending"
-    )
+    const { jsonRpc: provider } =
+      globalThis.main.chainService.getCurrentProvider()
     const feeData = await provider.getFeeData()
-    globalThis.main.SetShard(prevShard)
     if (
-      feeData.gasPrice == undefined ||
-      feeData.maxFeePerGas == undefined ||
-      feeData.maxPriorityFeePerGas == undefined
+      !feeData.gasPrice ||
+      !feeData.maxFeePerGas ||
+      !feeData.maxPriorityFeePerGas
     ) {
       dispatch(
         setSnackbarMessage("Failed to get gas price, please enter manually")
       )
     }
     return {
-      nonce,
-      maxFeePerGas: feeData.maxFeePerGas
-        ? feeData.maxFeePerGas.toString()
-        : "0",
-      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
-        ? feeData.maxPriorityFeePerGas.toString()
-        : "0",
+      maxFeePerGas: toBigInt(feeData.maxFeePerGas ?? 0),
+      maxPriorityFeePerGas: toBigInt(feeData.maxPriorityFeePerGas ?? 0),
     }
   }
 )
@@ -252,30 +217,28 @@ export const getAccountNonceAndGasPrice = createBackgroundAsyncThunk(
  * If the from address is not a writeable address in the wallet, this signature
  * will not be possible.
  */
-export const transferAsset = createBackgroundAsyncThunk(
-  "assets/transferAsset",
+export const sendAsset = createBackgroundAsyncThunk(
+  "assets/sendAsset",
   async (transferDetails: {
     fromAddressNetwork: AddressOnNetwork
     toAddressNetwork: AddressOnNetwork
     assetAmount: AnyAssetAmount
     gasLimit?: bigint
-    nonce?: number
-    maxPriorityFeePerGas?: bigint
-    maxFeePerGas?: bigint
+    maxPriorityFeePerGas?: bigint & BigInt
+    maxFeePerGas?: bigint & BigInt
     accountSigner: AccountSigner
   }): Promise<{ success: boolean; errorMessage?: string }> => {
-    try {
-      let {
-        fromAddressNetwork: { address: fromAddress, network: fromNetwork },
-        toAddressNetwork: { address: toAddress, network: toNetwork },
-        assetAmount,
-        gasLimit,
-        nonce,
-        maxPriorityFeePerGas,
-        maxFeePerGas,
-        accountSigner,
-      } = transferDetails
+    const {
+      fromAddressNetwork: { address: fromAddress, network: fromNetwork },
+      toAddressNetwork: { address: toAddress, network: toNetwork },
+      assetAmount,
+      gasLimit,
+      maxPriorityFeePerGas,
+      maxFeePerGas,
+      accountSigner,
+    } = transferDetails
 
+    try {
       if (!sameNetwork(fromNetwork, toNetwork)) {
         return {
           success: false,
@@ -283,104 +246,50 @@ export const transferAsset = createBackgroundAsyncThunk(
         }
       }
 
-      const fromShard = getShardFromAddress(fromAddress)
-      const toShard = getShardFromAddress(toAddress)
+      let transactionData = "0x"
+      let transactionValue = assetAmount.amount
+      let toAddressData = toAddress
 
-      if (fromShard !== toShard) {
-        return {
-          success: false,
-          errorMessage: "Only same-shard transfers are supported for now.",
-        }
-      }
+      if (isSmartContractFungibleAsset(assetAmount.asset)) {
+        const provider = getProvider()
+        const signer = await provider.getSigner(fromAddress)
 
-      if (fromNetwork.isQuai) {
-        let data = ""
-        const provider =
-          globalThis.main.chainService.providerForNetworkOrThrow(fromNetwork)
-        if (!nonce) {
-          nonce = await provider.getTransactionCount(fromAddress)
-        }
-        if (isSmartContractFungibleAsset(assetAmount.asset)) {
-          logger.debug(
-            `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
-              `${fromAddress} to ${toAddress} as an ERC20 transfer.`
-          )
-          const token = new quais.Contract(
-            assetAmount.asset.contractAddress,
-            ERC20_INTERFACE,
-            provider
-          )
-
-          const transactionDetails = await token.populateTransaction.transfer(
-            toAddress,
-            assetAmount.amount
-          )
-          toAddress = transactionDetails.to ? transactionDetails.to : ""
-          data = transactionDetails.data ? transactionDetails.data : ""
-          assetAmount = {
-            asset: QUAI,
-            amount: BigInt(0),
-          }
-        }
-        const tx = genQuaiRawTransaction(
-          fromNetwork,
-          fromAddress,
-          toAddress,
-          assetAmount,
-          nonce,
-          fromNetwork.chainID,
-          data,
-          gasLimit ?? BigInt(200000),
-          maxFeePerGas ?? BigInt(2000000000),
-          maxPriorityFeePerGas ?? BigInt(1000000000)
-        )
-        signData({ transaction: tx, accountSigner })
-        return { success: true }
-      }
-
-      const provider = getProvider()
-      const signer = provider.getSigner()
-
-      if (isBuiltInNetworkBaseAsset(assetAmount.asset, fromNetwork)) {
-        logger.debug(
-          `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
-            `${fromAddress} to ${toAddress} as a base asset transfer.`
-        )
-        await signer.sendTransaction({
-          from: fromAddress,
-          to: toAddress,
-          value: assetAmount.amount,
-          gasLimit,
-          nonce,
-        })
-      } else if (isSmartContractFungibleAsset(assetAmount.asset)) {
-        logger.debug(
-          `Sending ${assetAmount.amount} ${assetAmount.asset.symbol} from ` +
-            `${fromAddress} to ${toAddress} as an ERC20 transfer.`
-        )
-        const token = new ethers.Contract(
+        const tokenContract = new Contract(
           assetAmount.asset.contractAddress,
-          ERC20_INTERFACE,
+          QRC20_INTERFACE,
           signer
         )
 
-        const transactionDetails = await token.populateTransaction.transfer(
-          toAddress,
-          assetAmount.amount
-        )
+        const transactionDetails =
+          await tokenContract.transfer.populateTransaction(
+            toAddress,
+            assetAmount.amount
+          )
 
-        await signer.sendUncheckedTransaction({
-          ...transactionDetails,
-          gasLimit: gasLimit ?? transactionDetails.gasLimit,
-          nonce,
-        })
-      } else {
-        return {
-          success: false,
-          errorMessage:
-            "Only base and fungible smart contract asset transfers are supported for now.",
-        }
+        toAddressData = transactionDetails.to
+        transactionData = transactionDetails.data
+        transactionValue = 0n
       }
+
+      const request: QuaiTransactionRequest = {
+        to: getAddress(toAddressData),
+        from: fromAddress,
+        // TODO
+        chainId: "9000",
+        gasLimit,
+        maxPriorityFeePerGas,
+        maxFeePerGas,
+        data: transactionData,
+        value: transactionValue,
+      }
+      await transactionConstructionSliceEmitter.emit(
+        "signAndSendQuaiTransaction",
+        {
+          request,
+          accountSigner,
+        }
+      )
+
       return { success: true }
     } catch (error) {
       return {
@@ -390,33 +299,6 @@ export const transferAsset = createBackgroundAsyncThunk(
     }
   }
 )
-
-function genQuaiRawTransaction(
-  network: EVMNetwork,
-  fromAddress: string,
-  toAddress: string,
-  assetAmount: AnyAssetAmount,
-  nonce: number,
-  chainId: string,
-  data: string,
-  gasLimit: bigint,
-  maxFeePerGas: bigint,
-  maxPriorityFeePerGas: bigint
-): EIP1559TransactionRequest {
-  return {
-    to: toAddress,
-    from: fromAddress,
-    value: assetAmount.amount,
-    nonce,
-    gasLimit: gasLimit ?? BigInt(200000),
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    type: 0,
-    chainID: chainId,
-    input: data,
-    network,
-  }
-}
 
 /**
  * Selects a particular asset price point given the asset symbol and the paired
@@ -522,7 +404,7 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
     {
       contractAddress,
       network,
-    }: { contractAddress: NormalizedEVMAddress; network: EVMNetwork },
+    }: { contractAddress: string; network: NetworkInterfaceGA },
     { getState, extra: { main } }
   ) => {
     const state = getState() as RootState
@@ -539,118 +421,3 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
     }
   }
 )
-
-transactionConstructionSliceEmitter.on(
-  "signedTransactionResult",
-  async (tx) => {
-    const provider = globalThis.main.chainService.providerForNetworkOrThrow(
-      tx.network
-    )
-    try {
-      await provider.sendTransaction(serializeSigned(tx))
-      globalThis.main.chainService.saveTransaction(tx, "local")
-    } catch (error: any) {
-      if (error.toString().includes("insufficient funds")) {
-        globalThis.main.store.dispatch(
-          setSnackbarMessage("Insufficient funds for gas * price + value")
-        )
-      }
-      console.log(error)
-    }
-  }
-)
-
-const signData = async function ({
-  transaction,
-  accountSigner,
-}: {
-  transaction: EIP1559TransactionRequest
-  accountSigner: AccountSigner
-}) {
-  transactionConstructionSliceEmitter.emit("requestSignature", {
-    request: transaction,
-    accountSigner,
-  })
-}
-
-function serializeSigned(transaction: SignedTransaction): string {
-  // If there is an explicit gasPrice, make sure it matches the
-  // EIP-1559 fees; otherwise they may not understand what they
-  // think they are setting in terms of fee.
-  if (transaction.gasPrice != null) {
-    const gasPrice = BigNumber.from(transaction.gasPrice)
-    const maxFeePerGas = BigNumber.from(transaction.maxFeePerGas || 0)
-    if (!gasPrice.eq(maxFeePerGas)) {
-      logger.error("mismatch EIP-1559 gasPrice != maxFeePerGas", "tx", {
-        gasPrice,
-        maxFeePerGas,
-      })
-      throw new Error("mismatch EIP-1559 gasPrice != maxFeePerGas")
-    }
-  }
-
-  const fields: any = [
-    formatNumber(transaction.network.chainID || 0, "chainId"),
-    formatNumber(transaction.nonce || 0, "nonce"),
-    formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
-    formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
-    formatNumber(transaction.gasLimit || 0, "gasLimit"),
-    transaction.to,
-    formatNumber(transaction.value || 0, "value"),
-    transaction.input || "0x",
-    formatAccessList([]),
-  ]
-  if (transaction.type == 2) {
-    fields.push(
-      formatNumber(transaction.externalGasLimit || 0, "externalGasLimit")
-    )
-    fields.push(
-      formatNumber(transaction.externalGasPrice || 0, "externalGasPrice")
-    )
-    fields.push(formatNumber(transaction.externalGasTip || 0, "externalGasTip"))
-    fields.push(/* transaction.externalData || */ "0x")
-    fields.push(formatAccessList(/* transaction.externalAccessList || */ []))
-    fields.push(formatNumber(transaction.v, "recoveryParam"))
-    fields.push(stripZeros(transaction.r))
-    fields.push(stripZeros(transaction.s))
-    return hexConcat(["0x02", RLP.encode(fields)])
-  }
-  fields.push(formatNumber(transaction.v, "recoveryParam"))
-  fields.push(stripZeros(transaction.r))
-  fields.push(stripZeros(transaction.s))
-  return hexConcat(["0x00", RLP.encode(fields)])
-}
-
-function formatNumber(value: any, name: string): Uint8Array {
-  const result = stripZeros(BigNumber.from(value).toHexString())
-  if (result.length > 32) {
-    logger.error(`invalid length for ${name}`, `transaction:${name}`, value)
-  }
-  return result
-}
-
-function formatAccessList(value: any): Array<[string, Array<string>]> {
-  return accessListify(value).map((set) => [set.address, set.storageKeys])
-}
-
-// Emitted ETXs must include some multiple of BaseFee as miner tip, to
-// encourage processing at the destination.
-export function calcEtxFeeMultiplier(fromShard: string, toShard: string) {
-  let multiplier = NUM_ZONES_IN_REGION
-  if (fromShard == undefined || toShard == undefined || fromShard == toShard) {
-    console.error(
-      `invalid shards in calcEtxFeeMultiplier: ${fromShard} ${toShard}`
-    )
-    return 0 // will cause an error
-  }
-  if (
-    (fromShard.includes("cyprus") && toShard.includes("cyprus")) ||
-    (fromShard.includes("paxos") && toShard.includes("paxos")) ||
-    (fromShard.includes("hydra") && toShard.includes("hydra"))
-  ) {
-    multiplier = NUM_ZONES_IN_REGION
-  } else {
-    multiplier = NUM_ZONES_IN_REGION * NUM_REGIONS_IN_PRIME
-  }
-  return multiplier
-}

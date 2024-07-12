@@ -3,7 +3,7 @@ import React, { ReactNode, ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 
 type DataSignatureDetailsProps = {
-  requestingSource?: string | undefined
+  requestingSource?: string | null | undefined
   excludeTitle?: boolean
   children: ReactNode
 }

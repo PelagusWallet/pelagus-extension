@@ -7,7 +7,7 @@ import {
   selectCurrentAccountSigner,
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
+import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import {
   AnyAsset,
   isSmartContractFungibleAsset,
@@ -15,15 +15,14 @@ import {
 } from "@pelagus/pelagus-background/assets"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useTranslation } from "react-i18next"
-import {
-  CurrentShardToExplorer,
-  DEFAULT_NETWORKS_BY_CHAIN_ID,
-} from "@pelagus/pelagus-background/constants"
+import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import {
   isUntrustedAsset,
   isUnverifiedAssetByUser,
 } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
+import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
+import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 import { useBackgroundSelector } from "../hooks"
 import SharedAssetIcon from "../components/Shared/SharedAssetIcon"
 import SharedButton from "../components/Shared/SharedButton"
@@ -85,7 +84,7 @@ export default function SingleAsset(): ReactElement {
       if (typeof contractAddress !== "undefined") {
         return (
           isSmartContractFungibleAsset(candidateAsset) &&
-          sameEVMAddress(candidateAsset.contractAddress, contractAddress)
+          sameQuaiAddress(candidateAsset.contractAddress, contractAddress)
         )
       }
       return candidateAsset.symbol === symbol
@@ -150,9 +149,12 @@ export default function SingleAsset(): ReactElement {
                     <a
                       className="new_tab_link"
                       href={
-                        DEFAULT_NETWORKS_BY_CHAIN_ID.has(currentNetwork.chainID)
+                        NetworksArray.find(
+                          (network) =>
+                            network.chainID === currentNetwork.chainID
+                        )
                           ? `${
-                              currentNetwork.isQuai
+                              isQuaiHandle(currentNetwork)
                                 ? CurrentShardToExplorer(
                                     currentNetwork,
                                     account.address

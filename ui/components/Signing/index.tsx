@@ -66,7 +66,6 @@ function SigningLoaded<T extends SignOperationType>({
           }
           section :global(h1.title) {
             color: var(--trophy-gold);
-            font-size: ;
             font-weight: 500;
             line-height: 42px;
             text-align: center;

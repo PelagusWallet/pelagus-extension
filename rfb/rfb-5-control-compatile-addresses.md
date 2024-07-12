@@ -42,12 +42,14 @@ Currently addresses are often (but not always!) carried in objects conforming to
 `AddressOnNetwork`:
 
 ```typescript
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes";
+
 /**
  * An address on a particular network. That's it. That's the comment.
  */
 export type AddressOnNetwork = {
   address: HexString
-  network: EVMNetwork
+  network: NetworkInterfaceGA
 }
 ```
 
@@ -55,12 +57,14 @@ Additionally, _names_, which give addresses a human-readable name, are
 generally carried in objects conforming to `NameOnNetwork`:
 
 ```typescript
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes";
+
 /**
  * A domain name, with a particular network.
  */
 export type NameOnNetwork = {
   name: string
-  network: EVMNetwork
+  network: NetworkInterfaceGA
 }
 ```
 

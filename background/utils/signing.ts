@@ -1,16 +1,13 @@
-import { TypedDataField } from "@ethersproject/abstract-signer"
-import { hexlify, toUtf8Bytes, toUtf8String } from "ethers/lib/utils"
+import {
+  toUtf8Bytes,
+  hexlify,
+  TypedDataDomain,
+  TypedDataField,
+  toUtf8String,
+} from "quais"
 import { SiweMessage } from "siwe"
-import { AddressOnNetwork } from "../accounts"
-import { AccountSignerWithId } from "../signing"
+import { AddressOnNetwork, AccountSignerWithId } from "../accounts"
 import { EIP191Data, EIP712TypedData, HexString } from "../types"
-
-export type EIP712DomainType = {
-  name?: string
-  version?: string
-  chainId?: number | string
-  verifyingContract?: HexString
-}
 
 export interface EIP4361Data {
   unparsedMessageData: string
@@ -27,8 +24,6 @@ export type SignTypedDataRequest = {
   account: AddressOnNetwork
   typedData: EIP712TypedData
 }
-
-export type ExpectedSigningData = EIP191Data | EIP4361Data
 
 type EIP191SigningData = {
   messageType: "eip191"
@@ -49,18 +44,16 @@ export type MessageSigningRequest<
   rawSigningData: string
 }
 
-export type SigningDataType = "eip191" | "eip4361"
-
 type EIP2612Message = {
   owner: HexString
   spender: HexString
-  value: number
   nonce: number
+  value: number
   deadline: number
 }
 
 export type EIP2612TypedData = {
-  domain: EIP712DomainType
+  domain: TypedDataDomain
   types: Record<string, TypedDataField[]>
   message: EIP2612Message
   primaryType: "Permit"

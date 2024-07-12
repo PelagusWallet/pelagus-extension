@@ -1,6 +1,11 @@
-import { BigNumber, ethers } from "ethers"
-import { EventFragment, Fragment, FunctionFragment } from "ethers/lib/utils"
-import { EVMLog } from "../networks"
+import {
+  toBigInt,
+  Fragment,
+  Interface,
+  EventFragment,
+  FunctionFragment,
+  LogParams,
+} from "quais"
 import { HexString } from "../types"
 import { ERC20_FUNCTIONS } from "./erc20"
 
@@ -21,9 +26,7 @@ export const WRAPPED_ASSET_ABI = Object.values<Fragment>(
   WRAPPED_ASSET_FUNCTIONS
 ).concat(Object.values(WRAPPED_ASSET_EVENTS))
 
-export const WRAPPED_ASSET_INTERFACE = new ethers.utils.Interface(
-  WRAPPED_ASSET_ABI
-)
+export const WRAPPED_ASSET_INTERFACE = new Interface(WRAPPED_ASSET_ABI)
 
 export type WrappedAssetDepositLog = {
   contractAddress: string
@@ -48,10 +51,10 @@ export type WrappedAssetDepositLog = {
  *         `Deposit` or `Withdrawal` events, simply that they can be parsed as such.
  */
 export function parseLogsForWrappedDepositsAndWithdrawals(
-  logs: EVMLog[]
+  logs: readonly LogParams[]
 ): WrappedAssetDepositLog[] {
   return logs
-    .map(({ contractAddress, data, topics }) => {
+    .map(({ address: contractAddress, data, topics }) => {
       try {
         const decodedDeposit = WRAPPED_ASSET_INTERFACE.decodeEventLog(
           WRAPPED_ASSET_EVENTS.Deposit,
@@ -65,7 +68,7 @@ export function parseLogsForWrappedDepositsAndWithdrawals(
         )
           return {
             contractAddress,
-            amount: (decodedDeposit.amount as BigNumber).toBigInt(),
+            amount: toBigInt(decodedDeposit.amount),
             recipientAddress: decodedDeposit.dst,
             senderAddress: contractAddress,
           }
@@ -85,7 +88,7 @@ export function parseLogsForWrappedDepositsAndWithdrawals(
         )
           return {
             contractAddress,
-            amount: (decodedWithdrawal.amount as BigNumber).toBigInt(),
+            amount: toBigInt(decodedWithdrawal.amount),
             recipientAddress: contractAddress,
             senderAddress: decodedWithdrawal.src,
           }

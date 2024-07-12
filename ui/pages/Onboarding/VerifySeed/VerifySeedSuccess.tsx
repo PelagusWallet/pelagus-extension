@@ -6,7 +6,7 @@ import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/s
 import {
   SignerImportSource,
   SignerSourceTypes,
-} from "@pelagus/pelagus-background/services/keyring"
+} from "@pelagus/pelagus-background/services/keyring/types"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import SharedButton from "../../../components/Shared/SharedButton"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"

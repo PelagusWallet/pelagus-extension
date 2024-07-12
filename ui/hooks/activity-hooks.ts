@@ -3,7 +3,7 @@ import {
   Activity,
   INFINITE_VALUE,
 } from "@pelagus/pelagus-background/redux-slices/activities"
-import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
+import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { TransactionAnnotation } from "@pelagus/pelagus-background/services/enrichment"
 
@@ -14,7 +14,7 @@ function isReceiveActivity(
   return (
     (activity.type === "asset-transfer" ||
       activity.type === "external-transfer") &&
-    sameEVMAddress(activity.recipient?.address, activityInitiatorAddress)
+    sameQuaiAddress(activity.recipient?.address, activityInitiatorAddress)
   )
 }
 

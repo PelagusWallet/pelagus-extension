@@ -1,6 +1,6 @@
-import PelagusWindowProvider from "@pelagus-provider/window-provider"
 import Emittery from "emittery"
-import PelagusWeb3Provider from "../../pelagus-provider"
+import { BrowserProvider } from "quais"
+import PelagusWindowProvider from "@pelagus-provider/window-provider"
 
 type InternalProviderPortEvents = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,10 +28,9 @@ export const internalProviderPort = {
     this.listeners.forEach((listener) => listener(message))
   },
 }
-/* eslint-enable @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types */
 
-export const internalProvider = new PelagusWindowProvider(internalProviderPort)
+const internalProvider = new PelagusWindowProvider(internalProviderPort)
 
-export function getProvider(this: unknown): PelagusWeb3Provider {
-  return new PelagusWeb3Provider(internalProvider)
+export function getProvider(this: unknown): BrowserProvider {
+  return new BrowserProvider(internalProvider)
 }

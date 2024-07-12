@@ -2,7 +2,7 @@ import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
-import { SignerSourceTypes } from "@pelagus/pelagus-background/services/keyring"
+import { SignerSourceTypes } from "@pelagus/pelagus-background/services/keyring/types"
 import SharedButton from "../../../components/Shared/SharedButton"
 import { useBackgroundDispatch } from "../../../hooks"
 

@@ -222,6 +222,8 @@ type SigningRequest =
 `Signing/index.tsx`
 
 ```typescript
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes";
+
 /**
  * Details regarding a signature request, resolved for a signer ahead of time
  * based on the type of signature, the account whose signature is being
@@ -230,7 +232,7 @@ type SigningRequest =
  */
 type ResolvedSignatureDetails = {
   signer: AccountSigner
-  network: EVMNetwork
+  network: NetworkInterfaceGA
   renderedSigningData: ReactElement
   signActionCreator: ActionCreatorWithoutPayload
   rejectActionCreator: ActionCreatorWithoutPayload
@@ -261,9 +263,9 @@ export type SigningFrame = (props: SigningFrameProps) => ReactElement
 // it and the details of signing data for user presentation.
 function resolveSignatureDetails(request: SigningRequest): ResolvedSignatureDetails {
   if ("transactionRequest" in request) {
-    return resolveTransactionSignatureDetails(request) // defined in SigningDataTransaction/index.ts
+    return resolveTransactionSignatureDetails(request) // defined in SigningDataTransaction/provider-factory.ts
   } else {
-    return resolveDataSignatureDetails(request) // defined in SigningDataMessage/index.ts
+    return resolveDataSignatureDetails(request) // defined in SigningDataMessage/provider-factory.ts
   }
 }
 
@@ -292,20 +294,31 @@ export function Signing(props: SigningProps): ReactElement {
 
   // Not shown: bail if signer account total is unresolved
 
-  const SigningFrameComponent = frameComponentForSigner[signer] // see Signer/index.ts
+  const SigningFrameComponent = frameComponentForSigner[signer] // see Signer/provider-factory.ts
 
   return (
     <section>
-      <SignTransactionNetworkAccountInfoTopBar accountTotal={signerAccountTotal} />
-      <SigningFrameComponent {...{ ...props, ...signatureDetails }}>
-        {renderedSigningData}
-      </SigningFrame>
-    </section>
-  )
+      <SignTransactionNetworkAccountInfoTopBar accountTotal = { signerAccountTotal }
+  />
+  < SigningFrameComponent
+  {...
+    { ...
+      props,
+    ...
+      signatureDetails
+    }
+  }
+>
+  {
+    renderedSigningData
+  }
+  </SigningFrame>
+  < /section>
+)
 }
 ```
 
-`Signing/Signer/index.ts`
+`Signing/Signer/provider-factory.ts`
 
 ```typescript
 /**

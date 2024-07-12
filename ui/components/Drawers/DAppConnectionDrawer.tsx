@@ -2,7 +2,6 @@ import React, { ReactElement, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { getShardFromAddress } from "@pelagus/pelagus-background/constants"
 import {
   AccountData,
   ListAccount,
@@ -11,6 +10,7 @@ import SharedDrawer from "../Shared/SharedDrawer"
 import { useBackgroundSelector } from "../../hooks"
 import ConnectionDAppGuideline from "../Shared/ConnectionDAppGuideline"
 import DAppAccountsList from "../DAppConnection/DAppAccountsList"
+import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 
 interface DAppConnectionDrawerProps {
   currentDAppInfo: PermissionRequest
@@ -53,7 +53,7 @@ export default function DAppConnectionDrawer({
             address: filteredAccount.address,
             defaultAvatar: filteredAccount.defaultAvatar,
             defaultName: filteredAccount.defaultName,
-            shard: getShardFromAddress(filteredAccount.address),
+            shard: getExtendedZoneForAddress(filteredAccount.address),
           })
 
         return acc

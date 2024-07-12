@@ -1,7 +1,6 @@
 import { fetchJson } from "@ethersproject/web"
 import sinon, { SinonStub } from "sinon"
 import IndexingService from ".."
-import { QUAI_NETWORK } from "../../../constants"
 import {
   createAddressOnNetwork,
   createChainService,
@@ -12,6 +11,7 @@ import {
 import ChainService from "../../chain"
 import PreferenceService from "../../preferences"
 import { getOrCreateDb as getIndexingDB } from "../db"
+import { QuaiNetworkGA } from "../../../constants/networks/networks"
 
 type MethodSpy<T extends (...args: unknown[]) => unknown> = jest.SpyInstance<
   ReturnType<T>,
@@ -85,8 +85,7 @@ describe("IndexingService", () => {
       preferenceService: Promise.resolve(preferenceService),
     })
 
-    sandbox.stub(chainService, "supportedNetworks").value([QUAI_NETWORK])
-    sandbox.stub(chainService, "getTrackedNetworks").resolves([QUAI_NETWORK])
+    sandbox.stub(chainService, "supportedNetworks").value([QuaiNetworkGA])
 
     indexedDB = new IDBFactory()
 
@@ -158,7 +157,7 @@ describe("IndexingService", () => {
 
         expect(
           indexingService
-            .getCachedAssets(QUAI_NETWORK)
+            .getCachedAssets(QuaiNetworkGA)
             .map((assets) => assets.symbol)
         ).toEqual(["QUAI", customAsset.symbol, "TEST"])
       })
@@ -211,7 +210,7 @@ describe("IndexingService", () => {
 
         expect(
           indexingService
-            .getCachedAssets(QUAI_NETWORK)
+            .getCachedAssets(QuaiNetworkGA)
             .map((asset) => asset.symbol)
         ).toEqual(["QUAI", "TEST"])
       })
@@ -235,7 +234,7 @@ describe("IndexingService", () => {
       await indexingService.emitter.once("assets").then(() => {
         expect(
           indexingService
-            .getCachedAssets(QUAI_NETWORK)
+            .getCachedAssets(QuaiNetworkGA)
             .map((assets) => assets.symbol)
         ).toEqual(["QUAI", "TEST"])
       })
@@ -246,7 +245,7 @@ describe("IndexingService", () => {
 
       expect(
         indexingService
-          .getCachedAssets(QUAI_NETWORK)
+          .getCachedAssets(QuaiNetworkGA)
           .map((assets) => assets.symbol)
       ).toEqual(["QUAI", customAsset.symbol, "TEST"])
     })
@@ -358,7 +357,7 @@ describe("IndexingService", () => {
         () => Promise.resolve({}) as any
       )
 
-      await indexingService.cacheAssetsForNetwork(QUAI_NETWORK)
+      await indexingService.cacheAssetsForNetwork(QuaiNetworkGA)
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       await indexingService["loadAccountBalances"]()

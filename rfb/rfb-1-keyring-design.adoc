@@ -121,7 +121,7 @@ The security expectations of the `KeyringService` are as follows:
 * When unlocked, the service should never expose mnemonic information, via
   method call or event, with the one exception below.
 * When a new keyring is generated, the service should provide one-time access
-  to the mnemonic to the caller of generateNewKeyring . This mnemonic should
+  to the mnemonic to the caller of generateQuaiHDWalletMnemonic . This mnemonic should
   not be emitted in an event.
 * When unlocked, the service should permit unlimited access to signing
   requests.

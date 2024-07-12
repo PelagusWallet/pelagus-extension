@@ -3,6 +3,7 @@ import {
   PROVIDER_BRIDGE_TARGET,
   WINDOW_PROVIDER_TARGET,
   PELAGUS_WINDOW_PROVIDER_CHAIN_ID,
+  PELAGUS_WINDOW_PROVIDER_VERSION,
   PELAGUS_WINDOW_PROVIDER_LABEL,
   PELAGUS_WINDOW_PROVIDER_INJECTED_NAMESPACE,
   PELAGUS_WINDOW_PROVIDER_ICON_URL,
@@ -23,6 +24,7 @@ import {
 
 type ProviderInfo = {
   label: string
+  version: number
   injectedNamespace: string
   iconURL: string
   identityFlag?: string
@@ -31,6 +33,7 @@ type ProviderInfo = {
 
 const providerInfo: ProviderInfo = {
   label: PELAGUS_WINDOW_PROVIDER_LABEL,
+  version: PELAGUS_WINDOW_PROVIDER_VERSION,
   injectedNamespace: PELAGUS_WINDOW_PROVIDER_INJECTED_NAMESPACE,
   iconURL: PELAGUS_WINDOW_PROVIDER_ICON_URL,
   identityFlag: PELAGUS_WINDOW_PROVIDER_IDENTITY_FLAG,
@@ -40,12 +43,19 @@ const providerInfo: ProviderInfo = {
 
 export default class PelagusWindowProvider extends EventEmitter {
   chainId = PELAGUS_WINDOW_PROVIDER_CHAIN_ID
+
   selectedAddress: string | undefined
+
   connected = false
+
   isPelagus = true
+
   isMetaMask = false
+
   pelagusSetAsDefault = false
+
   isWeb3 = true
+
   requestResolvers = new Map<
     string,
     {
@@ -58,6 +68,7 @@ export default class PelagusWindowProvider extends EventEmitter {
       }
     }
   >()
+
   providerInfo = providerInfo
 
   private requestID = 0n
@@ -108,7 +119,8 @@ export default class PelagusWindowProvider extends EventEmitter {
   }
 
   private backgroundResponsesListener(event: unknown): void {
-    let id, result: unknown
+    let id
+    let result: unknown
 
     if (isWindowResponseEvent(event)) {
       if (
@@ -187,6 +199,7 @@ export default class PelagusWindowProvider extends EventEmitter {
     this.emit("chainChanged", chainId)
     this.emit("networkChanged", Number(chainId).toString())
   }
+
   emitAddressChange(address: Array<string>): void {
     if (this.selectedAddress !== address[0]) {
       this.selectedAddress = address[0]

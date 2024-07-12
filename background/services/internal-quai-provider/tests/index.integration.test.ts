@@ -1,15 +1,15 @@
 import sinon from "sinon"
 import InternalQuaiProviderService from ".."
 import * as featureFlags from "../../../features"
-import { EVMNetwork } from "../../../networks"
 import {
   createChainService,
   createInternalQuaiProviderService,
 } from "../../../tests/factories"
 import { validateAddEthereumChainParameter } from "../../provider-bridge/utils"
-import { QUAI_NETWORK } from "../../../constants"
 import { SignTypedDataRequest } from "../../../utils/signing"
 import { EIP712TypedData } from "../../../types"
+import { QuaiNetworkGA } from "../../../constants/networks/networks"
+import { NetworkInterfaceGA } from "../../../constants/networks/networkTypes"
 
 const TEST_ADDRESS = "0x208e94d5661a73360d9387d3ca169e5c130090cd"
 
@@ -59,7 +59,8 @@ describe("Internal Quai Provider Service", () => {
 
     expect(
       startedChainService.supportedNetworks.find(
-        (network: EVMNetwork) => network.name === "Fantom Opera"
+        (network: NetworkInterfaceGA) =>
+          network.baseAsset.name === "Fantom Opera"
       )
     ).toBeTruthy()
   })
@@ -104,7 +105,7 @@ describe("Internal Quai Provider Service", () => {
       const EIP712ObjectFiltered: SignTypedDataRequest = {
         account: {
           address: TEST_ADDRESS,
-          network: QUAI_NETWORK,
+          network: QuaiNetworkGA,
         },
         typedData: {
           types,

@@ -1,22 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
+import { QuaiTransactionLike } from "quais/lib/commonjs/transaction"
+import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
+import { QuaiTransaction } from "quais"
 import { EXPRESS, INSTANT, MAX_FEE_MULTIPLIER, REGULAR } from "../constants"
 import {
   BlockEstimate,
   BlockPrices,
-  EIP1559TransactionRequest,
-  EVMNetwork,
   isEIP1559TransactionRequest,
-  LegacyEVMTransactionRequest,
-  SignedTransaction,
-  TransactionRequest,
 } from "../networks"
-import {
-  EnrichedEVMTransactionSignatureRequest,
-  EnrichedEVMTransactionRequest,
-} from "../services/enrichment"
 import { createBackgroundAsyncThunk } from "./utils"
 import { SignOperation } from "./signing"
+import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
+import {
+  QuaiTransactionRequestWithAnnotation,
+  QuaiTransactionState,
+} from "../services/chain/types"
+import { AccountSigner } from "../services/signing"
 
 export const enum TransactionConstructionStatus {
   Idle = "idle",
@@ -45,8 +45,8 @@ export enum NetworkFeeTypeChosen {
 }
 export type TransactionConstruction = {
   status: TransactionConstructionStatus
-  transactionRequest?: EnrichedEVMTransactionRequest
-  signedTransaction?: SignedTransaction
+  transactionRequest?: QuaiTransactionRequestWithAnnotation
+  signedTransaction?: QuaiTransactionLike // TODO-MIGRATION
   broadcastOnSign?: boolean
   transactionLikelyFails: boolean
   estimatedFeesPerGas: { [chainID: string]: EstimatedFeesPerGas | undefined }
@@ -79,11 +79,17 @@ export const initialState: TransactionConstruction = {
 }
 
 export type Events = {
-  updateTransaction: EnrichedEVMTransactionSignatureRequest
-  requestSignature: SignOperation<TransactionRequest>
+  updateTransaction: QuaiTransactionRequestWithAnnotation
+
+  signAndSendQuaiTransaction: {
+    request: QuaiTransactionRequest
+    accountSigner: AccountSigner
+  }
+
+  requestSignature: SignOperation<QuaiTransactionRequestWithAnnotation>
   signatureRejected: never
-  broadcastSignedTransaction: SignedTransaction
-  signedTransactionResult: SignedTransaction
+  broadcastSignedTransaction: QuaiTransaction
+  signedTransactionResult: QuaiTransactionState
 }
 
 export type GasOption = {
@@ -135,18 +141,14 @@ const makeBlockEstimate = (
 // Async thunk to pass transaction options from the store to the background via an event
 export const updateTransactionData = createBackgroundAsyncThunk(
   "transaction-construction/update-transaction",
-  async (payload: EnrichedEVMTransactionSignatureRequest) => {
+  async (payload: QuaiTransactionRequestWithAnnotation) => {
     await emitter.emit("updateTransaction", payload)
   }
 )
 
 export const signTransaction = createBackgroundAsyncThunk(
   "transaction-construction/sign",
-  async (
-    request: SignOperation<
-      EIP1559TransactionRequest | LegacyEVMTransactionRequest
-    >
-  ) => {
+  async (request: SignOperation<QuaiTransactionRequestWithAnnotation>) => {
     await emitter.emit("requestSignature", request)
   }
 )
@@ -161,7 +163,7 @@ const transactionSlice = createSlice({
         payload: { transactionRequest, transactionLikelyFails },
       }: {
         payload: {
-          transactionRequest: TransactionRequest
+          transactionRequest: QuaiTransactionRequestWithAnnotation
           transactionLikelyFails: boolean
         }
       }
@@ -176,7 +178,6 @@ const transactionSlice = createSlice({
         transactionLikelyFails,
       }
       const feeType = state.feeTypeSelected
-      const { chainID } = transactionRequest.network
 
       if (
         // We use two guards here to satisfy the compiler but due to the spread
@@ -187,7 +188,7 @@ const transactionSlice = createSlice({
         const estimatedMaxFeePerGas =
           feeType === NetworkFeeTypeChosen.Custom
             ? state.customFeesPerGas?.maxFeePerGas
-            : state.estimatedFeesPerGas?.[chainID]?.[feeType]?.maxFeePerGas
+            : state.estimatedFeesPerGas?.chainId?.[feeType]?.maxFeePerGas // TODO-MIGRATION
 
         newState.transactionRequest.maxFeePerGas =
           estimatedMaxFeePerGas ?? transactionRequest.maxFeePerGas
@@ -195,7 +196,7 @@ const transactionSlice = createSlice({
         const estimatedMaxPriorityFeePerGas =
           feeType === NetworkFeeTypeChosen.Custom
             ? state.customFeesPerGas?.maxPriorityFeePerGas
-            : state.estimatedFeesPerGas?.[chainID]?.[feeType]
+            : state.estimatedFeesPerGas?.chainId?.[feeType] // TODO-MIGRATION
                 ?.maxPriorityFeePerGas
 
         newState.transactionRequest.maxPriorityFeePerGas =
@@ -203,16 +204,19 @@ const transactionSlice = createSlice({
           transactionRequest.maxPriorityFeePerGas
 
         // Gas minimums
-        if (newState.transactionRequest.maxPriorityFeePerGas < 1000000000n) {
+        if (
+          newState.transactionRequest.maxPriorityFeePerGas ??
+          0n < 1000000000n
+        ) {
           newState.transactionRequest.maxPriorityFeePerGas = 1000000000n
         }
 
         if (
-          newState.transactionRequest.maxFeePerGas <
-          newState.transactionRequest.maxPriorityFeePerGas + 1000000000n
+          (newState.transactionRequest.maxFeePerGas ?? 0n) <
+          (newState.transactionRequest.maxPriorityFeePerGas ?? 0n) + 1000000000n
         ) {
           newState.transactionRequest.maxFeePerGas =
-            newState.transactionRequest.maxPriorityFeePerGas + 1000000000n
+            newState.transactionRequest.maxPriorityFeePerGas ?? 0n + 1000000000n
         }
       }
 
@@ -236,10 +240,10 @@ const transactionSlice = createSlice({
     ) => {
       immerState.feeTypeSelected = payload
     },
-    signed: (state, { payload }: { payload: SignedTransaction }) => ({
+    signed: (state, { payload }: { payload: string }) => ({
       ...state,
       status: TransactionConstructionStatus.Signed,
-      signedTransaction: payload,
+      signedTransaction: JSON.parse(payload), // TODO-MIGRATION
     }),
     broadcastOnSign: (state, { payload }: { payload: boolean }) => ({
       ...state,
@@ -253,7 +257,12 @@ const transactionSlice = createSlice({
       immerState,
       {
         payload: { estimatedFeesPerGas, network },
-      }: { payload: { estimatedFeesPerGas: BlockPrices; network: EVMNetwork } }
+      }: {
+        payload: {
+          estimatedFeesPerGas: BlockPrices
+          network: NetworkInterfaceGA
+        }
+      }
     ) => {
       immerState.estimatedFeesPerGas = {
         ...(immerState.estimatedFeesPerGas ?? {}),
@@ -310,8 +319,6 @@ const transactionSlice = createSlice({
 export const {
   transactionRequest,
   clearTransactionState,
-  transactionLikelyFails,
-  broadcastOnSign,
   signed,
   setFeeType,
   estimatedFeesPerGas,
@@ -322,24 +329,17 @@ export const {
 
 export default transactionSlice.reducer
 
-export const broadcastSignedTransaction = createBackgroundAsyncThunk(
-  "transaction-construction/broadcast",
-  async (transaction: SignedTransaction) => {
-    await emitter.emit("broadcastSignedTransaction", transaction)
-  }
-)
-
 export const transactionSigned = createBackgroundAsyncThunk(
   "transaction-construction/transaction-signed",
-  async (transaction: SignedTransaction, { dispatch, getState }) => {
-    await dispatch(signed(transaction))
+  async (transaction: QuaiTransaction, { dispatch, getState }) => {
+    dispatch(signed(JSON.stringify(transaction)))
 
     const { transactionConstruction } = getState() as {
       transactionConstruction: TransactionConstruction
     }
 
     if (transactionConstruction.broadcastOnSign ?? false) {
-      await dispatch(broadcastSignedTransaction(transaction))
+      await emitter.emit("broadcastSignedTransaction", transaction)
     }
   }
 )

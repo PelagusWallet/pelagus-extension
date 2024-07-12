@@ -36,6 +36,6 @@ export async function newProxyStore(): Promise<
  */
 export async function startMain(): Promise<Main> {
   const mainService = await Main.create()
-  mainService.startService()
+  await mainService.startService()
   return mainService.started()
 }

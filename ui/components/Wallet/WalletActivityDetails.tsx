@@ -17,21 +17,21 @@ import SharedIcon from "../Shared/SharedIcon"
 import useActivityViewDetails from "../../hooks/activity-hooks"
 import { getBlockExplorerURL } from "../../utils/networks"
 
+function truncateValue(rowValue: string) {
+  const isLong = rowValue.length > 30
+  const displayValue = isLong
+    ? `${rowValue.substring(0, 13)}...${rowValue.substring(
+        rowValue.length - 13
+      )}`
+    : rowValue
+  if (isLong) {
+    return <SharedAddress name={displayValue} address={rowValue} />
+  }
+  return <div className="right">{rowValue}</div>
+}
+
 function DetailRowItem(props: ActivityDetail): ReactElement {
   const { assetIconUrl, label, value } = props
-
-  function truncateValue(rowValue: string) {
-    const isLong = rowValue.length > 30
-    const displayValue = isLong
-      ? `${rowValue.substring(0, 13)}...${rowValue.substring(
-          rowValue.length - 13
-        )}`
-      : rowValue
-    if (isLong) {
-      return <SharedAddress name={displayValue} address={rowValue} />
-    }
-    return <div className="right">{rowValue}</div>
-  }
 
   return (
     <li>
@@ -43,7 +43,7 @@ function DetailRowItem(props: ActivityDetail): ReactElement {
         )}
         {label}
       </div>
-      {truncateValue(value)}
+      {value ? truncateValue(value) : ""}
       <style jsx>
         {`
           li {

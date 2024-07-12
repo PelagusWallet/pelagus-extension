@@ -8,7 +8,7 @@ import {
 import React, { ReactElement } from "react"
 import { setNewSelectedAccount } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
-import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
+import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 
 import SharedButton from "../Shared/SharedButton"
@@ -110,7 +110,7 @@ export default function AccountItemRemovalConfirm({
                 return
               }
 
-              if (sameEVMAddress(selectedAddress, address)) {
+              if (sameQuaiAddress(selectedAddress, address)) {
                 const newAddress = Object.keys(
                   accountsData.evm[network.chainID]
                 ).find((accountAddress) => accountAddress !== address)

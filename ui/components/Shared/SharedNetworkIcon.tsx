@@ -1,13 +1,13 @@
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import React, { ReactElement, useState, useEffect } from "react"
 import {
   getNetworkIcon,
   getNetworkIconFallbackColor,
   getNetworkIconSquared,
 } from "../../utils/networks"
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 
 export default function SharedNetworkIcon(props: {
-  network: EVMNetwork
+  network: NetworkInterfaceGA
   size: number
   hasBackground?: boolean
   backgroundOpacity?: number
@@ -52,7 +52,7 @@ export default function SharedNetworkIcon(props: {
         <div className="icon_network" />
       ) : (
         <div className="icon_fallback">
-          {network.name[0].toUpperCase() ?? network.chainID}
+          {network.baseAsset.name.toUpperCase() ?? network.chainID}
         </div>
       )}
       <style jsx>{`

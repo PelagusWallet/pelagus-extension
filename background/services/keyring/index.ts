@@ -2,6 +2,7 @@ import {
   AddressLike,
   getAddress,
   getBytes,
+  isQuaiAddress,
   Mnemonic,
   QuaiHDWallet,
   SigningKey,
@@ -379,9 +380,11 @@ export default class KeyringService extends BaseService<Events> {
    * @param privateKey - string
    * @returns string - address of imported or existing account
    */
-  private importWalletWithPrivateKey(privateKey: string): string {
+  private importWalletWithPrivateKey(privateKey: string): string | null {
     const newWallet = new Wallet(privateKey)
     const { address } = newWallet
+
+    if (!isQuaiAddress(address)) return null
 
     if (this.findSigner(address)) return address
 

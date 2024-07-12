@@ -34,14 +34,14 @@ export default function WalletAlphaBanner(): ReactElement {
           >
             &#10005;
           </button>
-          {`Welcome to Pelagus Alpha version. Help us make this product better by reporting issues on our support site: `}
+          {`Welcome to Pelagus Alpha version. Help improve Pelagus by reporting issues `}
           <a
             href="https://support.pelaguswallet.io"
             target="_blank"
             rel="noopener noreferrer"
             className="link"
           >
-            support.pelaguswallet.io
+            here
           </a>
         </div>
       </div>

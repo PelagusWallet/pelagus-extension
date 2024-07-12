@@ -30,12 +30,6 @@ export function getNetworkIconName(network: NetworkInterfaceGA): string {
   return network.baseAsset.name.replaceAll(" ", "").toLowerCase()
 }
 
-export const getNetworkIconSquared = (network: NetworkInterfaceGA): string => {
-  const iconName = getNetworkIconName(network)
-
-  return `./images/networks/${iconName}-square@2x.png`
-}
-
 export const getNetworkIcon = (network: NetworkInterfaceGA): string => {
   const iconName = getNetworkIconName(network)
 

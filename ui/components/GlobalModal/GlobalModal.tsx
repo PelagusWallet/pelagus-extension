@@ -34,7 +34,17 @@ export default function GlobalModal({ id }: { id: string }): ReactElement {
         <div>
           <span className="title">{t("title")}</span>
           <div className="description">
-            <span>{t("description1")}</span>
+            <span>
+              {t("description1")}{" "}
+              <a
+                href="https://support.pelaguswallet.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link"
+              >
+                support.pelaguswallet.io
+              </a>
+            </span>
             <span>{t("description2")}</span>
             <span className="bold">{t("description3")}</span>
           </div>

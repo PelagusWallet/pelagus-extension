@@ -4,13 +4,13 @@ import {
   DEFAULT_NETWORKS_BY_CHAIN_ID,
   TEST_NETWORK_BY_CHAIN_ID,
 } from "../../constants"
-import { EVMNetwork } from "../../networks"
+import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
 
 // Adds chainID to each NFT for convenience in frontend
 // eslint-disable-next-line import/prefer-default-export
 export const selectEVMNetworks = createSelector(
   (state: RootState) => state.networks.evmNetworks,
-  (evmNetworks): EVMNetwork[] => {
+  (evmNetworks): NetworkInterfaceGA[] => {
     if (!evmNetworks) return []
     return Object.values(evmNetworks)
   }

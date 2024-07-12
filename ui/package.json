@@ -25,7 +25,6 @@
   "dependencies": {
     "@ethersproject/abstract-provider": "^5.5.1",
     "@ethersproject/address": "^5.5.0",
-    "@ethersproject/hdnode": "^5.5.0",
     "@ethersproject/units": "5.5.0",
     "@ethersproject/web": "^5.5.1",
     "@pelagus/pelagus-background": "0.7.0",

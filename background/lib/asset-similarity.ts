@@ -1,6 +1,5 @@
 import { AnyAsset, isSmartContractFungibleAsset } from "../assets"
 import { sameNetwork } from "../networks"
-import { normalizeEVMAddress } from "./utils"
 
 /**
  * Use heuristics to score two assets based on their metadata similarity. The
@@ -46,9 +45,7 @@ export function prioritizedAssetSimilarityKeys(asset: AnyAsset): string[] {
   let similarityKeys: string[] = []
 
   if (isSmartContractFungibleAsset(asset)) {
-    const normalizedContractAddressAndNetwork = `${normalizeEVMAddress(
-      asset.contractAddress
-    )}-${asset.homeNetwork.chainID}`
+    const normalizedContractAddressAndNetwork = `${asset.contractAddress}-${asset.homeNetwork.chainID}`
 
     similarityKeys = [...similarityKeys, normalizedContractAddressAndNetwork]
   }

@@ -1,10 +1,8 @@
-import {
-  CurrentShardToExplorer,
-  DEFAULT_NETWORKS_BY_CHAIN_ID,
-  isBuiltInNetwork,
-} from "@pelagus/pelagus-background/constants"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import { blockExplorer } from "./constants"
+import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 
 export const NETWORK_COLORS_FALLBACK = [
   "#CC3C3C",
@@ -20,42 +18,36 @@ export const NETWORK_COLORS_FALLBACK = [
   "#EA7E30",
 ]
 
-export function getNetworkIconFallbackColor(network: EVMNetwork): string {
+export function getNetworkIconFallbackColor(
+  network: NetworkInterfaceGA
+): string {
   return NETWORK_COLORS_FALLBACK[
     Number.parseInt(network.chainID, 10) % NETWORK_COLORS_FALLBACK.length
   ]
 }
 
-export function getNetworkIconName(network: EVMNetwork): string {
-  return network.name.replaceAll(" ", "").toLowerCase()
+export function getNetworkIconName(network: NetworkInterfaceGA): string {
+  return network.baseAsset.name.replaceAll(" ", "").toLowerCase()
 }
 
-export const getNetworkIconSquared = (network: EVMNetwork): string => {
-  if (isBuiltInNetwork(network)) {
-    const iconName = getNetworkIconName(network)
+export const getNetworkIconSquared = (network: NetworkInterfaceGA): string => {
+  const iconName = getNetworkIconName(network)
 
-    return `./images/networks/${iconName}-square@2x.png`
-  }
-
-  return ""
+  return `./images/networks/${iconName}-square@2x.png`
 }
 
-export const getNetworkIcon = (network: EVMNetwork): string => {
-  if (isBuiltInNetwork(network)) {
-    const iconName = getNetworkIconName(network)
+export const getNetworkIcon = (network: NetworkInterfaceGA): string => {
+  const iconName = getNetworkIconName(network)
 
-    return `./images/networks/${iconName}@2x.png`
-  }
-
-  return ""
+  return `./images/networks/${iconName}@2x.png`
 }
 
 export const getBlockExplorerURL = (
-  network: EVMNetwork,
+  network: NetworkInterfaceGA,
   address: string
 ): string | undefined => {
-  return DEFAULT_NETWORKS_BY_CHAIN_ID.has(network.chainID)
-    ? network.isQuai
+  return NetworksArray.find((net) => net.chainID === network.chainID)
+    ? isQuaiHandle(network)
       ? CurrentShardToExplorer(network, address)
       : blockExplorer[network.chainID].url
     : network.blockExplorerURL

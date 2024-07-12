@@ -1,19 +1,18 @@
 import { TokenList } from "@uniswap/token-lists"
 import { memoize } from "lodash"
-import { fetchJson } from "@ethersproject/web"
+import { FetchRequest } from "quais"
 import {
   FungibleAsset,
   SmartContractFungibleAsset,
   TokenListAndReference,
 } from "../assets"
-import { EVMNetwork } from "../networks"
 import {
   findClosestAssetIndex,
   prioritizedAssetSimilarityKeys,
 } from "./asset-similarity"
 import { SECOND } from "../constants"
-import { normalizeEVMAddress } from "./utils"
 import { DeepWriteable } from "../types"
+import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
 
 // We allow `any` here because we don't know what we'll get back from a 3rd party api.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,24 +33,26 @@ const cleanTokenListResponse = (json: any, url: string) => {
 export async function fetchAndValidateTokenList(
   url: string
 ): Promise<DeepWriteable<TokenListAndReference>> {
-  let ok = true
-  const response = await fetchJson({ url, timeout: 10 * SECOND }).catch(() => {
-    ok = false
-  })
+  const requestTimeout = 10 * SECOND
 
-  if (!ok) {
+  try {
+    const request = new FetchRequest(url)
+    request.timeout = requestTimeout
+    const response = await request.send()
+
+    const cleanedJSON = cleanTokenListResponse(response, url)
+
+    return {
+      tokenList: cleanedJSON as TokenList,
+      url,
+    }
+  } catch (error) {
     throw new Error(`Error resolving token list at ${url}`)
-  }
-  const cleanedJSON = cleanTokenListResponse(response, url)
-
-  return {
-    tokenList: cleanedJSON as TokenList,
-    url,
   }
 }
 
 function tokenListToFungibleAssetsForNetwork(
-  network: EVMNetwork,
+  network: NetworkInterfaceGA,
   { url: tokenListURL, tokenList }: TokenListAndReference
 ): SmartContractFungibleAsset[] {
   const networkChainID = Number(network.chainID)
@@ -76,7 +77,7 @@ function tokenListToFungibleAssetsForNetwork(
         symbol: tokenMetadata.symbol,
         decimals: tokenMetadata.decimals,
         homeNetwork: network,
-        contractAddress: normalizeEVMAddress(tokenMetadata.address),
+        contractAddress: tokenMetadata.address,
       }
     })
 }
@@ -161,7 +162,7 @@ export const memoizedMergeAssets = memoize(mergeAssets, (...assetLists) => {
  * in.
  */
 export function networkAssetsFromLists(
-  network: EVMNetwork,
+  network: NetworkInterfaceGA,
   tokenLists: TokenListAndReference[]
 ): SmartContractFungibleAsset[] {
   const fungibleAssets = tokenLists.map((tokenListAndReference) =>

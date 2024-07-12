@@ -5,11 +5,10 @@ import {
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 
-import { FeatureFlags, isDisabled } from "@pelagus/pelagus-background/features"
 import classNames from "classnames"
 import { useTranslation } from "react-i18next"
 import {
-  selectShowAnalyticsNotification,
+  selectShowAlphaWalletBanner,
   selectShowUnverifiedAssets,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
@@ -24,9 +23,9 @@ import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
 import WalletAssetList from "../components/Wallet/WalletAssetList"
 import WalletActivityList from "../components/Wallet/WalletActivityList"
 import WalletAccountBalanceControl from "../components/Wallet/WalletAccountBalanceControl"
-import WalletToggleDefaultBanner from "../components/Wallet/WalletToggleDefaultBanner"
 import WalletNoConnectionBanner from "../components/Wallet/WalletNoConnectionBanner"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
+import WalletAlphaBanner from "../components/Wallet/WalletAlphaBanner"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
 
@@ -64,8 +63,12 @@ export default function Wallet(): ReactElement {
     (background) => background.ui?.initializationLoadingTimeExpired
   )
 
-  const showAnalyticsNotification = useBackgroundSelector(
-    selectShowAnalyticsNotification
+  // TODO-MIGRATION
+  // const showAnalyticsNotification = useBackgroundSelector(
+  //   selectShowAnalyticsNotification
+  // )
+  const showAlphaWalletBanner = useBackgroundSelector(
+    selectShowAlphaWalletBanner
   )
 
   const showHiddenAssets = useMemo(
@@ -80,10 +83,11 @@ export default function Wallet(): ReactElement {
   return (
     <>
       <div className="page_content">
-        {!showAnalyticsNotification &&
-          isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (
-            <WalletToggleDefaultBanner />
-          )}
+        {showAlphaWalletBanner && <WalletAlphaBanner />}
+        {/* {!showAnalyticsNotification && */}
+        {/*  isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && ( */}
+        {/*    <WalletToggleDefaultBanner /> */}
+        {/*  )} */}
 
         <WalletNoConnectionBanner />
 

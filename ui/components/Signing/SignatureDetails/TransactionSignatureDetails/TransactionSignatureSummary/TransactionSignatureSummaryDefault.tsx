@@ -7,6 +7,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
+import { toBigInt } from "quais"
 import { TransactionSignatureSummaryProps } from "./TransactionSignatureSummaryProps"
 import { useBackgroundSelector } from "../../../../../hooks"
 import { TransferSummaryBase } from "./TransferSummary"
@@ -32,10 +33,15 @@ export default function TransactionSignatureSummaryDefault({
   const baseAssetPricePoint = useBackgroundSelector((state) =>
     selectAssetPricePoint(state.assets, network.baseAsset, mainCurrencySymbol)
   )
+
+  // TODO-MIGRATION
+  const amountValue = transactionRequest.value
+    ? toBigInt(transactionRequest.value)
+    : 0n
   const transactionAssetAmount = enrichAssetAmountWithDecimalValues(
     {
       asset: network.baseAsset,
-      amount: transactionRequest.value,
+      amount: amountValue,
     },
     heuristicDesiredDecimalsForUnitPrice(
       2,
@@ -49,7 +55,7 @@ export default function TransactionSignatureSummaryDefault({
     <TransferSummaryBase
       title={t("title")}
       assetAmount={transactionAssetAmount}
-      recipientAddress={transactionRequest.to ?? "-"}
+      recipientAddress={transactionRequest.to?.toString() ?? "-"}
     />
   )
 }

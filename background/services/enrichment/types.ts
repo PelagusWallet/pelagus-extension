@@ -1,15 +1,11 @@
+import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { AnyAssetAmount, SmartContractFungibleAsset } from "../../assets"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
-import {
-  AnyEVMTransaction,
-  EIP1559TransactionRequest,
-  EVMNetwork,
-  LegacyEVMTransactionRequest,
-} from "../../networks"
 import { AssetDecimalAmount } from "../../redux-slices/utils/asset-utils"
 import { UNIXTime } from "../../types"
 import { SignTypedDataRequest } from "../../utils/signing"
 import { ResolvedNameRecord } from "../name"
+import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
 
 export type BaseTransactionAnnotation = {
   /**
@@ -42,6 +38,8 @@ export type Warning =
   | "send-to-contract"
   | "approve-eoa"
   | "insufficient-funds"
+
+// ------------------------------------------------------------------------
 
 export type ContractDeployment = BaseTransactionAnnotation & {
   type: "contract-deployment"
@@ -79,54 +77,17 @@ export type TransactionAnnotation =
   | AssetTransfer
   | ExternalTransfer
 
-export type EnrichedEVMTransaction = AnyEVMTransaction & {
-  annotation?: TransactionAnnotation
-}
+// ---------------------------------------------------------
 
 export type EnrichedEVMTransactionSignatureRequest =
-  | EnrichedEIP1559TransactionSignatureRequest
-  | EnrichedLegacyTransactionSignatureRequest
+  EnrichedEIP1559TransactionSignatureRequest
 
 export type EnrichedEIP1559TransactionSignatureRequest =
-  Partial<EIP1559TransactionRequest> & {
+  Partial<QuaiTransactionRequest> & {
     from: string
     annotation?: TransactionAnnotation
-    network: EVMNetwork
+    network: NetworkInterfaceGA
   }
-
-export type EnrichedLegacyTransactionSignatureRequest =
-  Partial<LegacyEVMTransactionRequest> & {
-    from: string
-    annotation?: TransactionAnnotation
-    network: EVMNetwork
-  }
-
-export type EnrichedEIP1559TransactionRequest = EIP1559TransactionRequest & {
-  annotation?: TransactionAnnotation
-}
-
-export type EnrichedLegacyTransactionRequest = LegacyEVMTransactionRequest & {
-  annotation?: TransactionAnnotation
-}
-
-export type EnrichedEVMTransactionRequest =
-  | EnrichedEIP1559TransactionRequest
-  | EnrichedLegacyTransactionRequest
-
-type PartialEIP1559TransactionRequestWithFrom =
-  | Partial<EIP1559TransactionRequest> & { from: string; network: EVMNetwork }
-
-type PartialLegacyEVMTransactionRequestWithFrom =
-  | Partial<LegacyEVMTransactionRequest> & { from: string; network: EVMNetwork }
-
-export type PartialTransactionRequestWithFrom =
-  | PartialEIP1559TransactionRequestWithFrom
-  | PartialLegacyEVMTransactionRequestWithFrom
-
-export type TypedDataField = {
-  value: string
-  type: "address" | "string"
-}
 
 export type EIP2612SignTypedDataAnnotation = {
   type: "EIP-2612"

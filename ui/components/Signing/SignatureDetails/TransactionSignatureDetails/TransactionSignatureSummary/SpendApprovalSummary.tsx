@@ -1,3 +1,4 @@
+import { hexlify, MaxUint256, toUtf8Bytes } from "quais"
 import {
   ERC20_FUNCTIONS,
   ERC20_INTERFACE,
@@ -10,8 +11,6 @@ import {
 import { isMaxUint256 } from "@pelagus/pelagus-background/lib/utils"
 import { updateTransactionData } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { AssetApproval } from "@pelagus/pelagus-background/services/enrichment"
-import { ethers } from "ethers"
-import { hexlify } from "ethers/lib/utils"
 import React, { ReactElement, useEffect, useState } from "react"
 import { useDispatch } from "react-redux"
 import classNames from "classnames"
@@ -89,19 +88,19 @@ export default function SpendApprovalSummary({
 
     const bigintAmount =
       decimalAmount === null
-        ? ethers.constants.MaxUint256.toBigInt()
+        ? MaxUint256
         : convertFixedPointNumber(decimalAmount, asset.decimals).amount
 
     setApprovalLimitInput(null)
 
     const updatedInput = ERC20_INTERFACE.encodeFunctionData(
       ERC20_FUNCTIONS.approve,
-      [spenderAddress, hexlify(bigintAmount)]
+      [spenderAddress, hexlify(toUtf8Bytes(bigintAmount.toString()))]
     )
     dispatch(
       updateTransactionData({
         ...transactionRequest,
-        input: updatedInput,
+        data: updatedInput,
       })
     )
   }

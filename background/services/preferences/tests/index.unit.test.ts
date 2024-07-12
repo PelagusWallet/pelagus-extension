@@ -1,5 +1,5 @@
 import PreferenceService from ".."
-import { QUAI_NETWORK } from "../../../constants"
+import { QuaiNetworkGA } from "../../../constants/networks/networks"
 
 describe("Preference Service Unit", () => {
   let preferenceService: PreferenceService
@@ -17,7 +17,7 @@ describe("Preference Service Unit", () => {
     it("should emit an addressBookEntryModified event when called", async () => {
       const spy = jest.spyOn(preferenceService.emitter, "emit")
       const nameToAdd = {
-        network: QUAI_NETWORK,
+        network: QuaiNetworkGA,
         name: "foo",
         address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
       }
@@ -28,14 +28,14 @@ describe("Preference Service Unit", () => {
 
     it("should correctly save entries and allow them to be queryable by name", async () => {
       preferenceService.addOrEditNameInAddressBook({
-        network: QUAI_NETWORK,
+        network: QuaiNetworkGA,
         name: "foo",
         address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
       })
 
       const foundAddressOnNetwork = preferenceService.lookUpAddressForName({
         name: "foo",
-        network: QUAI_NETWORK,
+        network: QuaiNetworkGA,
       })
 
       expect(foundAddressOnNetwork?.address).toEqual(
@@ -45,14 +45,14 @@ describe("Preference Service Unit", () => {
 
     it("should correctly save entries and allow them to be queryable by address", async () => {
       preferenceService.addOrEditNameInAddressBook({
-        network: QUAI_NETWORK,
+        network: QuaiNetworkGA,
         name: "foo",
         address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
       })
 
       const foundAddressOnNetwork = preferenceService.lookUpNameForAddress({
         address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        network: QUAI_NETWORK,
+        network: QuaiNetworkGA,
       })
 
       expect(foundAddressOnNetwork?.name).toEqual("foo")

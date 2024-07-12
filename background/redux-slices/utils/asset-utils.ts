@@ -12,7 +12,7 @@ import {
 } from "../../assets"
 import { FeatureFlags, isEnabled } from "../../features"
 import { fromFixedPointNumber } from "../../lib/fixed-point"
-import { sameEVMAddress } from "../../lib/utils"
+import { sameQuaiAddress } from "../../lib/utils"
 import { AnyNetwork, NetworkBaseAsset, sameNetwork } from "../../networks"
 import { hardcodedMainCurrencySign } from "./constants"
 
@@ -63,7 +63,7 @@ export function isBuiltInNetworkBaseAsset(
   return (
     isNetworkBaseAsset(asset) &&
     asset.symbol === network.baseAsset.symbol &&
-    asset.chainID === network.baseAsset.chainID &&
+    asset.chainID === network.chainID &&
     asset.name === network.baseAsset.name
   )
 }
@@ -323,7 +323,7 @@ export function isSameAsset(asset1?: AnyAsset, asset2?: AnyAsset): boolean {
   )
     return (
       sameNetwork(asset1.homeNetwork, asset2.homeNetwork) &&
-      sameEVMAddress(asset1.contractAddress, asset2.contractAddress)
+      sameQuaiAddress(asset1.contractAddress, asset2.contractAddress)
     )
 
   if (

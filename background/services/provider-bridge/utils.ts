@@ -7,7 +7,7 @@ import {
   RPCRequest,
 } from "@pelagus-provider/provider-bridge-shared"
 import { AddEthereumChainParameter } from "../internal-quai-provider"
-import { sameEVMAddress } from "../../lib/utils"
+import { sameQuaiAddress } from "../../lib/utils"
 import { HexString } from "../../types"
 
 export type PermissionMap = {
@@ -158,7 +158,7 @@ export function parseRPCRequestParams(
 ): RPCRequest["params"] {
   switch (method) {
     case "quai_sign":
-      return sameEVMAddress(
+      return sameQuaiAddress(
         params[0] as HexString,
         enablingPermission.accountAddress
       )
@@ -166,7 +166,7 @@ export function parseRPCRequestParams(
         : [params[1], params[0]]
 
     case "personal_sign":
-      return sameEVMAddress(
+      return sameQuaiAddress(
         params[1] as HexString,
         enablingPermission.accountAddress
       )

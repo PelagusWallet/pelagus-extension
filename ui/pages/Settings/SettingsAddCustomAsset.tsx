@@ -1,9 +1,5 @@
 import React, { FormEventHandler, ReactElement, useRef, useState } from "react"
-import {
-  isProbablyEVMAddress,
-  normalizeEVMAddress,
-} from "@pelagus/pelagus-background/lib/utils"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
+import { isProbablyEVMAddress } from "@pelagus/pelagus-background/lib/utils"
 import {
   checkTokenContractDetails,
   importCustomToken,
@@ -23,6 +19,7 @@ import { HexString } from "@pelagus/pelagus-background/types"
 import { Trans, useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
 import { updateAccountBalance } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import SharedAssetIcon from "../../components/Shared/SharedAssetIcon"
 import SharedButton from "../../components/Shared/SharedButton"
 import SharedIcon from "../../components/Shared/SharedIcon"
@@ -95,7 +92,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
 
-  const [chosenNetwork, setChosenNetwork] = useState<EVMNetwork>(currentNetwork)
+  const [chosenNetwork, setChosenNetwork] =
+    useState<NetworkInterfaceGA>(currentNetwork)
   const [isNetworkSelectOpen, setNetworkSelectOpen] = useState(false)
   const [isImportingToken, setIsImportingToken] = useState(false)
 
@@ -105,7 +103,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
 
   const handleTokenInfoChange = async (
     addressLike: HexString,
-    network: EVMNetwork
+    network: NetworkInterfaceGA
   ) => {
     requestIdRef.current += 1
     const callId = requestIdRef.current
@@ -132,7 +130,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
 
     const details = (await dispatch(
       checkTokenContractDetails({
-        contractAddress: normalizeEVMAddress(contractAddress),
+        contractAddress,
         network,
       })
     )) as unknown as AssetData
@@ -144,7 +142,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
         assetData: details,
         hasAssetDetailLoadError: details === null,
       })
-      if (details?.exists && accountData?.assetAmounts != undefined) {
+      if (details?.exists && accountData?.assetAmounts) {
         let found = false
         for (const asset of accountData.assetAmounts) {
           if (asset.asset.symbol === details.asset.symbol) {
@@ -290,7 +288,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
           tabIndex={-1}
         >
           <SharedNetworkIcon network={chosenNetwork} size={16} />
-          <span>{chosenNetwork.name}</span>
+          <span>{chosenNetwork.baseAsset.name}</span>
           <SharedIcon
             width={16}
             height={8}
@@ -362,7 +360,9 @@ export default function SettingsAddCustomAsset(): ReactElement {
                     : t("asset.label.symbol")}
                 </span>
               </div>
-              <span className="network_name">{chosenNetwork.name}</span>
+              <span className="network_name">
+                {chosenNetwork.baseAsset.name}
+              </span>
             </div>
           </div>
           <SharedButton

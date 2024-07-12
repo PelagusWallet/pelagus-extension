@@ -4,7 +4,7 @@ import {
   selectCurrentAccount,
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { sameEVMAddress } from "@pelagus/pelagus-background/lib/utils"
+import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import { ListAccount } from "@pelagus/pelagus-background/redux-slices/accounts"
 import DAppAccountListItem from "./DAppAccountListItem"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
@@ -23,7 +23,7 @@ export default function DAppAccountsList({
   const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
 
   const isAccountConnected = (account: ListAccount): boolean =>
-    account && sameEVMAddress(account.address, currentSelectedAccount.address)
+    account && sameQuaiAddress(account.address, currentSelectedAccount.address)
 
   const onSwitchAccountClick = (address: string) => {
     dispatch(

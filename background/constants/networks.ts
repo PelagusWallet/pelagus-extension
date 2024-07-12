@@ -1,35 +1,37 @@
-import { indexOf } from "lodash"
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable import/no-cycle */
+// eslint-disable-next-line max-classes-per-file
+import { Zone } from "quais"
 import logger from "../lib/logger"
-import { QUAI, QUAI_LOCAL } from "./"
+import { QUAI, QUAI_LOCAL } from "."
 import { EVMNetwork } from "../networks"
-import {
-  JsonRpcProvider as QuaisJsonRpcProvider,
-  WebSocketProvider as QuaisWebSocketProvider,
-} from "@quais/providers"
-import SerialFallbackProvider from "../services/chain/serial-fallback-provider"
+import { getExtendedZoneForAddress } from "../services/chain/utils"
+import { NetworkInterfaceGA } from "./networks/networkTypes"
 
-export const VALID_SHARDS: Array<string> = [
-  "cyprus-1",
-  "cyprus-2",
-  "cyprus-3",
-  "paxos-1",
-  "paxos-2",
-  "paxos-3",
-  "hydra-1",
-  "hydra-2",
-  "hydra-3",
+export const VALID_ZONES: Array<Zone> = [
+  Zone.Cyprus1,
+  // TODO-MIGRATION temporary
+  // Zone.Cyprus2,
+  // Zone.Cyprus3,
+  // Zone.Paxos1,
+  // Zone.Paxos2,
+  // Zone.Paxos3,
+  // Zone.Hydra1,
+  // Zone.Hydra2,
+  // Zone.Hydra3,
 ]
 
-export const VALID_SHARDS_NAMES: Array<string> = [
+export const VALID_ZONES_NAMES: Array<string> = [
   "Cyprus 1",
-  "Cyprus 2",
-  "Cyprus 3",
-  "Paxos 1",
-  "Paxos 2",
-  "Paxos 3",
-  "Hydra 1",
-  "Hydra 2",
-  "Hydra 3",
+  // TODO-MIGRATION temporary
+  // "Cyprus 2",
+  // "Cyprus 3",
+  // "Paxos 1",
+  // "Paxos 2",
+  // "Paxos 3",
+  // "Hydra 1",
+  // "Hydra 2",
+  // "Hydra 3",
 ]
 
 export const DEFAULT_QUAI_TESTNET = {
@@ -91,69 +93,6 @@ export const DEFAULT_QUAI_TESTNET = {
       shard: "hydra-3",
       rpc: "https://rpc.hydra3.colosseum.quaiscan.io",
       blockExplorerUrl: "https://hydra3.colosseum.quaiscan.io",
-    },
-  ],
-} as Network
-
-export const DEFAULT_QUAI_DEVNET = {
-  name: "Garden",
-  chainCode: 994,
-  chainID: 12000,
-  isCustom: false,
-  chains: [
-    {
-      name: "Cyprus One",
-      shard: "cyprus-1",
-      rpc: "https://rpc.cyprus1.garden.quaiscan.io",
-      blockExplorerUrl: "https://cyprus1.garden.quaiscan.io",
-    },
-    {
-      name: "Cyprus Two",
-      shard: "cyprus-2",
-      rpc: "https://rpc.cyprus2.garden.quaiscan.io",
-      blockExplorerUrl: "https://cyprus2.garden.quaiscan.io",
-    },
-    {
-      name: "Cyprus Three",
-      shard: "cyprus-3",
-      rpc: "https://rpc.cyprus3.garden.quaiscan.io",
-      blockExplorerUrl: "https://cyprus3.garden.quaiscan.io",
-    },
-    {
-      name: "Paxos One",
-      shard: "paxos-1",
-      rpc: "https://rpc.paxos1.garden.quaiscan.io",
-      blockExplorerUrl: "https://paxos1.garden.quaiscan.io",
-    },
-    {
-      name: "Paxos Two",
-      shard: "paxos-2",
-      rpc: "https://rpc.paxos2.garden.quaiscan.io",
-      blockExplorerUrl: "https://paxos2.garden.quaiscan.io",
-    },
-    {
-      name: "Paxos Three",
-      shard: "paxos-3",
-      rpc: "https://rpc.paxos3.garden.quaiscan.io",
-      blockExplorerUrl: "https://paxos3.garden.quaiscan.io",
-    },
-    {
-      name: "Hydra One",
-      shard: "hydra-1",
-      rpc: "https://rpc.hydra1.garden.quaiscan.io",
-      blockExplorerUrl: "https://hydra1.garden.quaiscan.io",
-    },
-    {
-      name: "Hydra Two",
-      shard: "hydra-2",
-      rpc: "https://rpc.hydra2.garden.quaiscan.io",
-      blockExplorerUrl: "https://hydra2.garden.quaiscan.io",
-    },
-    {
-      name: "Hydra Three",
-      shard: "hydra-3",
-      rpc: "https://rpc.hydra3.garden.quaiscan.io",
-      blockExplorerUrl: "https://hydra3.garden.quaiscan.io",
     },
   ],
 } as Network
@@ -253,13 +192,7 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
 export const DEFAULT_NETWORKS = [QUAI_NETWORK]
 export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_LOCAL]
 
-export function isBuiltInNetwork(network: EVMNetwork): boolean {
-  return DEFAULT_NETWORKS.some(
-    (builtInNetwork) => builtInNetwork.chainID === network.chainID
-  )
-}
-
-export function isTestNetwork(network: EVMNetwork): boolean {
+export function isTestNetwork(network: NetworkInterfaceGA): boolean {
   return DEFAULT_TEST_NETWORKS.some(
     (testNetwork) => testNetwork.chainID === network.chainID
   )
@@ -273,10 +206,6 @@ export const EIP_1559_COMPLIANT_CHAIN_IDS = new Set(
   [QUAI_NETWORK, QUAI_NETWORK_LOCAL].map((network) => network.chainID)
 )
 
-export const CHAINS_WITH_MEMPOOL = new Set(
-  [QUAI_NETWORK, QUAI_NETWORK_LOCAL].map((network) => network.chainID)
-)
-
 export const NETWORK_BY_CHAIN_ID = {
   [QUAI_NETWORK.chainID]: QUAI_NETWORK,
   [QUAI_NETWORK_LOCAL.chainID]: QUAI_NETWORK_LOCAL,
@@ -287,210 +216,32 @@ export const TEST_NETWORK_BY_CHAIN_ID = new Set(
 
 export class Network {
   name: string
+
   chains: ChainData[]
+
   isCustom: boolean
+
   chainCode: number
+
   chainID: number
 }
 
 export class ChainData {
   name: string
+
   shard: string
+
   blockExplorerUrl: string
+
   rpc: string
+
   multicall: string
 }
 
-export const NUM_ZONES_IN_REGION = 3
-export const NUM_REGIONS_IN_PRIME = 3
-
-export const DEFAULT_QUAI_NETWORKS = [
-  DEFAULT_QUAI_TESTNET,
-  DEFAULT_QUAI_DEVNET,
-  DEFAULT_QUAI_LOCAL,
-]
-
-export const QUAI_CONTEXTS = [
-  {
-    name: "Cyprus One",
-    shard: "cyprus-1",
-    context: 2,
-    byte: ["00", "1D"],
-  },
-  {
-    name: "Cyprus Two",
-    shard: "cyprus-2",
-    context: 2,
-    byte: ["1E", "3A"],
-  },
-  {
-    name: "Cyprus Three",
-    shard: "cyprus-3",
-    context: 2,
-    byte: ["3B", "57"],
-  },
-  {
-    name: "Paxos One",
-    shard: "paxos-1",
-    context: 2,
-    byte: ["58", "73"],
-  },
-  {
-    name: "Paxos Two",
-    shard: "paxos-2",
-    context: 2,
-    byte: ["74", "8F"],
-  },
-  {
-    name: "Paxos Three",
-    shard: "paxos-3",
-    context: 2,
-    byte: ["90", "AB"],
-  },
-  {
-    name: "Hydra One",
-    shard: "hydra-1",
-    context: 2,
-    byte: ["AC", "C7"],
-  },
-  {
-    name: "Hydra Two",
-    shard: "hydra-2",
-    context: 2,
-    byte: ["C8", "E3"],
-  },
-  {
-    name: "Hydra Three",
-    shard: "hydra-3",
-    context: 2,
-    byte: ["E4", "FF"],
-  },
-]
-
-export const CHAIN_ID_TO_RPC_URLS: {
-  [chainId: string]: Array<string> | undefined
-} = {
-  [QUAI_NETWORK.chainID]: [
-    ...DEFAULT_QUAI_TESTNET.chains.map((chain) => chain.rpc),
-  ],
-  [QUAI_NETWORK_LOCAL.chainID]: [
-    ...DEFAULT_QUAI_LOCAL.chains.map((chain) => chain.rpc),
-  ],
-}
-
-export const getShardFromAddress = function (address: string): string {
-  if (address === "") return "cyprus-1"
-
-  const shardData = QUAI_CONTEXTS.filter((obj) => {
-    const num = Number(address.substring(0, 4))
-    const start = Number(`0x${obj.byte[0]}`)
-    const end = Number(`0x${obj.byte[1]}`)
-    return num >= start && num <= end
-  })
-  if (shardData.length === 0) throw new Error("Invalid address")
-
-  return shardData[0].shard
-}
-
-export function setProviderForShard(
-  providers: SerialFallbackProvider
-): SerialFallbackProvider {
-  const shard = globalThis.main.SelectedShard
-  if (shard === undefined || shard == "") {
-    globalThis.main.SetCorrectShard()
-    return providers
-  }
-
-  for (const provider of providers.providerCreators) {
-    if (provider.shard !== undefined && provider.shard == shard) {
-      const quaisProvider = provider.creator()
-      if (
-        quaisProvider instanceof QuaisJsonRpcProvider ||
-        quaisProvider instanceof QuaisWebSocketProvider
-      ) {
-        providers.SetCurrentProvider(
-          quaisProvider,
-          indexOf(providers.providerCreators, provider)
-        )
-        return providers
-      }
-      logger.error("Provider is not a Quais provider")
-    } else if (
-      provider.rpcUrl !== undefined &&
-      ShardFromRpcUrl(provider.rpcUrl) === shard
-    ) {
-      const quaisProvider = provider.creator()
-      if (
-        quaisProvider instanceof QuaisJsonRpcProvider ||
-        quaisProvider instanceof QuaisWebSocketProvider
-      ) {
-        providers.SetCurrentProvider(
-          quaisProvider,
-          indexOf(providers.providerCreators, provider)
-        )
-        return providers
-      }
-      logger.error("Provider is not a Quais provider")
-    }
-  }
-  logger.error(`No provider found for shard: ${shard}`)
-  return providers
-}
-
-export function getProviderForGivenShard(
-  providers: SerialFallbackProvider,
-  shard: string
-): QuaisJsonRpcProvider | QuaisWebSocketProvider {
-  if (shard === undefined || shard == "") {
-    globalThis.main.SetCorrectShard()
-    return providers
-  }
-
-  for (const provider of providers.providerCreators) {
-    if (provider.shard !== undefined && provider.shard == shard) {
-      const quaisProvider = provider.creator()
-      if (
-        quaisProvider instanceof QuaisJsonRpcProvider ||
-        quaisProvider instanceof QuaisWebSocketProvider
-      )
-        return quaisProvider
-
-      logger.error("Provider is not a Quais provider")
-    } else if (
-      provider.rpcUrl !== undefined &&
-      ShardFromRpcUrl(provider.rpcUrl) === shard
-    ) {
-      const quaisProvider = provider.creator()
-      if (
-        quaisProvider instanceof QuaisJsonRpcProvider ||
-        quaisProvider instanceof QuaisWebSocketProvider
-      )
-        return quaisProvider
-
-      logger.error("Provider is not a Quais provider")
-    }
-  }
-  logger.error(`No provider found for shard: ${shard}`)
-  return providers
-}
-
-export function ShardFromRpcUrl(url: string): string {
-  for (const network of DEFAULT_QUAI_NETWORKS) {
-    for (const chain of network.chains) {
-      if (chain.rpc === url) return chain.shard
-
-      if (
-        new URL(chain.rpc).port === new URL(url).port &&
-        new URL(chain.rpc).port !== ""
-      )
-        return chain.shard
-    }
-  }
-  logger.error(`Unknown shard for rpc url: ${url}`)
-  return ""
-}
-
-export function ShardToMulticall(shard: string, network: EVMNetwork): string {
+export function ShardToMulticall(
+  shard: string,
+  network: NetworkInterfaceGA
+): string {
   if (network.chains === undefined) return ""
 
   for (const chain of network.chains) {
@@ -501,12 +252,12 @@ export function ShardToMulticall(shard: string, network: EVMNetwork): string {
 }
 
 export function CurrentShardToExplorer(
-  network: EVMNetwork,
+  network: NetworkInterfaceGA,
   address?: string
 ): string {
   let currentShard = ""
   if (address !== undefined) {
-    currentShard = getShardFromAddress(address)
+    currentShard = getExtendedZoneForAddress(address)
   } else {
     if (
       globalThis.main.SelectedShard === undefined ||

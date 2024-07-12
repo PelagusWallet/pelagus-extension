@@ -1,6 +1,7 @@
+import { toBigInt } from "quais"
 import logger from "../../lib/logger"
 import { HexString } from "../../types"
-import { EVMNetwork, sameNetwork } from "../../networks"
+import { sameNetwork } from "../../networks"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import {
   AnyAsset,
@@ -11,12 +12,7 @@ import {
   SmartContractAmount,
   SmartContractFungibleAsset,
 } from "../../assets"
-import {
-  HOUR,
-  MINUTE,
-  NETWORK_BY_CHAIN_ID,
-  getShardFromAddress,
-} from "../../constants"
+import { HOUR, MINUTE, NETWORK_BY_CHAIN_ID } from "../../constants"
 import {
   fetchAndValidateTokenList,
   mergeAssets,
@@ -27,12 +23,12 @@ import ChainService from "../chain"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { CustomAsset, getOrCreateDb, IndexingDatabase } from "./db"
 import BaseService from "../base"
-import { EnrichedEVMTransaction } from "../enrichment"
-import {
-  normalizeAddressOnNetwork,
-  normalizeEVMAddress,
-  sameEVMAddress,
-} from "../../lib/utils"
+import { sameQuaiAddress } from "../../lib/utils"
+import { getExtendedZoneForAddress } from "../chain/utils"
+import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { isQuaiHandle } from "../../constants/networks/networkUtils"
+import { NetworksArray } from "../../constants/networks/networks"
+import { EnrichedQuaiTransaction } from "../chain/types"
 
 // Transactions seen within this many blocks of the chain tip will schedule a
 // token refresh sooner than the standard rate.
@@ -76,7 +72,7 @@ export default class IndexingService extends BaseService<Events> {
    */
   private scheduledTokenRefresh = false
 
-  private cachedAssets: Record<EVMNetwork["chainID"], AnyAsset[]> =
+  private cachedAssets: Record<NetworkInterfaceGA["chainID"], AnyAsset[]> =
     Object.fromEntries(
       Object.keys(NETWORK_BY_CHAIN_ID).map((network) => [network, []])
     )
@@ -137,11 +133,8 @@ export default class IndexingService extends BaseService<Events> {
     const tokenListLoad = this.fetchAndCacheTokenLists()
 
     this.chainService.emitter.once("serviceStarted").then(async () => {
-      const trackedNetworks = await this.chainService.getTrackedNetworks()
-
-      // Push any assets we have cached in the db for all active networks
       Promise.allSettled(
-        trackedNetworks.map(async (network) => {
+        NetworksArray.map(async (network) => {
           await this.cacheAssetsForNetwork(network)
           this.emitter.emit("assets", this.getCachedAssets(network))
         })
@@ -194,7 +187,7 @@ export default class IndexingService extends BaseService<Events> {
    */
   async getLatestAccountBalance(
     account: string,
-    network: EVMNetwork,
+    network: NetworkInterfaceGA,
     asset: FungibleAsset
   ): Promise<AccountBalance | null> {
     return this.db.getLatestAccountBalance(account, network, asset)
@@ -205,7 +198,7 @@ export default class IndexingService extends BaseService<Events> {
    * @returns An array of assets, including base assets that are "built in" to
    *          the codebase. Fiat currencies are not included.
    */
-  getCachedAssets(network: EVMNetwork): AnyAsset[] {
+  getCachedAssets(network: NetworkInterfaceGA): AnyAsset[] {
     return this.cachedAssets[network.chainID] ?? []
   }
 
@@ -213,7 +206,7 @@ export default class IndexingService extends BaseService<Events> {
    * Caches to memory asset metadata from hard-coded base assets and configured token
    * lists.
    */
-  async cacheAssetsForNetwork(network: EVMNetwork): Promise<void> {
+  async cacheAssetsForNetwork(network: NetworkInterfaceGA): Promise<void> {
     const customAssets = await this.db.getActiveCustomAssetsByNetworks([
       network,
     ])
@@ -236,16 +229,15 @@ export default class IndexingService extends BaseService<Events> {
    * @param contractAddress - the address of the asset on its home network
    */
   getKnownSmartContractAsset(
-    network: EVMNetwork,
+    network: NetworkInterfaceGA,
     contractAddress: HexString
   ): SmartContractFungibleAsset | undefined {
     const knownAssets = this.getCachedAssets(network)
     const searchResult = knownAssets.find(
       (asset): asset is SmartContractFungibleAsset =>
         isSmartContractFungibleAsset(asset) &&
-        asset.homeNetwork.name === network.name &&
-        normalizeEVMAddress(asset.contractAddress) ===
-          normalizeEVMAddress(contractAddress)
+        asset.homeNetwork.baseAsset.name === network.baseAsset.name &&
+        asset.contractAddress === contractAddress
     )
 
     return searchResult
@@ -267,8 +259,16 @@ export default class IndexingService extends BaseService<Events> {
   }
 
   notifyEnrichedTransaction(
-    enrichedEVMTransaction: EnrichedEVMTransaction
+    enrichedEVMTransaction: EnrichedQuaiTransaction
   ): void {
+    const network = globalThis.main.chainService.supportedNetworks.find(
+      (net) =>
+        toBigInt(net.chainID) === toBigInt(enrichedEVMTransaction.chainId ?? 0)
+    )
+
+    if (!network)
+      throw new Error("Failed find a network in notifyEnrichedTransaction")
+
     const jointAnnotations =
       typeof enrichedEVMTransaction.annotation === "undefined"
         ? []
@@ -292,7 +292,7 @@ export default class IndexingService extends BaseService<Events> {
           annotation.recipient.address,
         ].map((address) => ({
           address,
-          network: enrichedEVMTransaction.network,
+          network,
         }))
 
         const trackedAddresesOnNetworks =
@@ -305,18 +305,19 @@ export default class IndexingService extends BaseService<Events> {
         // list) OR the sender is a tracked address.
         const baselineTrustedAsset =
           typeof this.getKnownSmartContractAsset(
-            enrichedEVMTransaction.network,
+            network,
             asset.contractAddress
           ) !== "undefined" ||
           (await this.db.isTrackingAsset(asset)) ||
-          (
-            await this.chainService.filterTrackedAddressesOnNetworks([
-              {
-                address: normalizeEVMAddress(enrichedEVMTransaction.from),
-                network: enrichedEVMTransaction.network,
-              },
-            ])
-          ).length > 0
+          (enrichedEVMTransaction.from &&
+            (
+              await this.chainService.filterTrackedAddressesOnNetworks([
+                {
+                  address: enrichedEVMTransaction.from,
+                  network,
+                },
+              ])
+            ).length > 0)
 
         if (baselineTrustedAsset) {
           const assetLookups = trackedAddresesOnNetworks.map(
@@ -348,7 +349,7 @@ export default class IndexingService extends BaseService<Events> {
       >((lookups, { asset, addressOnNetwork: { address, network } }) => {
         const existingAddressOnNetworkIndex = lookups.findIndex(
           ([{ address: existingAddress, network: existingNetwork }]) =>
-            sameEVMAddress(address, existingAddress) &&
+            sameQuaiAddress(address, existingAddress) &&
             sameNetwork(network, existingNetwork)
         )
 
@@ -422,11 +423,20 @@ export default class IndexingService extends BaseService<Events> {
     this.chainService.emitter.on(
       "transaction",
       async ({ transaction, forAccounts }) => {
+        const transactionNetwork =
+          globalThis.main.chainService.supportedNetworks.find(
+            (net) =>
+              toBigInt(net.chainID) === toBigInt(transaction.chainId ?? 0)
+          )
+
+        if (!transactionNetwork)
+          throw new Error("Failed find network for transaction")
         if (
           "status" in transaction &&
           transaction.status === 1 &&
-          transaction.blockHeight >
-            (await this.chainService.getBlockHeight(transaction.network)) -
+          transaction?.blockNumber &&
+          transaction.blockNumber >
+            (await this.chainService.getBlockHeight(transactionNetwork)) -
               FAST_TOKEN_REFRESH_BLOCK_RANGE
         ) {
           this.scheduledTokenRefresh = true
@@ -438,7 +448,7 @@ export default class IndexingService extends BaseService<Events> {
           forAccounts.forEach((accountAddress) => {
             this.chainService.getLatestBaseAccountBalance({
               address: accountAddress,
-              network: transaction.network,
+              network: transactionNetwork,
             })
           })
         }
@@ -452,25 +462,23 @@ export default class IndexingService extends BaseService<Events> {
    * to the list of assets to track.
    *
    * @param addressNetwork
-   * @param contractAddresses
+   * @param smartContractAssets
    */
   async retrieveTokenBalances(
-    unsafeAddressNetwork: AddressOnNetwork,
+    addressNetwork: AddressOnNetwork,
     smartContractAssets?: SmartContractFungibleAsset[]
   ): Promise<SmartContractAmount[]> {
-    const addressNetwork = normalizeAddressOnNetwork(unsafeAddressNetwork)
-
     const filteredSmartContractAssets = (smartContractAssets ?? []).filter(
       ({ contractAddress }) =>
-        getShardFromAddress(contractAddress) ==
-        getShardFromAddress(addressNetwork.address)
+        getExtendedZoneForAddress(contractAddress, false) ===
+        getExtendedZoneForAddress(addressNetwork.address, false)
     )
 
     const balances = await this.chainService.assetData.getTokenBalances(
       addressNetwork,
       filteredSmartContractAssets?.map(({ contractAddress }) =>
-        getShardFromAddress(contractAddress) ==
-        getShardFromAddress(addressNetwork.address)
+        getExtendedZoneForAddress(contractAddress, false) ===
+        getExtendedZoneForAddress(addressNetwork.address, false)
           ? contractAddress
           : ""
       )
@@ -479,7 +487,7 @@ export default class IndexingService extends BaseService<Events> {
     const listedAssetByAddress = (smartContractAssets ?? []).reduce<{
       [contractAddress: string]: SmartContractFungibleAsset
     }>((acc, asset) => {
-      acc[normalizeEVMAddress(asset.contractAddress)] = asset
+      acc[asset.contractAddress] = asset
       return acc
     }, {})
 
@@ -487,7 +495,7 @@ export default class IndexingService extends BaseService<Events> {
     const unfilteredAccountBalances = await Promise.allSettled(
       balances.map(async ({ smartContract: { contractAddress }, amount }) => {
         const knownAsset =
-          listedAssetByAddress[normalizeEVMAddress(contractAddress)] ??
+          listedAssetByAddress[contractAddress] ??
           this.getKnownSmartContractAsset(
             addressNetwork.network,
             contractAddress
@@ -620,16 +628,11 @@ export default class IndexingService extends BaseService<Events> {
    *        fungible asset. Useful in case this asset isn't found in existing metadata.
    */
   async addTokenToTrackByContract(
-    network: EVMNetwork,
+    network: NetworkInterfaceGA,
     contractAddress: string,
     metadata: { discoveryTxHash?: HexString; verified?: boolean } = {}
   ): Promise<SmartContractFungibleAsset | undefined> {
-    const normalizedAddress = normalizeEVMAddress(contractAddress)
-
-    const knownAsset = this.getKnownSmartContractAsset(
-      network,
-      normalizedAddress
-    )
+    const knownAsset = this.getKnownSmartContractAsset(network, contractAddress)
     if (knownAsset) {
       await this.addAssetToTrack(knownAsset)
       return knownAsset
@@ -640,10 +643,10 @@ export default class IndexingService extends BaseService<Events> {
     const customAsset: CustomAsset | undefined =
       (await this.db.getCustomAssetByAddressAndNetwork(
         network,
-        normalizedAddress
+        contractAddress
       )) ||
       (await this.chainService.assetData.getTokenMetadata({
-        contractAddress: normalizedAddress,
+        contractAddress,
         homeNetwork: network,
       }))
     if (!customAsset) return undefined
@@ -721,8 +724,8 @@ export default class IndexingService extends BaseService<Events> {
         const { network } = addressOnNetwork
 
         const prevShard = globalThis.main.SelectedShard
-        if (network.isQuai) {
-          const shard = getShardFromAddress(addressOnNetwork.address)
+        if (isQuaiHandle(network)) {
+          const shard = getExtendedZoneForAddress(addressOnNetwork.address)
           globalThis.main.SetShard(shard)
         }
 

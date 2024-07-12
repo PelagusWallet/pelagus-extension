@@ -1,28 +1,30 @@
-import { Provider } from "@ethersproject/abstract-provider"
+import { JsonRpcProvider, Shard } from "quais"
 import logger from "./logger"
-import { BlockPrices, EVMNetwork } from "../networks"
+import { BlockPrices } from "../networks"
 import { EIP_1559_COMPLIANT_CHAIN_IDS } from "../constants"
+import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
 
 export default async function getBlockPrices(
-  network: EVMNetwork,
-  provider: Provider
+  network: NetworkInterfaceGA,
+  provider: JsonRpcProvider,
+  shard: Shard
 ): Promise<BlockPrices> {
   const [currentBlock, feeData] = await Promise.all([
-    provider.getBlock("latest"),
+    provider.getBlock(shard, "latest"),
     provider.getFeeData(),
   ])
-  const baseFeePerGas = currentBlock?.baseFeePerGas?.toBigInt()
+  const baseFeePerGas = currentBlock?.woBody.header.baseFeePerGas
 
   if (feeData.gasPrice === null) {
     logger.warn("Not receiving accurate gas prices from provider", feeData)
   }
 
-  const gasPrice = feeData?.gasPrice?.toBigInt() || 0n
+  const gasPrice = feeData?.gasPrice || 0n
 
   if (baseFeePerGas) {
     return {
       network,
-      blockNumber: currentBlock.number,
+      blockNumber: Number(currentBlock.woBody.header.number[2]),
       baseFeePerGas,
       estimatedPrices: [
         {
@@ -55,16 +57,16 @@ export default async function getBlockPrices(
     logger.warn(
       "Not receiving accurate EIP-1559 gas prices from provider",
       feeData,
-      network.name
+      network.baseAsset.name
     )
   }
 
-  const maxFeePerGas = feeData?.maxFeePerGas?.toBigInt() || 0n
-  const maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas?.toBigInt() || 0n
+  const maxFeePerGas = feeData?.maxFeePerGas || 0n
+  const maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas || 0n
 
   return {
     network,
-    blockNumber: currentBlock.number,
+    blockNumber: Number(currentBlock?.woBody.header.number[2]),
     baseFeePerGas: (maxFeePerGas - maxPriorityFeePerGas) / 2n,
     estimatedPrices: [
       {

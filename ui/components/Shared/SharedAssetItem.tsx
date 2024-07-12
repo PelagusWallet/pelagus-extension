@@ -1,12 +1,13 @@
 import React, { ReactElement, useEffect, useState } from "react"
 import { AnyAsset, AnyAssetAmount } from "@pelagus/pelagus-background/assets"
-import { EVMNetwork } from "@pelagus/pelagus-background/networks"
 import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedAssetIcon from "./SharedAssetIcon"
 import SharedIcon from "./SharedIcon"
 import { blockExplorer } from "../../utils/constants"
 import { useBackgroundSelector } from "../../hooks"
+import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 
 export type AnyAssetWithOptionalAmount<T extends AnyAsset> =
   | {
@@ -27,7 +28,7 @@ export function hasAmounts<T extends AnyAsset>(
 }
 
 interface Props<T extends AnyAsset> {
-  currentNetwork: EVMNetwork
+  currentNetwork: NetworkInterfaceGA
   assetAndAmount: AnyAssetWithOptionalAmount<T>
   onClick?: (asset: T) => void
 }
@@ -45,7 +46,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
   }
 
   useEffect(() => {
-    const baseLink = currentNetwork.isQuai
+    const baseLink = isQuaiHandle(currentNetwork)
       ? CurrentShardToExplorer(currentNetwork, account.address)
       : blockExplorer[currentNetwork.chainID]?.url
 

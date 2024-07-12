@@ -1,11 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
-import type { RootState } from "."
-import { QUAI_NETWORK } from "../constants"
-import { EIP1559Block, AnyEVMBlock, EVMNetwork } from "../networks"
-import { removeChainBalances } from "./accounts"
-import { selectCurrentNetwork } from "./selectors/uiSelectors"
-import { setSelectedNetwork } from "./ui"
-import { createBackgroundAsyncThunk } from "./utils"
+import { EIP1559Block, AnyEVMBlock } from "../networks"
+import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
 
 type NetworkState = {
   blockHeight: number | null
@@ -14,7 +9,7 @@ type NetworkState = {
 
 export type NetworksState = {
   evmNetworks: {
-    [chainID: string]: EVMNetwork
+    [chainID: string]: NetworkInterfaceGA
   }
   blockInfo: {
     [chainID: string]: NetworkState
@@ -59,7 +54,10 @@ const networksSlice = createSlice({
     /**
      * Receives all supported networks as the payload
      */
-    setEVMNetworks: (immerState, { payload }: { payload: EVMNetwork[] }) => {
+    setEVMNetworks: (
+      immerState,
+      { payload }: { payload: NetworkInterfaceGA[] }
+    ) => {
       const chainIds = payload.map((network) => network.chainID)
 
       payload.forEach((network) => {
@@ -80,18 +78,3 @@ const networksSlice = createSlice({
 export const { blockSeen, setEVMNetworks } = networksSlice.actions
 
 export default networksSlice.reducer
-
-export const removeCustomChain = createBackgroundAsyncThunk(
-  "networks/removeCustomChain",
-  async (chainID: string, { getState, dispatch, extra: { main } }) => {
-    const store = getState() as RootState
-    const currentNetwork = selectCurrentNetwork(store)
-
-    if (currentNetwork.chainID === chainID) {
-      await dispatch(setSelectedNetwork(QUAI_NETWORK))
-    }
-    await dispatch(removeChainBalances(chainID))
-
-    return main.removeEVMNetwork(chainID)
-  }
-)

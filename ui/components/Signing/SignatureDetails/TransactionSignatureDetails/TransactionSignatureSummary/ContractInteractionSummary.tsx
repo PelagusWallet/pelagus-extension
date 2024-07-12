@@ -23,7 +23,7 @@ export default function ContractInteractionSummary({
             t("newlyCreatedContract")
           ) : (
             <SharedAddress
-              address={transactionRequest.to}
+              address={transactionRequest.to?.toString() ?? "-"} // TODO-MIGRATION
               name={
                 annotation !== undefined && "contractInfo" in annotation
                   ? annotation.contractInfo.annotation.nameRecord?.resolved

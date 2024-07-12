@@ -33,10 +33,10 @@
     "@ethersproject/providers": "^5.5.3",
     "@ethersproject/transactions": "^5.5.0",
     "@ethersproject/web": "^5.5.1",
-    "@pelagus/hd-keyring": "0.2.0-pre.0",
-    "@redux-devtools/remote": "^0.7.4",
     "@pelagus-provider/provider-bridge-shared": "0.7.0",
     "@pelagus-provider/window-provider": "0.7.0",
+    "@pelagus/hd-keyring": "0.2.0-pre.0",
+    "@redux-devtools/remote": "^0.7.4",
     "@types/w3c-web-usb": "^1.0.5",
     "@uniswap/token-lists": "^1.0.0-beta.30",
     "ajv": "^8.6.2",
@@ -47,12 +47,16 @@
     "emittery": "^0.9.2",
     "ethers": "^5.5.1",
     "lodash": "^4.17.21",
-    "quais": "0.1.14",
+    "quais": "^1.0.0-alpha.6",
+    "quais-old": "npm:quais@0.1.14",
     "sinon": "^14.0.0",
     "siwe": "^1.1.0",
     "util": "^0.12.4",
     "uuid": "^9.0.0",
     "webextension-polyfill": "^0.8.0"
+  },
+  "resolutions": {
+    "quais-old/quais": "0.1.14"
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^1.6.1",

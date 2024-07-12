@@ -4,6 +4,7 @@ import {
   createSigningService,
 } from "../../../tests/factories"
 import SigningService from "../index"
+import { Zone } from "quais"
 
 describe("Signing Service Unit", () => {
   let signingService: SigningService
@@ -34,7 +35,7 @@ describe("Signing Service Unit", () => {
       await signingService.deriveAddress({
         type: "keyring",
         keyringID: "foo",
-        shard: "cyprus-1",
+        zone: Zone.Cyprus1,
       })
 
       expect(deriveAddressStub.called).toBe(true)

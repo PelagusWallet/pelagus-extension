@@ -1,10 +1,4 @@
 import React, { ReactElement } from "react"
-import { isBuiltInNetwork } from "@pelagus/pelagus-background/constants"
-import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { selectTransactionData } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
-import { useTranslation } from "react-i18next"
-import { useBackgroundSelector } from "../../hooks"
-import SharedTooltip from "../Shared/SharedTooltip"
 import FeeSettingsText from "./FeeSettingsText"
 
 interface FeeSettingsButtonProps {
@@ -14,46 +8,6 @@ interface FeeSettingsButtonProps {
 export default function FeeSettingsButton({
   onClick,
 }: FeeSettingsButtonProps): ReactElement {
-  const transactionData = useBackgroundSelector(selectTransactionData)
-  const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
-  const currentNetwork = transactionData?.network || selectedNetwork
-
-  const { t } = useTranslation()
-
-  if (!isBuiltInNetwork(currentNetwork)) {
-    return (
-      <div>
-        <SharedTooltip
-          width={175}
-          height={30}
-          type="dark"
-          horizontalShift={90}
-          horizontalPosition="center"
-          verticalPosition="bottom"
-          IconComponent={() => (
-            <>
-              <div className="disabled_settings">
-                <FeeSettingsText />
-              </div>
-              <style jsx>
-                {`
-                  .disabled_settings {
-                    font-size: 16px;
-                  }
-                `}
-              </style>
-            </>
-          )}
-        >
-          <div className="tooltip_container">
-            <div>{t("networkFees.settingsDisabledOne")}</div>
-            <div>{t("networkFees.settingsDisabledTwo")}</div>
-          </div>
-        </SharedTooltip>
-      </div>
-    )
-  }
-
   return (
     <button className="settings" type="button" onClick={onClick}>
       <FeeSettingsText />

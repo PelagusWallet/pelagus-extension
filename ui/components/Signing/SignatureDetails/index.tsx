@@ -1,5 +1,4 @@
 import React, { ReactElement } from "react"
-import { TransactionRequest } from "@pelagus/pelagus-background/networks"
 import {
   rejectDataSignature,
   signData,
@@ -18,6 +17,7 @@ import {
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
 import { AnyAction } from "redux"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import TransactionSignatureDetails from "./TransactionSignatureDetails"
 import MessageDataSignatureDetails from "./DataSignatureDetails/MessageDataSignatureDetails"
 import TypedDataSignatureDetails from "./DataSignatureDetails/TypedDataSignatureDetails"
@@ -41,21 +41,6 @@ export type ResolvedSignatureDetails = {
   redirectToActivityPage?: boolean
 }
 
-export function resolveTransactionSignatureDetails({
-  request,
-  accountSigner,
-}: SignOperation<TransactionRequest>): ResolvedSignatureDetails {
-  return {
-    signer: accountSigner,
-    signingAddress: { address: request.from, network: request.network },
-    signingActionLabelI18nKey: "signTransaction.confirmButtonLabel",
-    renderedSigningData: (
-      <TransactionSignatureDetails transactionRequest={request} />
-    ),
-    signActionCreator: () => signTransaction({ request, accountSigner }),
-    rejectActionCreator: rejectTransactionSignature,
-  }
-}
 export function resolveDataSignatureDetails({
   request,
   accountSigner,
@@ -86,6 +71,25 @@ export function resolveTypedDataSignatureDetails({
     ),
     signActionCreator: () => signTypedData({ request, accountSigner }),
     rejectActionCreator: rejectDataSignature,
+  }
+}
+
+export function resolveTransactionSignatureDetails({
+  request,
+  accountSigner,
+}: SignOperation<QuaiTransactionRequestWithAnnotation>): ResolvedSignatureDetails {
+  return {
+    signer: accountSigner,
+    signingAddress: {
+      address: request.from.toString(), // TODO-MIGRATION
+      network: request.network,
+    },
+    signingActionLabelI18nKey: "signTransaction.confirmButtonLabel",
+    renderedSigningData: (
+      <TransactionSignatureDetails transactionRequest={request} />
+    ),
+    signActionCreator: () => signTransaction({ request, accountSigner }),
+    rejectActionCreator: rejectTransactionSignature,
   }
 }
 

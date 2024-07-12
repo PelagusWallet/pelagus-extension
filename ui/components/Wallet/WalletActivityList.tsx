@@ -14,6 +14,7 @@ import WalletActivityDetails from "./WalletActivityDetails"
 import WalletActivityListItem from "./WalletActivityListItem"
 import { blockExplorer } from "../../utils/constants"
 import SharedButton from "../Shared/SharedButton"
+import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 
 type Props = {
   activities: Activity[]
@@ -36,7 +37,7 @@ export default function WalletActivityList({
     useState(true)
 
   const network = useBackgroundSelector(selectCurrentNetwork)
-  const blockExplorerInfo = network.isQuai
+  const blockExplorerInfo = isQuaiHandle(network)
     ? {
         title: blockExplorer[network.chainID].title,
         url: CurrentShardToExplorer(network, account.address),

@@ -1,26 +1,22 @@
-import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
-import { serialize as serializeQuaiTransaction } from "@quais/transactions"
+import {
+  TypedDataEncoder,
+  QuaiTransaction,
+  hexlify,
+  toUtf8Bytes,
+  AddressLike,
+} from "quais"
 import {
   EIP1193_ERROR_CODES,
   EIP1193Error,
   RPCRequest,
 } from "@pelagus-provider/provider-bridge-shared"
-import { _TypedDataEncoder, hexlify, toUtf8Bytes } from "ethers/lib/utils"
 import { normalizeHexAddress } from "@pelagus/hd-keyring"
+import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import logger from "../../lib/logger"
 import BaseService from "../base"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import ChainService from "../chain"
-import {
-  EVMNetwork,
-  sameChainID,
-  SignedTransaction,
-  toHexChainID,
-} from "../../networks"
-import {
-  ethersTransactionFromSignedTransaction,
-  transactionRequestFromEthersTransactionRequest,
-} from "../chain/utils"
+import { toHexChainID } from "../../networks"
 import PreferenceService from "../preferences"
 import { internalProviderPort } from "../../redux-slices/utils/contract-utils"
 import {
@@ -30,12 +26,12 @@ import {
 } from "../../utils/signing"
 import { getOrCreateDB, InternalQuaiProviderDatabase } from "./db"
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
-import {
-  EnrichedEVMTransactionRequest,
-  TransactionAnnotation,
-} from "../enrichment"
+import { TransactionAnnotation } from "../enrichment"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { decodeJSON } from "../../lib/utils"
+import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworksArray } from "../../constants/networks/networks"
+import { QuaiTransactionRequestWithAnnotation } from "../chain/types"
 
 // A type representing the transaction requests that come in over JSON-RPC
 // requests like eth_sendTransaction and eth_signTransaction. These are very
@@ -97,16 +93,16 @@ type DAppRequestEvent<T, E> = {
 
 type Events = ServiceLifecycleEvents & {
   transactionSignatureRequest: DAppRequestEvent<
-    Partial<EnrichedEVMTransactionRequest> & {
-      from: string
-      network: EVMNetwork
+    Partial<QuaiTransactionRequestWithAnnotation> & {
+      from: AddressLike
+      network: NetworkInterfaceGA
     },
-    SignedTransaction
+    QuaiTransaction
   >
   signTypedDataRequest: DAppRequestEvent<SignTypedDataRequest, string>
   signDataRequest: DAppRequestEvent<MessageSigningRequest, string>
-  selectedNetwork: EVMNetwork
-  watchAssetRequest: { contractAddress: string; network: EVMNetwork }
+  selectedNetwork: NetworkInterfaceGA
+  watchAssetRequest: { contractAddress: string; network: NetworkInterfaceGA }
 }
 
 export default class InternalQuaiProviderService extends BaseService<Events> {
@@ -221,11 +217,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "net_version":
       case "web3_clientVersion":
       case "web3_sha3":
-        return this.chainService.send(
-          method,
-          params,
-          await this.getCurrentOrDefaultNetworkForOrigin(origin)
-        )
+        return this.chainService.send(method, params)
       case "quai_accounts": {
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
@@ -237,22 +229,27 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           },
           origin
         ).then(async (signed) => {
-          await this.chainService.broadcastSignedTransaction(signed)
+          // await this.chainService.broadcastSignedTransaction(signed) // TODO-MIGRATION
           return signed.hash
         })
       case "quai_signTransaction":
         return this.signTransaction(
           params[0] as JsonRpcTransactionRequest,
           origin
-        ).then((signedTransaction) =>
-          serializeQuaiTransaction(
-            ethersTransactionFromSignedTransaction(signedTransaction),
-            {
-              r: signedTransaction.r,
-              s: signedTransaction.s,
-              v: signedTransaction.v,
-            }
-          )
+        ).then(
+          (signedTransaction) =>
+            // TODO-MIGRATION: check how to sign a transaction in new SDK (which data and type return)
+            //  Previously was using unsigned tx + signature in "serialize" func
+            //  serialize(
+            //  ethersTransactionFromSignedTransaction(signedTransaction),
+            //  {
+            //  r: signedTransaction.r,
+            //  s: signedTransaction.s,
+            //  v: signedTransaction.v,
+            //  }
+            //  )
+            QuaiTransaction.from(signedTransaction)
+          // ----------------------------------------------
         )
       case "quai_sign":
         return this.signData(
@@ -274,27 +271,19 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "wallet_addEthereumChain": {
         const chainInfo = params[0] as ValidatedAddEthereumChainParameter
         const { chainId } = chainInfo
-        const supportedNetwork = await this.getTrackedNetworkByChainId(chainId)
+        const supportedNetwork = NetworksArray.find(
+          (network) => network.chainID === chainId
+        )
         if (supportedNetwork) {
           await this.switchToSupportedNetwork(origin, supportedNetwork)
           this.emitter.emit("selectedNetwork", supportedNetwork)
           return null
         }
-        try {
-          const customNetwork = await this.chainService.addCustomChain(
-            chainInfo
-          )
-          this.emitter.emit("selectedNetwork", customNetwork)
-          return null
-        } catch (e) {
-          logger.error(e)
-          throw new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest)
-        }
       }
       case "wallet_switchEthereumChain": {
         const newChainId = (params[0] as SwitchEthereumChainParameter).chainId
-        const supportedNetwork = await this.getTrackedNetworkByChainId(
-          newChainId
+        const supportedNetwork = NetworksArray.find(
+          (network) => network.chainID === newChainId
         )
         if (supportedNetwork) {
           this.switchToSupportedNetwork(origin, supportedNetwork)
@@ -313,8 +302,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         }
 
         if (options.chainId) {
-          const supportedNetwork = await this.getTrackedNetworkByChainId(
-            String(options.chainId)
+          const supportedNetwork = NetworksArray.find(
+            (network) => network.chainID === String(options.chainId)
           )
           if (!supportedNetwork) {
             throw new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest)
@@ -345,20 +334,20 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     }
   }
 
-  private async getCurrentInternalNetwork(): Promise<EVMNetwork> {
+  private async getCurrentInternalNetwork(): Promise<NetworkInterfaceGA> {
     return this.db.getCurrentNetworkForOrigin(
       PELAGUS_INTERNAL_ORIGIN
-    ) as Promise<EVMNetwork>
+    ) as Promise<NetworkInterfaceGA>
   }
 
   async getCurrentOrDefaultNetworkForOrigin(
     origin: string
-  ): Promise<EVMNetwork> {
+  ): Promise<NetworkInterfaceGA> {
     const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
     if (!currentNetwork) {
       // If this is a new dapp or the dapp has not implemented wallet_switchEthereumChain
       // use the default network.
-      return await this.getCurrentInternalNetwork()
+      return this.getCurrentInternalNetwork()
     }
     return currentNetwork
   }
@@ -370,7 +359,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
   private async signTransaction(
     transactionRequest: JsonRpcTransactionRequest,
     origin: string
-  ): Promise<SignedTransaction> {
+  ): Promise<QuaiTransaction> {
     const annotation =
       origin === PELAGUS_INTERNAL_ORIGIN &&
       "annotation" in transactionRequest &&
@@ -386,29 +375,18 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     const currentNetwork =
       globalThis.main.store.getState().ui.selectedAccount.network
 
-    const { from, ...convertedRequest } =
-      transactionRequestFromEthersTransactionRequest({
-        // Convert input -> data if necessary; if transactionRequest uses data
-        // directly, it will be overwritten below. If someone sends both and
-        // they differ, may devops199 have mercy on their soul (but we will
-        // prefer the explicit `data` rather than the copied `input`).
-        data: transactionRequest.input,
-        ...transactionRequest,
-        gasLimit: transactionRequest.gas, // convert gas -> gasLimit
-        // Etherjs rejects Rootstock checksummed addresses so convert to lowercase
-        from: transactionRequest.from,
-        to: transactionRequest.to,
-      })
-
-    if (typeof from === "undefined") {
-      throw new Error("Transactions must have a from address for signing.")
-    }
-
-    return new Promise<SignedTransaction>((resolve, reject) => {
+    return new Promise<QuaiTransaction>((resolve, reject) => {
       this.emitter.emit("transactionSignatureRequest", {
         payload: {
-          ...convertedRequest,
-          from,
+          to: transactionRequest.to,
+          data: transactionRequest.input,
+          from: transactionRequest.from,
+          type: transactionRequest.type,
+          value: transactionRequest.value,
+          chainId: transactionRequest.chainId,
+          gasLimit: transactionRequest.gas,
+          maxFeePerGas: transactionRequest.maxFeePerGas,
+          maxPriorityFeePerGas: transactionRequest.maxPriorityFeePerGas,
           network: currentNetwork,
           annotation,
         },
@@ -418,39 +396,13 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     })
   }
 
-  /**
-   * Attempts to retrieve a network from the extension's currently
-   * tracked networks.  Falls back to querying supported networks and
-   * tracking a given network if it is supported.
-   *
-   * @param chainID EVM Network chainID
-   * @returns a supported EVMNetwork or undefined.
-   */
-  async getTrackedNetworkByChainId(
-    chainID: string
-  ): Promise<EVMNetwork | undefined> {
-    const trackedNetworks = await this.chainService.getTrackedNetworks()
-    const trackedNetwork = trackedNetworks.find((network) =>
-      sameChainID(network.chainID, chainID)
-    )
-
-    if (trackedNetwork) return trackedNetwork
-
-    try {
-      return await this.chainService.startTrackingNetworkOrThrow(chainID)
-    } catch (e) {
-      logger.warn(e)
-      return undefined
-    }
-  }
-
   private async signTypedData(params: SignTypedDataRequest) {
     // Ethers does not want to see the EIP712Domain field, extract it.
     const { EIP712Domain, ...typesForSigning } = params.typedData.types
 
     // Ask Ethers to give us a filtered payload that only includes types
     // specified in the `types` object.
-    const filteredTypedDataPayload = _TypedDataEncoder.getPayload(
+    const filteredTypedDataPayload = TypedDataEncoder.getPayload(
       params.typedData.domain,
       typesForSigning,
       params.typedData.message
@@ -479,7 +431,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
 
   async switchToSupportedNetwork(
     origin: string,
-    supportedNetwork: EVMNetwork
+    supportedNetwork: NetworkInterfaceGA
   ): Promise<void> {
     const { address } = await this.preferenceService.getSelectedAccount()
     await this.chainService.markAccountActivity({

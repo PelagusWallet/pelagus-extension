@@ -23,25 +23,19 @@ import {
   selectCurrentNetwork,
   selectMainCurrencySymbol,
 } from "./uiSelectors"
-import {
-  convertToEth,
-  normalizeEVMAddress,
-  sameEVMAddress,
-  truncateAddress,
-} from "../../lib/utils"
-import {
-  getShardFromAddress,
-  selectAccountSignersByAddress,
-} from "./signingSelectors"
+import { convertToEth, sameQuaiAddress, truncateAddress } from "../../lib/utils"
+import { selectAccountSignersByAddress } from "./signingSelectors"
 import {
   selectKeyringsByAddresses,
   selectSourcesByAddress,
 } from "./keyringsSelectors"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
-import { EVMNetwork, sameNetwork } from "../../networks"
+import { sameNetwork } from "../../networks"
 import { AccountSigner, SignerType } from "../../services/signing"
 import { assertUnreachable } from "../../lib/utils/type-guards"
-import { SignerImportSource } from "../../services/keyring"
+import { getExtendedZoneForAddress } from "../../services/chain/utils"
+import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { SignerImportSource } from "../../services/keyring/types"
 
 // TODO What actual precision do we want here? Probably more than 2
 // TODO decimals? Maybe it's configurable?
@@ -203,9 +197,7 @@ const computeCombinedAssetAmountsData = (
 const getAccountState = (state: RootState) => state.account
 const getCurrentAccountState = (state: RootState) => {
   const { address, network } = state.ui.selectedAccount
-  return state.account.accountsData.evm[network.chainID]?.[
-    normalizeEVMAddress(address)
-  ]
+  return state.account.accountsData.evm[network.chainID]?.[address]
 }
 export const getAssetsState = (state: RootState): AssetsState => state.assets
 
@@ -259,8 +251,8 @@ export const selectCurrentAccountBalances = createSelector(
         }
         if (
           !isInCombined &&
-          getShardFromAddress(firstAsset.contractAddress) ==
-            getShardFromAddress(currentAccount.address)
+          getExtendedZoneForAddress(firstAsset.contractAddress, false) ===
+            getExtendedZoneForAddress(currentAccount.address, false)
         ) {
           combinedAssetAmounts.push(allAssetAmounts[i])
         }
@@ -369,7 +361,7 @@ const getTotalBalance = (
 
 function getNetworkAccountTotalsByCategory(
   state: RootState,
-  network: EVMNetwork
+  network: NetworkInterfaceGA
 ): CategorizedAccountTotals {
   const accounts = getAccountState(state)
   const assets = getAssetsState(state)
@@ -403,7 +395,7 @@ function getNetworkAccountTotalsByCategory(
           accountSigner,
         }
 
-      const shard = getShardFromAddress(address)
+      const shard = getExtendedZoneForAddress(address)
       const { customAccountData, defaultName, balances, defaultAvatar } =
         accountData
       const name = `${customAccountData.name ?? defaultName} (${shard})`
@@ -447,7 +439,7 @@ function getNetworkAccountTotalsByCategory(
 
 const selectNetworkAccountTotalsByCategoryResolver = createSelector(
   (state: RootState) => state,
-  (state) => (network: EVMNetwork) => {
+  (state) => (network: NetworkInterfaceGA) => {
     return getNetworkAccountTotalsByCategory(state, network)
   }
 )
@@ -471,7 +463,7 @@ function findAccountTotal(
     .flat()
     .find(
       ({ address, network }) =>
-        sameEVMAddress(address, accountAddressOnNetwork.address) &&
+        sameQuaiAddress(address, accountAddressOnNetwork.address) &&
         sameNetwork(network, accountAddressOnNetwork.network)
     )
 }

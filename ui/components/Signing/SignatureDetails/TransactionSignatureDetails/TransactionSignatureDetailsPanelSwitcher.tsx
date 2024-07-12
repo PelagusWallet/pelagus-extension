@@ -1,5 +1,5 @@
-import { EnrichedEVMTransactionRequest } from "@pelagus/pelagus-background/services/enrichment"
 import React, { ReactElement } from "react"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import { useSwitchablePanels } from "../../../../hooks"
 import DetailsPanel from "./DetailsPanel"
 import RawDataPanel from "./RawDataPanel"
@@ -7,7 +7,7 @@ import RawDataPanel from "./RawDataPanel"
 export default function TransactionDataPanelSwitcher({
   transactionRequest,
 }: {
-  transactionRequest: EnrichedEVMTransactionRequest
+  transactionRequest: QuaiTransactionRequestWithAnnotation
 }): ReactElement {
   const switchablePanels = useSwitchablePanels([
     {

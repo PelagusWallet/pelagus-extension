@@ -1,11 +1,11 @@
 import React, { ReactElement } from "react"
-import { EnrichedEVMTransactionRequest } from "@pelagus/pelagus-background/services/enrichment"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import TransactionSignatureDetailsPanelSwitcher from "./TransactionSignatureDetailsPanelSwitcher"
 import TransactionSignatureDetailsPanelCombined from "./TransactionSignatureDetailsPanelCombined"
 import TransactionSignatureSummary from "./TransactionSignatureSummary"
 
 export type TransactionSignatureDetailsProps = {
-  transactionRequest: EnrichedEVMTransactionRequest
+  transactionRequest: QuaiTransactionRequestWithAnnotation
 }
 
 export default function TransactionSignatureDetails({

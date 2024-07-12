@@ -3,6 +3,7 @@ import classNames from "classnames"
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedIconGA from "../Shared/SharedIconGA"
 import SharedLoadingSpinner from "../Shared/SharedLoadingSpinner"
+import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 
 interface SelectAccountListItemProps {
   account: AccountTotal
@@ -28,7 +29,11 @@ export default function SelectAccountListItem({
           <div className="name">{account.shortName}</div>
           <div className="details">
             {account?.accountSigner?.type !== "read-only" &&
-              `${account?.accountSigner?.shard} • `}
+              `${getExtendedZoneForAddress(
+                account?.accountSigner?.zone,
+                true,
+                true
+              )} • `}
             {account?.shortenedAddress}
           </div>
         </div>

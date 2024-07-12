@@ -1,5 +1,10 @@
 import { FiatCurrency } from "../../assets"
-import { AddressOnNetwork, NameOnNetwork } from "../../accounts"
+import {
+  AccountSignerSettings,
+  AccountSignerWithId,
+  AddressOnNetwork,
+  NameOnNetwork,
+} from "../../accounts"
 import { ServiceLifecycleEvents, ServiceCreatorFunction } from "../types"
 import {
   AnalyticsPreferences,
@@ -8,14 +13,12 @@ import {
 } from "./types"
 import { getOrCreateDB, PreferenceDatabase } from "./db"
 import BaseService from "../base"
-import { normalizeEVMAddress } from "../../lib/utils"
-import { EVMNetwork, sameNetwork } from "../../networks"
+import { sameNetwork } from "../../networks"
 import { HexString } from "../../types"
-import { AccountSignerSettings } from "../../ui"
-import { AccountSignerWithId } from "../../signing"
+import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
 
 type AddressBookEntry = {
-  network: EVMNetwork
+  network: NetworkInterfaceGA
   address: HexString
   name: string
 }
@@ -23,8 +26,7 @@ type AddressBookEntry = {
 type InMemoryAddressBook = AddressBookEntry[]
 
 const sameAddressBookEntry = (a: AddressOnNetwork, b: AddressOnNetwork) =>
-  normalizeEVMAddress(a.address) === normalizeEVMAddress(b.address) &&
-  sameNetwork(a.network, b.network)
+  a.address === b.address && sameNetwork(a.network, b.network)
 
 interface Events extends ServiceLifecycleEvents {
   preferencesChanges: Preferences
@@ -34,6 +36,7 @@ interface Events extends ServiceLifecycleEvents {
   addressBookEntryModified: AddressBookEntry
   updatedSignerSettings: AccountSignerSettings[]
   showDefaultWalletBanner: boolean
+  showAlphaWalletBanner: boolean
 }
 
 /*
@@ -87,7 +90,7 @@ export default class PreferenceService extends BaseService<Events> {
       this.addressBook.push({
         network: newEntry.network,
         name: newEntry.name,
-        address: normalizeEVMAddress(newEntry.address),
+        address: newEntry.address,
       })
     }
     this.emitter.emit("addressBookEntryModified", newEntry)
@@ -174,5 +177,10 @@ export default class PreferenceService extends BaseService<Events> {
   async setShowDefaultWalletBanner(newValue: boolean): Promise<void> {
     await this.db.setShowDefaultWalletBanner(newValue)
     await this.emitter.emit("showDefaultWalletBanner", newValue)
+  }
+
+  async setShowAlphaWalletBanner(newValue: boolean): Promise<void> {
+    await this.db.setShowAlphaWalletBanner(newValue)
+    await this.emitter.emit("showAlphaWalletBanner", newValue)
   }
 }

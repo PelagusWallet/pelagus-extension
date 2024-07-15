@@ -29,7 +29,7 @@ import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import { TransactionAnnotation } from "../enrichment"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { decodeJSON } from "../../lib/utils"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
 import { QuaiTransactionRequestWithAnnotation } from "../chain/types"
 
@@ -95,14 +95,14 @@ type Events = ServiceLifecycleEvents & {
   transactionSignatureRequest: DAppRequestEvent<
     Partial<QuaiTransactionRequestWithAnnotation> & {
       from: AddressLike
-      network: NetworkInterfaceGA
+      network: NetworkInterface
     },
     QuaiTransaction
   >
   signTypedDataRequest: DAppRequestEvent<SignTypedDataRequest, string>
   signDataRequest: DAppRequestEvent<MessageSigningRequest, string>
-  selectedNetwork: NetworkInterfaceGA
-  watchAssetRequest: { contractAddress: string; network: NetworkInterfaceGA }
+  selectedNetwork: NetworkInterface
+  watchAssetRequest: { contractAddress: string; network: NetworkInterface }
 }
 
 export default class InternalQuaiProviderService extends BaseService<Events> {
@@ -334,15 +334,15 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     }
   }
 
-  private async getCurrentInternalNetwork(): Promise<NetworkInterfaceGA> {
+  private async getCurrentInternalNetwork(): Promise<NetworkInterface> {
     return this.db.getCurrentNetworkForOrigin(
       PELAGUS_INTERNAL_ORIGIN
-    ) as Promise<NetworkInterfaceGA>
+    ) as Promise<NetworkInterface>
   }
 
   async getCurrentOrDefaultNetworkForOrigin(
     origin: string
-  ): Promise<NetworkInterfaceGA> {
+  ): Promise<NetworkInterface> {
     const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
     if (!currentNetwork) {
       // If this is a new dapp or the dapp has not implemented wallet_switchEthereumChain
@@ -431,7 +431,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
 
   async switchToSupportedNetwork(
     origin: string,
-    supportedNetwork: NetworkInterfaceGA
+    supportedNetwork: NetworkInterface
   ): Promise<void> {
     const { address } = await this.preferenceService.getSelectedAccount()
     await this.chainService.markAccountActivity({

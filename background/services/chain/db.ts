@@ -4,7 +4,7 @@ import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import { AnyEVMBlock, NetworkBaseAsset } from "../../networks"
 import { FungibleAsset } from "../../assets"
 import { BASE_ASSETS } from "../../constants"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
 import { QuaiTransactionStatus, SerializedTransactionForHistory } from "./types"
 
@@ -68,7 +68,7 @@ export class ChainDatabase extends Dexie {
    */
   private balances!: Dexie.Table<AccountBalance, number>
 
-  private networks!: Dexie.Table<NetworkInterfaceGA, string>
+  private networks!: Dexie.Table<NetworkInterface, string>
 
   private baseAssets!: Dexie.Table<NetworkBaseAsset, string>
 
@@ -127,7 +127,6 @@ export class ChainDatabase extends Dexie {
   }
 
   /** NETWORKS */
-
   async initializeNetworks(): Promise<void> {
     const existingQuaiNetworks = await this.getAllQuaiNetworks()
     await Promise.all(
@@ -143,7 +142,7 @@ export class ChainDatabase extends Dexie {
     )
   }
 
-  async getAllQuaiNetworks(): Promise<NetworkInterfaceGA[]> {
+  async getAllQuaiNetworks(): Promise<NetworkInterface[]> {
     return this.networks.where("family").equals("EVM").toArray()
   }
 
@@ -159,10 +158,7 @@ export class ChainDatabase extends Dexie {
   }
 
   /** BLOCKS */
-
-  async getLatestBlock(
-    network: NetworkInterfaceGA
-  ): Promise<AnyEVMBlock | null> {
+  async getLatestBlock(network: NetworkInterface): Promise<AnyEVMBlock | null> {
     return (
       (
         await this.blocks
@@ -179,7 +175,7 @@ export class ChainDatabase extends Dexie {
   }
 
   async getBlock(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     blockHash: string
   ): Promise<AnyEVMBlock | null> {
     return (
@@ -199,7 +195,6 @@ export class ChainDatabase extends Dexie {
   }
 
   /** ASSETS */
-
   async getBaseAssetForNetwork(chainID: string): Promise<NetworkBaseAsset> {
     const baseAsset = await this.baseAssets.get(chainID)
     if (!baseAsset) {
@@ -234,10 +229,9 @@ export class ChainDatabase extends Dexie {
   }
 
   /** ACCOUNTS */
-
   async getLatestAccountBalance(
     address: string,
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     asset: FungibleAsset
   ): Promise<AccountBalance | null> {
     // TODO this needs to be tightened up, both for performance and specificity
@@ -304,7 +298,7 @@ export class ChainDatabase extends Dexie {
   }
 
   async getTrackedAddressesOnNetwork(
-    network: NetworkInterfaceGA
+    network: NetworkInterface
   ): Promise<AddressOnNetwork[]> {
     return this.accountsToTrack
       .where("network.baseAsset.name")
@@ -327,7 +321,6 @@ export class ChainDatabase extends Dexie {
   }
 
   /** TRANSACTIONS */
-
   async getAllQuaiTransactions(): Promise<QuaiTransactionDBEntry[]> {
     return this.quaiTransactions.toArray()
   }
@@ -348,7 +341,7 @@ export class ChainDatabase extends Dexie {
   }
 
   async getQuaiTransactionsByNetwork(
-    network: NetworkInterfaceGA
+    network: NetworkInterface
   ): Promise<QuaiTransactionDBEntry[]> {
     const transactions = this.quaiTransactions
       .where("chainId")
@@ -358,7 +351,7 @@ export class ChainDatabase extends Dexie {
   }
 
   async getQuaiTransactionsByStatus(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     status: QuaiTransactionStatus
   ): Promise<QuaiTransactionDBEntry[]> {
     const transactions = this.quaiTransactions
@@ -375,15 +368,10 @@ export class ChainDatabase extends Dexie {
     try {
       const existingTx = await this.getQuaiTransactionByHash(tx.hash)
 
-      console.log("existingTx", existingTx)
-
       const mergedTx = {
         ...tx,
         ...existingTx,
       } as SerializedTransactionForHistory
-
-      console.log("updatedTx", mergedTx)
-
       if (!mergedTx) {
         throw new Error("Failed to get quai transaction by hash from DB")
       }
@@ -395,8 +383,6 @@ export class ChainDatabase extends Dexie {
           firstSeen: Date.now(),
         })
       })
-
-      console.log("Transaction successfully added or updated")
     } catch (error: any) {
       throw new Error(`Failed to add or update quai transaction: ${error}`)
     }

@@ -3,7 +3,7 @@ import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { ChainData, Slip44CoinType } from "./constants"
 import { HexString, UNIXTime } from "./types"
 import type { FungibleAsset } from "./assets"
-import { NetworkInterfaceGA } from "./constants/networks/networkTypes"
+import { NetworkInterface } from "./constants/networks/networkTypes"
 import {
   ConfirmedQuaiTransaction,
   FailedQuaiTransaction,
@@ -76,7 +76,7 @@ export type ChainIdWithError = {
 /**
  * Union type that allows narrowing to particular network subtypes.
  */
-export type AnyNetwork = NetworkInterfaceGA
+export type AnyNetwork = NetworkInterface
 
 /**
  * An EVM-style block identifier, including difficulty, block height, and
@@ -88,7 +88,7 @@ export type EVMBlock = {
   difficulty: bigint
   blockHeight: number
   timestamp: UNIXTime
-  network: NetworkInterfaceGA
+  network: NetworkInterface
 }
 
 /**
@@ -123,7 +123,7 @@ export type KnownTxTypes = typeof KNOWN_TX_TYPES[number]
  * the given `baseFeePerGas` will be included in the next block.
  */
 export type BlockPrices = {
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   blockNumber: number
   baseFeePerGas: bigint
   /**

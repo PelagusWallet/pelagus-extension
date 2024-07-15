@@ -15,10 +15,10 @@ import { getOrCreateDB, PreferenceDatabase } from "./db"
 import BaseService from "../base"
 import { sameNetwork } from "../../networks"
 import { HexString } from "../../types"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 type AddressBookEntry = {
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   address: HexString
   name: string
 }

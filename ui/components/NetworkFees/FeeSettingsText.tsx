@@ -21,7 +21,7 @@ import {
   PricePoint,
   unitPricePointForPricePoint,
 } from "@pelagus/pelagus-background/assets"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import { useBackgroundSelector } from "../../hooks"
 
@@ -64,7 +64,7 @@ const getFeeDollarValue = (
 const estimateGweiAmount = (options: {
   baseFeePerGas: bigint
   networkSettings: NetworkFeeSettings
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   transactionData?: QuaiTransactionRequestWithAnnotation
 }): string => {
   const { networkSettings, baseFeePerGas } = options

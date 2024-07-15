@@ -25,7 +25,7 @@ import { CustomAsset, getOrCreateDb, IndexingDatabase } from "./db"
 import BaseService from "../base"
 import { sameQuaiAddress } from "../../lib/utils"
 import { getExtendedZoneForAddress } from "../chain/utils"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { isQuaiHandle } from "../../constants/networks/networkUtils"
 import { NetworksArray } from "../../constants/networks/networks"
 import { EnrichedQuaiTransaction } from "../chain/types"
@@ -72,7 +72,7 @@ export default class IndexingService extends BaseService<Events> {
    */
   private scheduledTokenRefresh = false
 
-  private cachedAssets: Record<NetworkInterfaceGA["chainID"], AnyAsset[]> =
+  private cachedAssets: Record<NetworkInterface["chainID"], AnyAsset[]> =
     Object.fromEntries(
       Object.keys(NETWORK_BY_CHAIN_ID).map((network) => [network, []])
     )
@@ -187,7 +187,7 @@ export default class IndexingService extends BaseService<Events> {
    */
   async getLatestAccountBalance(
     account: string,
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     asset: FungibleAsset
   ): Promise<AccountBalance | null> {
     return this.db.getLatestAccountBalance(account, network, asset)
@@ -198,7 +198,7 @@ export default class IndexingService extends BaseService<Events> {
    * @returns An array of assets, including base assets that are "built in" to
    *          the codebase. Fiat currencies are not included.
    */
-  getCachedAssets(network: NetworkInterfaceGA): AnyAsset[] {
+  getCachedAssets(network: NetworkInterface): AnyAsset[] {
     return this.cachedAssets[network.chainID] ?? []
   }
 
@@ -206,7 +206,7 @@ export default class IndexingService extends BaseService<Events> {
    * Caches to memory asset metadata from hard-coded base assets and configured token
    * lists.
    */
-  async cacheAssetsForNetwork(network: NetworkInterfaceGA): Promise<void> {
+  async cacheAssetsForNetwork(network: NetworkInterface): Promise<void> {
     const customAssets = await this.db.getActiveCustomAssetsByNetworks([
       network,
     ])
@@ -229,7 +229,7 @@ export default class IndexingService extends BaseService<Events> {
    * @param contractAddress - the address of the asset on its home network
    */
   getKnownSmartContractAsset(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     contractAddress: HexString
   ): SmartContractFungibleAsset | undefined {
     const knownAssets = this.getCachedAssets(network)
@@ -628,7 +628,7 @@ export default class IndexingService extends BaseService<Events> {
    *        fungible asset. Useful in case this asset isn't found in existing metadata.
    */
   async addTokenToTrackByContract(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     contractAddress: string,
     metadata: { discoveryTxHash?: HexString; verified?: boolean } = {}
   ): Promise<SmartContractFungibleAsset | undefined> {

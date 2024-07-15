@@ -10,7 +10,7 @@ import {
 } from "../../assets"
 import { DeepWriteable } from "../../types"
 import { fixPolygonWETHIssue, polygonTokenListURL } from "./token-list-edit"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 /*
  * IndexedPricePoint extends PricePoint to expose each asset's ID directly for
@@ -196,7 +196,7 @@ export class IndexingDatabase extends Dexie {
 
   async getLatestAccountBalance(
     address: string,
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     asset: FungibleAsset
   ): Promise<AccountBalance | null> {
     // TODO this needs to be tightened up, both for performance and specificity
@@ -235,7 +235,7 @@ export class IndexingDatabase extends Dexie {
   }
 
   async getActiveCustomAssetsByNetworks(
-    networks: NetworkInterfaceGA[]
+    networks: NetworkInterface[]
   ): Promise<CustomAsset[]> {
     return (
       await this.customAssets
@@ -246,7 +246,7 @@ export class IndexingDatabase extends Dexie {
   }
 
   async getCustomAssetByAddressAndNetwork(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     contractAddress: string
   ): Promise<CustomAsset | undefined> {
     return this.customAssets
@@ -256,7 +256,7 @@ export class IndexingDatabase extends Dexie {
   }
 
   async getTrackedAssetByAddressAndNetwork(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     contractAddress: string
   ): Promise<SmartContractFungibleAsset | undefined> {
     return this.assetsToTrack

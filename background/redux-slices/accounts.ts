@@ -19,7 +19,7 @@ import { sameQuaiAddress } from "../lib/utils"
 import { AccountSigner } from "../services/signing"
 import { TEST_NETWORK_BY_CHAIN_ID } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
-import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
+import { NetworkInterface } from "../constants/networks/networkTypes"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to
@@ -54,7 +54,7 @@ export type ListAccount = {
 
 export type AccountData = {
   address: HexString
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   balances: {
     [assetSymbol: string]: AccountBalance
   }
@@ -109,7 +109,7 @@ export const initialState: AccountState = {
 
 function newAccountData(
   address: HexString,
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   accountsState: AccountState
 ): AccountData {
   const existingAccountsCount = Object.keys(
@@ -214,7 +214,7 @@ function updateCombinedData(immerState: AccountState) {
 function getOrCreateAccountData(
   accountState: AccountState,
   account: HexString,
-  network: NetworkInterfaceGA
+  network: NetworkInterface
 ): AccountData {
   const accountData = accountState.accountsData.evm[network.chainID][account]
 

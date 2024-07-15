@@ -8,8 +8,8 @@ import {
 import { validateAddEthereumChainParameter } from "../../provider-bridge/utils"
 import { SignTypedDataRequest } from "../../../utils/signing"
 import { EIP712TypedData } from "../../../types"
-import { QuaiNetworkGA } from "../../../constants/networks/networks"
-import { NetworkInterfaceGA } from "../../../constants/networks/networkTypes"
+import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
+import { NetworkInterface } from "../../../constants/networks/networkTypes"
 
 const TEST_ADDRESS = "0x208e94d5661a73360d9387d3ca169e5c130090cd"
 
@@ -59,8 +59,7 @@ describe("Internal Quai Provider Service", () => {
 
     expect(
       startedChainService.supportedNetworks.find(
-        (network: NetworkInterfaceGA) =>
-          network.baseAsset.name === "Fantom Opera"
+        (network: NetworkInterface) => network.baseAsset.name === "Fantom Opera"
       )
     ).toBeTruthy()
   })
@@ -105,7 +104,7 @@ describe("Internal Quai Provider Service", () => {
       const EIP712ObjectFiltered: SignTypedDataRequest = {
         account: {
           address: TEST_ADDRESS,
-          network: QuaiNetworkGA,
+          network: QuaiGoldenAgeTestnet,
         },
         typedData: {
           types,

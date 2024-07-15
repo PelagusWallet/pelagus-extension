@@ -9,7 +9,7 @@ import { QuaiTransactionLike } from "quais/lib/commonjs/transaction/quai-transac
 import { QuaiTransactionResponseParams } from "quais/lib/commonjs/providers/formatting"
 
 import { TransactionAnnotation } from "../../enrichment"
-import { NetworkInterfaceGA } from "../../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../../constants/networks/networkTypes"
 
 export enum QuaiTransactionStatus {
   FAILED = 0,
@@ -41,12 +41,12 @@ export type QuaiTransactionState =
 
 export type EnrichedQuaiTransaction = QuaiTransactionState & {
   annotation?: TransactionAnnotation
-  network: NetworkInterfaceGA
+  network: NetworkInterface
 }
 
 export type QuaiTransactionRequestWithAnnotation = QuaiTransactionRequest & {
   annotation?: TransactionAnnotation
-  network: NetworkInterfaceGA
+  network: NetworkInterface
 }
 
 export type SerializedTransactionForHistory = {

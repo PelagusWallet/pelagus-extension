@@ -1,6 +1,6 @@
 import { AnyAssetAmount } from "./assets"
 import { HexString } from "./types"
-import { NetworkInterfaceGA } from "./constants/networks/networkTypes"
+import { NetworkInterface } from "./constants/networks/networkTypes"
 import type { AccountSigner, ReadOnlyAccountSigner } from "./services/signing"
 
 /**
@@ -20,7 +20,7 @@ export type AccountBalance = {
   /**
    * The network on which the account balance was measured.
    */
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   /**
    * The block height at while the balance measurement is valid.
    */
@@ -41,7 +41,7 @@ export type AccountBalance = {
  */
 export type AddressOnNetwork = {
   address: HexString
-  network: NetworkInterfaceGA
+  network: NetworkInterface
 }
 
 /**
@@ -49,7 +49,7 @@ export type AddressOnNetwork = {
  */
 export type NameOnNetwork = {
   name: string
-  network: NetworkInterfaceGA
+  network: NetworkInterface
 }
 
 export type AccountSignerWithId = Exclude<

@@ -24,7 +24,7 @@ import type { RootState } from "."
 import { emitter as transactionConstructionSliceEmitter } from "./transaction-construction"
 import { AccountSigner } from "../services/signing"
 import { setSnackbarMessage } from "./ui"
-import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
+import { NetworkInterface } from "../constants/networks/networkTypes"
 
 export type AssetWithRecentPrices<T extends AnyAsset = AnyAsset> = T & {
   recentPrices: {
@@ -404,7 +404,7 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
     {
       contractAddress,
       network,
-    }: { contractAddress: string; network: NetworkInterfaceGA },
+    }: { contractAddress: string; network: NetworkInterface },
     { getState, extra: { main } }
   ) => {
     const state = getState() as RootState

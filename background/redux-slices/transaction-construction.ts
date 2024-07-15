@@ -11,7 +11,7 @@ import {
 } from "../networks"
 import { createBackgroundAsyncThunk } from "./utils"
 import { SignOperation } from "./signing"
-import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
+import { NetworkInterface } from "../constants/networks/networkTypes"
 import {
   QuaiTransactionRequestWithAnnotation,
   QuaiTransactionState,
@@ -260,7 +260,7 @@ const transactionSlice = createSlice({
       }: {
         payload: {
           estimatedFeesPerGas: BlockPrices
-          network: NetworkInterfaceGA
+          network: NetworkInterface
         }
       }
     ) => {

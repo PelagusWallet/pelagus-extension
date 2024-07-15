@@ -2,7 +2,7 @@ import { TokenList } from "@uniswap/token-lists"
 import { UNIXTime, HexString } from "./types"
 import { NetworkSpecific, SmartContract, NetworkBaseAsset } from "./networks"
 import { fromFixedPoint } from "./lib/fixed-point"
-import { NetworkInterfaceGA } from "./constants/networks/networkTypes"
+import { NetworkInterface } from "./constants/networks/networkTypes"
 
 /**
  * A reference to a token list, with the name, URL, and potentially logo of the
@@ -184,7 +184,7 @@ export type UnitPricePoint<T extends AnyAsset> = {
  * well as the transaction that executed the transfer.
  */
 export type AssetTransfer = {
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   assetAmount: AssetAmount
   from: HexString
   to: HexString

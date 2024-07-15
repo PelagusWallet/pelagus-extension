@@ -8,7 +8,10 @@ import {
 } from "../../accounts"
 import { AnalyticsPreferences } from "./types"
 import { getExtendedZoneForAddress } from "../chain/utils"
-import { NetworksArray, QuaiNetworkGA } from "../../constants/networks/networks"
+import {
+  NetworksArray,
+  QuaiGoldenAgeTestnet,
+} from "../../constants/networks/networks"
 
 type SignerRecordId = `${AccountSignerWithId["type"]}/${string}`
 
@@ -319,7 +322,7 @@ export class PreferenceDatabase extends Dexie {
           selectedAccount.network =
             NetworksArray.find(
               (net) => net.chainID === selectedAccount.network?.chainID
-            ) ?? QuaiNetworkGA
+            ) ?? QuaiGoldenAgeTestnet
         })
     })
 

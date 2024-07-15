@@ -2,10 +2,10 @@ import { JsonRpcProvider, Shard } from "quais"
 import logger from "./logger"
 import { BlockPrices } from "../networks"
 import { EIP_1559_COMPLIANT_CHAIN_IDS } from "../constants"
-import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
+import { NetworkInterface } from "../constants/networks/networkTypes"
 
 export default async function getBlockPrices(
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   provider: JsonRpcProvider,
   shard: Shard
 ): Promise<BlockPrices> {

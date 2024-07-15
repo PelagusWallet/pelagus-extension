@@ -12,6 +12,7 @@ import {
   fixedPointNumberToString,
   parseToFixedPointNumber,
 } from "@pelagus/pelagus-background/lib/fixed-point"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import SharedButton from "./SharedButton"
 import SharedSlideUpMenu from "./SharedSlideUpMenu"
 import SharedAssetItem, {
@@ -20,7 +21,6 @@ import SharedAssetItem, {
 } from "./SharedAssetItem"
 import SharedAssetIcon from "./SharedAssetIcon"
 import PriceDetails from "./PriceDetails"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 
 // List of symbols we want to display first. Lower array index === higher priority.
 const SYMBOL_PRIORITY_LIST = [
@@ -47,7 +47,7 @@ const symbolPriority = Object.fromEntries(
   ])
 )
 interface SelectAssetMenuContentProps<AssetType extends AnyAsset> {
-  currentNetwork: NetworkInterfaceGA
+  currentNetwork: NetworkInterface
   assets: AnyAssetWithOptionalAmount<AssetType>[]
   setSelectedAssetAndClose: (
     asset: AnyAssetWithOptionalAmount<AssetType>
@@ -278,7 +278,7 @@ SelectedAssetButton.defaultProps = {
 }
 
 interface SharedAssetInputProps<AssetType extends AnyAsset> {
-  currentNetwork: NetworkInterfaceGA
+  currentNetwork: NetworkInterface
   assetsAndAmounts: AnyAssetWithOptionalAmount<AssetType>[]
   label: string
   selectedAsset: AssetType | undefined
@@ -482,7 +482,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
           />
         )}
       </SharedSlideUpMenu>
-      <div className="asset_wrap standard_width" data-type={"token"}>
+      <div className="asset_wrap standard_width" data-type="token">
         <div>
           {selectedAssetAndAmount?.asset.symbol ? (
             <SelectedAssetButton

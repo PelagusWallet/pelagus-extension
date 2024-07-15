@@ -19,7 +19,7 @@ import { HexString } from "@pelagus/pelagus-background/types"
 import { Trans, useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
 import { updateAccountBalance } from "@pelagus/pelagus-background/redux-slices/accounts"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import SharedAssetIcon from "../../components/Shared/SharedAssetIcon"
 import SharedButton from "../../components/Shared/SharedButton"
 import SharedIcon from "../../components/Shared/SharedIcon"
@@ -93,7 +93,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
     useBackgroundSelector(selectCurrentAccount).address
 
   const [chosenNetwork, setChosenNetwork] =
-    useState<NetworkInterfaceGA>(currentNetwork)
+    useState<NetworkInterface>(currentNetwork)
   const [isNetworkSelectOpen, setNetworkSelectOpen] = useState(false)
   const [isImportingToken, setIsImportingToken] = useState(false)
 
@@ -103,7 +103,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
 
   const handleTokenInfoChange = async (
     addressLike: HexString,
-    network: NetworkInterfaceGA
+    network: NetworkInterface
   ) => {
     requestIdRef.current += 1
     const callId = requestIdRef.current

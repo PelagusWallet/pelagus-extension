@@ -15,9 +15,12 @@ import {
   QuaiTransactionRequest,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
-import { NetworksArray, QuaiNetworkGA } from "../../constants/networks/networks"
+import {
+  NetworksArray,
+  QuaiGoldenAgeTestnet,
+} from "../../constants/networks/networks"
 import ProviderFactory from "./provider-factory"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
 import getBlockPrices from "../../lib/gas"
 import { HexString, UNIXTime } from "../../types"
@@ -100,7 +103,7 @@ interface Events extends ServiceLifecycleEvents {
     addressOnNetwork: AddressOnNetwork
     source: "import" | "internal" | null
   }
-  supportedNetworks: NetworkInterfaceGA[]
+  supportedNetworks: NetworkInterface[]
   accountsWithBalances: {
     /**
      * Retrieved balance for the network's base asset
@@ -112,7 +115,7 @@ interface Events extends ServiceLifecycleEvents {
     addressOnNetwork: AddressOnNetwork
   }
   transactionSend: HexString
-  networkSubscribed: NetworkInterfaceGA
+  networkSubscribed: NetworkInterface
   transactionSendFailure: undefined
   assetTransfers: {
     addressNetwork: AddressOnNetwork
@@ -123,12 +126,12 @@ interface Events extends ServiceLifecycleEvents {
     forAccounts: string[]
     transaction: QuaiTransactionState
   }
-  blockPrices: { blockPrices: BlockPrices; network: NetworkInterfaceGA }
+  blockPrices: { blockPrices: BlockPrices; network: NetworkInterface }
   customChainAdded: ValidatedAddEthereumChainParameter
 }
 
 export type QueuedTxToRetrieve = {
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   hash: HexString
   firstSeen: UNIXTime
 }
@@ -169,7 +172,7 @@ export default class ChainService extends BaseService<Events> {
     websocket: WebSocketProvider
   }
 
-  private currentNetwork: NetworkInterfaceGA
+  private currentNetwork: NetworkInterface
 
   subscribedAccounts: {
     account: string
@@ -177,7 +180,7 @@ export default class ChainService extends BaseService<Events> {
   }[]
 
   subscribedNetworks: {
-    network: NetworkInterfaceGA
+    network: NetworkInterface
     provider: JsonRpcProvider
   }[]
 
@@ -220,7 +223,7 @@ export default class ChainService extends BaseService<Events> {
 
   supportedNetworks = NetworksArray
 
-  private trackedNetworks: NetworkInterfaceGA[]
+  private trackedNetworks: NetworkInterface[]
 
   assetData: AssetDataHelper
 
@@ -287,7 +290,7 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedAccounts = []
     this.subscribedNetworks = []
     this.transactionsToRetrieve = []
-    this.currentNetwork = QuaiNetworkGA
+    this.currentNetwork = QuaiGoldenAgeTestnet
   }
 
   override async internalStartService(): Promise<void> {
@@ -318,7 +321,7 @@ export default class ChainService extends BaseService<Events> {
     await this.subscribeOnNetworksAndAddresses(this.supportedNetworks, accounts)
   }
 
-  public switchNetwork(network: NetworkInterfaceGA): void {
+  public switchNetwork(network: NetworkInterface): void {
     this.currentNetwork = network
     this.currentProvider = this.providerFactory.getProvider(network)
   }
@@ -342,7 +345,7 @@ export default class ChainService extends BaseService<Events> {
   // --------------------------------------------------------------------------------------------------
 
   private subscribeOnNetworksAndAddresses = async (
-    networks: NetworkInterfaceGA[],
+    networks: NetworkInterface[],
     accounts: AddressOnNetwork[]
   ): Promise<void> => {
     networks.forEach((network) => {
@@ -365,7 +368,7 @@ export default class ChainService extends BaseService<Events> {
   }
 
   private subscribeOnAccountTransactions = async (
-    networks: NetworkInterfaceGA[],
+    networks: NetworkInterface[],
     accounts: AddressOnNetwork[]
   ): Promise<void> => {
     networks.forEach((network) => {
@@ -408,7 +411,7 @@ export default class ChainService extends BaseService<Events> {
   }
 
   async getTrackedAddressesOnNetwork(
-    network: NetworkInterfaceGA
+    network: NetworkInterface
   ): Promise<AddressOnNetwork[]> {
     return this.db.getTrackedAddressesOnNetwork(network)
   }
@@ -531,7 +534,7 @@ export default class ChainService extends BaseService<Events> {
   }
 
   // ----------------------------------------- BLOCKS -------------------------------------------------
-  async getBlockHeight(network: NetworkInterfaceGA): Promise<number> {
+  async getBlockHeight(network: NetworkInterface): Promise<number> {
     const cachedBlock = await this.db.getLatestBlock(network)
     if (cachedBlock) return cachedBlock.blockHeight
 
@@ -552,7 +555,7 @@ export default class ChainService extends BaseService<Events> {
    */
 
   async getBlockData(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     blockHash: string,
     address: string
   ): Promise<AnyEVMBlock> {
@@ -586,7 +589,7 @@ export default class ChainService extends BaseService<Events> {
    * @param blockHash the hash of the block we're interested in
    */
   async getBlockDataExternal(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     shard: Shard,
     blockHash: string
   ): Promise<AnyEVMBlock> {
@@ -662,7 +665,7 @@ export default class ChainService extends BaseService<Events> {
    * @param priority The priority of the transaction in the queue to be retrieved
    */
   queueTransactionHashToRetrieve(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     txHash: HexString,
     firstSeen: UNIXTime,
     priority = 0
@@ -697,7 +700,7 @@ export default class ChainService extends BaseService<Events> {
    * @returns true if the tx hash is in the queue, false otherwise.
    */
   isTransactionHashQueued(
-    txNetwork: NetworkInterfaceGA,
+    txNetwork: NetworkInterface,
     txHash: HexString
   ): boolean {
     return this.transactionsToRetrieve.some(
@@ -714,7 +717,7 @@ export default class ChainService extends BaseService<Events> {
    * @param txHash The tx hash identifier of the transaction we want to retrieve.
    */
   removeTransactionHashFromQueue(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     txHash: HexString
   ): void {
     const seen = this.isTransactionHashQueued(network, txHash)
@@ -960,7 +963,7 @@ export default class ChainService extends BaseService<Events> {
    * Fetch, persist, and emit the latest block on a given network.
    */
   private async pollLatestBlock(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     provider: JsonRpcProvider
   ): Promise<void> {
     const { address } = await this.preferenceService.getSelectedAccount()
@@ -991,7 +994,7 @@ export default class ChainService extends BaseService<Events> {
    * @param hash
    */
   async getOrCancelTransaction(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     hash: string
   ): Promise<TransactionResponse | null | undefined> {
     const provider = this.currentProvider
@@ -1376,7 +1379,7 @@ export default class ChainService extends BaseService<Events> {
    * @param network The EVM network to watch.
    */
   private async fetchLatestBlockForNetwork(
-    network: NetworkInterfaceGA
+    network: NetworkInterface
   ): Promise<void> {
     const provider = this.currentProvider.jsonRpc
     if (provider) {
@@ -1404,9 +1407,7 @@ export default class ChainService extends BaseService<Events> {
    *
    * @param network The network to watch.
    */
-  private async subscribeToNewHeads(
-    network: NetworkInterfaceGA
-  ): Promise<void> {
+  private async subscribeToNewHeads(network: NetworkInterface): Promise<void> {
     const { currentProvider, subscribedNetworks } = this
 
     if (!currentProvider.jsonRpc)
@@ -1466,7 +1467,7 @@ export default class ChainService extends BaseService<Events> {
    */
   private async handlePendingTransaction(
     transaction: PendingQuaiTransaction,
-    network: NetworkInterfaceGA
+    network: NetworkInterface
   ): Promise<void> {
     try {
       if (!network)
@@ -1493,10 +1494,10 @@ export default class ChainService extends BaseService<Events> {
    * @param transaction the unconfirmed transaction we're interested in
    */
   private async subscribeToTransactionConfirmation(
-    network: NetworkInterfaceGA,
+    network: NetworkInterface,
     transaction: PendingQuaiTransaction
   ): Promise<void> {
-    const provider = this.currentProvider.jsonRpc
+    const provider = this.currentProvider.websocket
     provider?.once(transaction.hash, (receipt: TransactionReceipt) => {
       const confirmedTransaction = createConfirmedQuaiTransaction(
         transaction,

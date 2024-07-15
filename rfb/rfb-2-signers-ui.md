@@ -222,7 +222,7 @@ type SigningRequest =
 `Signing/index.tsx`
 
 ```typescript
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes";
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes";
 
 /**
  * Details regarding a signature request, resolved for a signer ahead of time
@@ -232,7 +232,7 @@ import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networ
  */
 type ResolvedSignatureDetails = {
   signer: AccountSigner
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   renderedSigningData: ReactElement
   signActionCreator: ActionCreatorWithoutPayload
   rejectActionCreator: ActionCreatorWithoutPayload

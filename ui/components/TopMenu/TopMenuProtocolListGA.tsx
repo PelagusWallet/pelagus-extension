@@ -2,14 +2,14 @@ import React, { ReactElement, useMemo } from "react"
 import { sameNetwork } from "@pelagus/pelagus-background/networks"
 import { selectShowTestNetworks } from "@pelagus/pelagus-background/redux-slices/ui"
 import { selectProductionEVMNetworks } from "@pelagus/pelagus-background/redux-slices/selectors/networks"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
 import { useBackgroundSelector } from "../../hooks"
 import TopMenuProtocolListItemGA from "./TopMenuProtocolListItemGA"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
-import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
 
 type TopMenuProtocolListGAProps = {
-  currentNetwork: NetworkInterfaceGA
-  onProtocolListItemSelect: (network: NetworkInterfaceGA) => void
+  currentNetwork: NetworkInterface
+  onProtocolListItemSelect: (network: NetworkInterface) => void
 }
 
 export default function TopMenuProtocolListGA({
@@ -19,7 +19,7 @@ export default function TopMenuProtocolListGA({
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
   const productionNetworks = useBackgroundSelector(selectProductionEVMNetworks)
 
-  const networks: NetworkInterfaceGA[] = useMemo(() => {
+  const networks: NetworkInterface[] = useMemo(() => {
     // TODO-MIGRATION: Add test network
     return showTestNetworks ? NetworksArray : NetworksArray
   }, [showTestNetworks, productionNetworks])

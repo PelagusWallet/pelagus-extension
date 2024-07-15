@@ -12,7 +12,7 @@ import {
 } from "./asset-similarity"
 import { SECOND } from "../constants"
 import { DeepWriteable } from "../types"
-import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
+import { NetworkInterface } from "../constants/networks/networkTypes"
 
 // We allow `any` here because we don't know what we'll get back from a 3rd party api.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,7 +52,7 @@ export async function fetchAndValidateTokenList(
 }
 
 function tokenListToFungibleAssetsForNetwork(
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   { url: tokenListURL, tokenList }: TokenListAndReference
 ): SmartContractFungibleAsset[] {
   const networkChainID = Number(network.chainID)
@@ -162,7 +162,7 @@ export const memoizedMergeAssets = memoize(mergeAssets, (...assetLists) => {
  * in.
  */
 export function networkAssetsFromLists(
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   tokenLists: TokenListAndReference[]
 ): SmartContractFungibleAsset[] {
   const fungibleAssets = tokenLists.map((tokenListAndReference) =>

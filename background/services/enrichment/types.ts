@@ -5,7 +5,7 @@ import { AssetDecimalAmount } from "../../redux-slices/utils/asset-utils"
 import { UNIXTime } from "../../types"
 import { SignTypedDataRequest } from "../../utils/signing"
 import { ResolvedNameRecord } from "../name"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 export type BaseTransactionAnnotation = {
   /**
@@ -86,7 +86,7 @@ export type EnrichedEIP1559TransactionSignatureRequest =
   Partial<QuaiTransactionRequest> & {
     from: string
     annotation?: TransactionAnnotation
-    network: NetworkInterfaceGA
+    network: NetworkInterface
   }
 
 export type EIP2612SignTypedDataAnnotation = {

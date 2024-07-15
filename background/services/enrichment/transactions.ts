@@ -25,7 +25,7 @@ import {
 } from "../../lib/erc20"
 import { isDefined, isFulfilledPromise } from "../../lib/utils/type-guards"
 import { getExtendedZoneForAddress } from "../chain/utils"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { QuaiTransactionState } from "../chain/types"
 import { NetworksArray } from "../../constants/networks/networks"
 
@@ -37,7 +37,7 @@ async function buildSubannotations(
   addressEnrichmentsByAddress: {
     [k: string]: EnrichedAddressOnNetwork
   },
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   desiredDecimals: number,
   resolvedTime: number,
   block: AnyEVMBlock | undefined
@@ -108,7 +108,7 @@ export async function annotationsFromLogs(
   indexingService: IndexingService,
   nameService: NameService,
   logs: readonly LogParams[],
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   desiredDecimals: number,
   resolvedTime: number,
   block: AnyEVMBlock | undefined
@@ -178,7 +178,7 @@ export default async function resolveTransactionAnnotation(
   chainService: ChainService,
   indexingService: IndexingService,
   nameService: NameService,
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   transaction: QuaiTransactionState,
   desiredDecimals: number
 ): Promise<TransactionAnnotation> {

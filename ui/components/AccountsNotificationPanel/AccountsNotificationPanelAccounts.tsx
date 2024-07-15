@@ -703,7 +703,7 @@ export default function AccountsNotificationPanelAccounts({
                                 throw new Error("zone is invalid")
                               }
 
-                              if (selectedAccountSigner === "private-key") {
+                              if (accountType === "private-key") {
                                 setSelectedAccountSigner(defaultSigner.current)
                                 dispatch(
                                   deriveAddress({
@@ -711,7 +711,7 @@ export default function AccountsNotificationPanelAccounts({
                                     zone: zone.current,
                                   })
                                 )
-                              } else if (selectedAccountSigner == "") {
+                              } else if (!selectedAccountSigner) {
                                 for (const account in accountTotals) {
                                   const accountTotalsArray =
                                     accountTotals[
@@ -721,9 +721,9 @@ export default function AccountsNotificationPanelAccounts({
                                     accountTotalsArray &&
                                     accountTotalsArray.find(
                                       (accountTotal) =>
-                                        accountTotal.address ==
+                                        accountTotal.address ===
                                         selectedAccountAddress
-                                    ) != undefined
+                                    ) !== undefined
                                   ) {
                                     if (
                                       accountTotalsArray[0].signerId ===

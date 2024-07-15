@@ -1,8 +1,8 @@
 import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
-import { blockExplorer } from "./constants"
 import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
+import { blockExplorer } from "./constants"
 
 export const NETWORK_COLORS_FALLBACK = [
   "#CC3C3C",
@@ -18,26 +18,24 @@ export const NETWORK_COLORS_FALLBACK = [
   "#EA7E30",
 ]
 
-export function getNetworkIconFallbackColor(
-  network: NetworkInterfaceGA
-): string {
+export function getNetworkIconFallbackColor(network: NetworkInterface): string {
   return NETWORK_COLORS_FALLBACK[
     Number.parseInt(network.chainID, 10) % NETWORK_COLORS_FALLBACK.length
   ]
 }
 
-export function getNetworkIconName(network: NetworkInterfaceGA): string {
+export function getNetworkIconName(network: NetworkInterface): string {
   return network.baseAsset.name.replaceAll(" ", "").toLowerCase()
 }
 
-export const getNetworkIcon = (network: NetworkInterfaceGA): string => {
+export const getNetworkIcon = (network: NetworkInterface): string => {
   const iconName = getNetworkIconName(network)
 
   return `./images/networks/${iconName}@2x.png`
 }
 
 export const getBlockExplorerURL = (
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   address: string
 ): string | undefined => {
   return NetworksArray.find((net) => net.chainID === network.chainID)

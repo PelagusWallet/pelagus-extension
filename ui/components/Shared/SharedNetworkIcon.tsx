@@ -1,13 +1,13 @@
 import React, { ReactElement, useState, useEffect } from "react"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { QuaiLocalNodeNetwork } from "@pelagus/pelagus-background/constants/networks/networks"
 import {
   getNetworkIcon,
   getNetworkIconFallbackColor,
 } from "../../utils/networks"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
-import { QuaiLocalNetworkGA } from "@pelagus/pelagus-background/constants/networks/networks"
 
 export default function SharedNetworkIcon(props: {
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   size: number
   hasBackground?: boolean
   backgroundOpacity?: number
@@ -89,7 +89,7 @@ export default function SharedNetworkIcon(props: {
           width: ${size - padding}px;
           z-index: 1;
           border-radius: 50%;
-          background-color: ${network.chainID === QuaiLocalNetworkGA.chainID
+          background-color: ${network.chainID === QuaiLocalNodeNetwork.chainID
             ? "var(--green-40)"
             : "transparent"};
         }

@@ -11,8 +11,8 @@ import {
 import { AccountState, addAddressNetwork } from "./accounts"
 import { createBackgroundAsyncThunk } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
-import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
-import { QuaiNetworkGA } from "../constants/networks/networks"
+import { NetworkInterface } from "../constants/networks/networkTypes"
+import { QuaiGoldenAgeTestnet } from "../constants/networks/networks"
 
 export const defaultSettings = {
   hideDust: false,
@@ -62,7 +62,7 @@ export type Events = {
   newSelectedAccount: AddressOnNetwork
   newSelectedAccountSwitched: never
   userActivityEncountered: AddressOnNetwork
-  newSelectedNetwork: NetworkInterfaceGA
+  newSelectedNetwork: NetworkInterface
   updateAnalyticsPreferences: Partial<AnalyticsPreferences>
   addCustomNetworkResponse: [string, boolean]
   showDefaultWalletBanner: boolean
@@ -77,7 +77,7 @@ export const initialState: UIState = {
   showingAddAccountModal: false,
   selectedAccount: {
     address: "",
-    network: QuaiNetworkGA,
+    network: QuaiGoldenAgeTestnet,
   },
   initializationLoadingTimeExpired: false,
   settings: defaultSettings,
@@ -372,7 +372,7 @@ export const userActivityEncountered = createBackgroundAsyncThunk(
 
 export const setSelectedNetwork = createBackgroundAsyncThunk(
   "ui/setSelectedNetwork",
-  async (network: NetworkInterfaceGA, { getState, dispatch }) => {
+  async (network: NetworkInterface, { getState, dispatch }) => {
     const state = getState() as { ui: UIState; account: AccountState }
     const { ui, account } = state
     const currentlySelectedChainID = ui.selectedAccount.network.chainID

@@ -14,8 +14,8 @@ import {
 } from "../../../tests/factories"
 import { UNIXTime } from "../../../types"
 import { AddressOnNetwork } from "../../../accounts"
-import { NetworkInterfaceGA } from "../../../constants/networks/networkTypes"
-import { QuaiNetworkGA } from "../../../constants/networks/networks"
+import { NetworkInterface } from "../../../constants/networks/networkTypes"
+import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
 
 type ChainServiceExternalized = Omit<ChainService, ""> & {
   populatePartialEIP1559TransactionRequest: () => void
@@ -68,7 +68,9 @@ describe("Chain Service", () => {
 
   describe("markNetworkActivity", () => {
     beforeEach(async () => {
-      sandbox.stub(chainService, "supportedNetworks").value([QuaiNetworkGA])
+      sandbox
+        .stub(chainService, "supportedNetworks")
+        .value([QuaiGoldenAgeTestnet])
 
       await chainService.startService()
     })
@@ -82,15 +84,15 @@ describe("Chain Service", () => {
 
       const lastUserActivity = (
         chainService as unknown as ChainServiceExternalized
-      ).lastUserActivityOnNetwork[QuaiNetworkGA.chainID]
+      ).lastUserActivityOnNetwork[QuaiGoldenAgeTestnet.chainID]
 
       jest.advanceTimersByTime(100)
 
-      chainService.markNetworkActivity(QuaiNetworkGA.chainID)
+      chainService.markNetworkActivity(QuaiGoldenAgeTestnet.chainID)
 
       expect(lastUserActivity).toBeLessThan(
         (chainService as unknown as ChainServiceExternalized)
-          .lastUserActivityOnNetwork[QuaiNetworkGA.chainID]
+          .lastUserActivityOnNetwork[QuaiGoldenAgeTestnet.chainID]
       )
 
       jest.useRealTimers()
@@ -100,20 +102,22 @@ describe("Chain Service", () => {
       // Set last activity time to 10 minutes ago
       ;(
         chainService as unknown as ChainServiceExternalized
-      ).lastUserActivityOnNetwork[QuaiNetworkGA.chainID] =
+      ).lastUserActivityOnNetwork[QuaiGoldenAgeTestnet.chainID] =
         Date.now() - 10 * MINUTE
       const getBlockPricesStub = sandbox
         .stub(gas, "default")
         .callsFake(async () => createBlockPrices())
 
-      await chainService.markNetworkActivity(QuaiNetworkGA.chainID)
+      await chainService.markNetworkActivity(QuaiGoldenAgeTestnet.chainID)
       expect(getBlockPricesStub.called).toEqual(true)
     })
   })
 
   describe("markAccountActivity", () => {
     beforeEach(async () => {
-      sandbox.stub(chainService, "supportedNetworks").value([QuaiNetworkGA])
+      sandbox
+        .stub(chainService, "supportedNetworks")
+        .value([QuaiGoldenAgeTestnet])
       await chainService.startService()
     })
 
@@ -127,14 +131,14 @@ describe("Chain Service", () => {
         .callsFake(async () => {})
 
       chainService.markAccountActivity(
-        createAddressOnNetwork({ network: QuaiNetworkGA })
+        createAddressOnNetwork({ network: QuaiGoldenAgeTestnet })
       )
 
-      expect(stub.calledWith(QuaiNetworkGA.chainID)).toEqual(true)
+      expect(stub.calledWith(QuaiGoldenAgeTestnet.chainID)).toEqual(true)
     })
 
     it("should call loadRecentAssetTransfers if the NETWORK_POLLING_TIMEOUT has been exceeded", async () => {
-      const account = createAddressOnNetwork({ network: QuaiNetworkGA })
+      const account = createAddressOnNetwork({ network: QuaiGoldenAgeTestnet })
 
       // Set last activity time to 10 minutes ago
       ;(
@@ -148,7 +152,7 @@ describe("Chain Service", () => {
         .callsFake(async () => {})
 
       await chainService.markAccountActivity(
-        createAddressOnNetwork({ network: QuaiNetworkGA })
+        createAddressOnNetwork({ network: QuaiGoldenAgeTestnet })
       )
       expect(stub.called).toEqual(true)
     })
@@ -156,16 +160,16 @@ describe("Chain Service", () => {
 
   describe("getActiveNetworks", () => {
     it("should wait until tracked networks activate", async () => {
-      const activeNetworksMock: NetworkInterfaceGA[] = []
+      const activeNetworksMock: NetworkInterface[] = []
 
       const resolvesWithQuai = sinon.promise()
 
       setTimeout(() => {
-        activeNetworksMock.push(QuaiNetworkGA)
-        resolvesWithQuai.resolve(QuaiNetworkGA)
+        activeNetworksMock.push(QuaiGoldenAgeTestnet)
+        resolvesWithQuai.resolve(QuaiGoldenAgeTestnet)
       }, 30)
 
-      expect(activeNetworksMock).toEqual([QuaiNetworkGA])
+      expect(activeNetworksMock).toEqual([QuaiGoldenAgeTestnet])
     })
   })
   describe("Queued Transaction Retrieve", () => {
@@ -276,7 +280,7 @@ describe("Chain Service", () => {
         allHashesToAdd.forEach((hashes) =>
           hashes.forEach((txHash, idx) =>
             chainServiceExternalized.queueTransactionHashToRetrieve(
-              QuaiNetworkGA,
+              QuaiGoldenAgeTestnet,
               txHash,
               Date.now(),
               idx < PRIORITY_MAX_COUNT ? 1 : 0

@@ -1,10 +1,11 @@
-import { NetworkInterfaceGA } from "./networkTypes"
+import { NetworkInterface } from "./networkTypes"
 
-export const QuaiNetworkGA: NetworkInterfaceGA = {
+export const QuaiGoldenAgeTestnet: NetworkInterface = {
   chainID: "9000",
   baseAsset: { name: "Quai Network", symbol: "QUAI", decimals: 18 },
   family: "EVM",
-  rpcUrls: ["http://rpc.sandbox.quai.network"],
+  jsonRpcUrls: ["http://rpc.sandbox.quai.network"],
+  webSocketRpcUrls: ["ws://rpc.sandbox.quai.network"],
   blockExplorerURL: "",
   chains: [
     {
@@ -64,11 +65,12 @@ export const QuaiNetworkGA: NetworkInterfaceGA = {
   ],
 }
 
-export const QuaiLocalNetworkGA: NetworkInterfaceGA = {
+export const QuaiLocalNodeNetwork: NetworkInterface = {
   chainID: "1337",
   baseAsset: { name: "Quai Network Local", symbol: "QUAI", decimals: 18 },
   family: "EVM",
-  rpcUrls: ["http://localhost"],
+  jsonRpcUrls: ["http://localhost"],
+  webSocketRpcUrls: ["ws://localhost"],
   blockExplorerURL: "",
   chains: [
     {
@@ -128,4 +130,4 @@ export const QuaiLocalNetworkGA: NetworkInterfaceGA = {
   ],
 }
 
-export const NetworksArray = [QuaiNetworkGA, QuaiLocalNetworkGA]
+export const NetworksArray = [QuaiGoldenAgeTestnet, QuaiLocalNodeNetwork]

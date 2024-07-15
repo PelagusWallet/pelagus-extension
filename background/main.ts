@@ -136,7 +136,7 @@ import {
 import { isBuiltInNetworkBaseAsset } from "./redux-slices/utils/asset-utils"
 import localStorageShim from "./utils/local-storage-shim"
 import { getExtendedZoneForAddress } from "./services/chain/utils"
-import { NetworkInterfaceGA } from "./constants/networks/networkTypes"
+import { NetworkInterface } from "./constants/networks/networkTypes"
 import { SignerImportMetadata } from "./services/keyring/types"
 import { NetworksArray } from "./constants/networks/networks"
 
@@ -1589,7 +1589,7 @@ export default class Main extends BaseService<never> {
 
     this.chainService.emitter.on(
       "networkSubscribed",
-      (network: NetworkInterfaceGA) => {
+      (network: NetworkInterface) => {
         this.analyticsService.sendOneTimeAnalyticsEvent(
           OneTimeAnalyticsEvent.CHAIN_ADDED,
           {

@@ -4,7 +4,7 @@ import { createChainService } from "../../../tests/factories"
 import { ChainDatabase } from "../db"
 import {
   NetworksArray,
-  QuaiNetworkGA,
+  QuaiGoldenAgeTestnet,
 } from "../../../constants/networks/networks"
 import { QuaiTransactionState } from "../types"
 
@@ -35,7 +35,7 @@ describe("ChainService", () => {
       // Startup is simulated in the `beforeEach`
       expect(
         chainService.subscribedNetworks.filter(
-          ({ network }) => network.chainID === QuaiNetworkGA.chainID
+          ({ network }) => network.chainID === QuaiGoldenAgeTestnet.chainID
         )
       ).toHaveLength(1)
     })
@@ -93,12 +93,12 @@ describe("ChainService", () => {
     it("Should fetch built-in and custom networks to track", async () => {
       await chainService.addAccountToTrack({
         address: "0x123",
-        network: QuaiNetworkGA,
+        network: QuaiGoldenAgeTestnet,
       })
 
       await chainService.addAccountToTrack({
         address: "0x123",
-        network: QuaiNetworkGA,
+        network: QuaiGoldenAgeTestnet,
       })
 
       expect(

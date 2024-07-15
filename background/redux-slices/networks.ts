@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { EIP1559Block, AnyEVMBlock } from "../networks"
-import { NetworkInterfaceGA } from "../constants/networks/networkTypes"
+import { NetworkInterface } from "../constants/networks/networkTypes"
 
 type NetworkState = {
   blockHeight: number | null
@@ -9,7 +9,7 @@ type NetworkState = {
 
 export type NetworksState = {
   evmNetworks: {
-    [chainID: string]: NetworkInterfaceGA
+    [chainID: string]: NetworkInterface
   }
   blockInfo: {
     [chainID: string]: NetworkState
@@ -56,7 +56,7 @@ const networksSlice = createSlice({
      */
     setEVMNetworks: (
       immerState,
-      { payload }: { payload: NetworkInterfaceGA[] }
+      { payload }: { payload: NetworkInterface[] }
     ) => {
       const chainIds = payload.map((network) => network.chainID)
 

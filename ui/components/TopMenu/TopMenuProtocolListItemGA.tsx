@@ -1,13 +1,13 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 
 type TopMenuProtocolListItemGAProps = {
-  network: NetworkInterfaceGA
+  network: NetworkInterface
   isSelected: boolean
   isDisabled?: boolean
-  onSelect: (network: NetworkInterfaceGA) => void
+  onSelect: (network: NetworkInterface) => void
 }
 
 export default function TopMenuProtocolListItemGA({

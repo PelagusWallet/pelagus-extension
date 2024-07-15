@@ -1,12 +1,14 @@
 import { QUAI_NETWORK_LOCAL } from "@pelagus/pelagus-background/constants"
 import { NetworkFeeTypeChosen } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
+import { QuaiGoldenAgeTestnet } from "@pelagus/pelagus-background/constants/networks/networks"
 import { i18n } from "../_locales/i18n"
-import { QuaiNetworkGA } from "@pelagus/pelagus-background/constants/networks/networks"
 
 export const blockExplorer = {
-  [QuaiNetworkGA.chainID]: {
+  [QuaiGoldenAgeTestnet.chainID]: {
     title: "Quai Blockscout",
-    url: QuaiNetworkGA?.chains ? QuaiNetworkGA.chains[0].blockExplorerUrl : "",
+    url: QuaiGoldenAgeTestnet?.chains
+      ? QuaiGoldenAgeTestnet.chains[0].blockExplorerUrl
+      : "",
   },
   [QUAI_NETWORK_LOCAL.chainID]: {
     title: "Quai Blockscout",

@@ -6,18 +6,18 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { isTestNetwork } from "@pelagus/pelagus-background/constants"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import SharedDrawer from "../Shared/SharedDrawer"
 import TopMenuProtocolListGA from "../TopMenu/TopMenuProtocolListGA"
 import SharedToggleButtonGA from "../Shared/SharedToggleButtonGA"
 import SharedToggleSwitchRow from "../Shared/SharedToggleSwitchRow"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
-import { NetworkInterfaceGA } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 
 interface SelectNetworkDrawerProps {
   isProtocolListOpen: boolean
   onProtocolListClose: () => void
-  onProtocolListItemSelect: (network: NetworkInterfaceGA) => void
-  customCurrentSelectedNetwork?: NetworkInterfaceGA
+  onProtocolListItemSelect: (network: NetworkInterface) => void
+  customCurrentSelectedNetwork?: NetworkInterface
 }
 
 export default function SelectNetworkDrawer({

@@ -1,6 +1,6 @@
 import { JsonRpcProvider, WebSocketProvider } from "quais"
 
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 // class responsible for managing providers only!
 // it will initialize networks
@@ -21,14 +21,14 @@ export default class ProviderFactory {
     }
   } = {}
 
-  public initializeNetworks(networks: NetworkInterfaceGA[]): void {
+  public initializeNetworks(networks: NetworkInterface[]): void {
     networks.forEach((network) => {
-      const { chainID, rpcUrls } = network
+      const { chainID, jsonRpcUrls, webSocketRpcUrls } = network
 
       if (!this.providers[chainID]) {
         this.providers[chainID] = {
-          jsonRpc: new JsonRpcProvider(rpcUrls),
-          websocket: new WebSocketProvider(rpcUrls),
+          jsonRpc: new JsonRpcProvider(jsonRpcUrls),
+          websocket: new WebSocketProvider(webSocketRpcUrls),
         }
 
         // after obtaining provider, we can perform health check
@@ -42,7 +42,7 @@ export default class ProviderFactory {
 
   // 1. in this function is better to also check if provider exists, if not, try to create it
   // 2. it is better to receive network as a param here, need to think.......
-  public getProvider(network: NetworkInterfaceGA): {
+  public getProvider(network: NetworkInterface): {
     jsonRpc: JsonRpcProvider
     websocket: WebSocketProvider
   } {

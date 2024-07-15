@@ -7,12 +7,12 @@ import {
   createAnyEVMTransaction,
 } from "../../../tests/factories"
 import { ChainDatabase, createDB } from "../db"
-import { QuaiNetworkGA } from "../../../constants/networks/networks"
+import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
 
 describe("Chain Database ", () => {
   let db: ChainDatabase
   const account1 = createAddressOnNetwork()
-  const account2 = createAddressOnNetwork({ network: QuaiNetworkGA })
+  const account2 = createAddressOnNetwork({ network: QuaiGoldenAgeTestnet })
 
   beforeEach(() => {
     // Reset state of indexedDB
@@ -61,11 +61,11 @@ describe("Chain Database ", () => {
   })
   describe("addOrUpdateTransaction", () => {
     const addTransactionEth = createAnyEVMTransaction({
-      chainId: QuaiNetworkGA.chainID,
+      chainId: QuaiGoldenAgeTestnet.chainID,
     })
 
     const addTransactionOpt = createAnyEVMTransaction({
-      chainId: QuaiNetworkGA.chainID,
+      chainId: QuaiGoldenAgeTestnet.chainID,
     })
     it("should correctly persist transactions to indexedDB", async () => {
       const getEthTransaction = await db.getQuaiTransactionByHash(
@@ -154,11 +154,11 @@ describe("Chain Database ", () => {
     it("should return chainIds corresponding to the networks of accounts being tracked", async () => {
       await db.addAccountToTrack(account1)
       expect(await db.getChainIDsToTrack()).toEqual(
-        new Set(QuaiNetworkGA.chainID)
+        new Set(QuaiGoldenAgeTestnet.chainID)
       )
       await db.addAccountToTrack(account2)
       expect(await db.getChainIDsToTrack()).toEqual(
-        new Set([QuaiNetworkGA.chainID])
+        new Set([QuaiGoldenAgeTestnet.chainID])
       )
     })
     it("should disallow duplicate chain ids", async () => {
@@ -203,11 +203,11 @@ describe("Chain Database ", () => {
   })
   describe("getLatestBlock", () => {
     const block = createAnyEVMBlock({
-      network: QuaiNetworkGA,
+      network: QuaiGoldenAgeTestnet,
     })
     it("should retrieve the most recent block for a given network", async () => {
       await db.addBlock(block)
-      expect(await db.getLatestBlock(QuaiNetworkGA)).toBeTruthy()
+      expect(await db.getLatestBlock(QuaiGoldenAgeTestnet)).toBeTruthy()
     })
   })
   // TODO-MIGRATION

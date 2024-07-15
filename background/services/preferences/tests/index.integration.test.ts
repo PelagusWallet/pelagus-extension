@@ -1,6 +1,6 @@
 import PreferenceService from ".."
 import DEFAULT_PREFERENCES from "../defaults"
-import { QuaiNetworkGA } from "../../../constants/networks/networks"
+import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
 
 describe("Preference Service Integration", () => {
   let preferenceService: PreferenceService
@@ -22,7 +22,7 @@ describe("Preference Service Integration", () => {
       )
       const newAccount = {
         address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        network: QuaiNetworkGA,
+        network: QuaiGoldenAgeTestnet,
       }
       await preferenceService.setSelectedAccount(newAccount)
       expect(await preferenceService.getSelectedAccount()).toEqual(newAccount)

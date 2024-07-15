@@ -4,7 +4,7 @@ import {
   createIndexingService,
   createNameService,
 } from "../../../tests/factories"
-import { QuaiNetworkGA } from "../../../constants/networks/networks"
+import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
 
 describe("Enrichment Service Transactions", () => {
   const sandbox = sinon.createSandbox()
@@ -33,7 +33,7 @@ describe("Enrichment Service Transactions", () => {
 
       await chainService.addAccountToTrack({
         address: "0x9eef87f4c08d8934cb2a3309df4dec5635338115",
-        network: QuaiNetworkGA,
+        network: QuaiGoldenAgeTestnet,
       })
 
       await indexingService.addOrUpdateCustomAsset({
@@ -41,7 +41,7 @@ describe("Enrichment Service Transactions", () => {
         symbol: "USDC",
         name: "USDC Coin",
         decimals: 6,
-        homeNetwork: QuaiNetworkGA,
+        homeNetwork: QuaiGoldenAgeTestnet,
       })
 
       await indexingService.addOrUpdateCustomAsset({
@@ -49,7 +49,7 @@ describe("Enrichment Service Transactions", () => {
         symbol: "FRAX",
         name: "FRAX Token",
         decimals: 18,
-        homeNetwork: QuaiNetworkGA,
+        homeNetwork: QuaiGoldenAgeTestnet,
       })
     })
   })

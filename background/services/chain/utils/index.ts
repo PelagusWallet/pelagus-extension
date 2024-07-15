@@ -1,12 +1,12 @@
 import { getZoneForAddress, toBigInt, Zone, Block } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { AnyEVMBlock, KnownTxTypes } from "../../../networks"
-import { NetworkInterfaceGA } from "../../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../../constants/networks/networkTypes"
 /**
  * Parse a block as returned by a polling provider.
  */
 export function blockFromEthersBlock(
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   block: Block
 ): AnyEVMBlock {
   if (!block) throw new Error("Failed get Block")
@@ -27,7 +27,7 @@ export function blockFromEthersBlock(
  * Parse a block as returned by a provider query.
  */
 export function blockFromProviderBlock(
-  network: NetworkInterfaceGA,
+  network: NetworkInterface,
   incomingGethResult: unknown
 ): AnyEVMBlock {
   const gethResult = incomingGethResult as {

@@ -34,7 +34,7 @@ import { sameNetwork } from "../../networks"
 import { AccountSigner, SignerType } from "../../services/signing"
 import { assertUnreachable } from "../../lib/utils/type-guards"
 import { getExtendedZoneForAddress } from "../../services/chain/utils"
-import { NetworkInterfaceGA } from "../../constants/networks/networkTypes"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { SignerImportSource } from "../../services/keyring/types"
 
 // TODO What actual precision do we want here? Probably more than 2
@@ -361,7 +361,7 @@ const getTotalBalance = (
 
 function getNetworkAccountTotalsByCategory(
   state: RootState,
-  network: NetworkInterfaceGA
+  network: NetworkInterface
 ): CategorizedAccountTotals {
   const accounts = getAccountState(state)
   const assets = getAssetsState(state)
@@ -439,7 +439,7 @@ function getNetworkAccountTotalsByCategory(
 
 const selectNetworkAccountTotalsByCategoryResolver = createSelector(
   (state: RootState) => state,
-  (state) => (network: NetworkInterfaceGA) => {
+  (state) => (network: NetworkInterface) => {
     return getNetworkAccountTotalsByCategory(state, network)
   }
 )

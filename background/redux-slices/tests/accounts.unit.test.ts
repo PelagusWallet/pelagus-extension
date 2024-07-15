@@ -16,12 +16,12 @@ import reducer, {
   updateAssetReferences,
 } from "../accounts"
 import { determineAssetDisplayAndVerify } from "../selectors"
-import { QuaiNetworkGA } from "../../constants/networks/networks"
+import { QuaiGoldenAgeTestnet } from "../../constants/networks/networks"
 
 const ADDRESS_MOCK = "0x208e94d5661a73360d9387d3ca169e5c130090cd"
 const ACCOUNT_MOCK = {
   address: ADDRESS_MOCK,
-  network: QuaiNetworkGA,
+  network: QuaiGoldenAgeTestnet,
   balances: {},
   customAccountData: {},
   defaultName: "Topa",
@@ -36,7 +36,7 @@ const BALANCE_MOCK: AccountBalance = {
     asset: QUAI,
     amount: 1n,
   },
-  network: QuaiNetworkGA,
+  network: QuaiGoldenAgeTestnet,
   retrievedAt: 1,
   dataSource: "local",
 }
@@ -58,18 +58,21 @@ describe("Accounts redux slice", () => {
     it("should update positive balance for account that is loading", () => {
       const balances = [BALANCE_MOCK]
       state.accountsData.evm = {
-        [QuaiNetworkGA.chainID]: { [ADDRESS_MOCK]: "loading" },
+        [QuaiGoldenAgeTestnet.chainID]: { [ADDRESS_MOCK]: "loading" },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: QuaiNetworkGA },
+          addressOnNetwork: {
+            address: ADDRESS_MOCK,
+            network: QuaiGoldenAgeTestnet,
+          },
         })
       )
 
       const updatedAccountData =
-        updated.accountsData.evm[QuaiNetworkGA.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
 
       expect(updatedAccountData).not.toEqual("loading")
 
@@ -81,17 +84,20 @@ describe("Accounts redux slice", () => {
     it("should update positive balance for account that is loaded", () => {
       const balances = [BALANCE_MOCK]
       state.accountsData.evm = {
-        [QuaiNetworkGA.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
+        [QuaiGoldenAgeTestnet.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: QuaiNetworkGA },
+          addressOnNetwork: {
+            address: ADDRESS_MOCK,
+            network: QuaiGoldenAgeTestnet,
+          },
         })
       )
       const updatedAccountData =
-        updated.accountsData.evm[QuaiNetworkGA.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as AccountData)?.balances
 
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
@@ -109,18 +115,21 @@ describe("Accounts redux slice", () => {
         },
       ]
       state.accountsData.evm = {
-        [QuaiNetworkGA.chainID]: { [ADDRESS_MOCK]: "loading" },
+        [QuaiGoldenAgeTestnet.chainID]: { [ADDRESS_MOCK]: "loading" },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: QuaiNetworkGA },
+          addressOnNetwork: {
+            address: ADDRESS_MOCK,
+            network: QuaiGoldenAgeTestnet,
+          },
         })
       )
 
       const updatedAccountData =
-        updated.accountsData.evm[QuaiNetworkGA.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
 
       expect(updatedAccountData).not.toEqual("loading")
 
@@ -139,17 +148,20 @@ describe("Accounts redux slice", () => {
         },
       ]
       state.accountsData.evm = {
-        [QuaiNetworkGA.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
+        [QuaiGoldenAgeTestnet.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
       }
       const updated = reducer(
         state,
         updateAccountBalance({
           balances,
-          addressOnNetwork: { address: ADDRESS_MOCK, network: QuaiNetworkGA },
+          addressOnNetwork: {
+            address: ADDRESS_MOCK,
+            network: QuaiGoldenAgeTestnet,
+          },
         })
       )
       const updatedAccountData =
-        updated.accountsData.evm[QuaiNetworkGA.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as AccountData)?.balances
 
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(0n)
@@ -157,7 +169,7 @@ describe("Accounts redux slice", () => {
 
     it("should update positive balance multiple times", () => {
       state.accountsData.evm = {
-        [QuaiNetworkGA.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
+        [QuaiGoldenAgeTestnet.chainID]: { [ADDRESS_MOCK]: ACCOUNT_MOCK },
       }
 
       const initial = reducer(
@@ -167,7 +179,10 @@ describe("Accounts redux slice", () => {
             BALANCE_MOCK,
             { ...BALANCE_MOCK, assetAmount: { asset: ASSET_MOCK, amount: 5n } },
           ],
-          addressOnNetwork: { address: ADDRESS_MOCK, network: QuaiNetworkGA },
+          addressOnNetwork: {
+            address: ADDRESS_MOCK,
+            network: QuaiGoldenAgeTestnet,
+          },
         })
       )
       const updated = reducer(
@@ -179,12 +194,15 @@ describe("Accounts redux slice", () => {
               assetAmount: { asset: ASSET_MOCK, amount: 10n },
             },
           ],
-          addressOnNetwork: { address: ADDRESS_MOCK, network: QuaiNetworkGA },
+          addressOnNetwork: {
+            address: ADDRESS_MOCK,
+            network: QuaiGoldenAgeTestnet,
+          },
         })
       )
 
       const updatedAccountData =
-        updated.accountsData.evm[QuaiNetworkGA.chainID][ADDRESS_MOCK]
+        updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as AccountData)?.balances
 
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
@@ -195,7 +213,7 @@ describe("Accounts redux slice", () => {
       const asset = createSmartContractAsset()
       const otherAccount = createAddressOnNetwork()
       state.accountsData.evm = {
-        [QuaiNetworkGA.chainID]: {
+        [QuaiGoldenAgeTestnet.chainID]: {
           [ADDRESS_MOCK]: ACCOUNT_MOCK,
           [otherAccount.address]: createAccountData({
             address: otherAccount.address,
@@ -212,7 +230,10 @@ describe("Accounts redux slice", () => {
               assetAmount: { asset, amount: 10n },
             },
           ],
-          addressOnNetwork: { address: ADDRESS_MOCK, network: QuaiNetworkGA },
+          addressOnNetwork: {
+            address: ADDRESS_MOCK,
+            network: QuaiGoldenAgeTestnet,
+          },
         })
       )
 
@@ -228,17 +249,17 @@ describe("Accounts redux slice", () => {
           ],
           addressOnNetwork: {
             address: otherAccount.address,
-            network: QuaiNetworkGA,
+            network: QuaiGoldenAgeTestnet,
           },
         })
       )
 
       const firstAccountData = secondAccountUpdate.accountsData.evm[
-        QuaiNetworkGA.chainID
+        QuaiGoldenAgeTestnet.chainID
       ][ADDRESS_MOCK] as AccountData
 
       const secondAccountData = secondAccountUpdate.accountsData.evm[
-        QuaiNetworkGA.chainID
+        QuaiGoldenAgeTestnet.chainID
       ][otherAccount.address] as AccountData
 
       expect(
@@ -260,11 +281,11 @@ describe("Accounts redux slice", () => {
       )
 
       const updatedFirstAccountData = newState.accountsData.evm[
-        QuaiNetworkGA.chainID
+        QuaiGoldenAgeTestnet.chainID
       ][ADDRESS_MOCK] as AccountData
 
       const updatedSecondAccountData = newState.accountsData.evm[
-        QuaiNetworkGA.chainID
+        QuaiGoldenAgeTestnet.chainID
       ][otherAccount.address] as AccountData
 
       expect(

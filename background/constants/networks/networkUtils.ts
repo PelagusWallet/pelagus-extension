@@ -1,4 +1,4 @@
-import { NetworkInterfaceGA } from "./networkTypes"
+import { NetworkInterface } from "./networkTypes"
 
-export const isQuaiHandle = (network: NetworkInterfaceGA) =>
+export const isQuaiHandle = (network: NetworkInterface): boolean =>
   network.family === "EVM"

@@ -148,7 +148,7 @@ export const generateQuaiHDWalletMnemonic = createBackgroundAsyncThunk(
 export const deriveAddress = createBackgroundAsyncThunk(
   "keyrings/deriveAddress",
   async ({ signerId, zone }: DeriveAddressData) => {
-    if (signerId == "") return
+    if (signerId === "") return
 
     await emitter.emit("deriveAddress", { signerId, zone })
   }

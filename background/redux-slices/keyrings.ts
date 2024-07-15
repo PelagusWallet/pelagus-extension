@@ -60,7 +60,6 @@ export const importKeyring = createBackgroundAsyncThunk(
     { getState, dispatch, extra: { main } }
   ): Promise<{ success: boolean; errorMessage?: string }> => {
     const address = await main.importSigner(signerRaw)
-
     if (!address)
       return {
         success: false,

@@ -2,7 +2,6 @@ import {
   AddressLike,
   getAddress,
   getBytes,
-  isQuaiAddress,
   Mnemonic,
   QuaiHDWallet,
   SigningKey,
@@ -41,6 +40,7 @@ import { EIP712TypedData, HexString, KeyringTypes, UNIXTime } from "../../types"
 import logger from "../../lib/logger"
 import { sameQuaiAddress } from "../../lib/utils"
 import { generateRandomBytes, isSignerPrivateKeyType } from "./utils"
+import { isGoldenAgeQuaiAddress } from "../../utils/addresses"
 
 export const MAX_KEYRING_IDLE_TIME = 60 * MINUTE
 export const MAX_OUTSIDE_IDLE_TIME = 60 * MINUTE
@@ -269,11 +269,11 @@ export default class KeyringService extends BaseService<Events> {
    */
   public async importKeyring(
     signerMetadata: SignerImportMetadata
-  ): Promise<string | null> {
+  ): Promise<string> {
     this.requireUnlocked()
 
     try {
-      let address: string | null = null
+      let address: string
 
       switch (signerMetadata.type) {
         case SignerSourceTypes.privateKey:
@@ -290,7 +290,7 @@ export default class KeyringService extends BaseService<Events> {
       }
 
       if (!address) {
-        throw new Error("Failed to import keyring: address is null")
+        throw new Error("Failed to import keyring")
       }
 
       this.hiddenAccounts[address] = false
@@ -301,7 +301,7 @@ export default class KeyringService extends BaseService<Events> {
       return address
     } catch (error) {
       logger.error("Signer import failed:", error)
-      return null
+      return ""
     }
   }
 
@@ -380,11 +380,11 @@ export default class KeyringService extends BaseService<Events> {
    * @param privateKey - string
    * @returns string - address of imported or existing account
    */
-  private importWalletWithPrivateKey(privateKey: string): string | null {
+  private importWalletWithPrivateKey(privateKey: string): string {
     const newWallet = new Wallet(privateKey)
     const { address } = newWallet
 
-    if (!isQuaiAddress(address)) return null
+    if (!isGoldenAgeQuaiAddress(address)) return ""
 
     if (this.findSigner(address)) return address
 

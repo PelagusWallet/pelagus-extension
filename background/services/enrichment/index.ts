@@ -10,13 +10,14 @@ import {
   EnrichedSignTypedDataRequest,
 } from "./types"
 import { SignTypedDataRequest } from "../../utils/signing"
-import {
-  enrichEIP2612SignTypedDataRequest,
-  getRelevantTransactionAddresses,
-  isEIP2612TypedData,
-} from "./utils"
+import { enrichEIP2612SignTypedDataRequest, isEIP2612TypedData } from "./utils"
 import resolveTransactionAnnotation from "./transactions"
-import { QuaiTransactionState, EnrichedQuaiTransaction } from "../chain/types"
+import {
+  EnrichedQuaiTransaction,
+  SerializedTransactionForHistory,
+} from "../chain/types"
+import { QuaiTransactionDBEntry } from "../chain/db"
+import { getNetworkById } from "../chain/utils"
 
 export * from "./types"
 
@@ -74,18 +75,17 @@ export default class EnrichmentService extends BaseService<Events> {
   }
 
   private async connectChainServiceEvents(): Promise<void> {
-    this.chainService.emitter.on("transaction", async ({ transaction }) => {
-      const accounts = await this.chainService.getAccountsToTrack()
-      const enrichedTransaction = await this.enrichTransaction(transaction, 2)
+    this.chainService.emitter.on(
+      "transaction",
+      async ({ transaction, forAccounts }) => {
+        const enrichedTransaction = await this.enrichTransaction(transaction, 2)
 
-      this.emitter.emit("enrichedEVMTransaction", {
-        transaction: enrichedTransaction,
-        forAccounts: getRelevantTransactionAddresses(
-          enrichedTransaction,
-          accounts
-        ),
-      })
-    })
+        this.emitter.emit("enrichedEVMTransaction", {
+          transaction: enrichedTransaction,
+          forAccounts,
+        })
+      }
+    )
   }
 
   async enrichSignTypedDataRequest(
@@ -116,13 +116,15 @@ export default class EnrichmentService extends BaseService<Events> {
   }
 
   async enrichTransaction(
-    transaction: QuaiTransactionState,
+    transaction:
+      | SerializedTransactionForHistory
+      | QuaiTransactionDBEntry
+      | null,
     desiredDecimals: number
   ): Promise<EnrichedQuaiTransaction> {
-    const network = globalThis.main.chainService.supportedNetworks.find(
-      (net) => toBigInt(net.chainID) === toBigInt(transaction.chainId ?? 0)
-    )
-    if (!network) throw new Error("Failed find network in enrichTransaction")
+    const network = getNetworkById(transaction?.chainId)
+    if (!network || !transaction)
+      throw new Error("Failed find network or tx in enrichTransaction")
 
     return {
       ...transaction,

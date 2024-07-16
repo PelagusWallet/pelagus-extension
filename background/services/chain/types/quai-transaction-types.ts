@@ -1,6 +1,7 @@
 import {
   AccessList,
   BigNumberish,
+  LogParams,
   SignatureLike,
   TransactionReceiptParams,
 } from "quais"
@@ -39,7 +40,7 @@ export type QuaiTransactionState =
   | ConfirmedQuaiTransaction
   | PendingQuaiTransaction
 
-export type EnrichedQuaiTransaction = QuaiTransactionState & {
+export type EnrichedQuaiTransaction = SerializedTransactionForHistory & {
   annotation?: TransactionAnnotation
   network: NetworkInterface
 }
@@ -74,4 +75,8 @@ export type SerializedTransactionForHistory = {
   value: BigNumberish | null | undefined
   index: bigint
   blockNumber: number | null
+  etxs: ReadonlyArray<string>
+  gasPrice: BigNumberish | null | undefined
+  logs: ReadonlyArray<LogParams>
+  gasUsed?: bigint | null
 }

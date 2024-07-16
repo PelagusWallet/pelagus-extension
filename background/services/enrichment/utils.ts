@@ -154,11 +154,12 @@ export function getRelevantTransactionAddresses(
   ) {
     // If sender and recipient are on the same shard, return both accounts
     const result = trackedAccounts
-      .filter(
-        ({ address }) =>
+      .filter(({ address }) => {
+        return (
           sameQuaiAddress(senderAddress, address) ||
           sameQuaiAddress(recipientAddress, address)
-      )
+        )
+      })
       .map(({ address }) => address)
     return result
   }

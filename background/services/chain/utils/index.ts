@@ -1,4 +1,4 @@
-import { getZoneForAddress, Zone, Block } from "quais"
+import { getZoneForAddress, Zone, Block, BigNumberish, toBigInt } from "quais"
 import { AnyEVMBlock } from "../../../networks"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
 import { parseHexTimestamp } from "../../../utils/time"
@@ -54,4 +54,11 @@ export const getExtendedZoneForAddress = (
   }
 
   return ""
+}
+
+export const getNetworkById = (chainId: BigNumberish | null | undefined) => {
+  if (!chainId) throw new Error("Can't find network")
+  return globalThis.main.chainService.supportedNetworks.find(
+    (net) => toBigInt(net.chainID) === toBigInt(chainId)
+  )
 }

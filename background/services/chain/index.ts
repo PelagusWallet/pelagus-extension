@@ -35,9 +35,10 @@ import {
 import { HOUR, MINUTE, SECOND } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
-import { ChainDatabase, createDB } from "./db"
+import { ChainDatabase, createDB, QuaiTransactionDBEntry } from "./db"
 import BaseService from "../base"
-import { blockFromProviderBlock, getExtendedZoneForAddress } from "./utils"
+import { blockFromProviderBlock, getExtendedZoneForAddress,   getNetworkById,
+} from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
 import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
@@ -53,6 +54,7 @@ import {
   PendingQuaiTransaction,
   QuaiTransactionState,
   QuaiTransactionStatus,
+  SerializedTransactionForHistory,
 } from "./types"
 
 // The number of blocks to query at a time for historic asset transfers.
@@ -89,11 +91,11 @@ const TRANSACTIONS_WITH_PRIORITY_MAX_COUNT = 25
 
 interface Events extends ServiceLifecycleEvents {
   initializeActivities: {
-    transactions: QuaiTransactionState[]
+    transactions: SerializedTransactionForHistory[]
     accounts: AddressOnNetwork[]
   }
   initializeActivitiesForAccount: {
-    transactions: QuaiTransactionState[]
+    transactions: SerializedTransactionForHistory[]
     account: AddressOnNetwork
   }
   newAccountToTrack: {
@@ -121,7 +123,7 @@ interface Events extends ServiceLifecycleEvents {
   block: AnyEVMBlock
   transaction: {
     forAccounts: string[]
-    transaction: QuaiTransactionState
+    transaction: SerializedTransactionForHistory
   }
   blockPrices: { blockPrices: BlockPrices; network: NetworkInterface }
   customChainAdded: ValidatedAddEthereumChainParameter
@@ -309,9 +311,11 @@ export default class ChainService extends BaseService<Events> {
     this.assetData = new AssetDataHelper(this.currentProvider.jsonRpc)
 
     const accounts = await this.getAccountsToTrack()
-    const transactions =
-      (await this.db.getAllQuaiTransactions()) as QuaiTransactionState[]
-    await this.emitter.emit("initializeActivities", { transactions, accounts })
+    const transactions = await this.db.getAllQuaiTransactions()
+    await this.emitter.emit("initializeActivities", {
+      transactions,
+      accounts,
+    })
 
     await this.subscribeOnAccountTransactions(this.supportedNetworks, accounts)
 
@@ -611,34 +615,44 @@ export default class ChainService extends BaseService<Events> {
    *
    * @param txHash the hash of the unconfirmed transaction we're interested in
    */
-  async getTransaction(txHash: HexString): Promise<QuaiTransactionState> {
+  async getTransaction(
+    txHash: HexString
+  ): Promise<SerializedTransactionForHistory | QuaiTransactionDBEntry | null> {
     const { currentProvider } = this
-    const transactionResponse = (await currentProvider.jsonRpc.getTransaction(
-      txHash
-    )) as QuaiTransactionResponse | null
+    return currentProvider.jsonRpc
+      .getTransaction(txHash)
+      .then(async (tx) => {
+        const transaction = tx as QuaiTransactionResponse | null
 
-    if (!transactionResponse) {
-      const cachedTx = (await this.db.getQuaiTransactionByHash(
-        txHash
-      )) as QuaiTransactionState | null // TODO: Need fix type for redux
-      if (cachedTx) return cachedTx
-      throw new Error("Failed get transaction")
-    }
+        if (!transaction) throw new Error("Failed to get transaction")
 
-    const receipt = await currentProvider.jsonRpc.getTransactionReceipt(txHash)
-    if (receipt) {
-      const confirmedQuaiTransaction = createConfirmedQuaiTransaction(
-        transactionResponse,
-        receipt
-      )
-      await this.saveTransaction(confirmedQuaiTransaction, "local")
-      return confirmedQuaiTransaction
-    }
+        const receipt = await currentProvider.jsonRpc.getTransactionReceipt(
+          txHash
+        )
 
-    const pendingQuaiTransaction =
-      createPendingQuaiTransaction(transactionResponse)
-    await this.saveTransaction(pendingQuaiTransaction, "local")
-    return pendingQuaiTransaction
+        if (receipt) {
+          const confirmedQuaiTransaction = createConfirmedQuaiTransaction(
+            transaction,
+            receipt
+          )
+
+          await this.saveTransaction(confirmedQuaiTransaction, "local")
+
+          return this.db.getQuaiTransactionByHash(
+            confirmedQuaiTransaction?.hash
+          )
+        }
+
+        const pendingQuaiTransaction = createPendingQuaiTransaction(transaction)
+        await this.saveTransaction(pendingQuaiTransaction, "local")
+
+        return this.db.getQuaiTransactionByHash(pendingQuaiTransaction?.hash)
+      })
+      .catch(async () => {
+        const cachedTx = await this.db.getQuaiTransactionByHash(txHash)
+        if (!cachedTx) throw new Error("Failed to get transaction")
+        return cachedTx
+      })
   }
 
   /**
@@ -1257,7 +1271,7 @@ export default class ChainService extends BaseService<Events> {
     transaction: QuaiTransactionState,
     dataSource: "local"
   ): Promise<void> {
-    const network = this.currentNetwork
+    const network = getNetworkById(transaction?.chainId)
     if (!network) throw new Error("Failed find network before save transaction")
 
     let error: unknown = null
@@ -1268,10 +1282,9 @@ export default class ChainService extends BaseService<Events> {
       error = err
       logger.error(`Error saving tx ${serializedTx}`, error)
     }
-
     try {
       let accounts = await this.getAccountsToTrack()
-      if (accounts.length === 0) {
+      if (!accounts.length) {
         await this.db.addAccountToTrack({
           address: transaction.from ?? "",
           network,
@@ -1281,7 +1294,7 @@ export default class ChainService extends BaseService<Events> {
 
       const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
       await this.emitter.emit("transaction", {
-        transaction,
+        transaction: serializedTx,
         forAccounts,
       })
     } catch (err) {
@@ -1295,9 +1308,9 @@ export default class ChainService extends BaseService<Events> {
 
   async emitSavedTransactions(account: AddressOnNetwork): Promise<void> {
     const { address, network } = account
-    const transactionsForNetwork = (await this.db.getQuaiTransactionsByNetwork(
+    const transactionsForNetwork = await this.db.getQuaiTransactionsByNetwork(
       network
-    )) as QuaiTransactionState[] // TODO: Need fix type for redux
+    )
 
     const transactions = transactionsForNetwork.filter(
       (transaction) =>
@@ -1362,17 +1375,16 @@ export default class ChainService extends BaseService<Events> {
     const provider = this.currentProvider.jsonRpc
     if (!provider) throw new Error("Failed to get provider")
 
-    await provider.on("pending", async (transactionHash: unknown) => {
+    await provider.on("pending", async (transactionHash: string) => {
       try {
-        if (typeof transactionHash === "string") {
-          const tx = await this.getTransaction(transactionHash)
-          if (!tx) throw new Error("getTransaction return null")
+        const tx = (await this.getTransaction(
+          transactionHash
+        )) as PendingQuaiTransaction
 
-          if (tx.status !== QuaiTransactionStatus.PENDING)
-            throw new Error("tx status is not pending")
+        if (tx.status !== QuaiTransactionStatus.PENDING)
+          throw new Error("tx status is not pending")
 
-          await this.handlePendingTransaction(tx, network)
-        }
+        await this.handlePendingTransaction(tx, network)
       } catch (innerError) {
         logger.error(
           `Error handling incoming pending transaction hash: ${transactionHash}`,

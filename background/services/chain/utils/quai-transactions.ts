@@ -35,6 +35,7 @@ export const createConfirmedQuaiTransaction = (
     data,
     value,
     accessList,
+    chainId,
   } = transaction
 
   const { status, ...rest } = receipt
@@ -48,6 +49,7 @@ export const createConfirmedQuaiTransaction = (
     data,
     value,
     accessList,
+    chainId,
     ...rest,
   }
 }
@@ -80,48 +82,109 @@ export const createSerializedQuaiTransaction = (
     status,
     type,
     value,
+    gasPrice,
   } = transaction
 
   const serializedChainId = chainId ? chainId.toString() : ""
+  switch (status) {
+    case QuaiTransactionStatus.FAILED:
+      return {
+        to,
+        from,
+        chainId: serializedChainId,
+        hash: hash ?? "",
+        blockHash,
+        accessList,
+        data,
+        gasLimit,
+        maxPriorityFeePerGas,
+        maxFeePerGas,
+        nonce,
+        signature,
+        status,
+        type,
+        value,
+        blockNumber: null,
+        index: toBigInt(0),
+        etxs: [],
+        gasPrice,
+        logs: [],
+        gasUsed: undefined,
+      }
 
-  if (status !== QuaiTransactionStatus.FAILED)
-    return {
-      to,
-      from,
-      chainId: serializedChainId,
-      hash: hash ?? "",
-      blockHash,
-      accessList,
-      data,
-      gasLimit,
-      maxPriorityFeePerGas,
-      maxFeePerGas,
-      nonce,
-      signature,
-      status,
-      type,
-      value,
-      index: toBigInt(transaction?.index ?? 0),
-      blockNumber: transaction.blockNumber,
-    }
+    case QuaiTransactionStatus.PENDING:
+      return {
+        to,
+        from,
+        chainId: serializedChainId,
+        hash: hash ?? "",
+        blockHash,
+        accessList,
+        data,
+        gasLimit,
+        maxPriorityFeePerGas,
+        maxFeePerGas,
+        nonce,
+        signature,
+        status,
+        type,
+        value,
+        index: toBigInt(transaction?.index ?? 0),
+        blockNumber: transaction.blockNumber,
+        etxs: [],
+        gasPrice,
+        logs: [],
+        gasUsed: undefined,
+      }
 
-  return {
-    to,
-    from,
-    chainId: serializedChainId,
-    hash: hash ?? "",
-    blockHash,
-    accessList,
-    data,
-    gasLimit,
-    maxPriorityFeePerGas,
-    maxFeePerGas,
-    nonce,
-    signature,
-    status,
-    type,
-    value,
-    blockNumber: null,
-    index: toBigInt(0),
+    case QuaiTransactionStatus.CONFIRMED:
+      return {
+        to,
+        from,
+        chainId: serializedChainId,
+        hash: hash ?? "",
+        blockHash,
+        accessList,
+        data,
+        gasLimit,
+        maxPriorityFeePerGas,
+        maxFeePerGas,
+        nonce,
+        signature,
+        status,
+        type,
+        value,
+        index: toBigInt(transaction?.index ?? 0),
+        blockNumber: transaction.blockNumber,
+        etxs: transaction?.etxs,
+        gasPrice,
+        logs: transaction?.logs,
+        gasUsed: transaction?.gasPrice,
+      }
+
+    default:
+      return {
+        to: undefined,
+        from: undefined,
+        chainId: undefined,
+        hash: "",
+        blockHash: null,
+        accessList: undefined,
+        data: undefined,
+        gasLimit: undefined,
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: undefined,
+        nonce: undefined,
+        signature: undefined,
+        status: 0,
+        type: null,
+        value: undefined,
+        index: toBigInt(0),
+        blockNumber: null,
+        etxs: [],
+        gasPrice: undefined,
+        logs: [],
+        gasUsed: undefined,
+      }
   }
 }

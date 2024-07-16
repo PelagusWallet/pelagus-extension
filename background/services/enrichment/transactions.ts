@@ -26,7 +26,7 @@ import {
 import { isDefined, isFulfilledPromise } from "../../lib/utils/type-guards"
 import { getExtendedZoneForAddress } from "../chain/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
-import { QuaiTransactionState } from "../chain/types"
+import { SerializedTransactionForHistory } from "../chain/types"
 import { NetworksArray } from "../../constants/networks/networks"
 
 async function buildSubannotations(
@@ -179,10 +179,10 @@ export default async function resolveTransactionAnnotation(
   indexingService: IndexingService,
   nameService: NameService,
   network: NetworkInterface,
-  transaction: QuaiTransactionState,
+  transaction: SerializedTransactionForHistory,
   desiredDecimals: number
 ): Promise<TransactionAnnotation> {
-  const assets = await indexingService.getCachedAssets(network)
+  const assets = indexingService.getCachedAssets(network)
   const isExternalTransfer =
     !!transaction.type &&
     (transaction.type === 1 || transaction.type === 2) &&
@@ -206,6 +206,7 @@ export default async function resolveTransactionAnnotation(
           )?.baseAsset.symbol
     )?.metadata?.logoURL,
   }
+
   // We know this is an External Transfer, and transaction.to means not deployment
   if (useDestinationShard && transaction.to && transaction.from) {
     const recipient = await enrichAddressOnNetwork(chainService, nameService, {
@@ -267,7 +268,10 @@ export default async function resolveTransactionAnnotation(
   txAnnotation.warnings ??= []
 
   // If the wallet doesn't have enough base asset to cover gas, push a warning
-  if (toBigInt(gasFee) + toBigInt(transaction.value ?? 0n) > baseAssetBalance) {
+  if (
+    toBigInt(gasFee ?? 0) + toBigInt(transaction.value ?? 0) >
+    baseAssetBalance
+  ) {
     if (!txAnnotation.warnings.includes("insufficient-funds")) {
       txAnnotation.warnings.push("insufficient-funds")
     }
@@ -362,7 +366,7 @@ export default async function resolveTransactionAnnotation(
           assetAmount: enrichAssetAmountWithDecimalValues(
             {
               asset: network.baseAsset,
-              amount: toBigInt(transaction.value),
+              amount: toBigInt(transaction.value ?? 0),
             },
             desiredDecimals
           ),
@@ -465,7 +469,7 @@ export default async function resolveTransactionAnnotation(
   }
 
   // Look up logs and resolve subannotations, if available.
-  if ("logs" in transaction && transaction?.logs) {
+  if (transaction?.logs?.length) {
     const subannotations = await annotationsFromLogs(
       chainService,
       indexingService,
@@ -477,7 +481,7 @@ export default async function resolveTransactionAnnotation(
       block
     )
 
-    if (subannotations.length > 0) {
+    if (subannotations?.length) {
       txAnnotation.subannotations = subannotations
     }
   }

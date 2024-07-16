@@ -274,8 +274,7 @@ export const sendAsset = createBackgroundAsyncThunk(
       const request: QuaiTransactionRequest = {
         to: getAddress(toAddressData),
         from: fromAddress,
-        // TODO
-        chainId: "9000",
+        chainId: fromNetwork?.chainID,
         gasLimit,
         maxPriorityFeePerGas,
         maxFeePerGas,

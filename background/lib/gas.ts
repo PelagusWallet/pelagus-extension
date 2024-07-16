@@ -1,17 +1,19 @@
-import { JsonRpcProvider, Shard } from "quais"
+import { JsonRpcProvider, Shard, Zone } from "quais"
 import logger from "./logger"
 import { BlockPrices } from "../networks"
 import { EIP_1559_COMPLIANT_CHAIN_IDS } from "../constants"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 
+// TODO move to the chain service
 export default async function getBlockPrices(
   network: NetworkInterface,
   provider: JsonRpcProvider,
-  shard: Shard
+  shard: Shard,
+  zone: Zone
 ): Promise<BlockPrices> {
   const [currentBlock, feeData] = await Promise.all([
     provider.getBlock(shard, "latest"),
-    provider.getFeeData(),
+    provider.getFeeData(zone),
   ])
   const baseFeePerGas = currentBlock?.woBody.header.baseFeePerGas
 

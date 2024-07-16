@@ -171,8 +171,8 @@ export const createAnyEVMBlock = (
     difficulty: 1000000000000n,
     blockHeight: 15547463,
     timestamp: Date.now(),
+    baseFeePerGas: overrides.baseFeePerGas ? overrides.baseFeePerGas : 0n,
     network: QuaiGoldenAgeTestnet,
-    ...overrides,
   }
 }
 

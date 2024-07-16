@@ -10,6 +10,7 @@ import {
   TransactionReceipt,
   TransactionResponse,
   WebSocketProvider,
+  Zone,
 } from "quais"
 import {
   QuaiTransactionRequest,
@@ -36,11 +37,7 @@ import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, createDB } from "./db"
 import BaseService from "../base"
-import {
-  blockFromEthersBlock,
-  blockFromProviderBlock,
-  getExtendedZoneForAddress,
-} from "./utils"
+import { blockFromProviderBlock, getExtendedZoneForAddress } from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
 import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
@@ -350,7 +347,7 @@ export default class ChainService extends BaseService<Events> {
   ): Promise<void> => {
     networks.forEach((network) => {
       Promise.allSettled([
-        this.fetchLatestBlockForNetwork(network),
+        this.pollLatestBlock(network),
         this.subscribeToNewHeads(network),
         this.emitter.emit("networkSubscribed", network),
       ]).catch((e) => logger.error(e))
@@ -544,51 +541,46 @@ export default class ChainService extends BaseService<Events> {
   }
 
   /**
-   * Return cached information on a block if it's in the local DB.
+   * Polls the latest block number from the blockchain, saves it into the database,
+   * and emits a block event.
    *
-   * Otherwise, retrieve the block from the specified network, caching and
-   * returning the object.
-   *
-   * @param network the EVM network we're interested in
-   * @param blockHash the hash of the block we're interested in
-   * @param address
+   * @param {NetworkInterface} network - The network interface to use for polling the block.
    */
+  private async pollLatestBlock(network: NetworkInterface): Promise<void> {
+    try {
+      const { jsonRpc } = this.currentProvider
+      const { address } = await this.preferenceService.getSelectedAccount()
 
-  async getBlockData(
-    network: NetworkInterface,
-    blockHash: string,
-    address: string
-  ): Promise<AnyEVMBlock> {
-    const cachedBlock = await this.db.getBlock(network, blockHash)
-    if (cachedBlock) return cachedBlock
+      const shard = getExtendedZoneForAddress(address, false) as Shard
 
-    const shard = getExtendedZoneForAddress(address, false) as Shard
+      const latestBlock = await jsonRpc.getBlock(shard, "latest")
+      if (!latestBlock) return
 
-    if (!shard) throw new Error("Failed to get zone for shard")
+      const block = blockFromProviderBlock(network, latestBlock)
+      await this.db.addBlock(block)
 
-    const resultBlock = await this.currentProvider.jsonRpc?.getBlock(
-      shard,
-      blockHash
-    )
-    if (!resultBlock) throw new Error(`Failed to get block`)
+      this.emitter.emit("block", block)
 
-    const block = blockFromEthersBlock(network, resultBlock)
-    await this.db.addBlock(block)
-    this.emitter.emit("block", block)
-    return block
+      // TODO if it matches a known block height and the difficulty is higher,
+      // emit a reorg event
+    } catch (e) {
+      logger.error("Error getting block number", e)
+    }
   }
 
   /**
    * Return cached information on a block if it's in the local DB.
    *
-   * Otherwise, retrieve the block from the specified *shard*, caching and
-   * returning the object.
+   * If the block is not cached, retrieve it from the specified shard,
+   * cache it in the local DB, and return the block object.
    *
-   * @param network the EVM network we're interested in
-   * @param shard
-   * @param blockHash the hash of the block we're interested in
+   * @param network - The EVM network we're interested in.
+   * @param shard - The shard from which to retrieve the block.
+   * @param blockHash - The hash of the block we're interested in.
+   * @returns {Promise<AnyEVMBlock>} - The block object, either from cache or from the network.
+   * @throws {Error} - If the block cannot be retrieved from the network.
    */
-  async getBlockDataExternal(
+  async getBlockByHash(
     network: NetworkInterface,
     shard: Shard,
     blockHash: string
@@ -596,16 +588,15 @@ export default class ChainService extends BaseService<Events> {
     const cachedBlock = await this.db.getBlock(network, blockHash)
     if (cachedBlock) return cachedBlock
 
-    const { currentProvider } = this
+    const { jsonRpc } = this.currentProvider
+    const resultBlock = await jsonRpc.getBlock(shard, blockHash)
+    if (!resultBlock) {
+      throw new Error(`Failed to get block`)
+    }
 
-    const resultBlock = await currentProvider.jsonRpc?.getBlock(
-      shard,
-      blockHash
-    )
-    if (!resultBlock) throw new Error(`Failed to get block`)
-
-    const block = blockFromEthersBlock(network, resultBlock)
+    const block = blockFromProviderBlock(network, resultBlock)
     await this.db.addBlock(block)
+
     this.emitter.emit("block", block)
     return block
   }
@@ -729,24 +720,6 @@ export default class ChainService extends BaseService<Events> {
         ({ transaction }) => transaction.hash !== txHash
       )
     }
-  }
-
-  /**
-   * Estimate the gas needed to make a transaction. Adds 10% as a safety net to
-   * the base estimate returned by the provider.
-   */
-  async estimateGasLimit(
-    transactionRequest: QuaiTransactionRequest
-  ): Promise<bigint> {
-    const estimate = await this.currentProvider.jsonRpc?.estimateGas(
-      transactionRequest
-    )
-
-    if (!estimate) throw new Error("Failed to estimate gas")
-
-    // Add 10% more gas as a safety net
-    const uppedEstimate = estimate + estimate / 10n
-    return BigInt(uppedEstimate.toString())
   }
 
   /**
@@ -948,34 +921,17 @@ export default class ChainService extends BaseService<Events> {
 
     const { address } = await this.preferenceService.getSelectedAccount()
     const shard = getExtendedZoneForAddress(address, false) as Shard
+    const zone = Zone.Cyprus1 // TODO-MIGRATION toZone function can not be imported from quais
     const blockPrices = await getBlockPrices(
       subscription.network,
       subscription.provider,
-      shard
+      shard,
+      zone
     )
     this.emitter.emit("blockPrices", {
       blockPrices,
       network: subscription.network,
     })
-  }
-
-  /*
-   * Fetch, persist, and emit the latest block on a given network.
-   */
-  private async pollLatestBlock(
-    network: NetworkInterface,
-    provider: JsonRpcProvider
-  ): Promise<void> {
-    const { address } = await this.preferenceService.getSelectedAccount()
-    const shard = getExtendedZoneForAddress(address, false) as Shard
-    const ethersBlock = await provider.getBlock(shard, "latest")
-    // add new head to database
-    const block = blockFromProviderBlock(network, ethersBlock)
-    await this.db.addBlock(block)
-    // emit the new block, don't wait to settle
-    this.emitter.emit("block", block)
-    // TODO if it matches a known block height and the difficulty is higher,
-    // emit a reorg event
   }
 
   async send(method: string, params: unknown[]): Promise<unknown> {
@@ -1374,34 +1330,6 @@ export default class ChainService extends BaseService<Events> {
   }
 
   /**
-   * Get the latest block for a network and save it to the db.
-   *
-   * @param network The EVM network to watch.
-   */
-  private async fetchLatestBlockForNetwork(
-    network: NetworkInterface
-  ): Promise<void> {
-    const provider = this.currentProvider.jsonRpc
-    if (provider) {
-      try {
-        const { address } = await this.preferenceService.getSelectedAccount()
-
-        const shard = getExtendedZoneForAddress(address, false) as Shard
-
-        const blockNumber = await provider.getBlockNumber(shard)
-
-        const result = await provider.getBlock(shard, blockNumber)
-        if (!result) throw new Error("Failed to get block")
-
-        const block = blockFromEthersBlock(network, result)
-        await this.db.addBlock(block)
-      } catch (e) {
-        logger.error("Error getting block number", e)
-      }
-    }
-  }
-
-  /**
    * Watch a network for new blocks, saving each to the database and emitting an
    * event. Re-orgs are currently ignored.
    *
@@ -1418,7 +1346,7 @@ export default class ChainService extends BaseService<Events> {
       provider: currentProvider.jsonRpc,
     })
 
-    this.pollLatestBlock(network, currentProvider.jsonRpc)
+    this.pollLatestBlock(network)
     this.pollBlockPrices()
   }
 

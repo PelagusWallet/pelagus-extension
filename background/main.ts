@@ -637,7 +637,6 @@ export default class Main extends BaseService<never> {
   public GetShard(): string {
     const selectedAddress = this.store.getState().ui.selectedAccount.address
     if (selectedAddress === undefined || selectedAddress === "") {
-      console.error("No selected address")
       return "cyprus-1"
     }
     return getExtendedZoneForAddress(selectedAddress)

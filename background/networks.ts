@@ -1,4 +1,3 @@
-import { Transaction } from "@quais/transactions"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { ChainData, Slip44CoinType } from "./constants"
 import { HexString, UNIXTime } from "./types"
@@ -78,43 +77,18 @@ export type ChainIdWithError = {
  */
 export type AnyNetwork = NetworkInterface
 
-/**
- * An EVM-style block identifier, including difficulty, block height, and
- * self/parent hash data.
- */
-export type EVMBlock = {
+export type EIP1559Block = {
   hash: string
   parentHash: string
   difficulty: bigint
   blockHeight: number
   timestamp: UNIXTime
+  baseFeePerGas: bigint
   network: NetworkInterface
 }
 
-/**
- * An EVM-style block identifier that includes the base fee, as per EIP-1559.
- */
-export type EIP1559Block = EVMBlock & {
-  baseFeePerGas: bigint
-}
-
-/**
- * A pre- or post-EIP1559 EVM-style block.
- */
-export type AnyEVMBlock = EVMBlock | EIP1559Block
-
-/**
- * Transaction types attributes are expanded in the https://eips.ethereum.org/EIPS/eip-2718 standard which
- * is backward compatible. This means that it's enough for us to expand only the accepted tx types.
- * On the other hand we have yet to find other types from the range being used, so let's be restrictive,
- * and we can expand the range afterward. Types we have encountered so far:
- * 0 - plain jane
- * 1 - EIP-2930
- * 2 - EIP-1559 transactions
- * 100 - EIP-2718 on Arbitrum
- */
-export const KNOWN_TX_TYPES = [0, 1, 2, 100] as const
-export type KnownTxTypes = typeof KNOWN_TX_TYPES[number]
+// TODO-MIGRATION replace with quai block
+export type AnyEVMBlock = EIP1559Block
 
 /**
  * The estimated gas prices for including a transaction in the next block.

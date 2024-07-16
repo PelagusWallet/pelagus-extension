@@ -281,12 +281,12 @@ export default async function resolveTransactionAnnotation(
   if (blockHash) {
     block =
       useDestinationShard && transaction.to
-        ? await chainService.getBlockDataExternal(
+        ? await chainService.getBlockByHash(
             network,
             getExtendedZoneForAddress(transaction.to, false) as Shard,
             blockHash
           )
-        : await chainService.getBlockDataExternal(
+        : await chainService.getBlockByHash(
             network,
             getExtendedZoneForAddress(transaction.from, false) as Shard,
             blockHash

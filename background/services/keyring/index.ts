@@ -586,6 +586,8 @@ export default class KeyringService extends BaseService<Events> {
   public getQuaiHDWalletSourceForAddress(
     address: string
   ): SignerImportSource | null {
+    this.requireUnlocked()
+
     const foundedHDWallet = this.findQuaiHDWalletByAddress(address)
     if (!foundedHDWallet) {
       logger.error("QuaiHDWallet associated with an address is not found.")

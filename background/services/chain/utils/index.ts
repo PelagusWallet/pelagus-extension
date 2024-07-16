@@ -1,58 +1,29 @@
-import { getZoneForAddress, toBigInt, Zone, Block } from "quais"
-import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
-import { AnyEVMBlock, KnownTxTypes } from "../../../networks"
+import { getZoneForAddress, Zone, Block } from "quais"
+import { AnyEVMBlock } from "../../../networks"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
-/**
- * Parse a block as returned by a polling provider.
- */
-export function blockFromEthersBlock(
-  network: NetworkInterface,
-  block: Block
-): AnyEVMBlock {
-  if (!block) throw new Error("Failed get Block")
-
-  // TODO-MIGRATION: CHECK BLOCK (blockHeight and parentHash)
-  return {
-    hash: block.woBody.header.hash,
-    blockHeight: Number(block.woBody.header.number[2]),
-    parentHash: block.woBody.header.parentHash[2],
-    difficulty: 0n,
-    timestamp: block.date?.getTime(),
-    baseFeePerGas: block.woBody.header.baseFeePerGas,
-    network,
-  } as AnyEVMBlock
-}
+import { parseHexTimestamp } from "../../../utils/time"
 
 /**
  * Parse a block as returned by a provider query.
  */
 export function blockFromProviderBlock(
   network: NetworkInterface,
-  incomingGethResult: unknown
+  block: Block
 ): AnyEVMBlock {
-  const gethResult = incomingGethResult as {
-    hash: string
-    number: string
-    parentHash: string
-    difficulty: string
-    timestamp: string
-    baseFeePerGas?: string
-  }
+  const { difficulty, time } = block.woHeader
+  const { number, hash, parentHash, baseFeePerGas } = block.woBody.header
 
-  const blockNumber: string = Array.isArray(gethResult.number)
-    ? gethResult.number[gethResult.number.length - 1]
-    : gethResult.number
+  const blockNumber: string = Array.isArray(number)
+    ? number[number.length - 1]
+    : number
 
   return {
-    hash: gethResult.hash,
-    blockHeight: Number(toBigInt(blockNumber)),
-    parentHash: gethResult.parentHash,
-    // PoS networks will not have block difficulty.
-    difficulty: gethResult.difficulty ? BigInt(gethResult.difficulty) : 0n,
-    timestamp: Number(toBigInt(gethResult.timestamp)),
-    baseFeePerGas: gethResult.baseFeePerGas
-      ? BigInt(gethResult.baseFeePerGas)
-      : undefined,
+    hash: hash || "",
+    blockHeight: Number(blockNumber),
+    parentHash: parentHash[parentHash.length - 1] || "",
+    difficulty: BigInt(difficulty),
+    timestamp: parseHexTimestamp(time),
+    baseFeePerGas: baseFeePerGas ? BigInt(baseFeePerGas) : 0n,
     network,
   }
 }

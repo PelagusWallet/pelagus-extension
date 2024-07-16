@@ -321,7 +321,8 @@ export class ChainDatabase extends Dexie {
   }
 
   /** TRANSACTIONS */
-  async getAllQuaiTransactions(): Promise<QuaiTransactionDBEntry[]> {
+
+  async getAllQuaiTransactions(): Promise<SerializedTransactionForHistory[]> {
     return this.quaiTransactions.toArray()
   }
 
@@ -365,20 +366,23 @@ export class ChainDatabase extends Dexie {
     tx: SerializedTransactionForHistory,
     dataSource: QuaiTransactionDBEntry["dataSource"]
   ): Promise<void> {
+    if (!tx) {
+      throw new Error("No provided tx for save")
+    }
     try {
       const existingTx = await this.getQuaiTransactionByHash(tx.hash)
 
-      const mergedTx = {
-        ...tx,
-        ...existingTx,
-      } as SerializedTransactionForHistory
-      if (!mergedTx) {
-        throw new Error("Failed to get quai transaction by hash from DB")
-      }
+      const nonce = existingTx?.nonce ? existingTx?.nonce : tx?.nonce
+      const blockNumber = existingTx?.blockNumber
+        ? existingTx?.blockNumber
+        : tx?.blockNumber
 
       await this.transaction("rw", this.quaiTransactions, async () => {
         await this.quaiTransactions.put({
-          ...mergedTx,
+          ...existingTx,
+          ...tx,
+          nonce,
+          blockNumber,
           dataSource,
           firstSeen: Date.now(),
         })

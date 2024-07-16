@@ -744,7 +744,7 @@ export default class Main extends BaseService<never> {
       addActivity({
         transaction: {
           ...enrichedTransaction,
-          status: status ?? transaction.blockHash ? 2 : -1,
+          status: status ?? transaction?.blockHash ? 2 : -1,
         },
         forAccounts: getRelevantTransactionAddresses(
           enrichedTransaction,
@@ -761,27 +761,17 @@ export default class Main extends BaseService<never> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
     const transaction = await this.chainService.getTransaction(txHash)
 
-    if (
-      transaction.blockHash &&
-      (!("etxs" in transaction) || !transaction.etxs.length)
-    ) {
-      console.warn("No ETXs emitted for tx: ", transaction.hash)
+    if (transaction?.blockHash && !transaction?.etxs?.length) {
+      console.warn("No ETXs emitted for tx: ", transaction?.hash)
       return
     }
 
-    if ("status" in transaction && transaction.status === status) {
-      console.log(
-        "ETX not yet found on destination chain: ",
-        "etxs" in transaction ? transaction.etxs[0] : "No hash"
-      )
+    if (transaction?.status === status) {
+      console.log("ETX not yet found on destination chain: ")
       return // Nothing has changed since last enrichment
     }
 
-    console.log(
-      "Enriching again because status has changed",
-      "status" in transaction ? transaction.status : "No status before - ",
-      status
-    )
+    console.log("Enriching again because status has changed")
 
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
       transaction,
@@ -1572,12 +1562,10 @@ export default class Main extends BaseService<never> {
   async getActivityDetails(txHash: string): Promise<ActivityDetail[]> {
     const transaction = await this.chainService.getTransaction(txHash)
     if (!transaction) return []
-
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
       transaction,
       2
     )
-
     return getActivityDetails(enrichedTransaction)
   }
 

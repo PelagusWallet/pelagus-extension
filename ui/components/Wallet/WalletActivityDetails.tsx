@@ -143,7 +143,6 @@ export default function WalletActivityDetails(
   const network = useBackgroundSelector(selectCurrentNetwork)
   const account = useBackgroundSelector(selectCurrentAccount)
   const blockExplorerUrl = getBlockExplorerURL(network, account.address)
-
   const openExplorer = useCallback(() => {
     window
       .open(`${blockExplorerUrl}/tx/${activityItem.hash}`, "_blank")
@@ -196,10 +195,14 @@ export default function WalletActivityDetails(
         {details?.length ? (
           <></>
         ) : (
-          Array.from({ length: 7 }).map(() => (
+          Array.from({ length: 7 }).map((_, index) => (
             <SharedSkeletonLoader
               height={24}
               customStyles="margin: 10px 0 15px;"
+              key={
+                // eslint-disable-next-line react/no-array-index-key
+                index
+              }
             />
           ))
         )}

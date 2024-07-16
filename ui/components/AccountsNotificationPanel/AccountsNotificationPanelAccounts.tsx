@@ -669,7 +669,10 @@ export default function AccountsNotificationPanelAccounts({
         }
 
         return (
-          <div key={switcherWrapIdx} className="switcherWrapIdx">
+          <div
+            key={`${switcherWrapIdx}_${accountType}`}
+            className="switcherWrapIdx"
+          >
             {shouldAddHeader(existingAccountTypes, accountType) && (
               <div className="category_wrap simple_text">
                 {isAccountWithSecrets(accountType) &&

@@ -16,7 +16,7 @@ import {
 import { getExtendedZoneForAddress } from "../services/chain/utils"
 import {
   EnrichedQuaiTransaction,
-  QuaiTransactionState,
+  SerializedTransactionForHistory,
 } from "../services/chain/types"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
@@ -46,7 +46,7 @@ const addActivityToState =
   (
     address: string,
     chainID: string,
-    transaction: QuaiTransactionState | EnrichedQuaiTransaction
+    transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
   ) => {
     const isEtx =
       transaction.to &&
@@ -88,7 +88,7 @@ const initializeActivitiesFromTransactions = ({
   transactions,
   accounts,
 }: {
-  transactions: QuaiTransactionState[]
+  transactions: SerializedTransactionForHistory[]
   accounts: AddressOnNetwork[]
 }): Activities => {
   const activities: {
@@ -143,7 +143,7 @@ const activitiesSlice = createSlice({
         payload,
       }: {
         payload: {
-          transactions: QuaiTransactionState[]
+          transactions: SerializedTransactionForHistory[]
           accounts: AddressOnNetwork[]
         }
       }
@@ -156,7 +156,7 @@ const activitiesSlice = createSlice({
         payload: { transactions, account },
       }: {
         payload: {
-          transactions: QuaiTransactionState[]
+          transactions: SerializedTransactionForHistory[]
           account: AddressOnNetwork
         }
       }

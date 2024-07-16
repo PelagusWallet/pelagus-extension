@@ -1,4 +1,4 @@
-import { toBigInt } from "quais"
+import { BigNumberish, toBigInt } from "quais"
 import { assetAmountToDesiredDecimals } from "../../assets"
 import {
   convertToEth,
@@ -9,11 +9,14 @@ import {
 import { isDefined } from "../../lib/utils/type-guards"
 import { getRecipient, getSender } from "../../services/enrichment/utils"
 import { HexString } from "../../types"
-import { getExtendedZoneForAddress } from "../../services/chain/utils"
+import {
+  getExtendedZoneForAddress,
+  getNetworkById,
+} from "../../services/chain/utils"
 import {
   EnrichedQuaiTransaction,
-  QuaiTransactionState,
   QuaiTransactionStatus,
+  SerializedTransactionForHistory,
 } from "../../services/chain/types"
 
 export const INFINITE_VALUE = "infinite"
@@ -44,15 +47,13 @@ export type ActivityDetail = {
 const ACTIVITY_DECIMALS = 2
 
 function isEnrichedTransaction(
-  transaction: QuaiTransactionState | EnrichedQuaiTransaction
+  transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
 ): transaction is EnrichedQuaiTransaction {
   return "annotation" in transaction
 }
 
 function getAmount(tx: EnrichedQuaiTransaction): string {
-  const txNetwork = globalThis.main.chainService.supportedNetworks.find(
-    (net) => toBigInt(net.chainID) === toBigInt(tx.chainId ?? 0)
-  )
+  const txNetwork = getNetworkById(tx?.chainId)
 
   if (!txNetwork)
     throw new Error("Failed find a tx network fot getting activity")
@@ -83,22 +84,30 @@ async function getBlockHeight(tx: EnrichedQuaiTransaction): Promise<string> {
   return "(pending)"
 }
 
-function getGweiPrice(value: bigint | null | undefined): string {
-  if (value === null || typeof value === "undefined") return "(Unknown)"
+function getGweiPrice(value: bigint | null | undefined | BigNumberish): string {
+  if (!value) return "(Unknown)"
 
   return `${weiToGwei(value) || "0"} Gwei`
 }
 
 function getTimestamp(blockTimestamp: number | undefined) {
-  return blockTimestamp
-    ? new Date(blockTimestamp * 1000).toLocaleString()
-    : "(Unknown)"
+  if (!blockTimestamp) {
+    return "(Unknown)"
+  }
+
+  const date = new Date(blockTimestamp)
+
+  const hours = date.getHours()
+  const minutes = date.getMinutes().toString().padStart(2, "0")
+  const month = (date.getMonth() + 1).toString()
+  const dayOfMonth = date.getDate().toString()
+  const year = date.getFullYear().toString().slice(-2)
+
+  return `${hours}:${minutes} on ${month}/${dayOfMonth}/${year}`
 }
 
 const getAssetSymbol = (transaction: EnrichedQuaiTransaction) => {
-  const txNetwork = globalThis.main.chainService.supportedNetworks.find(
-    (net) => toBigInt(net.chainID) === toBigInt(transaction.chainId ?? 0)
-  )
+  const txNetwork = getNetworkById(transaction?.chainId)
 
   if (!txNetwork)
     throw new Error("Failed find a tx network fot getting activity")
@@ -115,11 +124,9 @@ const getAssetSymbol = (transaction: EnrichedQuaiTransaction) => {
 }
 
 const getValue = (
-  transaction: QuaiTransactionState | EnrichedQuaiTransaction
+  transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
 ) => {
-  const txNetwork = globalThis.main.chainService.supportedNetworks.find(
-    (net) => toBigInt(net.chainID) === toBigInt(transaction.chainId ?? 0)
-  )
+  const txNetwork = getNetworkById(transaction?.chainId)
 
   if (!txNetwork)
     throw new Error("Failed find a tx network fot getting activity")
@@ -152,7 +159,7 @@ const getValue = (
   return localizedValue
 }
 
-const getAnnotationType = (transaction: QuaiTransactionState) => {
+const getAnnotationType = (transaction: SerializedTransactionForHistory) => {
   const { to, from } = transaction
   if (typeof to === undefined) return "contract-deployment"
 
@@ -171,18 +178,11 @@ const getAnnotationType = (transaction: QuaiTransactionState) => {
 }
 
 export const getActivity = (
-  transaction: QuaiTransactionState | EnrichedQuaiTransaction
+  transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
 ): Activity => {
-  const { to, from, nonce, hash, blockHash, chainId } = transaction
+  const { to, from, nonce, hash, blockHash, chainId, blockNumber } = transaction
 
-  const txNetwork = globalThis.main.chainService.supportedNetworks.find(
-    (net) => toBigInt(net.chainID) === toBigInt(chainId ?? 0)
-  )
-
-  // TODO
-  // const blockHeight = await globalThis.main.chainService
-  //   .getCurrentProvider()
-  //   .jsonRpc.getBlockNumber()
+  const txNetwork = getNetworkById(chainId)
 
   if (!txNetwork)
     throw new Error("Failed find a tx network fot getting activity")
@@ -193,8 +193,7 @@ export const getActivity = (
     from: from ?? "",
     recipient: { address: to ?? "" },
     sender: { address: from },
-    // TODO
-    blockHeight: 0,
+    blockHeight: blockNumber,
     assetSymbol: txNetwork?.baseAsset.symbol,
     nonce: nonce ?? 0,
     hash: hash ?? "",
@@ -292,13 +291,19 @@ export async function getActivityDetails(
           })
           .filter(isDefined)
 
-  const { maxFeePerGas, gasPrice, nonce, hash } = tx
+  const {
+    maxFeePerGas = null,
+    gasPrice = null,
+    nonce = null,
+    hash,
+    gasUsed,
+  } = tx
   return [
     { label: "Block Height", value: await getBlockHeight(tx) },
     { label: "Amount", value: getAmount(tx) ?? "" },
-    { label: "Max Fee/Gas", value: getGweiPrice(toBigInt(maxFeePerGas ?? 0)) },
-    { label: "Gas Price", value: getGweiPrice(toBigInt(gasPrice ?? 0)) },
-    { label: "Gas", value: "gasUsed" in tx ? tx.gasUsed.toString() : "" },
+    { label: "Max Fee/Gas", value: getGweiPrice(maxFeePerGas) },
+    { label: "Gas Price", value: getGweiPrice(gasPrice) },
+    { label: "Gas", value: gasUsed ? gasUsed.toString() : "(Unknown)" },
     { label: "Nonce", value: String(nonce) },
     { label: "Timestamp", value: getTimestamp(annotation?.blockTimestamp) },
     { label: "Hash", value: hash },

@@ -4,9 +4,8 @@ import { HexString, UNIXTime } from "./types"
 import type { FungibleAsset } from "./assets"
 import { NetworkInterface } from "./constants/networks/networkTypes"
 import {
-  ConfirmedQuaiTransaction,
-  FailedQuaiTransaction,
-  PendingQuaiTransaction,
+  QuaiTransactionState,
+  SerializedTransactionForHistory,
 } from "./services/chain/types"
 
 /**
@@ -160,13 +159,10 @@ export function toHexChainID(chainID: string | number): string {
 
 // There is probably some clever way to combine the following type guards into one function
 export const isEIP1559TransactionRequest = (
-  transactionRequest: // TODO-MIGRATION we don`t need this in future - remove
-  | ConfirmedQuaiTransaction
-    | PendingQuaiTransaction
-    | FailedQuaiTransaction
+  transactionRequest:
     | QuaiTransactionRequest
-): transactionRequest is QuaiTransactionRequest =>
-  "maxFeePerGas" in transactionRequest &&
-  transactionRequest.maxFeePerGas !== null &&
-  "maxPriorityFeePerGas" in transactionRequest &&
-  transactionRequest.maxPriorityFeePerGas !== null
+    | QuaiTransactionState
+    | SerializedTransactionForHistory
+) =>
+  !!transactionRequest?.maxFeePerGas ||
+  !!transactionRequest?.maxPriorityFeePerGas

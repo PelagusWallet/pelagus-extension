@@ -24,7 +24,7 @@ import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { CustomAsset, getOrCreateDb, IndexingDatabase } from "./db"
 import BaseService from "../base"
 import { sameQuaiAddress } from "../../lib/utils"
-import { getExtendedZoneForAddress } from "../chain/utils"
+import { getExtendedZoneForAddress, getNetworkById } from "../chain/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { isQuaiHandle } from "../../constants/networks/networkUtils"
 import { NetworksArray } from "../../constants/networks/networks"
@@ -261,10 +261,7 @@ export default class IndexingService extends BaseService<Events> {
   notifyEnrichedTransaction(
     enrichedEVMTransaction: EnrichedQuaiTransaction
   ): void {
-    const network = globalThis.main.chainService.supportedNetworks.find(
-      (net) =>
-        toBigInt(net.chainID) === toBigInt(enrichedEVMTransaction.chainId ?? 0)
-    )
+    const network = getNetworkById(enrichedEVMTransaction?.chainId)
 
     if (!network)
       throw new Error("Failed find a network in notifyEnrichedTransaction")
@@ -423,11 +420,7 @@ export default class IndexingService extends BaseService<Events> {
     this.chainService.emitter.on(
       "transaction",
       async ({ transaction, forAccounts }) => {
-        const transactionNetwork =
-          globalThis.main.chainService.supportedNetworks.find(
-            (net) =>
-              toBigInt(net.chainID) === toBigInt(transaction.chainId ?? 0)
-          )
+        const transactionNetwork = getNetworkById(transaction?.chainId)
 
         if (!transactionNetwork)
           throw new Error("Failed find network for transaction")

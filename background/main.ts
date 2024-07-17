@@ -702,7 +702,6 @@ export default class Main extends BaseService<never> {
     await this.enrichActivities()
   }
 
-  // TODO delete unused function param
   async enrichActivities(): Promise<void> {
     const activitiesToEnrich = selectActivitiesHashesForEnrichment(
       this.store.getState()
@@ -711,26 +710,22 @@ export default class Main extends BaseService<never> {
     // This a mint if the from address is '0x0000000000000000000000000000000000000000' and we enrich it as an ITX
     await Promise.all(
       activitiesToEnrich.map(async (activity) => {
-        const { hash: txHash, status, to, from } = activity
+        const { hash: txHash, to = "", from } = activity
 
         if (
-          to &&
           getExtendedZoneForAddress(to, false) !==
             getExtendedZoneForAddress(from, false) &&
           from !== "0x0000000000000000000000000000000000000000"
         ) {
-          await this.enrichETXActivity(txHash, status)
+          await this.enrichETXActivity(txHash)
         } else {
-          await this.enrichITXActivity(txHash, status)
+          await this.enrichITXActivity(txHash)
         }
       })
     )
   }
 
-  async enrichITXActivity(
-    txHash: HexString,
-    status: number | undefined
-  ): Promise<void> {
+  async enrichITXActivity(txHash: HexString): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
     const transaction = await this.chainService.getTransaction(txHash)
     if (!transaction) return
@@ -744,7 +739,6 @@ export default class Main extends BaseService<never> {
       addActivity({
         transaction: {
           ...enrichedTransaction,
-          status: status ?? transaction?.blockHash ? 2 : -1,
         },
         forAccounts: getRelevantTransactionAddresses(
           enrichedTransaction,
@@ -754,21 +748,13 @@ export default class Main extends BaseService<never> {
     )
   }
 
-  async enrichETXActivity(
-    txHash: HexString,
-    status: number | undefined
-  ): Promise<void> {
+  async enrichETXActivity(txHash: HexString): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
     const transaction = await this.chainService.getTransaction(txHash)
 
     if (transaction?.blockHash && !transaction?.etxs?.length) {
       console.warn("No ETXs emitted for tx: ", transaction?.hash)
       return
-    }
-
-    if (transaction?.status === status) {
-      console.log("ETX not yet found on destination chain: ")
-      return // Nothing has changed since last enrichment
     }
 
     console.log("Enriching again because status has changed")

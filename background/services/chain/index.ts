@@ -37,7 +37,10 @@ import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, createDB, QuaiTransactionDBEntry } from "./db"
 import BaseService from "../base"
-import { blockFromProviderBlock, getExtendedZoneForAddress,   getNetworkById,
+import {
+  blockFromProviderBlock,
+  getExtendedZoneForAddress,
+  getNetworkById,
 } from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
 import AssetDataHelper from "./utils/asset-data-helper"
@@ -619,6 +622,7 @@ export default class ChainService extends BaseService<Events> {
     txHash: HexString
   ): Promise<SerializedTransactionForHistory | QuaiTransactionDBEntry | null> {
     const { currentProvider } = this
+    const cachedTx = await this.db.getQuaiTransactionByHash(txHash)
     return currentProvider.jsonRpc
       .getTransaction(txHash)
       .then(async (tx) => {
@@ -630,26 +634,18 @@ export default class ChainService extends BaseService<Events> {
           txHash
         )
 
-        if (receipt) {
-          const confirmedQuaiTransaction = createConfirmedQuaiTransaction(
-            transaction,
-            receipt
-          )
+        if (!receipt || !transaction?.blockNumber) return cachedTx
 
-          await this.saveTransaction(confirmedQuaiTransaction, "local")
+        const confirmedQuaiTransaction = createConfirmedQuaiTransaction(
+          transaction,
+          receipt
+        )
 
-          return this.db.getQuaiTransactionByHash(
-            confirmedQuaiTransaction?.hash
-          )
-        }
+        await this.saveTransaction(confirmedQuaiTransaction, "local")
 
-        const pendingQuaiTransaction = createPendingQuaiTransaction(transaction)
-        await this.saveTransaction(pendingQuaiTransaction, "local")
-
-        return this.db.getQuaiTransactionByHash(pendingQuaiTransaction?.hash)
+        return this.db.getQuaiTransactionByHash(confirmedQuaiTransaction?.hash)
       })
       .catch(async () => {
-        const cachedTx = await this.db.getQuaiTransactionByHash(txHash)
         if (!cachedTx) throw new Error("Failed to get transaction")
         return cachedTx
       })
@@ -755,10 +751,8 @@ export default class ChainService extends BaseService<Events> {
       const transactionResponse =
         await this.keyringService.signAndSendQuaiTransaction(request)
 
-      const network = NetworksArray.find(
-        (net) =>
-          toBigInt(net.chainID) === toBigInt(transactionResponse.chainId ?? 0)
-      )
+      const network = getNetworkById(transactionResponse?.chainId)
+
       if (!network) {
         throw new Error("Network is null.")
       }
@@ -812,9 +806,7 @@ export default class ChainService extends BaseService<Events> {
         )
       }
 
-      const network = NetworksArray.find(
-        (net) => toBigInt(net.chainID) === toBigInt(transaction.chainId ?? 0)
-      )
+      const network = getNetworkById(transaction?.chainId)
       if (!network) {
         throw new Error("Network is null.")
       }
@@ -968,9 +960,9 @@ export default class ChainService extends BaseService<Events> {
     hash: string
   ): Promise<TransactionResponse | null | undefined> {
     const provider = this.currentProvider
-    const result = await provider.jsonRpc?.getTransaction(hash)
-
-    if (!result) {
+    try {
+      return await provider.jsonRpc?.getTransaction(hash)
+    } catch (e) {
       logger.warn(
         `Tx hash ${hash} is found in our local registry but not on chain.`
       )
@@ -988,9 +980,8 @@ export default class ChainService extends BaseService<Events> {
         // Let's see if we have the tx in the db, and if yes let's mark it as dropped.
         await this.saveTransaction(failedTransaction, "local")
       }
+      return null
     }
-
-    return result
   }
 
   /* *****************
@@ -1205,35 +1196,15 @@ export default class ChainService extends BaseService<Events> {
       if (!transactionResponse)
         throw new Error(`Failed to get or cancel transaction`)
 
-      const isMined = transactionResponse.isMined()
       const receipt = await this.currentProvider.jsonRpc.getTransactionReceipt(
         hash
       )
 
-      if (isMined && receipt) {
-        const confirmedQuaiTransaction = createConfirmedQuaiTransaction(
-          transactionResponse,
-          receipt
+      if (receipt && transactionResponse.blockNumber)
+        await this.saveTransaction(
+          createConfirmedQuaiTransaction(transactionResponse, receipt),
+          "local"
         )
-        await this.saveTransaction(confirmedQuaiTransaction, "local")
-        return
-      }
-
-      if (!isMined && receipt) {
-        const pendingQuaiTransaction =
-          createPendingQuaiTransaction(transactionResponse)
-        await this.subscribeToTransactionConfirmation(
-          network,
-          pendingQuaiTransaction
-        )
-        await this.saveTransaction(pendingQuaiTransaction, "local")
-        return
-      }
-
-      await this.saveTransaction(
-        createFailedQuaiTransaction(transactionResponse),
-        "local"
-      )
     } catch (error) {
       logger.error(`Error retrieving transaction ${hash}`, error)
       if (Date.now() <= firstSeen + TRANSACTION_CHECK_LIFETIME_MS) {

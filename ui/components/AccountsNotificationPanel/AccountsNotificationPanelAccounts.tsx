@@ -176,8 +176,9 @@ export default function AccountsNotificationPanelAccounts({
   const updateCurrentAccount = (address: string, signerId: string) => {
     setPendingSelectedAddress(address)
     setSelectedAccountSigner(signerId)
-    if (signerId === "") return
-
+    if (signerId === "") {
+      console.error("signerId is empty")
+    }
     dispatch(
       setNewSelectedAccount({
         address,
@@ -205,6 +206,8 @@ export default function AccountsNotificationPanelAccounts({
     }
   }, [history, areKeyringsUnlocked, dispatch, t])
 
+  const isAlreadyShowNoAcc = useRef(false)
+  
   return (
     <div className="switcher_wrap">
       <div className="account_actions_header">
@@ -314,9 +317,12 @@ export default function AccountsNotificationPanelAccounts({
           (type) => (accountTotals[type]?.length ?? 0) > 0
         )
 
-        if (!filteredAccountTypeTotals.length) {
+        if (!filteredAccountTypeTotals.length && !isAlreadyShowNoAcc.current) {
+          isAlreadyShowNoAcc.current = true
           return <p className="noAccounts">{t("accounts.noResults")}</p>
         }
+
+        isAlreadyShowNoAcc.current = false
 
         return (
           <div

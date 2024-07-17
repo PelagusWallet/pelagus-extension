@@ -14,10 +14,10 @@ export const selectCurrentAccountActivities = createSelector(
 export const selectActivitiesHashesForEnrichment = createSelector(
   selectCurrentAccountActivities,
   (currentActivities) => {
-    // Only need to enrich current activities if they don't have a blockHash already
+    // Only need to enrich current activities if they don't have a blockTimestamp already
     // Once they have a block hash, they've been included and enriched already
     return currentActivities.flatMap((activity) =>
-      activity.status === 1 || activity.status === undefined
+      !activity.blockTimestamp
         ? {
             hash: activity.hash,
             status: activity.status,

@@ -15,7 +15,6 @@ import {
 } from "../../services/chain/utils"
 import {
   EnrichedQuaiTransaction,
-  QuaiTransactionStatus,
   SerializedTransactionForHistory,
 } from "../../services/chain/types"
 
@@ -61,27 +60,6 @@ function getAmount(tx: EnrichedQuaiTransaction): string {
   if (!value) return "(Unknown)"
 
   return `${convertToEth(value) || "0"} ${txNetwork.baseAsset.symbol}`
-}
-
-async function getBlockHeight(tx: EnrichedQuaiTransaction): Promise<string> {
-  const blockHeight = await globalThis.main.chainService
-    .getCurrentProvider()
-    .jsonRpc.getBlockNumber()
-
-  const { status } = tx
-  if (
-    blockHeight &&
-    status !== QuaiTransactionStatus.CONFIRMED &&
-    status !== QuaiTransactionStatus.PENDING
-  )
-    return "(failed)"
-
-  if (blockHeight) return blockHeight.toString()
-
-  if (!blockHeight && status === QuaiTransactionStatus.FAILED)
-    return "(dropped)"
-
-  return "(pending)"
 }
 
 function getGweiPrice(value: bigint | null | undefined | BigNumberish): string {
@@ -161,20 +139,14 @@ const getValue = (
 
 const getAnnotationType = (transaction: SerializedTransactionForHistory) => {
   const { to, from } = transaction
-  if (typeof to === undefined) return "contract-deployment"
+  if (!to) return "contract-deployment"
 
-  let annotation = "contract-interaction"
+  if (!from) return "contract-interaction"
 
-  // Likely not a contract interaction
-
-  if (to && from)
-    annotation =
-      getExtendedZoneForAddress(to, false) !==
-      getExtendedZoneForAddress(from, false)
-        ? "external-transfer"
-        : "asset-transfer"
-
-  return annotation
+  return getExtendedZoneForAddress(to, false) !==
+    getExtendedZoneForAddress(from, false)
+    ? "external-transfer"
+    : "asset-transfer"
 }
 
 export const getActivity = (
@@ -188,7 +160,7 @@ export const getActivity = (
     throw new Error("Failed find a tx network fot getting activity")
 
   let activity: Activity = {
-    status: "status" in transaction ? transaction.status : undefined,
+    status: transaction?.status,
     to: to ?? "",
     from: from ?? "",
     recipient: { address: to ?? "" },
@@ -297,9 +269,13 @@ export async function getActivityDetails(
     nonce = null,
     hash,
     gasUsed,
+    blockNumber,
   } = tx
   return [
-    { label: "Block Height", value: await getBlockHeight(tx) },
+    {
+      label: "Block Height",
+      value: blockNumber ? blockNumber.toString() : "(Unknown)",
+    },
     { label: "Amount", value: getAmount(tx) ?? "" },
     { label: "Max Fee/Gas", value: getGweiPrice(maxFeePerGas) },
     { label: "Gas Price", value: getGweiPrice(gasPrice) },

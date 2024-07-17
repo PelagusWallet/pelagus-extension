@@ -6,10 +6,10 @@ import {
 } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
-import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import SharedActivityIcon from "../Shared/SharedActivityIcon"
 import useActivityViewDetails from "../../hooks/activity-hooks"
+import { QuaiTransactionStatus } from "@pelagus/pelagus-background/services/chain/types"
 
 interface Props {
   onClick: () => void
@@ -53,7 +53,6 @@ export default function WalletActivityListItem(props: Props): ReactElement {
     activity,
     activityInitiatorAddress
   )
-
   return (
     <li>
       <button type="button" className="standard_width" onClick={onClick}>
@@ -61,49 +60,19 @@ export default function WalletActivityListItem(props: Props): ReactElement {
           <div className="left">
             <SharedActivityIcon type={activityViewDetails.icon} size={14} />
             {activityViewDetails.label}
-            {"status" in activity &&
-            activity.blockHash !== null &&
-            activity.status !== 1 &&
-            activity.status !== 0 &&
-            activity.status !== 2 ? (
+            {activity.status === QuaiTransactionStatus.FAILED && (
               <div className="status failed">{t("transactionFailed")}</div>
-            ) : (
-              <></>
             )}
-            {"status" in activity &&
-            activity.blockHash === null &&
-            activity.status === 0 ? (
-              <div className="status dropped">{t("transactionDropped")}</div>
-            ) : (
-              <></>
-            )}
-            {activity.status === 2 ||
-            (activity.blockHash !== null &&
-              activity.to &&
-              getExtendedZoneForAddress(activity.from, false) ===
-                getExtendedZoneForAddress(activity.to, false)) ? (
+            {activity.status === QuaiTransactionStatus.CONFIRMED && (
               <div className="status settled">{t("transactionSettled")}</div>
-            ) : (
-              <></>
             )}
-            {activity.blockHash !== null &&
-            activity.to &&
-            activity.status === 1 &&
-            getExtendedZoneForAddress(activity.from, false) !==
-              getExtendedZoneForAddress(activity.to, false) ? (
-              <div className="status approved">{t("transactionApproved")}</div>
-            ) : (
-              <></>
-            )}
-            {!("status" in activity) && activity.blockHash === null ? (
+            {activity.status === QuaiTransactionStatus.PENDING && (
               <div className="status pending">{t("transactionPending")}</div>
-            ) : (
-              <></>
             )}
           </div>
           <div className="right">
             {activity.blockTimestamp &&
-              dayjs.unix(activity.blockTimestamp).format("MMM D")}
+              dayjs(activity.blockTimestamp).format("MMM D")}
           </div>
         </div>
         <div ref={bottomRef} className="bottom">

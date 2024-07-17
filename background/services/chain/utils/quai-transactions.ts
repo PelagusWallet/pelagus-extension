@@ -125,7 +125,11 @@ export const createSerializedQuaiTransaction = (
         maxPriorityFeePerGas,
         maxFeePerGas,
         nonce,
-        signature,
+        signature: {
+          r: transaction?.signature?.r,
+          s: transaction?.signature?.s,
+          v: transaction?.signature?.v,
+        },
         status,
         type,
         value,

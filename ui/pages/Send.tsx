@@ -327,7 +327,7 @@ export default function Send(): ReactElement {
               className="advanced-button"
               onClick={() => setAdvancedVisible(!advancedVisible)}
             >
-              Advanced
+              Options
             </button>
             {addressErrorMessage !== undefined ? (
               <p className="error">{addressErrorMessage}</p>

@@ -1,8 +1,13 @@
 import { isQuaiAddress, Zone } from "quais"
 
+const ADDRESS_VALIDATION_PATTERN = /^(0x)?[0-9a-fA-F]{40}$/
+
 export const isValidZone = (prefix: string): prefix is Zone => {
   return Object.values(Zone).includes(prefix as Zone)
 }
+
+export const isValidAddressFormat = (addressToValidate: string): boolean =>
+  ADDRESS_VALIDATION_PATTERN.test(addressToValidate)
 
 /**
  * Validates if a given address is a Golden Age address.

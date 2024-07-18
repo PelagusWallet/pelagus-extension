@@ -550,23 +550,19 @@ export default function Send(): ReactElement {
             align-self: flex-end;
             text-align: end;
             margin-top: -25px;
-            margin-right: 15px;
+            margin-right: 4px;
             margin-bottom: 5px;
           }
 
           input#send_address ~ .address {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-
             color: var(--green-60);
             font-weight: 500;
             font-size: 12px;
             line-height: 20px;
-            align-self: flex-start;
-            text-align: start;
-            margin-top: -30px;
-            margin-left: 16px;
+            align-self: flex-end;
+            text-align: end;
+            margin-top: -23px;
+            margin-right: 4px;
             margin-bottom: 5px;
 
             transition: color 0.2s;

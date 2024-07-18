@@ -3,7 +3,10 @@ import { resolveNameOnNetwork } from "@pelagus/pelagus-background/redux-slices/a
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { HexString } from "@pelagus/pelagus-background/types"
 import { useRef, useState, useCallback } from "react"
-import { isGoldenAgeQuaiAddress } from "@pelagus/pelagus-background/utils/addresses"
+import {
+  isGoldenAgeQuaiAddress,
+  isValidAddressFormat,
+} from "@pelagus/pelagus-background/utils/addresses"
 import { useBackgroundDispatch, useBackgroundSelector } from "./redux-hooks"
 
 /**
@@ -127,17 +130,19 @@ export const useAddressOrNameValidation: AsyncValidationHook<
   const handleInputChange = useCallback(
     async (newValue: string) => {
       setRawValue(newValue)
+      setErrorMessage(undefined)
 
       const trimmed = newValue.trim()
-
-      setErrorMessage(undefined)
       if (trimmed === "") {
         onValidChange(undefined)
-      } else if (isGoldenAgeQuaiAddress(trimmed)) {
-        onValidChange({ address: trimmed })
+      } else if (!isValidAddressFormat(trimmed)) {
+        onValidChange(undefined)
+        setErrorMessage("Invalid address format")
       } else if (!isGoldenAgeQuaiAddress(trimmed)) {
         onValidChange(undefined)
         setErrorMessage("Only Golden Age addresses are supported")
+      } else if (isGoldenAgeQuaiAddress(trimmed)) {
+        onValidChange({ address: trimmed })
       } else {
         setIsValidating(true)
         validatingValue.current = trimmed

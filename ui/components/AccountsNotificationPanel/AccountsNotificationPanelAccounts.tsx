@@ -206,8 +206,11 @@ export default function AccountsNotificationPanelAccounts({
     }
   }, [history, areKeyringsUnlocked, dispatch, t])
 
-  // TODO: Need to rewrite all component with data structure to fix this message
-  // const isAlreadyShowNoAcc = useRef(false)
+  const wasFoundAcc = useRef(false)
+
+  useEffect(() => {
+    wasFoundAcc.current = false
+  }, [searchAccountsValue])
 
   return (
     <div className="switcher_wrap">
@@ -229,6 +232,8 @@ export default function AccountsNotificationPanelAccounts({
           searchAccountsValue,
           accountTypeTotals
         )
+
+        if (filteredAccountTypeTotals.length) wasFoundAcc.current = true
 
         const accountTotalsByType = filteredAccountTypeTotals.reduce(
           (acc, accountTypeTotal) => {
@@ -318,13 +323,13 @@ export default function AccountsNotificationPanelAccounts({
           (type) => (accountTotals[type]?.length ?? 0) > 0
         )
 
-        // TODO: Need to rewrite all component with data structure to fix this message
-        // if (!filteredAccountTypeTotals.length && !isAlreadyShowNoAcc.current) {
-        //   isAlreadyShowNoAcc.current = true
-        //   return <p className="noAccounts">{t("accounts.noResults")}</p>
-        // }
-        //
-        // isAlreadyShowNoAcc.current = false
+        if (
+          existingAccountTypes[existingAccountTypes?.length - 1] ===
+            accountType &&
+          !wasFoundAcc.current
+        ) {
+          return <p className="noAccounts">{t("accounts.noResults")}</p>
+        }
 
         return (
           <div

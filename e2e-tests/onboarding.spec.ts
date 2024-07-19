@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Wallet } from "ethers"
-import { test, expect } from "./utils"
+import { Mnemonic, QuaiHDWallet, Zone } from "quais"
+import { generateRandomBytes } from "@pelagus/pelagus-background/services/keyring/utils"
+import { expect, test } from "./utils"
 import { getOnboardingPage } from "./utils/onboarding"
 
 test.describe("Onboarding", () => {
@@ -28,7 +29,14 @@ test.describe("Onboarding", () => {
     page: popup,
     walletPageHelper,
   }) => {
-    const wallet = Wallet.createRandom()
+    const randomBytes = generateRandomBytes(24)
+    const mnemonic = Mnemonic.fromEntropy(randomBytes)
+    const wallet = QuaiHDWallet.fromMnemonic(mnemonic)
+    const { address: walletAddress } = await wallet.getNextAddress(
+      0,
+      Zone.Cyprus1
+    )
+
     const page = await getOnboardingPage(context)
 
     await page.getByRole("button", { name: "Use existing wallet" }).click()
@@ -39,7 +47,7 @@ test.describe("Onboarding", () => {
 
     await page
       .getByRole("textbox", { name: "Input recovery phrase" })
-      .fill(wallet.mnemonic.phrase)
+      .fill(mnemonic.phrase)
 
     await page.getByRole("button", { name: "Import account" }).click()
     await expect(
@@ -52,7 +60,7 @@ test.describe("Onboarding", () => {
     await popup.getByTestId("top_menu_profile_button").last().hover()
     await popup.getByRole("button", { name: "Copy address" }).click()
     const address = await popup.evaluate(() => navigator.clipboard.readText())
-    expect(address.toLowerCase()).toEqual(wallet.address.toLowerCase())
+    expect(address.toLowerCase()).toEqual(walletAddress)
   })
 
   test("User can onboard with a new seed-phrase", async ({

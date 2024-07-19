@@ -1,4 +1,3 @@
-import { TransactionRequest as EthersTransactionRequest } from "@ethersproject/abstract-provider"
 import {
   EIP1193Error,
   EIP1193_ERROR_CODES,
@@ -33,20 +32,20 @@ export function checkPermissionSign(
 }
 
 export function checkPermissionSignTransaction(
-  transactionRequest: EthersTransactionRequest,
+  chainId: number | undefined,
+  from: string | undefined,
   enablingPermission: PermissionRequest
 ): void {
-  if (typeof transactionRequest.chainId !== "undefined") {
-    if (
-      toHexChainID(transactionRequest.chainId) !==
-      toHexChainID(enablingPermission.chainID)
-    ) {
-      throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
-    }
+  if (
+    chainId &&
+    toHexChainID(chainId) !== toHexChainID(enablingPermission.chainID)
+  ) {
+    throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
   }
+
   if (
     enablingPermission.state !== "allow" ||
-    !sameQuaiAddress(transactionRequest.from, enablingPermission.accountAddress)
+    !sameQuaiAddress(from, enablingPermission.accountAddress)
   ) {
     throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
   }

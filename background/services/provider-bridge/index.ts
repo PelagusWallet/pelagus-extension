@@ -464,7 +464,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     origin: string,
     popupPromise: Promise<browser.Windows.Window>
   ): Promise<unknown> {
-    return await this.internalQuaiProviderService
+    return this.internalQuaiProviderService
       .routeSafeRPCRequest(method, params, origin)
       .finally(async () => {
         const popup = await popupPromise
@@ -523,13 +523,8 @@ export default class ProviderBridgeService extends BaseService<Events> {
         case "quai_signTransaction":
         case "quai_sendTransaction":
           checkPermissionSignTransaction(
-            {
-              // A dApp can't know what should be the next nonce because it can't access
-              // the information about how many tx are in the signing process inside the
-              // wallet. Nonce should be assigned only by the wallet.
-              ...(params[0] as QuaiTransactionRequest),
-              nonce: undefined,
-            },
+            (params[0] as QuaiTransactionRequest).chainId,
+            (params[0] as QuaiTransactionRequest).from,
             enablingPermission
           )
 

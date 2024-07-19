@@ -139,6 +139,7 @@ import { getExtendedZoneForAddress } from "./services/chain/utils"
 import { NetworkInterface } from "./constants/networks/networkTypes"
 import { SignerImportMetadata } from "./services/keyring/types"
 import { NetworksArray } from "./constants/networks/networks"
+import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -774,6 +775,35 @@ export default class Main extends BaseService<never> {
       })
     )
   }
+  async signAndSendQuaiTransaction({
+    request,
+    accountSigner,
+  }: {
+    request: QuaiTransactionRequest
+    accountSigner: AccountSigner
+  }): Promise<boolean> {
+    try {
+      const transactionResponse =
+        await this.signingService.signAndSendQuaiTransaction(
+          request,
+          accountSigner
+        )
+
+      await this.analyticsService.sendAnalyticsEvent(
+        AnalyticsEvent.TRANSACTION_SIGNED,
+        {
+          chainId: transactionResponse.chainId,
+        }
+      )
+
+      return true
+    } catch (exception) {
+      this.store.dispatch(
+        clearTransactionState(TransactionConstructionStatus.Idle)
+      )
+      return false
+    }
+  }
 
   async connectChainService(): Promise<void> {
     // Initialize activities for all accounts once on and then
@@ -870,30 +900,6 @@ export default class Main extends BaseService<never> {
           )
         } catch (exception) {
           logger.error("Error signing transaction", exception)
-          this.store.dispatch(
-            clearTransactionState(TransactionConstructionStatus.Idle)
-          )
-        }
-      }
-    )
-
-    transactionConstructionSliceEmitter.on(
-      "signAndSendQuaiTransaction",
-      async ({ request, accountSigner }) => {
-        try {
-          const transactionResponse =
-            await this.signingService.signAndSendQuaiTransaction(
-              request,
-              accountSigner
-            )
-
-          await this.analyticsService.sendAnalyticsEvent(
-            AnalyticsEvent.TRANSACTION_SIGNED,
-            {
-              chainId: transactionResponse.chainId,
-            }
-          )
-        } catch (exception) {
           this.store.dispatch(
             clearTransactionState(TransactionConstructionStatus.Idle)
           )

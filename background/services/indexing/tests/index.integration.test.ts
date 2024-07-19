@@ -1,4 +1,4 @@
-import { fetchJson } from "@ethersproject/web"
+import { FetchRequest } from "quais"
 import sinon, { SinonStub } from "sinon"
 import IndexingService from ".."
 import {
@@ -27,11 +27,11 @@ const getPrivateMethodSpy = <T extends (...args: any[]) => unknown>(
   return jest.spyOn(object, property) as MethodSpy<T>
 }
 
+// TODO fixme
 const fetchJsonStub: SinonStub<
-  Parameters<typeof fetchJson>,
-  ReturnType<typeof fetchJson>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-> = fetchJson as any
+  Parameters<any>,
+  ReturnType<any>
+> = FetchRequest as any
 
 // Default to an empty response
 beforeEach(() => fetchJsonStub.callsFake(async () => ({})))

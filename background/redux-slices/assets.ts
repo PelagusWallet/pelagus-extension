@@ -219,15 +219,18 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
  */
 export const sendAsset = createBackgroundAsyncThunk(
   "assets/sendAsset",
-  async (transferDetails: {
-    fromAddressNetwork: AddressOnNetwork
-    toAddressNetwork: AddressOnNetwork
-    assetAmount: AnyAssetAmount
-    gasLimit?: bigint
-    maxPriorityFeePerGas?: bigint & BigInt
-    maxFeePerGas?: bigint & BigInt
-    accountSigner: AccountSigner
-  }): Promise<{ success: boolean; errorMessage?: string }> => {
+  async (
+    transferDetails: {
+      fromAddressNetwork: AddressOnNetwork
+      toAddressNetwork: AddressOnNetwork
+      assetAmount: AnyAssetAmount
+      gasLimit?: bigint
+      maxPriorityFeePerGas?: bigint & BigInt
+      maxFeePerGas?: bigint & BigInt
+      accountSigner: AccountSigner
+    },
+    { extra: { main } }
+  ): Promise<{ success: boolean; errorMessage?: string }> => {
     const {
       fromAddressNetwork: { address: fromAddress, network: fromNetwork },
       toAddressNetwork: { address: toAddress, network: toNetwork },
@@ -281,15 +284,13 @@ export const sendAsset = createBackgroundAsyncThunk(
         data: transactionData,
         value: transactionValue,
       }
-      await transactionConstructionSliceEmitter.emit(
-        "signAndSendQuaiTransaction",
-        {
-          request,
-          accountSigner,
-        }
-      )
 
-      return { success: true }
+      const isSignedAndSent = await main.signAndSendQuaiTransaction({
+        request,
+        accountSigner,
+      })
+
+      return { success: isSignedAndSent }
     } catch (error) {
       return {
         success: false,

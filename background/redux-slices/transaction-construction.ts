@@ -81,11 +81,6 @@ export const initialState: TransactionConstruction = {
 export type Events = {
   updateTransaction: QuaiTransactionRequestWithAnnotation
 
-  signAndSendQuaiTransaction: {
-    request: QuaiTransactionRequest
-    accountSigner: AccountSigner
-  }
-
   requestSignature: SignOperation<QuaiTransactionRequestWithAnnotation>
   signatureRejected: never
   broadcastSignedTransaction: QuaiTransaction

@@ -353,7 +353,6 @@ export default function AccountsNotificationPanelAccounts({
                     <WalletTypeHeader
                       accountType={accountType}
                       walletNumber={idx + 1}
-                      path={accountTotalsBySignerId[0].path}
                       accountSigner={accountTotalsBySignerId[0].accountSigner}
                       signerId={accountTotalsBySignerId[0].signerId}
                       setZone={handleSetZone}

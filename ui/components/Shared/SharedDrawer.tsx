@@ -57,7 +57,7 @@ export default function SharedDrawer({
         className={classNames("drawer-wrapper", {
           dark: isDark,
           closed: !isOpen,
-          fillAvailable: fillAvailable,
+          fillAvailable,
         })}
         style={
           {
@@ -87,7 +87,7 @@ export default function SharedDrawer({
         </div>
         <div
           className={classNames("drawer-body", {
-            fillAvailable: fillAvailable,
+            fillAvailable,
           })}
         >
           {displayChildren}

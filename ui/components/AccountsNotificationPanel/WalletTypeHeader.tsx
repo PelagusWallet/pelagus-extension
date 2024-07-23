@@ -63,7 +63,6 @@ export default function WalletTypeHeader({
   accountSigner: AccountSigner
   signerId?: string | null
   walletNumber?: number
-  path?: string | null
   setZone: (zone: Zone) => void
   addAddressSelected: boolean
   updateCustomOrder: (address: string[], signerId: string) => void
@@ -71,6 +70,13 @@ export default function WalletTypeHeader({
   setSelectedAccountSigner: (signerId: string) => void
 }) {
   const { t } = useTranslation()
+
+  const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
+  const history = useHistory()
+  const [showEditMenu, setShowEditMenu] = useState(false)
+  const [showZoneMenu, setShowZoneMenu] = useState(false)
+  const isWalletExists = useBackgroundSelector(selectIsWalletExists)
+
   const walletTypeDetails: { [key in AccountType]: WalletTypeInfo } = {
     [AccountType.ReadOnly]: {
       title: t("accounts.notificationPanel.readOnly"),
@@ -102,7 +108,6 @@ export default function WalletTypeHeader({
 
   const handleZoneSelection = (selectedZone: Zone) => {
     setZone(selectedZone as Zone)
-    dispatch(setShowingAddAccountModal(false))
   }
 
   useEffect(() => {
@@ -137,12 +142,6 @@ export default function WalletTypeHeader({
 
     return `${title} ${walletNumber}`
   }, [accountType, title, sectionCustomName, walletNumber])
-
-  const history = useHistory()
-  const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
-  const [showEditMenu, setShowEditMenu] = useState(false)
-  const [showZoneMenu, setShowZoneMenu] = useState(false)
-  const isWalletExists = useBackgroundSelector(selectIsWalletExists)
 
   return (
     <>

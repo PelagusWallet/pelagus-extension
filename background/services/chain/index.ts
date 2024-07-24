@@ -462,14 +462,16 @@ export default class ChainService extends BaseService<Events> {
       trackedAccounts.map((account) => account.address)
     )
 
+    const asset = await this.db.getBaseAssetForNetwork(network.chainID)
+
     const accountBalance: AccountBalance = {
       address,
       network,
       assetAmount: {
-        asset: await this.db.getBaseAssetForNetwork(network.chainID),
+        asset,
         amount: balance ?? toBigInt(0),
       },
-      dataSource: "local", // TODO do this properly (eg provider isn't Alchemy)
+      dataSource: "local",
       retrievedAt: Date.now(),
     }
 

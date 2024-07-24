@@ -420,7 +420,7 @@ export default class KeyringService extends BaseService<Events> {
   async deriveAddress({
     keyringID,
     zone,
-  }: KeyringAccountSigner): Promise<HexString> {
+  }: KeyringAccountSigner): Promise<void> {
     this.requireUnlocked()
 
     const quaiHDWallet = this.quaiHDWallets.find(
@@ -434,12 +434,19 @@ export default class KeyringService extends BaseService<Events> {
       this.quaiHDWalletAccountIndex,
       zone
     )
+    console.log("=== 3 ADDRESS DERIVED", address)
 
+    console.log("=== 4 PERSIST KEYRINGS")
     await this.persistKeyrings()
-    await this.emitter.emit("address", address)
-    this.emitKeyrings()
+    console.log("=== 5 AFTER PERSIST KEYRINGS")
 
-    return address
+    console.log("=== 6 EMITTING ADDRESS")
+    this.emitter.emit("address", address)
+    console.log("=== AFTER EMITTING ADDRESS")
+
+    console.log("=== EMITTING KEYRINGS")
+    this.emitKeyrings()
+    console.log("=== AFTER EMITTING KEYRINGS")
   }
 
   public async removeQuaiHDWallet(address: string): Promise<void> {

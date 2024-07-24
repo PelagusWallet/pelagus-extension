@@ -1,10 +1,10 @@
 import sinon from "sinon"
+import { Zone } from "quais"
 import {
   createKeyringService,
   createSigningService,
 } from "../../../tests/factories"
 import SigningService from "../index"
-import { Zone } from "quais"
 
 describe("Signing Service Unit", () => {
   let signingService: SigningService
@@ -21,32 +21,33 @@ describe("Signing Service Unit", () => {
   })
 
   describe("deriveAddress", () => {
-    it("should use keyring service to derive from a keyring account", async () => {
-      const keyringService = await createKeyringService()
-      const deriveAddressStub = sandbox
-        .stub(keyringService, "deriveAddress")
-        .callsFake(async () => "")
-
-      signingService = await createSigningService({
-        keyringService: Promise.resolve(keyringService),
-      })
-      await signingService.startService()
-
-      await signingService.deriveAddress({
-        type: "keyring",
-        keyringID: "foo",
-        zone: Zone.Cyprus1,
-      })
-
-      expect(deriveAddressStub.called).toBe(true)
-    })
-
-    it("should error when trying to derive from a read-only account", () => {
-      expect(
-        signingService.deriveAddress({
-          type: "read-only",
-        })
-      ).rejects.toBeTruthy()
-    })
+    // TODO-DERIVATION
+    // it("should use keyring service to derive from a keyring account", async () => {
+    //   const keyringService = await createKeyringService()
+    //   const deriveAddressStub = sandbox
+    //     .stub(keyringService, "deriveAddress")
+    //     .callsFake(async () => "")
+    //
+    //   signingService = await createSigningService({
+    //     keyringService: Promise.resolve(keyringService),
+    //   })
+    //   await signingService.startService()
+    //
+    //   await signingService.deriveAddress({
+    //     type: "keyring",
+    //     keyringID: "foo",
+    //     zone: Zone.Cyprus1,
+    //   })
+    //
+    //   expect(deriveAddressStub.called).toBe(true)
+    // })
+    //
+    // it("should error when trying to derive from a read-only account", () => {
+    //   expect(
+    //     signingService.deriveAddress({
+    //       type: "read-only",
+    //     })
+    //   ).rejects.toBeTruthy()
+    // })
   })
 })

@@ -434,19 +434,12 @@ export default class KeyringService extends BaseService<Events> {
       this.quaiHDWalletAccountIndex,
       zone
     )
-    console.log("=== 3 ADDRESS DERIVED", address)
 
-    console.log("=== 4 PERSIST KEYRINGS")
     await this.persistKeyrings()
-    console.log("=== 5 AFTER PERSIST KEYRINGS")
 
-    console.log("=== 6 EMITTING ADDRESS")
     this.emitter.emit("address", address)
-    console.log("=== AFTER EMITTING ADDRESS")
 
-    console.log("=== EMITTING KEYRINGS")
     this.emitKeyrings()
-    console.log("=== AFTER EMITTING KEYRINGS")
   }
 
   public async removeQuaiHDWallet(address: string): Promise<void> {

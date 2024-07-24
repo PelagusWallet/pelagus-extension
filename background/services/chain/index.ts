@@ -422,14 +422,18 @@ export default class ChainService extends BaseService<Events> {
     network,
   }: AddressOnNetwork): Promise<AccountBalance> {
     const prevShard = globalThis.main.SelectedShard
+
     const addrShard = getExtendedZoneForAddress(address)
+
     if (globalThis.main.SelectedShard !== addrShard) {
       globalThis.main.SetShard(addrShard)
     }
+
     let err = false
     let balance: bigint | undefined = toBigInt(0)
+
     try {
-      balance = await this.jsonRpcProvider.getBalance(address)
+      balance = await this.jsonRpcProvider.getBalance(address, "latest")
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error getting balance for address", address, error)
@@ -458,6 +462,7 @@ export default class ChainService extends BaseService<Events> {
     }
 
     const trackedAccounts = await this.getAccountsToTrack()
+
     const allTrackedAddresses = new Set(
       trackedAccounts.map((account) => account.address)
     )
@@ -487,7 +492,9 @@ export default class ChainService extends BaseService<Events> {
 
       await this.db.addBalance(accountBalance)
     }
+
     globalThis.main.SetShard(prevShard)
+
     return accountBalance
   }
 
@@ -495,8 +502,10 @@ export default class ChainService extends BaseService<Events> {
     const source = this.keyringService.getQuaiHDWalletSourceForAddress(
       addressNetwork.address
     )
+
     const isAccountOnNetworkAlreadyTracked =
       await this.db.getTrackedAccountOnNetwork(addressNetwork)
+
     if (!isAccountOnNetworkAlreadyTracked) {
       // Skip save, emit and savedTransaction emission on resubmission
       await this.db.addAccountToTrack(addressNetwork)
@@ -506,18 +515,21 @@ export default class ChainService extends BaseService<Events> {
       })
     }
     this.emitSavedTransactions(addressNetwork)
+
     this.subscribeToAccountTransactions(addressNetwork).catch((e) => {
       logger.error(
         "chainService/addAccountToTrack: Error subscribing to account transactions",
         e
       )
     })
+
     this.getLatestBaseAccountBalance(addressNetwork).catch((e) => {
       logger.error(
         "chainService/addAccountToTrack: Error getting latestBaseAccountBalance",
         e
       )
     })
+
     if (source !== "internal") {
       this.loadHistoricAssetTransfers(addressNetwork).catch((e) => {
         logger.error(

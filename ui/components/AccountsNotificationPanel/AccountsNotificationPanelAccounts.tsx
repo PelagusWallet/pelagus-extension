@@ -154,8 +154,6 @@ export default function AccountsNotificationPanelAccounts({
     selectCurrentNetworkAccountTotalsByCategory
   )
 
-  console.log("=== HERE accountTotals", accountTotals)
-
   const [pendingSelectedAddress, setPendingSelectedAddress] = useState("")
   const defaultSigner = useRef(
     accountTotals.internal != undefined
@@ -216,12 +214,12 @@ export default function AccountsNotificationPanelAccounts({
 
   return (
     <div className="switcher_wrap">
-      {/* <div className="account_actions_header"> */}
-      {/*  <AccountsSearchBar */}
-      {/*    searchAccountsValue={searchAccountsValue} */}
-      {/*    setSearchAccountsValue={setSearchAccountsValue} */}
-      {/*  /> */}
-      {/* </div> */}
+      <div className="account_actions_header">
+        <AccountsSearchBar
+          searchAccountsValue={searchAccountsValue}
+          setSearchAccountsValue={setSearchAccountsValue}
+        />
+      </div>
 
       {ACCOUNT_TYPES.map((accountType, switcherWrapIdx) => {
         const accountTypeTotals = accountTotals[accountType]
@@ -338,16 +336,16 @@ export default function AccountsNotificationPanelAccounts({
             key={`${switcherWrapIdx}_${accountType}`}
             className="switcherWrapIdx"
           >
-            {/* {shouldAddHeader(existingAccountTypes, accountType) && ( */}
-            {/*  <div className="category_wrap simple_text"> */}
-            {/*    {isAccountWithSecrets(accountType) && */}
-            {/*      filteredAccountTypeTotals.length > 0 && ( */}
-            {/*        <SigningButton */}
-            {/*          onCurrentAddressChange={onCurrentAddressChange} */}
-            {/*        /> */}
-            {/*      )} */}
-            {/*  </div> */}
-            {/* )} */}
+            {shouldAddHeader(existingAccountTypes, accountType) && (
+              <div className="category_wrap simple_text">
+                {isAccountWithSecrets(accountType) &&
+                  filteredAccountTypeTotals.length > 0 && (
+                    <SigningButton
+                      onCurrentAddressChange={onCurrentAddressChange}
+                    />
+                  )}
+              </div>
+            )}
             {Object.values(accountTotalsByType).map(
               (accountTotalsBySignerId, idx) => {
                 return (
@@ -430,68 +428,68 @@ export default function AccountsNotificationPanelAccounts({
                       updateUseCustomOrder={updateUseCustomOrder}
                       setSelectedAccountSigner={setSelectedAccountSigner}
                     />
-                    {/* <ul> */}
-                    {/*  {accountTotalsBySignerId.map((accountTotal, idx) => { */}
-                    {/*    const isSelected = sameQuaiAddress( */}
-                    {/*      accountTotal.address, */}
-                    {/*      selectedAccountAddress */}
-                    {/*    ) */}
+                    <ul>
+                      {accountTotalsBySignerId.map((accountTotal, idx) => {
+                        const isSelected = sameQuaiAddress(
+                          accountTotal.address,
+                          selectedAccountAddress
+                        )
 
-                    {/*    return ( */}
-                    {/*      <li */}
-                    {/*        key={`${idx}-${accountTotal.address}`} */}
-                    {/*        // We use these event handlers in leiu of :hover so that we can prevent child hovering */}
-                    {/*        // from affecting the hover state of this li. */}
-                    {/*        onMouseOver={(e) => { */}
-                    {/*          e.currentTarget.style.backgroundColor = */}
-                    {/*            "var(--hunter-green)" */}
-                    {/*        }} */}
-                    {/*        onFocus={(e) => { */}
-                    {/*          e.currentTarget.style.backgroundColor = */}
-                    {/*            "var(--hunter-green)" */}
-                    {/*        }} */}
-                    {/*        onMouseOut={(e) => { */}
-                    {/*          e.currentTarget.style.backgroundColor = "" */}
-                    {/*        }} */}
-                    {/*        onBlur={(e) => { */}
-                    {/*          e.currentTarget.style.backgroundColor = "" */}
-                    {/*        }} */}
-                    {/*      > */}
-                    {/*        <div */}
-                    {/*          role="button" */}
-                    {/*          tabIndex={0} */}
-                    {/*          onKeyDown={(e) => { */}
-                    {/*            if (e.key === "Enter") { */}
-                    {/*              updateCurrentAccount( */}
-                    {/*                accountTotal.address, */}
-                    {/*                accountTotal.signerId ?? "" */}
-                    {/*              ) */}
-                    {/*            } */}
-                    {/*          }} */}
-                    {/*          onClick={() => { */}
-                    {/*            updateCurrentAccount( */}
-                    {/*              accountTotal.address, */}
-                    {/*              accountTotal.signerId ?? "" */}
-                    {/*            ) */}
-                    {/*          }} */}
-                    {/*        > */}
-                    {/*          <SelectAccountListItem */}
-                    {/*            key={accountTotal.address} */}
-                    {/*            account={accountTotal} */}
-                    {/*            isSelected={isSelected} */}
-                    {/*          > */}
-                    {/*            <AccountItemOptionsMenu */}
-                    {/*              accountTotal={accountTotal} */}
-                    {/*              moveAccountUp={moveAccountUp} */}
-                    {/*              moveAccountDown={moveAccountDown} */}
-                    {/*              signerId={accountTotalsBySignerId[0].signerId} */}
-                    {/*            /> */}
-                    {/*          </SelectAccountListItem> */}
-                    {/*        </div> */}
-                    {/*      </li> */}
-                    {/*    ) */}
-                    {/*  })} */}
-                    {/* </ul> */}
+                        return (
+                          <li
+                            key={`${idx}-${accountTotal.address}`}
+                            // We use these event handlers in leiu of :hover so that we can prevent child hovering
+                            // from affecting the hover state of this li.
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "var(--hunter-green)"
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "var(--hunter-green)"
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.backgroundColor = ""
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.backgroundColor = ""
+                            }}
+                          >
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  updateCurrentAccount(
+                                    accountTotal.address,
+                                    accountTotal.signerId ?? ""
+                                  )
+                                }
+                              }}
+                              onClick={() => {
+                                updateCurrentAccount(
+                                  accountTotal.address,
+                                  accountTotal.signerId ?? ""
+                                )
+                              }}
+                            >
+                              <SelectAccountListItem
+                                key={accountTotal.address}
+                                account={accountTotal}
+                                isSelected={isSelected}
+                              >
+                                <AccountItemOptionsMenu
+                                  accountTotal={accountTotal}
+                                  moveAccountUp={moveAccountUp}
+                                  moveAccountDown={moveAccountDown}
+                                  signerId={accountTotalsBySignerId[0].signerId}
+                                />
+                              </SelectAccountListItem>
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ul>
                   </section>
                 )
               }

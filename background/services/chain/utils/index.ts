@@ -38,7 +38,7 @@ export const getExtendedZoneForAddress = (
   if (!zone) return ""
   if (!inHumanForm) return zone
 
-  for (let i = 0; i < Object.entries(Zone).length; i + 1) {
+  for (let i = 0; i < Object.entries(Zone).length; i += 1) {
     const [key, enumValue] = Object.entries(Zone)[i]
     if (enumValue === zone) {
       const match = key.match(/([a-zA-Z]+)(\d+)/)

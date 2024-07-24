@@ -96,7 +96,6 @@ export default class SigningService extends BaseService<Events> {
     await super.internalStartService() // Not needed, but better to stick to the patterns
   }
 
-  // TODO-DERIVATION
   deriveAddress(signer: AccountSigner): void {
     if (signer.type === "keyring") {
       this.keyringService.deriveAddress(signer)

@@ -24,16 +24,12 @@ export default function SelectAccountListItem({
       })}
     >
       <div className="left-side">
-        <SharedIconGA iconUrl={account.avatarURL} />
+        <SharedIconGA iconUrl={account?.avatarURL} />
         <div className="account-info">
-          <div className="name">{account.shortName}</div>
+          <div className="name">{account?.shortName}</div>
           <div className="details">
             {account?.accountSigner?.type !== "read-only" &&
-              `${getExtendedZoneForAddress(
-                account?.accountSigner?.zone,
-                true,
-                true
-              )} • `}
+              `${getExtendedZoneForAddress(account?.address, true, true)} • `}
             {account?.shortenedAddress}
           </div>
         </div>
@@ -42,7 +38,7 @@ export default function SelectAccountListItem({
       {!account?.balance ? (
         <SharedLoadingSpinner size="small" />
       ) : (
-        <div className="balance">{account.balance}</div>
+        <div className="balance">{account?.balance}</div>
       )}
 
       <div className="right-side">{children}</div>

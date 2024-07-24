@@ -643,8 +643,8 @@ export default class Main extends BaseService<never> {
     this.connectProviderBridgeService()
     this.connectEnrichmentService()
     this.connectTelemetryService()
-    this.connectSigningService()
-    this.connectChainService()
+
+    await this.connectChainService()
 
     // FIXME Should no longer be necessary once transaction queueing enters the
     this.store.dispatch(
@@ -1103,20 +1103,13 @@ export default class Main extends BaseService<never> {
     )
   }
 
-  async connectSigningService(): Promise<void> {
-    this.keyringService.emitter.on("address", (address) =>
-      this.signingService.addTrackedAddress(address, "keyring")
-    )
-  }
-
   async connectKeyringService(): Promise<void> {
     this.keyringService.emitter.on("keyrings", (keyrings) => {
       this.store.dispatch(updateKeyrings(keyrings))
     })
 
-    this.keyringService.emitter.on("address", async (address) => {
+    this.keyringService.emitter.on("address", (address) => {
       NetworksArray.forEach((network) => {
-        // Mark as loading and wire things up.
         this.store.dispatch(
           loadAccount({
             address,
@@ -1129,6 +1122,8 @@ export default class Main extends BaseService<never> {
           network,
         })
       })
+
+      this.signingService.addTrackedAddress(address, "keyring")
     })
 
     this.keyringService.emitter.on("locked", async (isLocked) => {
@@ -1147,8 +1142,8 @@ export default class Main extends BaseService<never> {
       await this.keyringService.lock()
     })
 
-    keyringSliceEmitter.on("deriveAddress", async (keyringData) => {
-      await this.signingService.deriveAddress({
+    keyringSliceEmitter.on("deriveAddress", (keyringData) => {
+      this.signingService.deriveAddress({
         type: "keyring",
         keyringID: keyringData.signerId,
         zone: keyringData.zone,

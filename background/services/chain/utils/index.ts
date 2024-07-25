@@ -1,4 +1,4 @@
-import { getZoneForAddress, Zone, Block, BigNumberish, toBigInt } from "quais"
+import { getZoneForAddress, Block, BigNumberish, toBigInt } from "quais"
 import { AnyEVMBlock } from "../../../networks"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
 import { parseHexTimestamp } from "../../../utils/time"
@@ -28,6 +28,19 @@ export function blockFromProviderBlock(
   }
 }
 
+// TODO: should be provided from SDK
+const shardsForUI = {
+  "0x00": "cyprus-1",
+  "0x01": "cyprus-2",
+  "0x02": "cyprus-3",
+  "0x10": "paxos-1",
+  "0x11": "paxos-2",
+  "0x12": "paxos-3",
+  "0x20": "hydra-1",
+  "0x21": "hydra-2",
+  "0x22": "hydra-3",
+}
+
 export const getExtendedZoneForAddress = (
   address: string,
   inHumanForm = true,
@@ -38,22 +51,9 @@ export const getExtendedZoneForAddress = (
   if (!zone) return ""
   if (!inHumanForm) return zone
 
-  for (let i = 0; i < Object.entries(Zone).length; i += 1) {
-    const [key, enumValue] = Object.entries(Zone)[i]
-    if (enumValue === zone) {
-      const match = key.match(/([a-zA-Z]+)(\d+)/)
-
-      if (match) {
-        const [, letters, number] = match
-
-        return capitalizeFirstLetter
-          ? `${letters}-${number}`
-          : `${letters.toLowerCase()}-${number}`
-      }
-    }
-  }
-
-  return ""
+  return !capitalizeFirstLetter
+    ? shardsForUI[zone]
+    : shardsForUI[zone].charAt(0).toUpperCase() + shardsForUI[zone].slice(1)
 }
 
 export const getNetworkById = (chainId: BigNumberish | null | undefined) => {

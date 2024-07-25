@@ -33,9 +33,15 @@ import {
   QuaiTransactionState,
   QuaiTransactionStatus,
 } from "../services/chain/types"
+import ProviderFactory from "../services/provider-factory/provider-factory"
 
 const createRandom0xHash = () =>
   keccak256(Buffer.from(Math.random().toString()))
+
+export const createProviderFactoryService =
+  async (): Promise<ProviderFactory> => {
+    return ProviderFactory.create()
+  }
 
 export const createPreferenceService = async (): Promise<PreferenceService> => {
   return PreferenceService.create()
@@ -46,6 +52,7 @@ export const createKeyringService = async (): Promise<KeyringService> => {
 }
 
 type CreateChainServiceOverrides = {
+  providerFactoryService?: Promise<ProviderFactory>
   preferenceService?: Promise<PreferenceService>
   keyringService?: Promise<KeyringService>
 }
@@ -54,6 +61,7 @@ export const createChainService = async (
   overrides: CreateChainServiceOverrides = {}
 ): Promise<ChainService> => {
   return ChainService.create(
+    overrides.providerFactoryService ?? createProviderFactoryService(),
     overrides.preferenceService ?? createPreferenceService(),
     overrides.keyringService ?? createKeyringService()
   )

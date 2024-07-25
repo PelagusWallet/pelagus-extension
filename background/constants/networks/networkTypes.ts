@@ -2,6 +2,8 @@ export interface NetworkInterface {
   chainID: string
   baseAsset: { name: string; symbol: string; decimals: number }
   family: string
+  isDisabled: boolean
+  isTestNetwork: boolean
   derivationPath?: string
   jsonRpcUrls: string[] | string
   webSocketRpcUrls: string[] | string

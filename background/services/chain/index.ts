@@ -16,11 +16,8 @@ import {
   QuaiTransactionRequest,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
-import {
-  NetworksArray,
-  QuaiGoldenAgeTestnet,
-} from "../../constants/networks/networks"
-import ProviderFactory from "./provider-factory"
+import { NetworksArray } from "../../constants/networks/networks"
+import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
 import getBlockPrices from "../../lib/gas"
@@ -169,12 +166,11 @@ export type PriorityQueuedTxToRetrieve = {
 export default class ChainService extends BaseService<Events> {
   private providerFactory: ProviderFactory
 
-  private currentProvider: {
-    jsonRpc: JsonRpcProvider
-    websocket: WebSocketProvider
-  }
+  public jsonRpcProvider: JsonRpcProvider
 
-  private currentNetwork: NetworkInterface
+  public webSocketProvider: WebSocketProvider
+
+  public supportedNetworks = NetworksArray
 
   subscribedAccounts: {
     account: string
@@ -218,19 +214,25 @@ export default class ChainService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     ChainService,
-    [Promise<PreferenceService>, Promise<KeyringService>]
-  > = async (preferenceService, keyringService) => {
-    return new this(createDB(), await preferenceService, await keyringService)
+    [
+      Promise<ProviderFactory>,
+      Promise<PreferenceService>,
+      Promise<KeyringService>
+    ]
+  > = async (providerFactoryService, preferenceService, keyringService) => {
+    return new this(
+      createDB(),
+      await providerFactoryService,
+      await preferenceService,
+      await keyringService
+    )
   }
-
-  supportedNetworks = NetworksArray
-
-  private trackedNetworks: NetworkInterface[]
 
   assetData: AssetDataHelper
 
   private constructor(
     private db: ChainDatabase,
+    private providerFactoryService: ProviderFactory,
     private preferenceService: PreferenceService,
     private keyringService: KeyringService
   ) {
@@ -288,11 +290,10 @@ export default class ChainService extends BaseService<Events> {
       },
     })
 
-    this.trackedNetworks = []
     this.subscribedAccounts = []
     this.subscribedNetworks = []
     this.transactionsToRetrieve = []
-    this.currentNetwork = QuaiGoldenAgeTestnet
+    this.providerFactory = providerFactoryService
   }
 
   override async internalStartService(): Promise<void> {
@@ -300,18 +301,18 @@ export default class ChainService extends BaseService<Events> {
 
     await this.db.initialize()
 
-    const providerFactory = new ProviderFactory()
-    providerFactory.initializeNetworks(NetworksArray)
-    this.providerFactory = providerFactory
-
     const { network: networkFromPreferences } =
       await this.preferenceService.getSelectedAccount()
 
-    this.currentNetwork = networkFromPreferences
-    this.currentProvider = this.providerFactory.getProvider(
-      networkFromPreferences
-    )
-    this.assetData = new AssetDataHelper(this.currentProvider.jsonRpc)
+    const { jsonRpcProvider, webSocketProvider } =
+      this.providerFactory.getProvidersForNetwork(
+        networkFromPreferences.chainID
+      )
+
+    this.jsonRpcProvider = jsonRpcProvider
+    this.webSocketProvider = webSocketProvider
+
+    this.assetData = new AssetDataHelper(jsonRpcProvider)
 
     const accounts = await this.getAccountsToTrack()
     const transactions = await this.db.getAllQuaiTransactions()
@@ -320,30 +321,18 @@ export default class ChainService extends BaseService<Events> {
       accounts,
     })
 
-    await this.subscribeOnAccountTransactions(this.supportedNetworks, accounts)
+    this.emitter.emit("supportedNetworks", NetworksArray)
 
+    await this.subscribeOnAccountTransactions(this.supportedNetworks, accounts)
     await this.subscribeOnNetworksAndAddresses(this.supportedNetworks, accounts)
   }
 
   public switchNetwork(network: NetworkInterface): void {
-    this.currentNetwork = network
-    this.currentProvider = this.providerFactory.getProvider(network)
-  }
+    const { jsonRpcProvider, webSocketProvider } =
+      this.providerFactory.getProvidersForNetwork(network.chainID)
 
-  public getCurrentProvider(): {
-    jsonRpc: JsonRpcProvider
-    websocket: WebSocketProvider
-  } {
-    const provider = this.currentProvider
-    if (!provider) {
-      logger.error(
-        "Request received for operation on an inactive network",
-        "expected",
-        this.trackedNetworks
-      )
-      throw new Error(`Unexpected network`)
-    }
-    return provider
+    this.jsonRpcProvider = jsonRpcProvider
+    this.webSocketProvider = webSocketProvider
   }
 
   // --------------------------------------------------------------------------------------------------
@@ -440,7 +429,7 @@ export default class ChainService extends BaseService<Events> {
     let err = false
     let balance: bigint | undefined = toBigInt(0)
     try {
-      balance = await this.currentProvider.jsonRpc?.getBalance(address)
+      balance = await this.jsonRpcProvider.getBalance(address)
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error getting balance for address", address, error)
@@ -455,7 +444,7 @@ export default class ChainService extends BaseService<Events> {
           `Global shard: ${
             globalThis.main.SelectedShard
           } Address shard: ${addrShard} Provider: ${
-            this.currentProvider.jsonRpc?._getConnection().url
+            this.jsonRpcProvider._getConnection().url
           }`
         )
       }
@@ -542,7 +531,7 @@ export default class ChainService extends BaseService<Events> {
     const cachedBlock = await this.db.getLatestBlock(network)
     if (cachedBlock) return cachedBlock.blockHeight
 
-    const blockNumber = await this.currentProvider.jsonRpc?.getBlockNumber()
+    const blockNumber = await this.jsonRpcProvider.getBlockNumber()
     if (!blockNumber) throw new Error("Failed get block number")
     return blockNumber
   }
@@ -555,12 +544,11 @@ export default class ChainService extends BaseService<Events> {
    */
   private async pollLatestBlock(network: NetworkInterface): Promise<void> {
     try {
-      const { jsonRpc } = this.currentProvider
       const { address } = await this.preferenceService.getSelectedAccount()
 
       const shard = getExtendedZoneForAddress(address, false) as Shard
 
-      const latestBlock = await jsonRpc.getBlock(shard, "latest")
+      const latestBlock = await this.jsonRpcProvider.getBlock(shard, "latest")
       if (!latestBlock) return
 
       const block = blockFromProviderBlock(network, latestBlock)
@@ -595,8 +583,7 @@ export default class ChainService extends BaseService<Events> {
     const cachedBlock = await this.db.getBlock(network, blockHash)
     if (cachedBlock) return cachedBlock
 
-    const { jsonRpc } = this.currentProvider
-    const resultBlock = await jsonRpc.getBlock(shard, blockHash)
+    const resultBlock = await this.jsonRpcProvider.getBlock(shard, blockHash)
     if (!resultBlock) {
       throw new Error(`Failed to get block`)
     }
@@ -621,18 +608,15 @@ export default class ChainService extends BaseService<Events> {
   async getTransaction(
     txHash: HexString
   ): Promise<SerializedTransactionForHistory | QuaiTransactionDBEntry | null> {
-    const { currentProvider } = this
     const cachedTx = await this.db.getQuaiTransactionByHash(txHash)
-    return currentProvider.jsonRpc
+    return this.jsonRpcProvider
       .getTransaction(txHash)
       .then(async (tx) => {
         const transaction = tx as QuaiTransactionResponse | null
 
         if (!transaction) throw new Error("Failed to get transaction")
 
-        const receipt = await currentProvider.jsonRpc.getTransactionReceipt(
-          txHash
-        )
+        const receipt = await this.jsonRpcProvider.getTransactionReceipt(txHash)
 
         if (!receipt || !transaction?.blockNumber) return cachedTx
 
@@ -737,7 +721,7 @@ export default class ChainService extends BaseService<Events> {
    * the base estimate returned by the provider.
    */
   private async estimateGasPrice(tx: QuaiTransactionRequest): Promise<bigint> {
-    const estimate = await this.currentProvider.jsonRpc?.estimateGas(tx)
+    const estimate = await this.jsonRpcProvider.estimateGas(tx)
 
     if (!estimate) throw new Error("Failed to estimate gas")
     // Add 10% more gas as a safety net
@@ -814,7 +798,7 @@ export default class ChainService extends BaseService<Events> {
       const { serialized: signedTransaction } = transaction
 
       await Promise.all([
-        this.currentProvider.jsonRpc
+        this.jsonRpcProvider
           ?.broadcastTransaction(zoneToBroadcast, signedTransaction)
           .then((transactionResponse) => {
             this.emitter.emit("transactionSend", transactionResponse.hash)
@@ -941,7 +925,7 @@ export default class ChainService extends BaseService<Events> {
   }
 
   async send(method: string, params: unknown[]): Promise<unknown> {
-    return this.currentProvider.jsonRpc?.send(method, params)
+    return this.jsonRpcProvider.send(method, params)
   }
 
   /**
@@ -959,17 +943,16 @@ export default class ChainService extends BaseService<Events> {
     network: NetworkInterface,
     hash: string
   ): Promise<TransactionResponse | null | undefined> {
-    const provider = this.currentProvider
+    const { jsonRpcProvider } = this
     try {
-      return await provider.jsonRpc?.getTransaction(hash)
+      return await jsonRpcProvider.getTransaction(hash)
     } catch (e) {
       logger.warn(
         `Tx hash ${hash} is found in our local registry but not on chain.`
       )
 
       this.removeTransactionHashFromQueue(network, hash)
-      // Let's clean up the subscriptions
-      provider.jsonRpc?.off(hash)
+      await jsonRpcProvider.off(hash)
 
       const savedTx = await this.db.getQuaiTransactionByHash(hash)
       if (savedTx && savedTx.status === QuaiTransactionStatus.FAILED) {
@@ -1196,9 +1179,7 @@ export default class ChainService extends BaseService<Events> {
       if (!transactionResponse)
         throw new Error(`Failed to get or cancel transaction`)
 
-      const receipt = await this.currentProvider.jsonRpc.getTransactionReceipt(
-        hash
-      )
+      const receipt = await this.jsonRpcProvider.getTransactionReceipt(hash)
 
       if (receipt && transactionResponse.blockNumber)
         await this.saveTransaction(
@@ -1320,14 +1301,13 @@ export default class ChainService extends BaseService<Events> {
    * @param network The network to watch.
    */
   private async subscribeToNewHeads(network: NetworkInterface): Promise<void> {
-    const { currentProvider, subscribedNetworks } = this
+    const { jsonRpcProvider, subscribedNetworks } = this
 
-    if (!currentProvider.jsonRpc)
-      throw new Error("Failed to subscribe to new heads")
+    if (!jsonRpcProvider) throw new Error("Failed to subscribe to new heads")
 
     subscribedNetworks.push({
       network,
-      provider: currentProvider.jsonRpc,
+      provider: jsonRpcProvider,
     })
 
     this.pollLatestBlock(network)
@@ -1343,7 +1323,7 @@ export default class ChainService extends BaseService<Events> {
     address,
     network,
   }: AddressOnNetwork): Promise<void> {
-    const provider = this.currentProvider.jsonRpc
+    const provider = this.jsonRpcProvider
     if (!provider) throw new Error("Failed to get provider")
 
     await provider.on("pending", async (transactionHash: string) => {
@@ -1408,15 +1388,17 @@ export default class ChainService extends BaseService<Events> {
     network: NetworkInterface,
     transaction: PendingQuaiTransaction
   ): Promise<void> {
-    const provider = this.currentProvider.websocket
-    provider?.once(transaction.hash, (receipt: TransactionReceipt) => {
-      const confirmedTransaction = createConfirmedQuaiTransaction(
-        transaction,
-        receipt
-      )
-      this.saveTransaction(confirmedTransaction, "local")
-      this.removeTransactionHashFromQueue(network, transaction.hash)
-    })
+    this.webSocketProvider.once(
+      transaction.hash,
+      (receipt: TransactionReceipt) => {
+        const confirmedTransaction = createConfirmedQuaiTransaction(
+          transaction,
+          receipt
+        )
+        this.saveTransaction(confirmedTransaction, "local")
+        this.removeTransactionHashFromQueue(network, transaction.hash)
+      }
+    )
 
     // Let's add the transaction to the queued lookup. If the transaction is dropped
     // because of wrong nonce on chain the event will never arrive.

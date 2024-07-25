@@ -12,15 +12,18 @@ export async function resolveAddressAnnotation(
   addressOnNetwork: AddressOnNetwork
 ): Promise<AddressOnNetworkAnnotation> {
   const { address } = addressOnNetwork
+
   const prevShard = globalThis.main.GetShard()
   globalThis.main.SetShard(getExtendedZoneForAddress(address))
-  const { jsonRpc: provider } = chainService.getCurrentProvider()
-  const codeHex = await provider.getCode(address)
+
+  const codeHex = await chainService.jsonRpcProvider.getCode(address)
   globalThis.main.SetShard(prevShard)
+
   const [balance, nameRecord] = await Promise.all([
     chainService.getLatestBaseAccountBalance(addressOnNetwork),
     nameService.lookUpName(addressOnNetwork),
   ])
+
   return {
     balance,
     nameRecord,

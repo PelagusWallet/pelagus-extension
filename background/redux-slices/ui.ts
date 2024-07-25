@@ -67,6 +67,7 @@ export type Events = {
   addCustomNetworkResponse: [string, boolean]
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
+  showTestNetworks: boolean
 }
 
 export const emitter = new Emittery<Events>()
@@ -415,6 +416,13 @@ export const updateAlphaWalletBanner = createBackgroundAsyncThunk(
   "ui/showAlphaWalletBanner",
   async (newValue: boolean) => {
     await emitter.emit("showAlphaWalletBanner", newValue)
+  }
+)
+
+export const updateShowTestNetworks = createBackgroundAsyncThunk(
+  "ui/showTestNetworks",
+  async (isShowTestNetworks: boolean) => {
+    await emitter.emit("showTestNetworks", isShowTestNetworks)
   }
 )
 

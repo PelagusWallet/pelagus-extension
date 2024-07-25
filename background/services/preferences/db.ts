@@ -41,6 +41,7 @@ export interface Preferences {
   }
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
+  showTestNetworks: boolean
 }
 
 export class PreferenceDatabase extends Dexie {
@@ -374,6 +375,18 @@ export class PreferenceDatabase extends Dexie {
       .modify((storedPreferences: Preferences) => {
         const update: Partial<Preferences> = {
           showAlphaWalletBanner: newValue,
+        }
+
+        Object.assign(storedPreferences, update)
+      })
+  }
+
+  async setShowTestNetworks(newValue: boolean): Promise<void> {
+    await this.preferences
+      .toCollection()
+      .modify((storedPreferences: Preferences) => {
+        const update: Partial<Preferences> = {
+          showTestNetworks: newValue,
         }
 
         Object.assign(storedPreferences, update)

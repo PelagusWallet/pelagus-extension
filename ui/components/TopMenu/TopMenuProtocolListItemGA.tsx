@@ -1,7 +1,9 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
 import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
+import { useTranslation } from "react-i18next"
 import SharedNetworkIcon from "../Shared/SharedNetworkIcon"
+import SharedTooltip from "../Shared/SharedTooltip"
 
 type TopMenuProtocolListItemGAProps = {
   network: NetworkInterface
@@ -16,6 +18,10 @@ export default function TopMenuProtocolListItemGA({
   onSelect,
   isDisabled = false,
 }: TopMenuProtocolListItemGAProps): ReactElement {
+  const { t } = useTranslation("translation", {
+    keyPrefix: "drawers.selectNetwork",
+  })
+
   return (
     <div
       className={classNames("networks-list-item", {
@@ -35,6 +41,16 @@ export default function TopMenuProtocolListItemGA({
       <div className="list-item-right">
         <div className="item-title">{network.baseAsset.name}</div>
       </div>
+      {isDisabled && (
+        <SharedTooltip
+          width={180}
+          verticalPosition="top"
+          horizontalShift={80}
+          customStyles={{ cursor: "default", textAlign: "center" }}
+        >
+          {t("unavailableTestNetworks")}
+        </SharedTooltip>
+      )}
       <style jsx>
         {`
           .networks-list-item {
@@ -92,10 +108,13 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .disabled {
-            cursor: default;
+            cursor: not-allowed;
           }
           .disabled .item-title {
-            color: var(--green-95);
+            color: var(--disabled);
+          }
+          .disabled .item-icon-wrap {
+            opacity: 0.4;
           }
         `}
       </style>

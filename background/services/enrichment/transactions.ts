@@ -24,10 +24,9 @@ import {
   parseLogsForERC20Transfers,
 } from "../../lib/erc20"
 import { isDefined, isFulfilledPromise } from "../../lib/utils/type-guards"
-import { getExtendedZoneForAddress } from "../chain/utils"
+import { getExtendedZoneForAddress, getNetworkById } from "../chain/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { SerializedTransactionForHistory } from "../chain/types"
-import { NetworksArray } from "../../constants/networks/networks"
 
 async function buildSubannotations(
   chainService: ChainService,
@@ -199,11 +198,7 @@ export default async function resolveTransactionAnnotation(
     transactionLogoURL: assets.find(
       (asset) =>
         asset.metadata?.logoURL &&
-        asset.symbol ===
-          NetworksArray.find(
-            (net) =>
-              toBigInt(net.chainID) === toBigInt(transaction.chainId ?? 0)
-          )?.baseAsset.symbol
+        asset.symbol === getNetworkById(transaction.chainId)?.baseAsset.symbol
     )?.metadata?.logoURL,
   }
 
@@ -283,21 +278,34 @@ export default async function resolveTransactionAnnotation(
 
   // If the transaction has been mined, get the block and set the timestamp
   if (blockHash) {
-    block =
-      useDestinationShard && transaction.to
-        ? await chainService.getBlockByHash(
-            network,
-            getExtendedZoneForAddress(transaction.to, false) as Shard,
-            blockHash
-          )
-        : await chainService.getBlockByHash(
-            network,
-            getExtendedZoneForAddress(transaction.from, false) as Shard,
-            blockHash
-          )
-    txAnnotation = {
-      ...txAnnotation,
-      blockTimestamp: block?.timestamp,
+    try {
+      block =
+        useDestinationShard && transaction.to
+          ? await chainService.getBlockByHash(
+              network,
+              getExtendedZoneForAddress(transaction.to, false) as Shard,
+              blockHash
+            )
+          : await chainService.getBlockByHash(
+              network,
+              getExtendedZoneForAddress(transaction.from, false) as Shard,
+              blockHash
+            )
+
+      txAnnotation = {
+        ...txAnnotation,
+        blockTimestamp: block?.timestamp,
+      }
+    } catch (e) {
+      console.error(e)
+      chainService
+        .getTransactionFirstSeenFromDB(transaction?.hash)
+        .then((date) => {
+          txAnnotation = {
+            ...txAnnotation,
+            blockTimestamp: date,
+          }
+        })
     }
   }
 

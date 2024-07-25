@@ -192,19 +192,30 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
     maxPriorityFeePerGas: BigInt
   }> => {
     const { jsonRpcProvider } = globalThis.main.chainService
-    const feeData = await jsonRpcProvider.getFeeData()
-    if (
-      !feeData.gasPrice ||
-      !feeData.maxFeePerGas ||
-      !feeData.maxPriorityFeePerGas
-    ) {
+
+    try {
+      const feeData = await jsonRpcProvider.getFeeData()
+      if (
+        !feeData.gasPrice ||
+        !feeData.maxFeePerGas ||
+        !feeData.maxPriorityFeePerGas
+      ) {
+      }
+      return {
+        maxFeePerGas: toBigInt(feeData.maxFeePerGas ?? 6000000000),
+        maxPriorityFeePerGas: toBigInt(
+          feeData.maxPriorityFeePerGas ?? 2000000000
+        ),
+      }
+    } catch (e) {
+      console.error(e)
       dispatch(
         setSnackbarMessage("Failed to get gas price, please enter manually")
       )
-    }
-    return {
-      maxFeePerGas: toBigInt(feeData.maxFeePerGas ?? 0),
-      maxPriorityFeePerGas: toBigInt(feeData.maxPriorityFeePerGas ?? 0),
+      return {
+        maxFeePerGas: toBigInt(6000000000),
+        maxPriorityFeePerGas: toBigInt(2000000000),
+      }
     }
   }
 )
@@ -276,7 +287,7 @@ export const sendAsset = createBackgroundAsyncThunk(
       const request: QuaiTransactionRequest = {
         to: getAddress(toAddressData),
         from: fromAddress,
-        chainId: fromNetwork?.chainID,
+        chainId: toBigInt(fromNetwork?.chainID),
         gasLimit,
         maxPriorityFeePerGas,
         maxFeePerGas,

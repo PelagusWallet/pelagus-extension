@@ -542,12 +542,20 @@ export default class ChainService extends BaseService<Events> {
 
   // ----------------------------------------- BLOCKS -------------------------------------------------
   async getBlockHeight(network: NetworkInterface): Promise<number> {
-    const cachedBlock = await this.db.getLatestBlock(network)
-    if (cachedBlock) return cachedBlock.blockHeight
+    try {
+      const cachedBlock = await this.db.getLatestBlock(network)
+      const { address } = await this.preferenceService.getSelectedAccount()
+      const shard = getExtendedZoneForAddress(address, false) as Shard
 
-    const blockNumber = await this.jsonRpcProvider.getBlockNumber()
-    if (!blockNumber) throw new Error("Failed get block number")
-    return blockNumber
+      if (cachedBlock) return cachedBlock.blockHeight
+
+      const blockNumber = await this.jsonRpcProvider.getBlockNumber(shard)
+
+      return blockNumber
+    } catch (e) {
+      console.error(e)
+      throw new Error("Failed get block number")
+    }
   }
 
   /**
@@ -594,19 +602,25 @@ export default class ChainService extends BaseService<Events> {
     shard: Shard,
     blockHash: string
   ): Promise<AnyEVMBlock> {
-    const cachedBlock = await this.db.getBlock(network, blockHash)
-    if (cachedBlock) return cachedBlock
+    try {
+      const cachedBlock = await this.db.getBlock(network, blockHash)
+
+      if (cachedBlock) return cachedBlock
 
     const resultBlock = await this.jsonRpcProvider.getBlock(shard, blockHash)
     if (!resultBlock) {
       throw new Error(`Failed to get block`)
     }
 
-    const block = blockFromProviderBlock(network, resultBlock)
-    await this.db.addBlock(block)
+      const block = blockFromProviderBlock(network, resultBlock)
+      await this.db.addBlock(block)
 
-    this.emitter.emit("block", block)
-    return block
+      this.emitter.emit("block", block)
+      return block
+    } catch (e) {
+      console.error(e)
+      throw new Error(`Failed to get block`)
+    }
   }
   // ------------------------------------------------------------------------------------------------
 
@@ -647,6 +661,10 @@ export default class ChainService extends BaseService<Events> {
         if (!cachedTx) throw new Error("Failed to get transaction")
         return cachedTx
       })
+  }
+
+  async getTransactionFirstSeenFromDB(txHash: HexString): Promise<number> {
+    return this.db.getQuaiTransactionFirstSeen(txHash)
   }
 
   /**
@@ -960,6 +978,7 @@ export default class ChainService extends BaseService<Events> {
     try {
       return await this.jsonRpcProvider.getTransaction(hash)
     } catch (e) {
+      console.error(e)
       logger.warn(
         `Tx hash ${hash} is found in our local registry but not on chain.`
       )
@@ -1249,6 +1268,7 @@ export default class ChainService extends BaseService<Events> {
     }
     try {
       let accounts = await this.getAccountsToTrack()
+
       if (!accounts.length) {
         await this.db.addAccountToTrack({
           address: transaction.from ?? "",
@@ -1258,6 +1278,7 @@ export default class ChainService extends BaseService<Events> {
       }
 
       const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
+
       await this.emitter.emit("transaction", {
         transaction: serializedTx,
         forAccounts,

@@ -96,9 +96,9 @@ export default class SigningService extends BaseService<Events> {
     await super.internalStartService() // Not needed, but better to stick to the patterns
   }
 
-  deriveAddress(signer: AccountSigner): void {
+  deriveAddress(signer: AccountSigner): Promise<void> {
     if (signer.type === "keyring") {
-      this.keyringService.deriveAddress(signer)
+      return this.keyringService.deriveAddress(signer)
     }
 
     throw new Error(`Unknown signerID: ${signer}`)
@@ -136,7 +136,6 @@ export default class SigningService extends BaseService<Events> {
   ): Promise<QuaiTransactionResponse> {
     try {
       let transactionResponse: QuaiTransactionResponse | null
-
       switch (accountSigner.type) {
         case "private-key":
         case "keyring": {

@@ -189,18 +189,7 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   isQuai: true,
 }
 
-export const DEFAULT_NETWORKS = [QUAI_NETWORK]
 export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_LOCAL]
-
-export function isTestNetwork(network: NetworkInterface): boolean {
-  return DEFAULT_TEST_NETWORKS.some(
-    (testNetwork) => testNetwork.chainID === network.chainID
-  )
-}
-
-export const DEFAULT_NETWORKS_BY_CHAIN_ID = new Set(
-  DEFAULT_NETWORKS.map((network) => network.chainID)
-)
 
 export const EIP_1559_COMPLIANT_CHAIN_IDS = new Set(
   [QUAI_NETWORK, QUAI_NETWORK_LOCAL].map((network) => network.chainID)

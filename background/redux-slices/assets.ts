@@ -191,9 +191,8 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
     maxFeePerGas: BigInt
     maxPriorityFeePerGas: BigInt
   }> => {
-    const { jsonRpc: provider } =
-      globalThis.main.chainService.getCurrentProvider()
-    const feeData = await provider.getFeeData()
+    const { jsonRpcProvider } = globalThis.main.chainService
+    const feeData = await jsonRpcProvider.getFeeData()
     if (
       !feeData.gasPrice ||
       !feeData.maxFeePerGas ||

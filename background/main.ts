@@ -55,7 +55,11 @@ import {
   setKeyringToVerify,
   updateKeyrings,
 } from "./redux-slices/keyrings"
-import { blockSeen, setEVMNetworks } from "./redux-slices/networks"
+import {
+  blockSeen,
+  setEVMNetworks,
+  updateNetwork,
+} from "./redux-slices/networks"
 import {
   emitter as uiSliceEmitter,
   initializationLoadingTimeHitLimit,
@@ -69,6 +73,7 @@ import {
   setShowDefaultWalletBanner,
   setSnackbarMessage,
   toggleCollectAnalytics,
+  toggleTestNetworks,
 } from "./redux-slices/ui"
 import {
   clearCustomGas,
@@ -138,7 +143,12 @@ import localStorageShim from "./utils/local-storage-shim"
 import { getExtendedZoneForAddress } from "./services/chain/utils"
 import { NetworkInterface } from "./constants/networks/networkTypes"
 import { SignerImportMetadata } from "./services/keyring/types"
-import { NetworksArray } from "./constants/networks/networks"
+import {
+  NetworksArray,
+  QuaiGoldenAgeTestnet,
+} from "./constants/networks/networks"
+import ProviderFactory from "./services/provider-factory/provider-factory"
+import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/events"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 
 // This sanitizer runs on store and action data before serializing for remote
@@ -259,8 +269,13 @@ export default class Main extends BaseService<never> {
 
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
+    const providerFactoryService = ProviderFactory.create()
     const keyringService = KeyringService.create()
-    const chainService = ChainService.create(preferenceService, keyringService)
+    const chainService = ChainService.create(
+      providerFactoryService,
+      preferenceService,
+      keyringService
+    )
     const indexingService = IndexingService.create(
       preferenceService,
       chainService
@@ -313,6 +328,7 @@ export default class Main extends BaseService<never> {
 
     return new this(
       savedReduxState,
+      await providerFactoryService,
       await preferenceService,
       await chainService,
       await enrichmentService,
@@ -329,6 +345,7 @@ export default class Main extends BaseService<never> {
 
   private constructor(
     savedReduxState: Record<string, unknown>,
+    public providerFactoryService: ProviderFactory,
     /**
      * A promise to the preference service, a dependency for most other services.
      * The promise will be resolved when the service is initialized.
@@ -578,6 +595,7 @@ export default class Main extends BaseService<never> {
 
     const servicesToBeStarted = [
       this.preferenceService.startService(),
+      this.providerFactoryService.startService(),
       this.chainService.startService(),
       this.indexingService.startService(),
       this.enrichmentService.startService(),
@@ -597,6 +615,7 @@ export default class Main extends BaseService<never> {
   protected override async internalStopService(): Promise<void> {
     const servicesToBeStopped = [
       this.preferenceService.stopService(),
+      this.providerFactoryService.stopService(),
       this.chainService.stopService(),
       this.indexingService.stopService(),
       this.enrichmentService.stopService(),
@@ -615,17 +634,17 @@ export default class Main extends BaseService<never> {
   }
 
   async initializeRedux(): Promise<void> {
+    this.connectPreferenceService()
+    this.connectProviderFactoryService()
     this.connectIndexingService()
     this.connectKeyringService()
     this.connectNameService()
     this.connectInternalQuaiProviderService()
     this.connectProviderBridgeService()
-    this.connectPreferenceService()
     this.connectEnrichmentService()
     this.connectTelemetryService()
     this.connectSigningService()
-
-    await this.connectChainService()
+    this.connectChainService()
 
     // FIXME Should no longer be necessary once transaction queueing enters the
     this.store.dispatch(
@@ -947,6 +966,21 @@ export default class Main extends BaseService<never> {
     uiSliceEmitter.on("userActivityEncountered", (addressOnNetwork) => {
       this.chainService.markAccountActivity(addressOnNetwork)
     })
+  }
+
+  async connectProviderFactoryService(): Promise<void> {
+    this.providerFactoryService.emitter.on(
+      "localNodeNetworkStatus",
+      async (localNodeNetworkStatus: LocalNodeNetworkStatusEventTypes) => {
+        this.store.dispatch(updateNetwork(localNodeNetworkStatus))
+        const { localNodeNetworkChainId } = localNodeNetworkStatus
+
+        const { network } = await this.preferenceService.getSelectedAccount()
+        if (network.chainID === localNodeNetworkChainId) {
+          this.store.dispatch(setSelectedNetwork(QuaiGoldenAgeTestnet)) // FIXME not ideal
+        }
+      }
+    )
   }
 
   async connectNameService(): Promise<void> {
@@ -1429,8 +1463,8 @@ export default class Main extends BaseService<never> {
   async connectPreferenceService(): Promise<void> {
     this.preferenceService.emitter.on(
       "initializeDefaultWallet",
-      async (isDefaultWallet: boolean) => {
-        await this.store.dispatch(setDefaultWallet(isDefaultWallet))
+      (isDefaultWallet: boolean) => {
+        this.store.dispatch(setDefaultWallet(isDefaultWallet))
       }
     )
 
@@ -1447,6 +1481,19 @@ export default class Main extends BaseService<never> {
       "showAlphaWalletBanner",
       async (isHiddenAlphaWalletBanner: boolean) => {
         this.store.dispatch(setShowAlphaWalletBanner(isHiddenAlphaWalletBanner))
+      }
+    )
+
+    this.preferenceService.emitter.on(
+      "showTestNetworks",
+      async (isShowTestNetworks: boolean) => {
+        this.store.dispatch(toggleTestNetworks(isShowTestNetworks))
+
+        if (isShowTestNetworks) {
+          this.providerFactoryService.startLocalNodeCheckingInterval()
+        } else {
+          this.providerFactoryService.stopLocalNodeCheckingInterval()
+        }
       }
     )
 
@@ -1493,6 +1540,13 @@ export default class Main extends BaseService<never> {
         await this.preferenceService.setShowAlphaWalletBanner(
           isHiddenAlphaWalletBanner
         )
+      }
+    )
+
+    uiSliceEmitter.on(
+      "showTestNetworks",
+      async (isShowTestNetworks: boolean) => {
+        await this.preferenceService.setShowTestNetworks(isShowTestNetworks)
       }
     )
 

@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { EIP1559Block, AnyEVMBlock } from "../networks"
 import { NetworkInterface } from "../constants/networks/networkTypes"
+import { LocalNodeNetworkStatusEventTypes } from "../services/provider-factory/events"
 
 type NetworkState = {
   blockHeight: number | null
@@ -8,7 +9,7 @@ type NetworkState = {
 }
 
 export type NetworksState = {
-  evmNetworks: {
+  quaiNetworks: {
     [chainID: string]: NetworkInterface
   }
   blockInfo: {
@@ -17,7 +18,7 @@ export type NetworksState = {
 }
 
 export const initialState: NetworksState = {
-  evmNetworks: {},
+  quaiNetworks: {},
   blockInfo: {
     "1": {
       blockHeight: null,
@@ -51,9 +52,6 @@ const networksSlice = createSlice({
           block?.baseFeePerGas ?? null
       }
     },
-    /**
-     * Receives all supported networks as the payload
-     */
     setEVMNetworks: (
       immerState,
       { payload }: { payload: NetworkInterface[] }
@@ -61,20 +59,35 @@ const networksSlice = createSlice({
       const chainIds = payload.map((network) => network.chainID)
 
       payload.forEach((network) => {
-        immerState.evmNetworks[network.chainID] = network
+        immerState.quaiNetworks[network.chainID] = network
       })
 
       // Remove payload missing networks from state
-      Object.keys(immerState.evmNetworks).forEach((chainID) => {
+      Object.keys(immerState.quaiNetworks).forEach((chainID) => {
         if (!chainIds.includes(chainID)) {
-          delete immerState.evmNetworks[chainID]
+          delete immerState.quaiNetworks[chainID]
           delete immerState.blockInfo[chainID]
         }
       })
     },
+    updateNetwork: (
+      immerState,
+      { payload }: { payload: LocalNodeNetworkStatusEventTypes }
+    ) => {
+      const { status, localNodeNetworkChainId } = payload
+
+      const network = immerState.quaiNetworks[localNodeNetworkChainId]
+      if (network) {
+        immerState.quaiNetworks[localNodeNetworkChainId] = {
+          ...network,
+          isDisabled: status,
+        }
+      }
+    },
   },
 })
 
-export const { blockSeen, setEVMNetworks } = networksSlice.actions
+export const { blockSeen, setEVMNetworks, updateNetwork } =
+  networksSlice.actions
 
 export default networksSlice.reducer

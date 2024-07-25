@@ -2,9 +2,8 @@ import React, { ReactElement, useMemo, useLayoutEffect } from "react"
 import { useTranslation } from "react-i18next"
 import {
   selectShowTestNetworks,
-  toggleTestNetworks,
+  updateShowTestNetworks,
 } from "@pelagus/pelagus-background/redux-slices/ui"
-import { isTestNetwork } from "@pelagus/pelagus-background/constants"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import SharedDrawer from "../Shared/SharedDrawer"
@@ -32,19 +31,19 @@ export default function SelectNetworkDrawer({
 
   const dispatch = useBackgroundDispatch()
   const currentNetwork =
-    customCurrentSelectedNetwork || useBackgroundSelector(selectCurrentNetwork)
+    useBackgroundSelector(selectCurrentNetwork) || customCurrentSelectedNetwork
   const showTestNetworks = useBackgroundSelector(selectShowTestNetworks)
 
   const toggleShowTestNetworks = (toggleValue: boolean) =>
-    dispatch(toggleTestNetworks(toggleValue))
+    dispatch(updateShowTestNetworks(toggleValue))
 
   const isTestNetworksSwitchDisabled = useMemo(
-    () => isTestNetwork(currentNetwork),
+    () => currentNetwork.isTestNetwork,
     [currentNetwork]
   )
 
   useLayoutEffect(() => {
-    if (isTestNetwork(currentNetwork)) toggleShowTestNetworks(true)
+    if (currentNetwork.isTestNetwork) toggleShowTestNetworks(true)
   }, [showTestNetworks])
 
   return (
@@ -56,6 +55,7 @@ export default function SelectNetworkDrawer({
       <TopMenuProtocolListGA
         currentNetwork={currentNetwork}
         onProtocolListItemSelect={onProtocolListItemSelect}
+        showTestNetworks={showTestNetworks}
       />
       <SharedToggleSwitchRow
         title={t("toggleShowTestNetworks")}

@@ -546,7 +546,8 @@
     "selectNetwork": {
       "title": "Select a network",
       "toggleShowTestNetworks": "Show developer environments",
-      "disabledToggleMessage": "Switch to the main network to disable the development environment"
+      "disabledToggleMessage": "Switch to the main network to disable the development environment",
+      "unavailableTestNetworks": "Run local node to use this network or turn on/off toggle switch"
     },
     "dAppConnection": {
       "title": "Dapp Connections",

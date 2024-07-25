@@ -37,6 +37,7 @@ interface Events extends ServiceLifecycleEvents {
   updatedSignerSettings: AccountSignerSettings[]
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
+  showTestNetworks: boolean
 }
 
 /*
@@ -71,6 +72,7 @@ export default class PreferenceService extends BaseService<Events> {
       "updateAnalyticsPreferences",
       await this.getAnalyticsPreferences()
     )
+    this.emitter.emit("showTestNetworks", await this.getShowTestNetworks())
   }
 
   protected override async internalStopService(): Promise<void> {
@@ -182,5 +184,14 @@ export default class PreferenceService extends BaseService<Events> {
   async setShowAlphaWalletBanner(newValue: boolean): Promise<void> {
     await this.db.setShowAlphaWalletBanner(newValue)
     await this.emitter.emit("showAlphaWalletBanner", newValue)
+  }
+
+  async getShowTestNetworks(): Promise<boolean> {
+    return (await this.db.getPreferences())?.showTestNetworks
+  }
+
+  async setShowTestNetworks(isShowTestNetworks: boolean): Promise<void> {
+    await this.db.setShowTestNetworks(isShowTestNetworks)
+    await this.emitter.emit("showTestNetworks", isShowTestNetworks)
   }
 }

@@ -17,6 +17,7 @@ export interface Preferences {
     hasDefaultOnBeenTurnedOn: boolean
   }
   showDefaultWalletBanner: boolean
+  showTestNetworks: boolean
 }
 
 export type AnalyticsPreferences = Preferences["analytics"]

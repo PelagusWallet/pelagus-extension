@@ -630,17 +630,17 @@ export default class KeyringService extends BaseService<Events> {
       )
     }
 
-    const { jsonRpc } = globalThis.main.chainService.getCurrentProvider()
+    const { jsonRpcProvider } = globalThis.main.chainService
 
     if (isSignerPrivateKeyType(signerWithType)) {
       const walletResponse = await signerWithType.signer
-        .connect(jsonRpc)
+        .connect(jsonRpcProvider)
         .sendTransaction(transactionRequest)
 
       return walletResponse as QuaiTransactionResponse
     }
 
-    signerWithType.signer.connect(jsonRpc)
+    signerWithType.signer.connect(jsonRpcProvider)
     const quaiHDWalletResponse = await signerWithType.signer.sendTransaction(
       transactionRequest
     )

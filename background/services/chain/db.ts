@@ -7,6 +7,7 @@ import { BASE_ASSETS } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
 import { QuaiTransactionStatus, SerializedTransactionForHistory } from "./types"
+import { HexString } from "quais/lib/commonjs/utils"
 
 type AdditionalTransactionFieldsForDB = {
   dataSource: "local"
@@ -341,6 +342,13 @@ export class ChainDatabase extends Dexie {
     )
   }
 
+  async getQuaiTransactionFirstSeen(txHash: HexString): Promise<number> {
+    return (
+      (await this.quaiTransactions.where("hash").equals(txHash).toArray())[0]
+        .firstSeen || Date.now()
+    )
+  }
+
   async getQuaiTransactionsByNetwork(
     network: NetworkInterface
   ): Promise<QuaiTransactionDBEntry[]> {
@@ -384,7 +392,7 @@ export class ChainDatabase extends Dexie {
           nonce,
           blockNumber,
           dataSource,
-          firstSeen: Date.now(),
+          firstSeen: existingTx?.firstSeen ?? Date.now(),
         })
       })
     } catch (error: any) {

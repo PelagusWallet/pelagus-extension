@@ -641,9 +641,12 @@ export default class KeyringService extends BaseService<Events> {
     }
 
     signerWithType.signer.connect(jsonRpcProvider)
-    const quaiHDWalletResponse = await signerWithType.signer.sendTransaction(
-      transactionRequest
-    )
+    const quaiHDWalletResponse = await signerWithType.signer
+      .sendTransaction(transactionRequest)
+      .catch((e) => {
+        console.error(e)
+        throw new Error("Failed send transaction")
+      })
 
     return quaiHDWalletResponse as QuaiTransactionResponse
   }

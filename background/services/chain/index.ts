@@ -943,16 +943,15 @@ export default class ChainService extends BaseService<Events> {
     network: NetworkInterface,
     hash: string
   ): Promise<TransactionResponse | null | undefined> {
-    const { jsonRpcProvider } = this
     try {
-      return await jsonRpcProvider.getTransaction(hash)
+      return await this.jsonRpcProvider.getTransaction(hash)
     } catch (e) {
       logger.warn(
         `Tx hash ${hash} is found in our local registry but not on chain.`
       )
 
       this.removeTransactionHashFromQueue(network, hash)
-      await jsonRpcProvider.off(hash)
+      await this.jsonRpcProvider.off(hash)
 
       const savedTx = await this.db.getQuaiTransactionByHash(hash)
       if (savedTx && savedTx.status === QuaiTransactionStatus.FAILED) {

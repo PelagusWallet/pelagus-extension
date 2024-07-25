@@ -51,19 +51,19 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
             margin-right: 16px;
             height: 16px;
             width: 16px;
-            mask-image: url("./images/icons/s/eye-on.svg");
             mask-size: cover;
             background-position: center;
-            background-color: var(--green-95);
+            background-color: var(--white);
             background-size: 16px;
             transition: all 0.12s ease-out;
             transform: translateY(50%);
           }
           .icon.active {
             background-color: var(--trophy-gold);
+            mask-image: url("./images/icons/m/eye-on.svg");
           }
           .icon_medium {
-            mask-image: url("./images/icons/m/eye-on.svg");
+            mask-image: url("./images/icons/m/eye-off.svg");
             mask-size: cover;
             color: var(--trophy-gold);
             width: 24px;

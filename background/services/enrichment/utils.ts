@@ -6,7 +6,6 @@ import { ERC20TransferLog } from "../../lib/erc20"
 import { sameQuaiAddress } from "../../lib/utils"
 import { AddressOnNetwork } from "../../accounts"
 import { SmartContractFungibleAsset } from "../../assets"
-import { getExtendedZoneForAddress } from "../chain/utils"
 import { EnrichedQuaiTransaction, QuaiTransactionState } from "../chain/types"
 
 export function isEIP2612TypedData(
@@ -85,7 +84,8 @@ export function getRecipient(
   name?: string
 } {
   if (!("annotation" in transaction)) {
-    return { address: transaction.from }
+    // @ts-ignore we always have a to field in the tx object, at least here
+    return { address: transaction.to }
   }
 
   const { annotation } = transaction
@@ -147,32 +147,55 @@ export function getRelevantTransactionAddresses(
 
   if (!senderAddress) return []
 
-  if (
-    recipientAddress &&
-    getExtendedZoneForAddress(senderAddress, false) ===
-      getExtendedZoneForAddress(recipientAddress, false)
-  ) {
-    // If sender and recipient are on the same shard, return both accounts
-    const result = trackedAccounts
-      .filter(({ address }) => {
-        return (
-          sameQuaiAddress(senderAddress, address) ||
-          sameQuaiAddress(recipientAddress, address)
-        )
-      })
-      .map(({ address }) => address)
-    return result
-  }
+  const addressSet = new Set<string>()
+
+  // This is the ETX landing transaction, so return the recipient account
   if (senderAddress === "0x0000000000000000000000000000000000000000") {
-    // This is the ETX landing transaction, so return the recipient account
-    const result = trackedAccounts
-      .filter(({ address }) => sameQuaiAddress(recipientAddress, address))
-      .map(({ address }) => address)
-    return result
+    trackedAccounts.forEach(({ address }) => {
+      if (sameQuaiAddress(recipientAddress, address)) {
+        addressSet.add(address)
+      }
+    })
+  } else {
+    trackedAccounts.forEach(({ address }) => {
+      if (
+        sameQuaiAddress(senderAddress, address) ||
+        sameQuaiAddress(recipientAddress, address)
+      ) {
+        addressSet.add(address)
+      }
+    })
   }
-  // If they are not on the same shard, only return the sender account
-  const result = trackedAccounts
-    .filter(({ address }) => sameQuaiAddress(senderAddress, address))
-    .map(({ address }) => address)
-  return result
+
+  return Array.from(addressSet)
+
+  // TODO temp fix
+  // if (
+  //   recipientAddress &&
+  //   getExtendedZoneForAddress(senderAddress, false) ===
+  //     getExtendedZoneForAddress(recipientAddress, false)
+  // ) {
+  //   // If sender and recipient are on the same shard, return both accounts
+  //   const result = trackedAccounts
+  //     .filter(({ address }) => {
+  //       return (
+  //         sameQuaiAddress(senderAddress, address) ||
+  //         sameQuaiAddress(recipientAddress, address)
+  //       )
+  //     })
+  //     .map(({ address }) => address)
+  //   return result
+  // }
+  // if (senderAddress === "0x0000000000000000000000000000000000000000") {
+  //   // This is the ETX landing transaction, so return the recipient account
+  //   const result = trackedAccounts
+  //     .filter(({ address }) => sameQuaiAddress(recipientAddress, address))
+  //     .map(({ address }) => address)
+  //   return result
+  // }
+  // // If they are not on the same shard, only return the sender account
+  // const result = trackedAccounts
+  //   .filter(({ address }) => sameQuaiAddress(senderAddress, address))
+  //   .map(({ address }) => address)
+  // return result
 }

@@ -13,7 +13,6 @@ import {
   ActivityDetail,
   INFINITE_VALUE,
 } from "./utils/activities-utils"
-import { getExtendedZoneForAddress } from "../services/chain/utils"
 import {
   EnrichedQuaiTransaction,
   SerializedTransactionForHistory,
@@ -48,25 +47,26 @@ const addActivityToState =
     chainID: string,
     transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
   ) => {
-    const isEtx =
-      transaction.to &&
-      transaction.from &&
-      getExtendedZoneForAddress(transaction.from, false) !==
-        getExtendedZoneForAddress(transaction.to, false)
-    // Don't add TX if it's an ETX, and it's not from the null address, this will lead to duplicate transactions
-    // Example: 0xCyprus1 -> 0xCyprus2 (TX1) generates an ITX on Cyprus2 which is 0x00000 -> 0xCyprus2 (TX2)
-    // 0xCyprus1 Activities: TX1
-    // 0xCyprus2 Activities: TX1, TX2
-    if (
-      isEtx &&
-      sameQuaiAddress(transaction.to, address) &&
-      !sameQuaiAddress(
-        transaction.from,
-        "0x0000000000000000000000000000000000000000"
-      )
-    ) {
-      return
-    }
+    // TODO temp fix
+    // const isEtx =
+    //   transaction.to &&
+    //   transaction.from &&
+    //   getExtendedZoneForAddress(transaction.from, false) !==
+    //     getExtendedZoneForAddress(transaction.to, false)
+    // // Don't add TX if it's an ETX, and it's not from the null address, this will lead to duplicate transactions
+    // // Example: 0xCyprus1 -> 0xCyprus2 (TX1) generates an ITX on Cyprus2 which is 0x00000 -> 0xCyprus2 (TX2)
+    // // 0xCyprus1 Activities: TX1
+    // // 0xCyprus2 Activities: TX1, TX2
+    // if (
+    //   isEtx &&
+    //   sameQuaiAddress(transaction.to, address) &&
+    //   !sameQuaiAddress(
+    //     transaction.from,
+    //     "0x0000000000000000000000000000000000000000"
+    //   )
+    // ) {
+    //   return
+    // }
 
     const activity = getActivity(transaction)
 
@@ -111,16 +111,12 @@ const initializeActivitiesFromTransactions = ({
         chainId === activeNetwork.chainID && sameQuaiAddress(from, address)
     )
 
-    if (
-      to &&
-      isTrackedTo &&
-      from &&
-      (getExtendedZoneForAddress(to, false) ===
-        getExtendedZoneForAddress(from, false) ||
-        sameQuaiAddress(from, "0x0000000000000000000000000000000000000000"))
-    ) {
+    // adding tx to UI for receiver(to)
+    if (to && from && isTrackedTo) {
       addActivity(to, String(chainId), transaction)
     }
+
+    // adding tx to UI for sender(from)
     if (from && isTrackedFrom) {
       addActivity(from, String(chainId), transaction)
     }

@@ -1,4 +1,3 @@
-import { toBigInt } from "quais"
 import ChainService from "../chain"
 import IndexingService from "../indexing"
 import NameService from "../name"

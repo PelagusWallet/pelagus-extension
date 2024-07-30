@@ -74,13 +74,13 @@ const networksSlice = createSlice({
       immerState,
       { payload }: { payload: LocalNodeNetworkStatusEventTypes }
     ) => {
-      const { status, localNodeNetworkChainId } = payload
+      const { isDisabled, localNodeNetworkChainId } = payload
 
       const network = immerState.quaiNetworks[localNodeNetworkChainId]
       if (network) {
         immerState.quaiNetworks[localNodeNetworkChainId] = {
           ...network,
-          isDisabled: status,
+          isDisabled,
         }
       }
     },

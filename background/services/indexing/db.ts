@@ -99,6 +99,7 @@ export class IndexingDatabase extends Dexie {
     this.version(1).stores({
       migrations: "++id,appliedAt",
       prices: "++id,time,[asset1ID+asset2ID]",
+      // TODO: Keep on eye: possible problem if on one chain we have two tokens with the same symbols
       balances:
         "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
       tokenLists: "++id,url,retrievedAt",

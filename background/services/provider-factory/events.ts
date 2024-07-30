@@ -1,7 +1,7 @@
 import { ServiceLifecycleEvents } from "../types"
 
 export type LocalNodeNetworkStatusEventTypes = {
-  status: boolean
+  isDisabled: boolean
   localNodeNetworkChainId: string
 }
 

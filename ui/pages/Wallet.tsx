@@ -81,7 +81,10 @@ export default function Wallet(): ReactElement {
   panelNames.push(t("wallet.pages.activity"))
 
   const mainAssetBalance = useMemo(() => {
-    if (!assetAmounts[0] || !isFungibleAsset(assetAmounts[0].asset)) return "0"
+    if (!assetAmounts[0]) return "0"
+
+    if (!isFungibleAsset(assetAmounts[0].asset))
+      return assetAmounts[0].decimalAmount.toString() ?? "0"
 
     return bigIntToDecimal(
       assetAmounts[0].amount,

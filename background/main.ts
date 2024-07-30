@@ -144,8 +144,8 @@ import { getExtendedZoneForAddress } from "./services/chain/utils"
 import { NetworkInterface } from "./constants/networks/networkTypes"
 import { SignerImportMetadata } from "./services/keyring/types"
 import {
+  DEFAULT_PELAGUS_NETWORK,
   NetworksArray,
-  QuaiGoldenAgeTestnet,
 } from "./constants/networks/networks"
 import ProviderFactory from "./services/provider-factory/provider-factory"
 import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/events"
@@ -973,13 +973,13 @@ export default class Main extends BaseService<never> {
       "localNodeNetworkStatus",
       async (localNodeNetworkStatus: LocalNodeNetworkStatusEventTypes) => {
         this.store.dispatch(updateNetwork(localNodeNetworkStatus))
-        const { status, localNodeNetworkChainId } = localNodeNetworkStatus
+        const { isDisabled, localNodeNetworkChainId } = localNodeNetworkStatus
 
         const { network } = await this.preferenceService.getSelectedAccount()
 
-        if (status && network.chainID === localNodeNetworkChainId) {
-          uiSliceEmitter.emit("newSelectedNetwork", QuaiGoldenAgeTestnet)
-          this.store.dispatch(setSelectedNetwork(QuaiGoldenAgeTestnet))
+        if (isDisabled && network.chainID === localNodeNetworkChainId) {
+          uiSliceEmitter.emit("newSelectedNetwork", DEFAULT_PELAGUS_NETWORK)
+          this.store.dispatch(setSelectedNetwork(DEFAULT_PELAGUS_NETWORK))
         }
       }
     )

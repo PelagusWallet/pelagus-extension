@@ -82,7 +82,7 @@ export class ChainDatabase extends Dexie {
       accountAssetTransferLookups:
         "++id,[addressNetwork.address+addressNetwork.network.baseAsset.name+addressNetwork.network.chainID],[addressNetwork.address+addressNetwork.network.baseAsset.name+addressNetwork.network.chainID+startBlock],[addressNetwork.address+addressNetwork.network.baseAsset.name+addressNetwork.network.chainID+endBlock],addressNetwork.address,addressNetwork.network.chainID,addressNetwork.network.baseAsset.name,startBlock,endBlock",
       balances:
-        "++id,address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
+        "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
       quaiTransactions:
         "&[hash+chainId],hash,from,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,firstSeen,dataSource",
       blocks:
@@ -291,7 +291,7 @@ export class ChainDatabase extends Dexie {
   }
 
   async addBalance(accountBalance: AccountBalance): Promise<void> {
-    await this.balances.add(accountBalance)
+    await this.balances.put(accountBalance)
   }
 
   async getAccountsToTrack(): Promise<AddressOnNetwork[]> {

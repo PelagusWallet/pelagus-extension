@@ -973,11 +973,13 @@ export default class Main extends BaseService<never> {
       "localNodeNetworkStatus",
       async (localNodeNetworkStatus: LocalNodeNetworkStatusEventTypes) => {
         this.store.dispatch(updateNetwork(localNodeNetworkStatus))
-        const { localNodeNetworkChainId } = localNodeNetworkStatus
+        const { status, localNodeNetworkChainId } = localNodeNetworkStatus
 
         const { network } = await this.preferenceService.getSelectedAccount()
-        if (network.chainID === localNodeNetworkChainId) {
-          this.store.dispatch(setSelectedNetwork(QuaiGoldenAgeTestnet)) // FIXME not ideal
+
+        if (status && network.chainID === localNodeNetworkChainId) {
+          uiSliceEmitter.emit("newSelectedNetwork", QuaiGoldenAgeTestnet)
+          this.store.dispatch(setSelectedNetwork(QuaiGoldenAgeTestnet))
         }
       }
     )

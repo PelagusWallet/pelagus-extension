@@ -1,4 +1,3 @@
-import { toBigInt } from "quais"
 import logger from "../../lib/logger"
 import { HexString } from "../../types"
 import { sameNetwork } from "../../networks"

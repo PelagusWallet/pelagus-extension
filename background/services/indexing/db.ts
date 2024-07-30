@@ -8,8 +8,6 @@ import {
   SmartContractFungibleAsset,
   TokenListCitation,
 } from "../../assets"
-import { DeepWriteable } from "../../types"
-import { fixPolygonWETHIssue, polygonTokenListURL } from "./token-list-edit"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 /*
@@ -102,91 +100,8 @@ export class IndexingDatabase extends Dexie {
       migrations: "++id,appliedAt",
       prices: "++id,time,[asset1ID+asset2ID]",
       balances:
-        "++id,address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
+        "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
       tokenLists: "++id,url,retrievedAt",
-      customAssets:
-        "&[contractAddress+homeNetwork.baseAsset.name],contractAddress,symbol,homeNetwork.chainId,homeNetwork.baseAsset.name",
-      assetsToTrack:
-        "&[contractAddress+homeNetwork.baseAsset.name],symbol,contractAddress,homeNetwork.family,homeNetwork.chainId,homeNetwork.baseAsset.name",
-    })
-
-    this.version(2).stores({
-      migrations: null,
-    })
-
-    this.version(3).upgrade((tx) => {
-      return tx
-        .table("tokenLists")
-        .toCollection()
-        .modify((storedTokenList: DeepWriteable<CachedTokenList>) => {
-          if (storedTokenList.url === polygonTokenListURL) {
-            // This is how migrations are expected to work
-            // eslint-disable-next-line no-param-reassign
-            storedTokenList.list.tokens = fixPolygonWETHIssue(
-              storedTokenList.list.tokens
-            )
-          }
-        })
-    })
-
-    this.version(4).upgrade(async (tx) => {
-      const seenAddresses = new Set<string>()
-
-      const selectInvalidOrDuplicateRecords = (
-        record: SmartContractFungibleAsset & {
-          chainId?: unknown
-          address?: string
-        }
-      ) => {
-        const normalizedAddress = record.contractAddress
-        // These properties are not included after parsing
-        // external token lists
-        const isInvalidFungibleAssetForNetwork =
-          typeof record.chainId !== "undefined" &&
-          typeof record.address !== "undefined"
-
-        if (
-          isInvalidFungibleAssetForNetwork ||
-          seenAddresses.has(normalizedAddress)
-        )
-          return true
-
-        seenAddresses.add(normalizedAddress)
-
-        return false
-      }
-
-      // Remove invalid records
-      await tx
-        .table("assetsToTrack")
-        .filter(selectInvalidOrDuplicateRecords)
-        .delete()
-
-      await tx
-        .table("customAssets")
-        .filter(selectInvalidOrDuplicateRecords)
-        .delete()
-
-      const normalizeAssetAddress = (record: SmartContractFungibleAsset) => {
-        Object.assign(record, {
-          contractAddress: record.contractAddress,
-        })
-      }
-
-      // Normalize addresses
-      await tx
-        .table("assetsToTrack")
-        .toCollection()
-        .modify(normalizeAssetAddress)
-
-      await tx
-        .table("customAssets")
-        .toCollection()
-        .modify(normalizeAssetAddress)
-    })
-
-    // Fix incorrect index on "chainId"
-    this.version(5).stores({
       customAssets:
         "&[contractAddress+homeNetwork.baseAsset.name],contractAddress,symbol,homeNetwork.chainID,homeNetwork.baseAsset.name",
       assetsToTrack:
@@ -272,7 +187,7 @@ export class IndexingDatabase extends Dexie {
   }
 
   async addBalances(accountBalances: AccountBalance[]): Promise<void> {
-    await this.balances.bulkAdd(accountBalances)
+    await this.balances.bulkPut(accountBalances)
   }
 
   async getLatestTokenList(url: string): Promise<CachedTokenList | null> {

@@ -10,7 +10,6 @@ import {
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 // TODO temp solution instead of provider timeout
-const PROVIDER_TIMEOUT = 3000
 const DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS = 7000
 
 export default class ProviderFactory extends BaseService<ProviderFactoryEvents> {
@@ -88,14 +87,11 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
           setTimeout(() => reject(new Error("Timeout")), ms)
         )
 
-      const getBlockNumberPromise =
+      const blockNumber = await Promise.race([
         providersForLocalNodeNetwork?.jsonRpcProvider.getBlockNumber(
           Shard.Cyprus1
-        )
-
-      const blockNumber = await Promise.race([
-        getBlockNumberPromise,
-        timeout(PROVIDER_TIMEOUT),
+        ),
+        timeout(DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS),
       ])
 
       if (!blockNumber) {
@@ -109,12 +105,6 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
   }
 
   private emitLocalNodeNetworkStatusEvent(status: boolean): void {
-    if (
-      this.lastLocalNodeStatus !== null &&
-      this.lastLocalNodeStatus === status
-    )
-      return
-
     this.lastLocalNodeStatus = status
 
     this.emitter.emit("localNodeNetworkStatus", {

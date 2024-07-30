@@ -80,6 +80,16 @@ export default function Wallet(): ReactElement {
 
   panelNames.push(t("wallet.pages.activity"))
 
+  const mainAssetBalance = useMemo(() => {
+    if (!assetAmounts[0] || !isFungibleAsset(assetAmounts[0].asset)) return "0"
+
+    return bigIntToDecimal(
+      assetAmounts[0].amount,
+      assetAmounts[0].asset.decimals,
+      4
+    )
+  }, [assetAmounts])
+
   return (
     <>
       <div className="page_content">
@@ -93,17 +103,7 @@ export default function Wallet(): ReactElement {
 
         <div className="section">
           <WalletAccountBalanceControl
-            mainAssetBalance={
-              assetAmounts[0] != undefined
-                ? isFungibleAsset(assetAmounts[0].asset)
-                  ? bigIntToDecimal(
-                      assetAmounts[0].amount,
-                      assetAmounts[0].asset.decimals,
-                      4
-                    ) ?? "0"
-                  : assetAmounts[0].decimalAmount.toString() ?? "0"
-                : "0"
-            }
+            mainAssetBalance={mainAssetBalance}
             initializationLoadingTimeExpired={initializationLoadingTimeExpired}
           />
         </div>

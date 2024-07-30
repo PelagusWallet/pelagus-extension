@@ -333,6 +333,10 @@ export default class ChainService extends BaseService<Events> {
 
     this.jsonRpcProvider = jsonRpcProvider
     this.webSocketProvider = webSocketProvider
+
+    this.subscribedAccounts.map((item) =>
+      this.getLatestBaseAccountBalance({ address: item.account, network })
+    )
   }
 
   // --------------------------------------------------------------------------------------------------
@@ -607,10 +611,10 @@ export default class ChainService extends BaseService<Events> {
 
       if (cachedBlock) return cachedBlock
 
-    const resultBlock = await this.jsonRpcProvider.getBlock(shard, blockHash)
-    if (!resultBlock) {
-      throw new Error(`Failed to get block`)
-    }
+      const resultBlock = await this.jsonRpcProvider.getBlock(shard, blockHash)
+      if (!resultBlock) {
+        throw new Error(`Failed to get block`)
+      }
 
       const block = blockFromProviderBlock(network, resultBlock)
       await this.db.addBlock(block)

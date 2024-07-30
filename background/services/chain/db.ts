@@ -81,6 +81,7 @@ export class ChainDatabase extends Dexie {
         "&[address+network.baseAsset.name+network.chainID],address,network.family,network.chainID,network.baseAsset.name",
       accountAssetTransferLookups:
         "++id,[addressNetwork.address+addressNetwork.network.baseAsset.name+addressNetwork.network.chainID],[addressNetwork.address+addressNetwork.network.baseAsset.name+addressNetwork.network.chainID+startBlock],[addressNetwork.address+addressNetwork.network.baseAsset.name+addressNetwork.network.chainID+endBlock],addressNetwork.address,addressNetwork.network.chainID,addressNetwork.network.baseAsset.name,startBlock,endBlock",
+      // TODO: Keep on eye: possible problem if on one chain we have two tokens with the same symbols
       balances:
         "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
       quaiTransactions:

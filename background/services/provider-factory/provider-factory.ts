@@ -70,6 +70,7 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
     this.providersForNetworks.set(chainID, localNodeNetworkProviders)
 
     this.isLocalNodeNetworkProvidersInitialized = true
+    this.lastLocalNodeStatus = null
 
     // slight improvement to check local node status immediately after toggle click
     // optional: we can wait DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS delay or force check
@@ -104,11 +105,13 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
     }
   }
 
-  private emitLocalNodeNetworkStatusEvent(status: boolean): void {
-    this.lastLocalNodeStatus = status
+  private emitLocalNodeNetworkStatusEvent(isDisabled: boolean): void {
+    if (this.lastLocalNodeStatus === isDisabled) return
+
+    this.lastLocalNodeStatus = isDisabled
 
     this.emitter.emit("localNodeNetworkStatus", {
-      status,
+      isDisabled,
       localNodeNetworkChainId: QuaiLocalNodeNetwork.chainID,
     })
   }

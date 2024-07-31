@@ -10,7 +10,6 @@ import {
   EIP1193Error,
   RPCRequest,
 } from "@pelagus-provider/provider-bridge-shared"
-import { normalizeHexAddress } from "@pelagus/hd-keyring"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import logger from "../../lib/logger"
 import BaseService from "../base"
@@ -32,6 +31,7 @@ import { decodeJSON } from "../../lib/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
 import { QuaiTransactionRequestWithAnnotation } from "../chain/types"
+import { normalizeHexAddress } from "../../utils/addresses"
 
 // A type representing the transaction requests that come in over JSON-RPC
 // requests like eth_sendTransaction and eth_signTransaction. These are very

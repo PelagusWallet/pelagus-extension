@@ -1,4 +1,3 @@
-import { normalizeHexAddress } from "@pelagus/hd-keyring"
 import {
   toBigInt,
   MaxUint256,
@@ -6,6 +5,7 @@ import {
   formatUnits,
   getAddress,
 } from "quais"
+import { normalizeHexAddress } from "../../utils/addresses"
 
 /**
  * Manually truncate number, try to cut as close to `decimalLength` as possible.

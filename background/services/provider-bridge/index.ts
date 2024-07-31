@@ -16,7 +16,7 @@ import {
   PortResponseEvent,
   RPCRequest,
 } from "@pelagus-provider/provider-bridge-shared"
-import { TransactionRequest as QuaiTransactionRequest } from "@quais/abstract-provider"
+import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import BaseService from "../base"
 import InternalQuaiProviderService, {
   AddEthereumChainParameter,
@@ -522,9 +522,10 @@ export default class ProviderBridgeService extends BaseService<Events> {
           )
         case "quai_signTransaction":
         case "quai_sendTransaction":
+          // TODO check this checkPermissionSignTransaction function in future
           checkPermissionSignTransaction(
             (params[0] as QuaiTransactionRequest).chainId,
-            (params[0] as QuaiTransactionRequest).from,
+            (params[0] as QuaiTransactionRequest).from as string,
             enablingPermission
           )
 

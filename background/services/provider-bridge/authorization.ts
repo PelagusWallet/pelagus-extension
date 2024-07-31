@@ -3,6 +3,7 @@ import {
   EIP1193_ERROR_CODES,
   PermissionRequest,
 } from "@pelagus-provider/provider-bridge-shared"
+import { BigNumberish } from "quais"
 import { sameQuaiAddress } from "../../lib/utils"
 import { toHexChainID } from "../../networks"
 import { HexString } from "../../types"
@@ -32,13 +33,13 @@ export function checkPermissionSign(
 }
 
 export function checkPermissionSignTransaction(
-  chainId: number | undefined,
+  chainId: BigNumberish | undefined | null,
   from: string | undefined,
   enablingPermission: PermissionRequest
 ): void {
   if (
     chainId &&
-    toHexChainID(chainId) !== toHexChainID(enablingPermission.chainID)
+    toHexChainID(Number(chainId)) !== toHexChainID(enablingPermission.chainID)
   ) {
     throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
   }

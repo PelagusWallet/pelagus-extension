@@ -1,11 +1,11 @@
-import React from "react"
+import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { Route, Switch } from "react-router-dom"
 import { FaDiscord, FaTwitter } from "react-icons/fa"
 import OnboardingRoutes from "../../pages/Onboarding/Tabbed/Routes"
 import SharedButton from "../Shared/SharedButton"
 
-export default function RouteBasedContent(): JSX.Element {
+export default function RouteBasedContent(): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "onboarding.tabbed.routeBasedContent",
   })
@@ -52,7 +52,7 @@ export default function RouteBasedContent(): JSX.Element {
       <Route
         key={OnboardingRoutes.ONBOARDING_COMPLETE}
         path={OnboardingRoutes.ONBOARDING_COMPLETE}
-      ></Route>
+      />
       <Route>
         <div className="onboarding_facts fadeIn">
           <p>{t("default.fact1")}</p>

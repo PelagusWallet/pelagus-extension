@@ -37,6 +37,7 @@ import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import { toBigInt } from "quais"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import SharedAssetInput from "../components/Shared/SharedAssetInput"
 import SharedBackButton from "../components/Shared/SharedBackButton"
 import SharedButton from "../components/Shared/SharedButton"
@@ -89,15 +90,21 @@ export default function Send(): ReactElement {
   }
 
   useEffect(() => {
-    dispatch(getMaxFeeAndMaxPriorityFeePerGas()).then(
-      ({
+    const fetchFees = async () => {
+      const response = (await dispatch(
+        getMaxFeeAndMaxPriorityFeePerGas()
+      )) as AsyncThunkFulfillmentType<typeof getMaxFeeAndMaxPriorityFeePerGas>
+
+      const {
         maxFeePerGas: maxFeePerGasFromRedux,
         maxPriorityFeePerGas: maxPriorityFeePerGasFromRedux,
-      }) => {
-        setMaxFeePerGas(maxFeePerGasFromRedux)
-        setMaxPriorityFeePerGas(maxPriorityFeePerGasFromRedux)
-      }
-    )
+      } = response
+
+      setMaxFeePerGas(maxFeePerGasFromRedux.valueOf())
+      setMaxPriorityFeePerGas(maxPriorityFeePerGasFromRedux.valueOf())
+    }
+
+    fetchFees()
   }, [])
 
   // Switch the asset being sent when switching between networks, but still use
@@ -196,9 +203,10 @@ export default function Send(): ReactElement {
         maxFeePerGas,
         maxPriorityFeePerGas,
       }
-      await dispatch(sendAsset(transferDetails)).then((data) =>
-        setIsTransactionError(!data.success)
-      )
+      const { success } = (await dispatch(
+        sendAsset(transferDetails)
+      )) as AsyncThunkFulfillmentType<typeof sendAsset>
+      setIsTransactionError(!success)
     } catch (e) {
       setIsTransactionError(true)
     } finally {

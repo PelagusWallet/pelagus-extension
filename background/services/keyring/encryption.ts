@@ -136,11 +136,12 @@ export async function encryptVault<V>(
     key,
     encodedPlaintext
   )
+  const cipherTextUint8Array = new Uint8Array(cipherText)
 
   return {
     salt,
     initializationVector: bufferToBase64(initializationVector),
-    cipherText: bufferToBase64(cipherText),
+    cipherText: bufferToBase64(cipherTextUint8Array),
   }
 }
 

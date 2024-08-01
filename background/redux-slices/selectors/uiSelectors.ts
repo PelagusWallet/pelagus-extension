@@ -40,7 +40,7 @@ export const selectCurrentAddressNetwork = createSelector(
 )
 
 export const selectMainCurrencySymbol = createSelector(
-  () => null,
+  (state: RootState) => state,
   () => hardcodedMainCurrencySymbol
 )
 

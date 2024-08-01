@@ -26,10 +26,10 @@
     "dapp"
   ],
   "scripts": {
-    "start": "run-p -n -l devtools \"dev {@}\" --",
+    "start": "run-p -n -l \"dev {@}\" --",
+    "clear": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
     "build": "webpack --mode=production",
     "dev": "patch-package && webpack --mode=development --watch",
-    "devtools": "redux-devtools --hostname=localhost --port=8000",
     "lint": "run-p lint:*",
     "lint-fix": "run-p lint:*:fix",
     "lint:config": "prettier -c '**/*.@(json|yaml|toml|yml)'",
@@ -75,7 +75,6 @@
     "@babel/preset-typescript": "^7.15.0",
     "@babel/register": "^7.24.6",
     "@playwright/test": "^1.31",
-    "@redux-devtools/cli": "^1.0.7",
     "@types/archiver": "^5.1.0",
     "@types/copy-webpack-plugin": "^8.0.0",
     "@types/dotenv-webpack": "^7.0.3",
@@ -112,7 +111,6 @@
     "patch-package": "^6.4.7",
     "prettier": "^2.5.1",
     "process": "^0.11.10",
-    "size-plugin": "^2.0.2",
     "stream-browserify": "^3.0.0",
     "styled-jsx": "^5.1.6",
     "terser-webpack-plugin": "^5.1.1",
@@ -121,7 +119,6 @@
     "webpack": "^5.58.1",
     "webpack-cli": "4.5.0",
     "webpack-livereload-plugin": "^3.0.1",
-    "webpack-merge": "^5.8.0",
-    "yarn-audit-fix": "^10.0.7"
+    "webpack-merge": "^5.8.0"
   }
 }

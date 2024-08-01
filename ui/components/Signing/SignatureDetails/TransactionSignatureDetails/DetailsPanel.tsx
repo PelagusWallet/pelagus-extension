@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import classNames from "classnames"
 import { getMaxFeeAndMaxPriorityFeePerGas } from "@pelagus/pelagus-background/redux-slices/assets"
 import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSlideUpMenu from "../../../Shared/SharedSlideUpMenu"
 import NetworkSettingsChooser from "../../../NetworkFees/NetworkSettingsChooser"
@@ -57,19 +58,25 @@ export default function DetailPanel({
       transactionDetails.from &&
       transactionDetails.network
     ) {
-      dispatch(getMaxFeeAndMaxPriorityFeePerGas()).then(
-        ({ maxFeePerGas, maxPriorityFeePerGas }) => {
-          if (estimatedFeesPerGas) {
-            if (estimatedFeesPerGas.regular) {
-              estimatedFeesPerGas.regular.maxFeePerGas = maxFeePerGas
-              estimatedFeesPerGas.regular.maxPriorityFeePerGas =
-                maxPriorityFeePerGas
-            }
-            estimatedFeesPerGas.maxFeePerGas = maxFeePerGas
-            estimatedFeesPerGas.maxPriorityFeePerGas = maxPriorityFeePerGas
-          }
-        }
-      )
+      const { maxFeePerGas, maxPriorityFeePerGas } = dispatch(
+        getMaxFeeAndMaxPriorityFeePerGas()
+      ) as unknown as AsyncThunkFulfillmentType<
+        typeof getMaxFeeAndMaxPriorityFeePerGas
+      >
+
+      const maxFeePerGasFromRedux = maxFeePerGas.valueOf()
+      const maxPriorityFeePerGasFromRedux = maxPriorityFeePerGas.valueOf()
+
+      if (!estimatedFeesPerGas) return
+
+      if (estimatedFeesPerGas.regular) {
+        estimatedFeesPerGas.regular.maxFeePerGas = maxFeePerGasFromRedux
+        estimatedFeesPerGas.regular.maxPriorityFeePerGas =
+          maxPriorityFeePerGasFromRedux
+      }
+
+      estimatedFeesPerGas.maxFeePerGas = maxFeePerGasFromRedux
+      estimatedFeesPerGas.maxPriorityFeePerGas = maxPriorityFeePerGasFromRedux
     }
   }, [])
 

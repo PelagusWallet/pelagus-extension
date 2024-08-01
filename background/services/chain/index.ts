@@ -209,7 +209,7 @@ export default class ChainService extends BaseService<Events> {
    *   - in manifest v3 / service worker context the background thread can be shut down any time.
    *     Because of this we need to keep the granular queue tied to the persisted list of txs
    */
-  private transactionToRetrieveGranularTimer: NodeJS.Timer | undefined
+  private transactionToRetrieveGranularTimer: NodeJS.Timeout | undefined
 
   static create: ServiceCreatorFunction<
     Events,

@@ -184,9 +184,9 @@ export default function SettingsAddCustomAsset(): ReactElement {
 
     setIsImportingToken(true)
 
-    const { success } = await dispatch(
+    const { success } = (await dispatch(
       importCustomToken({ asset: assetData.asset })
-    )
+    )) as AsyncThunkFulfillmentType<typeof importCustomToken>
     if (success) {
       await dispatch(setSnackbarMessage(t("snackbar.success")))
       setIsImportingToken(false)

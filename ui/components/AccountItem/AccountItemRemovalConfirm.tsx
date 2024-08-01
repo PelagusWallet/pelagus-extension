@@ -3,7 +3,7 @@ import {
   AccountTotal,
   getAllAddresses,
   selectAccountSignersByAddress,
-  selectKeyringByAddress,
+  selectKeyrings,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement } from "react"
 import { setNewSelectedAccount } from "@pelagus/pelagus-background/redux-slices/ui"
@@ -11,6 +11,7 @@ import { useHistory } from "react-router-dom"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 
+import { Keyring } from "@pelagus/pelagus-background/services/keyring/types"
 import SharedButton from "../Shared/SharedButton"
 import SharedAccountItemSummary from "../Shared/SharedAccountItemSummary"
 import {
@@ -39,7 +40,8 @@ export default function AccountItemRemovalConfirm({
   const dispatch = useBackgroundDispatch()
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const history = useHistory()
-  const keyring = useBackgroundSelector(selectKeyringByAddress(address))
+  const keyrings: Keyring[] = useBackgroundSelector(selectKeyrings)
+  const keyring = keyrings?.find((item) => item.addresses.includes(address))
   const { selectedAddress, accountsData } = useBackgroundSelector((state) => ({
     selectedAddress: state.ui.selectedAccount.address,
     accountsData: state.account.accountsData,

@@ -6,6 +6,7 @@ import {
   AsyncThunkPayloadCreator,
   createAsyncThunk,
 } from "@reduxjs/toolkit"
+import type { Dispatch } from "redux"
 import logger from "../lib/logger"
 // FIXME: this utility file should not depend on actual services.
 // Creating a properly typed version of `createBackgroundAsyncThunk`
@@ -104,11 +105,22 @@ const asyncThunkProperties = (() => {
  *         additional properties, which are the same as those returned by
  *         `createAsyncThunk`.
  */
+type AsyncThunkConfig = {
+  state?: unknown
+  dispatch?: Dispatch
+  extra?: unknown
+  rejectValue?: unknown
+  serializedErrorType?: unknown
+  pendingMeta?: unknown
+  fulfilledMeta?: unknown
+  rejectedMeta?: unknown
+}
+
 export function createBackgroundAsyncThunk<
   TypePrefix extends string,
   Returned,
   ThunkArg = void,
-  ThunkApiConfig = { extra: { main: Main } }
+  ThunkApiConfig extends AsyncThunkConfig = { extra: { main: Main } }
 >(
   typePrefix: TypePrefix,
   payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,

@@ -38,18 +38,20 @@
     "react-dom": "^17.0.2",
     "react-error-boundary": "^3.1.4",
     "react-i18next": "^11.17.2",
+    "react-icons": "^5.2.1",
     "react-qr-code": "^2.0.0",
     "react-redux": "^7.2.4",
     "react-router-dom": "^5.3.0",
     "react-transition-group": "^4.4.2",
     "redux": "^4.1.0",
     "webextension-polyfill": "^0.8.0",
-    "zxcvbn": "^4.4.2"
+    "zxcvbn": "^4.4.2",
+    "quais": "^1.0.0-alpha.7"
   },
   "devDependencies": {
-    "@types/react-dom": "^17.0.9",
     "@types/react-transition-group": "^4.4.4",
     "@types/zxcvbn": "^4.4.1",
-    "webext-redux": "^2.1.7"
+    "webext-redux": "2.1.7",
+    "@types/lodash": "^4.17.7"
   }
 }

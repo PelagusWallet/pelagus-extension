@@ -78,7 +78,7 @@ export default function ImportSeed(props: Props): ReactElement {
           path,
           source: SignerImportSource.import,
         })
-      )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
+      )) as AsyncThunkFulfillmentType<typeof importKeyring>
 
       if (success) {
         await dispatch(sendEvent(OneTimeAnalyticsEvent.ONBOARDING_FINISHED))

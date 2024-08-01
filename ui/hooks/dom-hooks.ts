@@ -72,7 +72,7 @@ export function useDelayContentChange<T>(
 }
 
 function debounce<T>(setStateFn: (V: T) => void, ms: number) {
-  let timeout: NodeJS.Timer
+  let timeout: NodeJS.Timeout
 
   return (value: T) => {
     clearTimeout(timeout)

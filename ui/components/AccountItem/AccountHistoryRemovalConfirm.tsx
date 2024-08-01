@@ -1,6 +1,6 @@
 import {
   AccountTotal,
-  selectKeyringByAddress,
+  selectKeyrings,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import React, { ReactElement, useCallback } from "react"
 import { useHistory } from "react-router-dom"
@@ -9,6 +9,7 @@ import {
   removeAccountActivities,
   removeActivities,
 } from "@pelagus/pelagus-background/redux-slices/activities"
+import { Keyring } from "@pelagus/pelagus-background/services/keyring/types"
 import SharedButton from "../Shared/SharedButton"
 import SharedAccountItemSummary from "../Shared/SharedAccountItemSummary"
 import {
@@ -36,7 +37,8 @@ export default function AccountHistoryRemovalConfirm({
   const dispatch = useBackgroundDispatch()
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const history = useHistory()
-  const keyring = useBackgroundSelector(selectKeyringByAddress(address))
+  const keyrings: Keyring[] = useBackgroundSelector(selectKeyrings)
+  const keyring = keyrings?.find((item) => item.addresses.includes(address))
   const readOnlyAccount = typeof keyring === "undefined"
 
   const handleClearActivities = useCallback(() => {

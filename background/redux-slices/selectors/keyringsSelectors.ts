@@ -1,4 +1,4 @@
-import { createSelector, OutputSelector } from "@reduxjs/toolkit"
+import { createSelector } from "@reduxjs/toolkit"
 import { RootState } from ".."
 import {
   Keyring,
@@ -18,19 +18,10 @@ export const selectKeyringNextPage = createSelector(
   (nextPage) => nextPage
 )
 
-export const selectKeyringByAddress = (
-  address: string
-): OutputSelector<
-  RootState,
-  Keyring | undefined,
-  (res: Keyring[]) => Keyring | undefined
-> =>
-  createSelector(
-    [(state: RootState) => state.keyrings.keyrings],
-    (keyrings) => {
-      return keyrings.find((keyring) => keyring.addresses.includes(address))
-    }
-  )
+export const selectKeyrings = createSelector(
+  (state: RootState) => state.keyrings.keyrings,
+  (keyrings) => keyrings
+)
 
 export const selectKeyringsByAddresses = createSelector(
   (state: RootState) => state.keyrings.keyrings,

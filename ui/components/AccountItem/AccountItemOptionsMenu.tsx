@@ -4,6 +4,7 @@ import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
 import { exportPrivKey } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -176,10 +177,11 @@ export default function AccountItemOptionsMenu({
             label: t("exportAccount"),
             onClick: () => {
               if (areKeyringsUnlocked) {
-                dispatch(exportPrivKey(address)).then(({ key }) => {
-                  setKey(key)
-                  setShowExportPrivateKey(true)
-                })
+                const { key: keyFromRedux } = dispatch(
+                  exportPrivKey(address)
+                ) as unknown as AsyncThunkFulfillmentType<typeof exportPrivKey>
+                setKey(keyFromRedux)
+                setShowExportPrivateKey(true)
               } else {
                 history.push("/keyring/unlock")
               }

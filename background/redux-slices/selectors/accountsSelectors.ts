@@ -258,6 +258,7 @@ export const selectCurrentAccountBalances = createSelector(
         }
       }
     }
+
     return {
       allAssetAmounts,
       assetAmounts: combinedAssetAmounts,

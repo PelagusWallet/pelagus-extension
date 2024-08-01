@@ -11,6 +11,7 @@ import {
   QuaiTransaction,
   WebSocketProvider,
 } from "quais"
+import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
 import {
   AnalyticsService,
@@ -149,7 +150,6 @@ import {
 } from "./constants/networks/networks"
 import ProviderFactory from "./services/provider-factory/provider-factory"
 import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/events"
-import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -794,6 +794,7 @@ export default class Main extends BaseService<never> {
       })
     )
   }
+
   async signAndSendQuaiTransaction({
     request,
     accountSigner,
@@ -1230,7 +1231,7 @@ export default class Main extends BaseService<never> {
         rejecter: () => void
       }) => {
         // Run signer preparation and enrichment in parallel.
-        const [, enrichedSignTypedDataRequest] = await Promise.all([
+        const [enrichedSignTypedDataRequest] = await Promise.all([
           this.enrichmentService.enrichSignTypedDataRequest(payload),
         ])
 

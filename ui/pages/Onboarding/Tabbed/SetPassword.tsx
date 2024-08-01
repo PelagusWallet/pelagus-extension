@@ -9,6 +9,7 @@ import {
   selectKeyringNextPage,
   selectKeyringStatus,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import {
   useBackgroundDispatch,
   useAreKeyringsUnlocked,
@@ -81,7 +82,9 @@ export default function SetPassword(): JSX.Element {
 
       const input = form.elements.namedItem("password") as HTMLInputElement
 
-      const { success } = await dispatch(unlockKeyrings(input.value))
+      const { success } = (await dispatch(
+        unlockKeyrings(input.value)
+      )) as AsyncThunkFulfillmentType<typeof unlockKeyrings>
 
       if (success) {
         history.replace(nextPage)

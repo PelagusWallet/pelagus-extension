@@ -34,7 +34,7 @@ export default function ImportPrivateKey(props: Props): ReactElement {
         type: SignerSourceTypes.privateKey,
         privateKey: trimmedPrivateKey,
       })
-    )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
+    )) as AsyncThunkFulfillmentType<typeof importKeyring>
 
     if (success) {
       finalize()

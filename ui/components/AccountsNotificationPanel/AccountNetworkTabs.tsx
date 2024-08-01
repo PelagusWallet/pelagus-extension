@@ -1,10 +1,6 @@
-import React from "react"
+import React, { ReactElement } from "react"
 
-interface AccountNetworkTabsProps {
-  selectedNetwork: NetworkInformation
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const AccountNetworkTabs = ({ selectedNetwork }: AccountNetworkTabsProps) => {
+const AccountNetworkTabs = (): ReactElement => {
   return (
     <>
       <div className="button_wrapper">

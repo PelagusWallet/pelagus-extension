@@ -8,6 +8,7 @@ import {
   setShowingAddAccountModal,
   setSnackbarMessage,
 } from "@pelagus/pelagus-background/redux-slices/ui"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import {
   useBackgroundDispatch,
   useAreKeyringsUnlocked,
@@ -52,7 +53,9 @@ export default function KeyringUnlock({
     event: React.FormEvent<HTMLFormElement>
   ): Promise<void> => {
     event.preventDefault()
-    const { success } = await dispatch(unlockKeyrings(password))
+    const { success } = (await dispatch(
+      unlockKeyrings(password)
+    )) as AsyncThunkFulfillmentType<typeof unlockKeyrings>
     // If keyring was unable to unlock, display error message
     if (!success) {
       setErrorMessage(t("error.incorrect"))

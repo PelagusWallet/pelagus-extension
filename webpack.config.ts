@@ -7,7 +7,6 @@ import webpack, {
 } from "webpack"
 import { merge as webpackMerge } from "webpack-merge"
 import Dotenv from "dotenv-webpack"
-import SizePlugin from "size-plugin"
 import TerserPlugin from "terser-webpack-plugin"
 import LiveReloadPlugin from "webpack-livereload-plugin"
 import CopyPlugin, { ObjectPattern } from "copy-webpack-plugin"
@@ -77,7 +76,6 @@ const baseConfig: Configuration = {
       Buffer: ["buffer", "Buffer"],
       process: ["process"],
     }),
-    new SizePlugin({}),
     new CopyPlugin({
       patterns: [
         {

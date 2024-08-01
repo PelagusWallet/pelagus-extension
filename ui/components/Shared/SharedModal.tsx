@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode, useRef } from "react"
+import React, { ReactNode, useRef } from "react"
 import { createPortal } from "react-dom"
 import classNames from "classnames"
 import { useOnClickOutside } from "../../hooks"
@@ -27,7 +27,7 @@ export default function SharedModal({
   bgColor,
   shadowBgColor,
   closeOnOverlayClick = true,
-}: SharedModalProps): ReactElement {
+}: SharedModalProps) {
   const ref = useRef(null)
 
   useOnClickOutside(ref, closeOnOverlayClick ? onClose : () => {})

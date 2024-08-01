@@ -92,7 +92,7 @@ export default function NewSeed(): ReactElement {
         source: SignerImportSource.internal,
         path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
       })
-    )) as unknown as AsyncThunkFulfillmentType<typeof importKeyring>
+    )) as AsyncThunkFulfillmentType<typeof importKeyring>
 
     if (success) {
       dispatch(setKeyringToVerify(null))

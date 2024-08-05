@@ -4,7 +4,7 @@ import {
 } from "@pelagus-provider/provider-bridge-shared"
 import PelagusWindowProvider from "@pelagus-provider/window-provider"
 
-const PELAGUS_OBJECT_PROPERTY = "pelagus"
+const PELAGUS_OBJECT_PROPERTY = "pelagusGoldenAge"
 const ETHEREUM_OBJECT_PROPERTY = "ethereum"
 const WALLET_ROUTER_OBJECT_PROPERTY = "walletRouter"
 
@@ -29,47 +29,44 @@ Object.defineProperty(window, PELAGUS_OBJECT_PROPERTY, {
   configurable: false,
 })
 
-if (!window.walletRouter) {
-  Object.defineProperty(window, WALLET_ROUTER_OBJECT_PROPERTY, {
-    value: {
-      currentProvider: window.pelagus,
-      lastInjectedProvider: window.ethereum,
-      pelagusProvider: window.pelagus,
-      providers: [
-        ...new Set([
-          window.pelagus,
-          // eslint-disable-next-line no-nested-ternary
-          ...(window.ethereum
-            ? // let's use the providers that has already been registered
-              Array.isArray(window.ethereum.providers)
-              ? [...window.ethereum.providers, window.ethereum]
-              : [window.ethereum]
-            : []),
-        ]),
-      ],
-      shouldSetPelagusForCurrentProvider(shouldSetPelagus: boolean) {
-        if (shouldSetPelagus && this.currentProvider !== this.pelagusProvider) {
-          this.currentProvider = this.pelagusProvider
-        } else if (
-          !shouldSetPelagus &&
-          this.currentProvider === this.pelagusProvider
-        ) {
-          this.currentProvider =
-            this.lastInjectedProvider ?? this.pelagusProvider
-        }
-      },
-      addProvider(newProvider: WalletProvider) {
-        if (!this.providers.includes(newProvider)) {
-          this.providers.push(newProvider)
-        }
-
-        this.lastInjectedProvider = newProvider
-      },
+Object.defineProperty(window, WALLET_ROUTER_OBJECT_PROPERTY, {
+  value: {
+    currentProvider: window.pelagusGoldenAge,
+    lastInjectedProvider: window.ethereum,
+    pelagusProvider: window.pelagusGoldenAge,
+    providers: [
+      ...new Set([
+        window.pelagusGoldenAge,
+        // eslint-disable-next-line no-nested-ternary
+        ...(window.ethereum
+          ? // let's use the providers that has already been registered
+            Array.isArray(window.ethereum.providers)
+            ? [...window.ethereum.providers, window.ethereum]
+            : [window.ethereum]
+          : []),
+      ]),
+    ],
+    shouldSetPelagusForCurrentProvider(shouldSetPelagus: boolean) {
+      if (shouldSetPelagus && this.currentProvider !== this.pelagusProvider) {
+        this.currentProvider = this.pelagusProvider
+      } else if (
+        !shouldSetPelagus &&
+        this.currentProvider === this.pelagusProvider
+      ) {
+        this.currentProvider = this.lastInjectedProvider ?? this.pelagusProvider
+      }
     },
-    writable: false,
-    configurable: false,
-  })
-}
+    addProvider(newProvider: WalletProvider) {
+      if (!this.providers.includes(newProvider)) {
+        this.providers.push(newProvider)
+      }
+
+      this.lastInjectedProvider = newProvider
+    },
+  },
+  writable: true,
+  configurable: false,
+})
 
 // Some popular dapps depend on the entire window.ethereum equality between component renders
 // to detect provider changes.  We need to cache the walletRouter proxy we return here or
@@ -117,7 +114,7 @@ Object.defineProperty(window, ETHEREUM_OBJECT_PROPERTY, {
   set(newProvider) {
     window.walletRouter?.addProvider(newProvider)
   },
-  configurable: false,
+  configurable: true,
 })
 
 window.dispatchEvent(new Event(DETECT_PROVIDER_INITIALIZATION_EVENT))

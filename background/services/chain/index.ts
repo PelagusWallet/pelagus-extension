@@ -1364,23 +1364,28 @@ export default class ChainService extends BaseService<Events> {
     const provider = this.jsonRpcProvider
     if (!provider) throw new Error("Failed to get provider")
 
-    await provider.on("pending", async (transactionHash: string) => {
-      try {
-        const tx = (await this.getTransaction(
-          transactionHash
-        )) as PendingQuaiTransaction
+    const zone = getZoneForAddress(address) ?? undefined
+    await provider.on(
+      "pending",
+      async (transactionHash: string) => {
+        try {
+          const tx = (await this.getTransaction(
+            transactionHash
+          )) as PendingQuaiTransaction
 
-        if (tx.status !== QuaiTransactionStatus.PENDING)
-          throw new Error("tx status is not pending")
+          if (tx.status !== QuaiTransactionStatus.PENDING)
+            throw new Error("tx status is not pending")
 
-        await this.handlePendingTransaction(tx, network)
-      } catch (innerError) {
-        logger.error(
-          `Error handling incoming pending transaction hash: ${transactionHash}`,
-          innerError
-        )
-      }
-    })
+          await this.handlePendingTransaction(tx, network)
+        } catch (innerError) {
+          logger.error(
+            `Error handling incoming pending transaction hash: ${transactionHash}`,
+            innerError
+          )
+        }
+      },
+      zone
+    )
 
     this.subscribedAccounts.push({
       account: address,

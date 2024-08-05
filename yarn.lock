@@ -7649,10 +7649,10 @@ globby@^11.0.3:
     merge2 "^1.3.0"
     slash "^3.0.0"
 
-google-protobuf@^3.21.2:
-  version "3.21.2"
-  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.21.2.tgz#4580a2bea8bbb291ee579d1fefb14d6fa3070ea4"
-  integrity sha512-3MSOYFO5U9mPGikIYCzK0SaThypfGgS6bHqrUGXG3DPHCrb+txNqeEcns1W0lkGfk0rCyNXm7xB9rMxnCiZOoA==
+google-protobuf@^3.21.4:
+  version "3.21.4"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.21.4.tgz#2f933e8b6e5e9f8edde66b7be0024b68f77da6c9"
+  integrity sha512-MnG7N936zcKTco4Jd2PX2U96Kf9PxygAPKBug+74LHzmHXmceN16MmRcdgZv+DGef/S9YvQAfRsNCn4cjf9yyQ==
 
 got@^9.6.0:
   version "9.6.0"
@@ -11194,17 +11194,17 @@ quais@0.1.11:
     "@quais/web" "0.1.0"
     "@quais/wordlists" "0.1.0"
 
-quais@^1.0.0-alpha.6:
-  version "1.0.0-alpha.6"
-  resolved "https://registry.yarnpkg.com/quais/-/quais-1.0.0-alpha.6.tgz#eee2d956f1aae5f0939d9f99656073558ebfc72d"
-  integrity sha512-2lt6qZkKPN4F1d8mtUqLxOuPrTA0PqqyhAqw0jWVxr4Vi7xhVDFbeyxcQfYIGKITN+lho2+rcgG+2pWRadWKHQ==
+quais@^1.0.0-alpha.7:
+  version "1.0.0-alpha.7"
+  resolved "https://registry.yarnpkg.com/quais/-/quais-1.0.0-alpha.7.tgz#9b4a545bbce0f45ba8d7b9d9de5779e166ed8e29"
+  integrity sha512-ZArslWm3u+ndJWNnzViARw0NlMHVZlgHoD/ipPOuLfHg2X87xTNHGTkKEAQZDeRPnmn5t1P/cOnWJwvONWl6iw==
   dependencies:
     "@brandonblack/musig" "^0.0.1-alpha.1"
     "@noble/curves" "1.2.0"
     "@noble/hashes" "1.3.2"
     aes-js "4.0.0-beta.5"
     dotenv "^16.4.1"
-    google-protobuf "^3.21.2"
+    google-protobuf "^3.21.4"
     tslib "^2.6.2"
     ws "^8.17.1"
 

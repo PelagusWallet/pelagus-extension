@@ -15,7 +15,7 @@ export default async function getBlockPrices(
     provider.getBlock(shard, "latest"),
     provider.getFeeData(zone),
   ])
-  const baseFeePerGas = currentBlock?.woBody.header.baseFeePerGas
+  const baseFeePerGas = currentBlock?.header.baseFeePerGas
 
   if (feeData.gasPrice === null) {
     logger.warn("Not receiving accurate gas prices from provider", feeData)
@@ -26,7 +26,7 @@ export default async function getBlockPrices(
   if (baseFeePerGas) {
     return {
       network,
-      blockNumber: Number(currentBlock.woBody.header.number[2]),
+      blockNumber: Number(currentBlock.header.number[2]),
       baseFeePerGas,
       estimatedPrices: [
         {
@@ -68,7 +68,7 @@ export default async function getBlockPrices(
 
   return {
     network,
-    blockNumber: Number(currentBlock?.woBody.header.number[2]),
+    blockNumber: Number(currentBlock?.header.number[2]),
     baseFeePerGas: (maxFeePerGas - maxPriorityFeePerGas) / 2n,
     estimatedPrices: [
       {

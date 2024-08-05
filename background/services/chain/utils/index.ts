@@ -11,7 +11,7 @@ export function blockFromProviderBlock(
   block: Block
 ): AnyEVMBlock {
   const { difficulty, time } = block.woHeader
-  const { number, hash, parentHash, baseFeePerGas } = block.woBody.header
+  const { number, hash, parentHash, baseFeePerGas } = block.header
 
   const blockNumber: string = Array.isArray(number)
     ? number[number.length - 1]

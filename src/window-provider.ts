@@ -35,73 +35,71 @@ Object.defineProperty(window, "pelagus", {
   configurable: false,
 })
 
-if (!window.walletRouter) {
-  Object.defineProperty(window, "walletRouter", {
-    value: {
-      currentProvider: window.pelagus,
-      lastInjectedProvider: window.ethereum,
-      pelagusProvider: window.pelagus,
-      tallyProvider: window.tally,
-      providers: [
-        // deduplicate the providers array: https://medium.com/@jakubsynowiec/unique-array-values-in-javascript-7c932682766c
-        ...new Set([
-          window.pelagus,
-          window.tally,
-          // eslint-disable-next-line no-nested-ternary
-          ...(window.ethereum
-            ? // let's use the providers that has already been registered
+Object.defineProperty(window, "walletRouter", {
+  value: {
+    currentProvider: window.pelagus,
+    lastInjectedProvider: window.ethereum,
+    pelagusProvider: window.pelagus,
+    tallyProvider: window.tally,
+    providers: [
+      // deduplicate the providers array: https://medium.com/@jakubsynowiec/unique-array-values-in-javascript-7c932682766c
+      ...new Set([
+        window.pelagus,
+        window.tally,
+        // eslint-disable-next-line no-nested-ternary
+        ...(window.ethereum
+          ? // let's use the providers that has already been registered
             // This format is used by coinbase wallet
             Array.isArray(window.ethereum.providers)
-              ? [...window.ethereum.providers, window.ethereum]
-              : [window.ethereum]
-            : []),
-        ]),
-      ],
-      shouldSetPelagusForCurrentProvider(
-        shouldSetPelagus: boolean,
-        shouldReload = false
+            ? [...window.ethereum.providers, window.ethereum]
+            : [window.ethereum]
+          : []),
+      ]),
+    ],
+    shouldSetPelagusForCurrentProvider(
+      shouldSetPelagus: boolean,
+      shouldReload = false
+    ) {
+      if (shouldSetPelagus && this.currentProvider !== this.pelagusProvider) {
+        this.currentProvider = this.pelagusProvider
+      } else if (
+        !shouldSetPelagus &&
+        this.currentProvider === this.pelagusProvider
       ) {
-        if (shouldSetPelagus && this.currentProvider !== this.pelagusProvider) {
-          this.currentProvider = this.pelagusProvider
-        } else if (
-          !shouldSetPelagus &&
-          this.currentProvider === this.pelagusProvider
-        ) {
-          this.currentProvider = this.lastInjectedProvider ?? this.pelagusProvider
-        }
+        this.currentProvider = this.lastInjectedProvider ?? this.pelagusProvider
+      }
 
-        if (
-          shouldReload &&
-          (window.location.href.includes("app.uniswap.org") ||
-            window.location.href.includes("galxe.com"))
-        ) {
-          setTimeout(() => {
-            window.location.reload()
-          }, 1000)
-        }
-      },
-      getProviderInfo(provider: WalletProvider) {
-        return (
-          provider.providerInfo || {
-            label: "Injected Provider",
-            injectedNamespace: "ethereum",
-            iconURL: "TODO",
-          }
-        )
-      },
-      setSelectedProvider() { },
-      addProvider(newProvider: WalletProvider) {
-        if (!this.providers.includes(newProvider)) {
-          this.providers.push(newProvider)
-        }
-
-        this.lastInjectedProvider = newProvider
-      },
+      if (
+        shouldReload &&
+        (window.location.href.includes("app.uniswap.org") ||
+          window.location.href.includes("galxe.com"))
+      ) {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
     },
-    writable: false,
-    configurable: false,
-  })
-}
+    getProviderInfo(provider: WalletProvider) {
+      return (
+        provider.providerInfo || {
+          label: "Injected Provider",
+          injectedNamespace: "ethereum",
+          iconURL: "TODO",
+        }
+      )
+    },
+    setSelectedProvider() {},
+    addProvider(newProvider: WalletProvider) {
+      if (!this.providers.includes(newProvider)) {
+        this.providers.push(newProvider)
+      }
+
+      this.lastInjectedProvider = newProvider
+    },
+  },
+  writable: true,
+  configurable: false,
+})
 
 // Some popular dapps depend on the entire window.ethereum equality between component renders
 // to detect provider changes.  We need to cache the walletRouter proxy we return here or
@@ -163,5 +161,5 @@ Object.defineProperty(window, "ethereum", {
   set(newProvider) {
     window.walletRouter?.addProvider(newProvider)
   },
-  configurable: false,
+  configurable: true,
 })

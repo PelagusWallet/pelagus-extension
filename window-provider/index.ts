@@ -111,6 +111,7 @@ export default class TallyWindowProvider extends EventEmitter {
     injectedNamespace: "tally",
     iconURL: "TODO",
     identityFlag: "isTally",
+    version: 1,
     checkIdentity: (provider: WalletProvider) =>
       !!provider && !!provider.isTally,
   } as const
@@ -132,12 +133,12 @@ export default class TallyWindowProvider extends EventEmitter {
           return
         }
 
-        ; ({ result } = event.data)
+        ;({ result } = event.data)
       } else if (
         isPortResponseEvent(event) &&
         isTallyInternalCommunication(event)
       ) {
-        ; ({ result } = event)
+        ;({ result } = event)
       } else {
         return
       }
@@ -201,9 +202,9 @@ export default class TallyWindowProvider extends EventEmitter {
         return
       }
 
-      ; ({ id, result } = event.data)
+      ;({ id, result } = event.data)
     } else if (isPortResponseEvent(event)) {
-      ; ({ id, result } = event)
+      ;({ id, result } = event)
     } else {
       return
     }

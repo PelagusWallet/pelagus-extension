@@ -4,7 +4,7 @@ import {
 } from "@pelagus-provider/provider-bridge-shared"
 import PelagusWindowProvider from "@pelagus-provider/window-provider"
 
-const PELAGUS_OBJECT_PROPERTY = "pelagusGoldenAge"
+const PELAGUS_OBJECT_PROPERTY = "pelagus"
 const ETHEREUM_OBJECT_PROPERTY = "ethereum"
 const WALLET_ROUTER_OBJECT_PROPERTY = "walletRouter"
 
@@ -25,18 +25,18 @@ const pelagusWindowProvider: PelagusWindowProvider = new PelagusWindowProvider({
 // https://speakerdeck.com/fransrosen/owasp-appseceu-2018-attacking-modern-web-technologies?slide=95
 Object.defineProperty(window, PELAGUS_OBJECT_PROPERTY, {
   value: pelagusWindowProvider,
-  writable: false,
+  writable: true,
   configurable: false,
 })
 
 Object.defineProperty(window, WALLET_ROUTER_OBJECT_PROPERTY, {
   value: {
-    currentProvider: window.pelagusGoldenAge,
+    currentProvider: window.pelagus,
     lastInjectedProvider: window.ethereum,
-    pelagusProvider: window.pelagusGoldenAge,
+    pelagusProvider: window.pelagus,
     providers: [
       ...new Set([
-        window.pelagusGoldenAge,
+        window.pelagus,
         // eslint-disable-next-line no-nested-ternary
         ...(window.ethereum
           ? // let's use the providers that has already been registered

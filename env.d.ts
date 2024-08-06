@@ -60,7 +60,7 @@ interface Window {
     ) => WalletProvider["providerInfo"]
     addProvider: (newProvider: WalletProvider) => void
   }
-  pelagusGoldenAge?: PelagusProvider
+  pelagus?: PelagusProvider
   ethereum?: WindowEthereum
   oldEthereum?: WindowEthereum
 }

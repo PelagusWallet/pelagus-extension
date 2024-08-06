@@ -31,7 +31,7 @@ Object.defineProperty(window, "pelagus", {
       window.removeEventListener("message", fn, false),
     origin: window.location.origin,
   }),
-  writable: false,
+  writable: true,
   configurable: false,
 })
 

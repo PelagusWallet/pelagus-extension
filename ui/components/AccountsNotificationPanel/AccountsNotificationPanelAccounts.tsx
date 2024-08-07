@@ -176,9 +176,6 @@ export default function AccountsNotificationPanelAccounts({
   const updateCurrentAccount = (address: string, signerId: string) => {
     setPendingSelectedAddress(address)
     setSelectedAccountSigner(signerId)
-    if (signerId === "") {
-      console.error("signerId is empty")
-    }
     dispatch(
       setNewSelectedAccount({
         address,

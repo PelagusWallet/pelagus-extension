@@ -3,6 +3,7 @@ const BuildTimeFlag = {
 } as const
 
 export const RuntimeFlag = {
+  ENABLE_CONSOLE_LOGGING: process.env.ENABLE_CONSOLE_LOGGING === "true",
   USE_MAINNET_FORK: process.env.USE_MAINNET_FORK === "true",
   HIDE_IMPORT_DERIVATION_PATH:
     process.env.HIDE_IMPORT_DERIVATION_PATH === "true",

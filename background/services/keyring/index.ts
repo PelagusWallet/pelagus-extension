@@ -649,7 +649,7 @@ export default class KeyringService extends BaseService<Events> {
     const quaiHDWalletResponse = await signerWithType.signer
       .sendTransaction(transactionRequest)
       .catch((e) => {
-        console.error(e)
+        logger.error(e)
         throw new Error("Failed send transaction")
       })
 

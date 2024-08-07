@@ -349,13 +349,13 @@ export default class ProviderBridgeService extends BaseService<Events> {
   async grantPermission(permission: PermissionRequest): Promise<void> {
     // FIXME proper error handling if this happens - should not tho
     if (permission.state !== "allow") {
-      console.error(
+      logger.error(
         `Invalid state received when granting permission. Expected 'allow' but got '${permission.state}'.`
       )
       return
     }
     if (!permission.accountAddress) {
-      console.error("Empty account address received when granting permission.")
+      logger.error("Empty account address received when granting permission.")
       return
     }
 
@@ -370,13 +370,13 @@ export default class ProviderBridgeService extends BaseService<Events> {
   async denyOrRevokePermission(permission: PermissionRequest): Promise<void> {
     // FIXME proper error handling if this happens - should not tho
     if (permission.state !== "deny") {
-      console.error(
+      logger.error(
         `Invalid state received when denying permission. Expected 'deny' but got '${permission.state}'.`
       )
       return
     }
     if (!permission.accountAddress) {
-      console.error("Empty account address received when denying permission.")
+      logger.error("Empty account address received when denying permission.")
       return
     }
 
@@ -399,7 +399,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
   async denyDAppPermission(permission: PermissionRequest): Promise<void> {
     if (!permission.accountAddress || permission.state !== "deny") {
-      console.error("Invalid state received when denying permission.")
+      logger.error("Invalid state received when denying permission.")
       return
     }
 
@@ -421,7 +421,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     address: string
   ): Promise<void> {
     if (!permission.accountAddress || permission.state !== "deny") {
-      console.error("Invalid state received when denying permission.")
+      logger.error("Invalid state received when denying permission.")
       return
     }
 

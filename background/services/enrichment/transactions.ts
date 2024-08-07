@@ -27,6 +27,7 @@ import { isDefined, isFulfilledPromise } from "../../lib/utils/type-guards"
 import { getExtendedZoneForAddress, getNetworkById } from "../chain/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { SerializedTransactionForHistory } from "../chain/types"
+import logger from "../../lib/logger"
 
 async function buildSubannotations(
   chainService: ChainService,
@@ -230,7 +231,7 @@ export default async function resolveTransactionAnnotation(
 
   if (numAsks > 10 && latestWorkedAsk + 5 * SECOND > Date.now()) {
     // eslint-disable-next-line no-console
-    console.log("Requesting tx annotations too often, skipping")
+    logger.info("Requesting tx annotations too often, skipping")
     return txAnnotation
   }
   if (numAsks > 10 && latestWorkedAsk + 5 * SECOND < Date.now()) {
@@ -297,7 +298,7 @@ export default async function resolveTransactionAnnotation(
         blockTimestamp: block?.timestamp,
       }
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       chainService
         .getTransactionFirstSeenFromDB(transaction?.hash)
         .then((date) => {

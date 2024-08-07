@@ -440,7 +440,7 @@ export default class ChainService extends BaseService<Events> {
       balance = await this.jsonRpcProvider.getBalance(address, "latest")
     } catch (error) {
       if (error instanceof Error) {
-        console.error("Error getting balance for address", address, error)
+        logger.error("Error getting balance for address", address, error)
         err = true // only reset user-displayed error if there's no error at all
         if (error.message.includes("could not detect network")) {
           globalThis.main.SetNetworkError({
@@ -448,7 +448,7 @@ export default class ChainService extends BaseService<Events> {
             error: true,
           })
         }
-        console.error(
+        logger.error(
           `Global shard: ${
             globalThis.main.SelectedShard
           } Address shard: ${addrShard} Provider: ${
@@ -557,7 +557,7 @@ export default class ChainService extends BaseService<Events> {
 
       return blockNumber
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       throw new Error("Failed get block number")
     }
   }
@@ -622,7 +622,7 @@ export default class ChainService extends BaseService<Events> {
       this.emitter.emit("block", block)
       return block
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       throw new Error(`Failed to get block`)
     }
   }
@@ -982,7 +982,7 @@ export default class ChainService extends BaseService<Events> {
     try {
       return await this.jsonRpcProvider.getTransaction(hash)
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       logger.warn(
         `Tx hash ${hash} is found in our local registry but not on chain.`
       )

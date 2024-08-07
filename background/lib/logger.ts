@@ -3,6 +3,7 @@
 /* eslint-disable no-console */
 import { HOUR } from "../constants"
 import localStorageShim from "../utils/local-storage-shim"
+import { FeatureFlags, isEnabled } from "../features"
 
 const store = {
   async get(key: string): Promise<string> {
@@ -152,7 +153,11 @@ class Logger {
 
   private store = store
 
-  constructor(public contextId: string = "BG") {}
+  private readonly isConsoleLoggingEnabled: boolean
+
+  constructor(public contextId: string = "BG", enableConsoleLogging = false) {
+    this.isConsoleLoggingEnabled = enableConsoleLogging
+  }
 
   debug(...input: unknown[]): void {
     this.logEvent(LogLevel.debug, input)
@@ -197,23 +202,25 @@ class Logger {
     const isoDateString = new Date().toISOString()
     const [logDate, logTime] = isoDateString.replace(/Z$/, "").split(/T/)
 
-    console.group(
-      `%c ${styles[level].icon} [${logTime}] ${logLabel} %c [${logDate}]`,
-      styles[level].css.join(";"),
-      styles[level].dateCss ?? styles.debug.dateCss.join(";")
-    )
-
-    console[level](...input)
-
-    // Suppress displaying stack traces when we use console.error()
-    // since the browser already does that
-    if (typeof stackTrace !== "undefined" && level !== "error") {
-      console[level](stackTrace.join("\n"))
-    }
-
-    console.groupEnd()
-
     this.saveLog(level, isoDateString, logLabel, input, stackTrace)
+
+    if (this.isConsoleLoggingEnabled) {
+      console.group(
+        `%c ${styles[level].icon} [${logTime}] ${logLabel} %c [${logDate}]`,
+        styles[level].css.join(";"),
+        styles[level].dateCss ?? styles.debug.dateCss.join(";")
+      )
+
+      console[level](...input)
+
+      // Suppress displaying stack traces when we use console.error()
+      // since the browser already does that
+      if (typeof stackTrace !== "undefined" && level !== "error") {
+        console[level](stackTrace.join("\n"))
+      }
+
+      console.groupEnd()
+    }
   }
 
   private saveLog(
@@ -323,7 +330,9 @@ class Logger {
   }
 }
 
-const logger = new Logger()
+const contextId = "BG"
+const enableConsoleLogging = isEnabled(FeatureFlags.ENABLE_CONSOLE_LOGGING)
+const logger = new Logger(contextId, enableConsoleLogging)
 
 export const serializeLogs = logger.serializeLogs.bind(logger)
 export default logger

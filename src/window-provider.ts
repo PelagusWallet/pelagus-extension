@@ -37,14 +37,14 @@ Object.defineProperty(window, "pelagusIronAge", {
 
 Object.defineProperty(window, "walletRouter", {
   value: {
-    currentProvider: window.pelagus,
+    currentProvider: window.pelagusIronAge,
     lastInjectedProvider: window.ethereum,
-    pelagusProvider: window.pelagus,
+    pelagusProvider: window.pelagusIronAge,
     tallyProvider: window.tally,
     providers: [
       // deduplicate the providers array: https://medium.com/@jakubsynowiec/unique-array-values-in-javascript-7c932682766c
       ...new Set([
-        window.pelagus,
+        window.pelagusIronAge,
         window.tally,
         // eslint-disable-next-line no-nested-ternary
         ...(window.ethereum

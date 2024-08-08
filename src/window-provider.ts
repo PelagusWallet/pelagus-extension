@@ -21,7 +21,7 @@ Object.defineProperty(window, "tally", {
   configurable: false,
 })
 
-Object.defineProperty(window, "pelagus", {
+Object.defineProperty(window, "pelagusIronAge", {
   value: new TallyWindowProvider({
     postMessage: (data: WindowRequestEvent) =>
       window.postMessage(data, window.location.origin),

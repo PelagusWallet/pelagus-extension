@@ -1,6 +1,5 @@
 import React, { ReactElement, useState, useEffect } from "react"
 import { MemoryRouter as Router, Switch, Route } from "react-router-dom"
-import { ErrorBoundary } from "react-error-boundary"
 
 import {
   setRouteHistoryEntries,
@@ -32,11 +31,9 @@ import setAnimationConditions, {
   animationStyles,
 } from "../utils/pageTransition"
 
-import CorePage from "../components/Core/CorePage"
-import ErrorFallback from "./ErrorFallback"
-
 import pageList from "../routes/routes"
 import GlobalModal from "../components/GlobalModal/GlobalModal"
+import PrivateRoute from "../routes/PrivateRoute"
 
 const pagePreferences = Object.fromEntries(
   pageList.map(({ path, hasTopBar, persistOnClose }) => [
@@ -195,13 +192,13 @@ export function Main(): ReactElement {
                     <Switch location={transformedLocation}>
                       {pageList.map(({ path, Component, hasTopBar }) => {
                         return (
-                          <Route path={path} key={path}>
-                            <CorePage hasTopBar={hasTopBar}>
-                              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                                <Component location={transformedLocation} />
-                              </ErrorBoundary>
-                            </CorePage>
-                          </Route>
+                          <PrivateRoute
+                            Component={Component}
+                            location={transformedLocation}
+                            path={path}
+                            hasTopBar={hasTopBar}
+                            key={path}
+                          />
                         )
                       })}
                     </Switch>

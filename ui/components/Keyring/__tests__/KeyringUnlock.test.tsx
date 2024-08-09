@@ -17,10 +17,9 @@ const getPreloadedState = (status: "locked" | "unlocked") => ({
 
 describe("KeyringUnlock", () => {
   test("should not unlock the wallet when an incorrect password is submitted", async () => {
-    const ui = renderWithProviders(
-      <KeyringUnlock displayCancelButton={false} />,
-      { preloadedState: getPreloadedState("locked") }
-    )
+    const ui = renderWithProviders(<KeyringUnlock />, {
+      preloadedState: getPreloadedState("locked"),
+    })
     const inputElement = ui.getByLabelText(label)
     const submitBtnElement = ui.getByRole("button")
 

@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react"
-import { Route, Redirect } from "react-router-dom"
+import { Route, Redirect, useLocation } from "react-router-dom"
 import { Location } from "history"
 import { ErrorBoundary } from "react-error-boundary"
 import { useAreKeyringsUnlocked } from "../hooks"
@@ -16,7 +16,8 @@ const PrivateRoute = ({
   location: Location
   path: string
   hasTopBar: boolean
-}) => {
+}): ReactElement => {
+  const locationRouter = useLocation()
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
 
   return (
@@ -25,7 +26,14 @@ const PrivateRoute = ({
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Component location={location} />
 
-          {!areKeyringsUnlocked && <Redirect to="/keyring/unlock" />}
+          {!areKeyringsUnlocked && (
+            <Redirect
+              to={{
+                pathname: "/keyring/unlock",
+                state: { from: locationRouter.pathname },
+              }}
+            />
+          )}
         </ErrorBoundary>
       </CorePage>
     </Route>

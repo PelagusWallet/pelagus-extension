@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useState } from "react"
-import { useHistory } from "react-router-dom"
+import { Redirect, useHistory, useLocation } from "react-router-dom"
 import { unlockKeyrings } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { rejectTransactionSignature } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { useTranslation } from "react-i18next"
@@ -8,7 +8,6 @@ import {
   setShowingAddAccountModal,
   setSnackbarMessage,
 } from "@pelagus/pelagus-background/redux-slices/ui"
-import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import {
   useBackgroundDispatch,
   useAreKeyringsUnlocked,
@@ -17,92 +16,36 @@ import {
 import SharedButton from "../Shared/SharedButton"
 import PasswordInput from "../Shared/PasswordInput"
 
-type KeyringUnlockProps = {
-  displayCancelButton: boolean
-}
-
-export default function KeyringUnlock({
-  displayCancelButton,
-}: KeyringUnlockProps): ReactElement {
+export default function KeyringUnlock(): ReactElement {
+  const history = useHistory()
+  const dispatch = useBackgroundDispatch()
+  const location = useLocation()
+  const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const { t } = useTranslation("translation", { keyPrefix: "keyring.unlock" })
-  const { t: tShared } = useTranslation("translation", { keyPrefix: "shared" })
+
+  console.log("=== test", location.state)
+  const redirectPath = (location.state as any)?.from || "/"
   const [password, setPassword] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
-  const [unlockSuccess, setUnlockSuccess] = useState(false)
-
-  const isDappPopup = useIsDappPopup()
-  const history: {
-    entries?: { pathname: string }[]
-    go: (n: number) => void
-    goBack: () => void
-    replace: (path: string) => void
-  } = useHistory()
-
-  const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
-
-  const dispatch = useBackgroundDispatch()
 
   useEffect(() => {
     if (areKeyringsUnlocked) {
-      handleBack()
-      dispatch(setSnackbarMessage(t("snackbar")))
+      history.replace(redirectPath)
     }
-  }, [history, areKeyringsUnlocked, dispatch, t, unlockSuccess])
+  }, [areKeyringsUnlocked, redirectPath, history])
 
   const dispatchUnlockWallet = async (
     event: React.FormEvent<HTMLFormElement>
-  ): Promise<void> => {
+  ) => {
     event.preventDefault()
-    const { success } = (await dispatch(
-      unlockKeyrings(password)
-    )) as AsyncThunkFulfillmentType<typeof unlockKeyrings>
-    // If keyring was unable to unlock, display error message
+    const { success } = await dispatch(unlockKeyrings(password))
     if (!success) {
       setErrorMessage(t("error.incorrect"))
     }
-    setUnlockSuccess(success)
-  }
-
-  const handleReject = async () => {
-    await dispatch(rejectTransactionSignature())
-  }
-
-  const handleBack = async () => {
-    const ineligiblePaths: string[] = ["/send", "/keyring/unlock"]
-    const backPaths = history.entries!.map((entry) => entry.pathname)
-
-    const firstBackPath = backPaths[backPaths.length - 1]
-
-    const targetPath = ineligiblePaths.includes(firstBackPath)
-      ? backPaths
-          .slice(0, -1)
-          .reverse()
-          .find((path) => !ineligiblePaths.includes(path))
-      : firstBackPath
-
-    history.replace(targetPath || "/")
-  }
-
-  const handleCancel = async () => {
-    dispatch(setShowingAccountsModal(false))
-    dispatch(setShowingAddAccountModal(false))
-
-    await handleReject()
-
-    if (!isDappPopup) handleBack()
   }
 
   return (
     <section className="standard_width">
-      {displayCancelButton ? (
-        <div className="cancel_btn_wrap">
-          <SharedButton type="tertiaryGray" size="small" onClick={handleCancel}>
-            {tShared("cancelBtn")}
-          </SharedButton>
-        </div>
-      ) : (
-        <></>
-      )}
       <div className="img_wrap">
         <div className="illustration_unlock" />
       </div>
@@ -170,15 +113,6 @@ export default function KeyringUnlock({
             gap: 30px;
           }
 
-          .cancel_btn_wrap {
-            width: 100%;
-            display: flex;
-            justify-content: flex-end;
-            right: 0;
-            top: 0;
-            margin-top: 12px;
-          }
-
           .input_wrap {
             width: 260px;
           }
@@ -186,8 +120,4 @@ export default function KeyringUnlock({
       </style>
     </section>
   )
-}
-
-KeyringUnlock.defaultProps = {
-  displayCancelButton: true,
 }

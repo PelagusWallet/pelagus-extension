@@ -158,24 +158,29 @@ export default class KeyringService extends BaseService<Events> {
     password: string,
     ignoreExistingVaults = false
   ): Promise<boolean> {
-    if (!this.locked()) {
-      logger.warn("KeyringService is already unlocked!")
+    try {
+      if (!this.locked()) {
+        logger.warn("KeyringService is already unlocked!")
+        this.internalUnlock()
+        return true
+      }
+
+      if (!ignoreExistingVaults) {
+        await this.loadKeyrings(password)
+      }
+
+      // if there's no vault, or we want to force a new vault, generate a new key and unlock
+      if (!this.cachedKey) {
+        this.cachedKey = await deriveSymmetricKeyFromPassword(password)
+        await this.persistKeyrings()
+      }
+
       this.internalUnlock()
       return true
+    } catch (error) {
+      logger.error("Error while unlocking keyring service")
+      return false
     }
-
-    if (!ignoreExistingVaults) {
-      await this.loadKeyrings(password)
-    }
-
-    // if there's no vault, or we want to force a new vault, generate a new key and unlock
-    if (!this.cachedKey) {
-      this.cachedKey = await deriveSymmetricKeyFromPassword(password)
-      await this.persistKeyrings()
-    }
-
-    this.internalUnlock()
-    return true
   }
 
   /**
@@ -724,47 +729,43 @@ export default class KeyringService extends BaseService<Events> {
 
   // -------------------------------- Vaults --------------------------------
   private async loadKeyrings(password: string) {
-    try {
-      const { vaults } = await getEncryptedVaults()
-      const currentEncryptedVault = vaults.slice(-1)[0]?.vault
-      if (!currentEncryptedVault) return
+    const { vaults } = await getEncryptedVaults()
+    const currentEncryptedVault = vaults.slice(-1)[0]?.vault
+    if (!currentEncryptedVault) return
 
-      const saltedKey = await deriveSymmetricKeyFromPassword(
-        password,
-        currentEncryptedVault.salt
+    const saltedKey = await deriveSymmetricKeyFromPassword(
+      password,
+      currentEncryptedVault.salt
+    )
+
+    const plainTextVault = await decryptVault<SerializedVaultData>(
+      currentEncryptedVault,
+      saltedKey
+    )
+
+    this.cachedKey = saltedKey
+    this.wallets = []
+    this.quaiHDWallets = []
+    this.keyringMetadata = {}
+    this.hiddenAccounts = {}
+
+    plainTextVault.wallets?.forEach((wallet) =>
+      this.wallets.push(new Wallet(wallet.privateKey))
+    )
+    const deserializedHDWallets = await Promise.all(
+      plainTextVault.quaiHDWallets.map((HDWallet) =>
+        QuaiHDWallet.deserialize(HDWallet)
       )
-
-      const plainTextVault: SerializedVaultData = await decryptVault(
-        currentEncryptedVault,
-        saltedKey
-      )
-
-      this.cachedKey = saltedKey
-      this.wallets = []
-      this.quaiHDWallets = []
-      this.keyringMetadata = {}
-      this.hiddenAccounts = {}
-
-      plainTextVault.wallets?.forEach((wallet) =>
-        this.wallets.push(new Wallet(wallet.privateKey))
-      )
-      const deserializedHDWallets = await Promise.all(
-        plainTextVault.quaiHDWallets.map((HDWallet) =>
-          QuaiHDWallet.deserialize(HDWallet)
-        )
-      )
-      this.quaiHDWallets.push(...deserializedHDWallets)
-      this.keyringMetadata = {
-        ...plainTextVault.metadata,
-      }
-      this.hiddenAccounts = {
-        ...plainTextVault.hiddenAccounts,
-      }
-
-      this.emitKeyrings()
-    } catch (err) {
-      logger.error("Error while loading vault", err)
+    )
+    this.quaiHDWallets.push(...deserializedHDWallets)
+    this.keyringMetadata = {
+      ...plainTextVault.metadata,
     }
+    this.hiddenAccounts = {
+      ...plainTextVault.hiddenAccounts,
+    }
+
+    this.emitKeyrings()
   }
 
   private async persistKeyrings() {

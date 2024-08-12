@@ -76,6 +76,7 @@
     "@babel/register": "^7.24.6",
     "@playwright/test": "^1.31",
     "@types/archiver": "^5.1.0",
+    "@types/chrome": "^0.0.269",
     "@types/copy-webpack-plugin": "^8.0.0",
     "@types/dotenv-webpack": "^7.0.3",
     "@types/firefox-webext-browser": "^82.0.0",

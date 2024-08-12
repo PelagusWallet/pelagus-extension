@@ -54,7 +54,9 @@
     "alarms",
     "storage",
     "unlimitedStorage",
-    "activeTab"
+    "activeTab",
+    "offscreen",
+    "clipboardWrite"
   ],
   "background": {
     "service_worker": "background.js"

@@ -3,6 +3,8 @@ import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../../../../components/Shared/SharedButton"
 import { useBackgroundDispatch } from "../../../../hooks"
+import SharedBanner from "../../../../components/Shared/SharedBanner"
+import { addToOffscreenClipboardSensitiveData } from "../../../../../src/offscreen"
 
 export default function NewSeedReview({
   onReview,
@@ -18,6 +20,11 @@ export default function NewSeedReview({
     keyPrefix: "shared",
   })
   const dispatch = useBackgroundDispatch()
+
+  const onCopyMnemonic = async () => {
+    await addToOffscreenClipboardSensitiveData(mnemonic?.join(" ") ?? "")
+    dispatch(setSnackbarMessage(sharedT("copyTextSnackbar")))
+  }
 
   return (
     <section className="fadeIn">
@@ -37,15 +44,21 @@ export default function NewSeedReview({
         <SharedButton type="primary" size="medium" onClick={onReview} center>
           {t("submit")}
         </SharedButton>
+        <SharedBanner
+          icon="notif-attention"
+          iconColor="var(--error-80)"
+          customStyles="background: var(--error); width: 100%; box-sizing: border-box;"
+        >
+          <span className="warning_message">
+            {t("copyRecoveryPhraseWarning")}
+          </span>
+        </SharedBanner>
         <div className="copy_phrase">
           <SharedButton
             type="tertiary"
             size="small"
             iconMedium="copy"
-            onClick={() => {
-              navigator.clipboard.writeText(mnemonic?.join(" ") ?? "")
-              dispatch(setSnackbarMessage(sharedT("copyTextSnackbar")))
-            }}
+            onClick={onCopyMnemonic}
             center
           >
             {t("copyAddressAction")}
@@ -60,6 +73,7 @@ export default function NewSeedReview({
           flex-direction: column;
           align-items: center;
         }
+
         .step_content {
           max-width: 430px;
           display: flex;
@@ -67,6 +81,7 @@ export default function NewSeedReview({
           gap: 24px;
           justify-content: stretch;
         }
+
         h1 {
           font-family: "TT Travels";
           font-style: normal;
@@ -115,6 +130,12 @@ export default function NewSeedReview({
           align-items: center;
           display: flex;
           flex-direction: column;
+        }
+
+        .warning_message {
+          font-size: 14px;
+          line-height: 18px;
+          font-weight: 500;
         }
       `}</style>
     </section>

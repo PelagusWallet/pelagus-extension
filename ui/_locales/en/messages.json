@@ -39,7 +39,8 @@
       },
       "snackbar": "Signing locked"
     },
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "copyPrivateKeyWarning": "Warning: Never disclose this key. Anyone with your private keys can steal any assets held in your account."
   },
   "viewAddressOnBlockExplorer": "View address on {{blockExplorer}}",
   "assets": {
@@ -213,7 +214,8 @@
       "newWalletReview": {
         "title": "Save and store your recovery phrase",
         "submit": "I wrote it down",
-        "copyAddressAction": "Copy phrase to clipboard"
+        "copyAddressAction": "Copy phrase to clipboard",
+        "copyRecoveryPhraseWarning": " Warning: Never disclose this recovery phrase. If someone asks for your recovery phrase they are likely trying to scam you and steal your wallet funds."
       },
       "newWalletVerify": {
         "title": "Verify recovery phrase",

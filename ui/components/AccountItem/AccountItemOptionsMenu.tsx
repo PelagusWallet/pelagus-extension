@@ -12,6 +12,8 @@ import AccountItemEditName from "./AccountItemEditName"
 import AccountItemRemovalConfirm from "./AccountItemRemovalConfirm"
 import AccountitemOptionLabel from "./AccountItemOptionLabel"
 import AccountHistoryRemovalConfirm from "./AccountHistoryRemovalConfirm"
+import SharedBanner from "../Shared/SharedBanner"
+import { addToOffscreenClipboardSensitiveData } from "../../../src/offscreen"
 
 type AccountItemOptionsMenuProps = {
   accountTotal: AccountTotal
@@ -29,6 +31,9 @@ export default function AccountItemOptionsMenu({
   const { t } = useTranslation("translation", {
     keyPrefix: "accounts.accountItem",
   })
+  const { t: tAccounts } = useTranslation("translation", {
+    keyPrefix: "accounts",
+  })
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
@@ -44,10 +49,15 @@ export default function AccountItemOptionsMenu({
     dispatch(setSnackbarMessage("Address copied to clipboard"))
   }, [address, dispatch])
 
-  const copyKey = useCallback(() => {
-    navigator.clipboard.writeText(key)
+  const copyPrivateKey = async () => {
+    await addToOffscreenClipboardSensitiveData(key)
     dispatch(setSnackbarMessage("Key copied to clipboard"))
-  }, [key, dispatch])
+  }
+
+  const onClosePrivateKeyModal = () => {
+    setKey("")
+    setShowExportPrivateKey(false)
+  }
 
   return (
     <div className="options_menu_wrap">
@@ -114,35 +124,47 @@ export default function AccountItemOptionsMenu({
       </SharedSlideUpMenu>
       <SharedSlideUpMenu
         size="custom"
-        customSize="130px"
+        customSize="235px"
         isOpen={showExportPrivateKey}
         close={(e) => {
           e?.stopPropagation()
-          setKey("")
-          setShowExportPrivateKey(false)
+          onClosePrivateKeyModal()
         }}
       >
         <li className="account_container">
-          <div className="item-summary ">
+          <div className="item-summary">
             <div title="Private Key" className="address_name">
               Private Key
             </div>
-            <text>{key}</text>
+            <text style={{ marginTop: "18px" }}>{key}</text>
           </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              copyPrivateKey()
+            }}
+            style={{ margin: "10px 0" }}
+          >
+            <AccountitemOptionLabel
+              icon="icons/s/copy.svg"
+              label="Copy Key"
+              hoverable
+              color="var(--green-40)"
+              hoverColor="var(--green-20)"
+            />
+          </button>
+
+          <SharedBanner
+            icon="notif-attention"
+            iconColor="var(--error-80)"
+            customStyles="background: var(--error); width: 100%; box-sizing: border-box;"
+          >
+            <span className="warning_message">
+              {tAccounts("copyPrivateKeyWarning")}
+            </span>
+          </SharedBanner>
         </li>
-        <button
-          type="button"
-          onClick={() => copyKey()}
-          style={{ marginLeft: "5%" }}
-        >
-          <AccountitemOptionLabel
-            icon="icons/s/copy.svg"
-            label="Copy Key"
-            hoverable
-            color="var(--green-40)"
-            hoverColor="var(--green-20)"
-          />
-        </button>
       </SharedSlideUpMenu>
       <SharedDropdown
         toggler={(toggle) => (
@@ -257,13 +279,18 @@ export default function AccountItemOptionsMenu({
             flex-direction: column;
             margin: 0 auto;
             width: 336px;
-            height: 75px;
           }
           .account_container {
             margin-top: -10px;
             background-color: var(--hunter-green);
             padding: 5px;
             border-radius: 16px;
+          }
+          .warning_message {
+            font-size: 12px;
+            line-height: 16px;
+            font-weight: 500;
+            color: var(--hunter-green);
           }
         `}
       </style>

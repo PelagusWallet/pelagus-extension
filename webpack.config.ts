@@ -24,6 +24,7 @@ const baseConfig: Configuration = {
     popup: "./src/popup.ts",
     tab: "./src/tab.ts",
     background: "./src/background.ts",
+    offscreen: "./src/offscreen.ts",
     "window-provider": "./src/window-provider.ts",
     "provider-bridge": "./src/provider-bridge.ts",
   },
@@ -227,6 +228,7 @@ export default (
         // values if their values are not arrays, or adding entries to arrays.
         // It does not support removing keys or array values. webpackMerge is
         // used for this.
+
         new CopyPlugin({
           patterns: [
             {

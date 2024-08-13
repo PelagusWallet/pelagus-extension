@@ -175,11 +175,11 @@ export default function AccountItemOptionsMenu({
             key: "export",
             icon: "icons/s/add.svg",
             label: t("exportAccount"),
-            onClick: () => {
+            onClick: async () => {
               if (areKeyringsUnlocked) {
-                const { key: keyFromRedux } = dispatch(
+                const { key: keyFromRedux } = (await dispatch(
                   exportPrivKey(address)
-                ) as unknown as AsyncThunkFulfillmentType<typeof exportPrivKey>
+                )) as AsyncThunkFulfillmentType<typeof exportPrivKey>
                 setKey(keyFromRedux)
                 setShowExportPrivateKey(true)
               } else {

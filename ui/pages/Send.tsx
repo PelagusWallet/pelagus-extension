@@ -134,7 +134,7 @@ export default function Send(): ReactElement {
 
   const balanceData = useBackgroundSelector(selectCurrentAccountBalances)
   const mainCurrencySymbol = useBackgroundSelector(selectMainCurrencySymbol)
-  const { signedTransaction } = useBackgroundSelector(
+  const { signedQuaiTransactionResponse } = useBackgroundSelector(
     (state) => state.transactionConstruction
   )
   const blockExplorerUrl = getBlockExplorerURL(
@@ -268,7 +268,7 @@ export default function Send(): ReactElement {
           title: confirmationLocales("send.title"),
           link: {
             text: confirmationLocales("viewTransaction"),
-            url: `${blockExplorerUrl}/tx/${signedTransaction?.hash}`,
+            url: `${blockExplorerUrl}/tx/${signedQuaiTransactionResponse?.hash}`,
           },
           isOpen: isOpenConfirmationModal,
           onClose: onCloseConfirmationModal,

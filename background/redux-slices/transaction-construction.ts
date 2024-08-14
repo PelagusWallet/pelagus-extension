@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
 import { QuaiTransactionLike } from "quais/lib/commonjs/transaction"
-import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { QuaiTransaction } from "quais"
+import { QuaiTransactionResponse } from "quais/lib/commonjs/providers"
 import { EXPRESS, INSTANT, MAX_FEE_MULTIPLIER, REGULAR } from "../constants"
 import {
   BlockEstimate,
@@ -16,7 +16,6 @@ import {
   QuaiTransactionRequestWithAnnotation,
   QuaiTransactionState,
 } from "../services/chain/types"
-import { AccountSigner } from "../services/signing"
 
 export const enum TransactionConstructionStatus {
   Idle = "idle",
@@ -47,6 +46,7 @@ export type TransactionConstruction = {
   status: TransactionConstructionStatus
   transactionRequest?: QuaiTransactionRequestWithAnnotation
   signedTransaction?: QuaiTransactionLike // TODO-MIGRATION
+  signedQuaiTransactionResponse?: QuaiTransactionResponse
   broadcastOnSign?: boolean
   transactionLikelyFails: boolean
   estimatedFeesPerGas: { [chainID: string]: EstimatedFeesPerGas | undefined }
@@ -240,6 +240,11 @@ const transactionSlice = createSlice({
       status: TransactionConstructionStatus.Signed,
       signedTransaction: JSON.parse(payload), // TODO-MIGRATION
     }),
+    setQuaiTransactionResponse: (state, { payload }: { payload: string }) => ({
+      ...state,
+      status: TransactionConstructionStatus.Signed,
+      signedQuaiTransactionResponse: JSON.parse(payload),
+    }),
     broadcastOnSign: (state, { payload }: { payload: boolean }) => ({
       ...state,
       broadcastOnSign: payload,
@@ -320,9 +325,17 @@ export const {
   setCustomGas,
   clearCustomGas,
   setCustomGasLimit,
+  setQuaiTransactionResponse,
 } = transactionSlice.actions
 
 export default transactionSlice.reducer
+
+export const quaiTransactionResponse = createBackgroundAsyncThunk(
+  "transaction-construction/quaiTransactionResponse",
+  async (transaction: QuaiTransactionResponse, { dispatch }) => {
+    dispatch(setQuaiTransactionResponse(JSON.stringify(transaction)))
+  }
+)
 
 export const transactionSigned = createBackgroundAsyncThunk(
   "transaction-construction/transaction-signed",

@@ -81,6 +81,7 @@ import {
   clearTransactionState,
   emitter as transactionConstructionSliceEmitter,
   estimatedFeesPerGas,
+  quaiTransactionResponse,
   rejectTransactionSignature,
   TransactionConstructionStatus,
   transactionRequest,
@@ -815,6 +816,8 @@ export default class Main extends BaseService<never> {
           chainId: transactionResponse.chainId,
         }
       )
+
+      this.store.dispatch(quaiTransactionResponse(transactionResponse))
 
       return true
     } catch (exception) {

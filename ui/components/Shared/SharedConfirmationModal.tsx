@@ -71,13 +71,15 @@ const SharedConfirmationModal = ({
           <p className="confirmation-subtitle">{subtitle}</p>
         </div>
 
-        {/* <button
-          type="button"
-          className="confirmation-link"
-          onClick={() => window.open(link?.url, "_blank")?.focus()}
-        >
-          {link?.text}
-        </button> */}
+        {link?.text && (
+          <button
+            type="button"
+            className="confirmation-link"
+            onClick={() => window.open(link.url, "_blank")?.focus()}
+          >
+            {link.text}
+          </button>
+        )}
       </div>
       <style jsx>
         {`

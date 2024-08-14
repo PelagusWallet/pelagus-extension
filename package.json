@@ -27,7 +27,6 @@
   ],
   "scripts": {
     "start": "run-p -n -l \"dev {@}\" --",
-    "clear": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
     "build": "webpack --mode=production",
     "dev": "patch-package && webpack --mode=development --watch",
     "lint": "run-p lint:*",

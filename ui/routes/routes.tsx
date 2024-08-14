@@ -23,7 +23,6 @@ type PageList = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Component: (...args: any[]) => ReactElement
   hasTopBar: boolean
-  persistOnClose: boolean
 }
 
 const pageList: PageList[] = [
@@ -31,97 +30,81 @@ const pageList: PageList[] = [
     path: "/keyring/set-password",
     Component: KeyringSetPassword,
     hasTopBar: false,
-    persistOnClose: false,
   },
   {
     path: "/keyring/unlock",
     Component: KeyringUnlock,
     hasTopBar: false,
-    persistOnClose: false,
   },
   {
     path: "/singleAsset",
     Component: SingleAsset,
     hasTopBar: true,
-    persistOnClose: true,
   },
   {
     path: "/sign-transaction",
     Component: SignTransaction,
     hasTopBar: false,
-    persistOnClose: false,
   },
   {
     path: "/sign-data",
     Component: SignData,
     hasTopBar: false,
-    persistOnClose: false,
   },
   {
     path: "/personal-sign",
     Component: PersonalSign,
     hasTopBar: false,
-    persistOnClose: true,
   },
   {
     path: "/settings/export-logs",
     Component: SettingsExportLogs,
     hasTopBar: false,
-    persistOnClose: true,
   },
   {
     path: "/settings/connected-websites",
     Component: SettingsConnectedWebsites,
     hasTopBar: false,
-    persistOnClose: true,
   },
   {
     path: "/settings/analytics",
     Component: SettingsAnalytics,
     hasTopBar: false,
-    persistOnClose: true,
   },
   {
     path: "/settings/add-custom-asset",
     Component: SettingsAddCustomAsset,
     hasTopBar: false,
-    persistOnClose: true,
   },
   {
     path: "/settings",
     Component: Menu,
     hasTopBar: false,
-    persistOnClose: true,
   },
   {
     path: "/send",
     Component: Send,
     hasTopBar: true,
-    persistOnClose: true,
   },
   {
     path: "/dapp-permission",
     Component: DAppPermissionRequest,
     hasTopBar: false,
-    persistOnClose: false,
   },
   {
     path: "/dev/feature-flags",
     Component: FeatureFlagsPanel,
     hasTopBar: false,
-    persistOnClose: false,
   },
   {
     path: "/dev",
     Component: HiddenDevPanel,
     hasTopBar: false,
-    persistOnClose: false,
   },
   {
     path: "/",
     Component: Wallet,
     hasTopBar: true,
-    persistOnClose: true,
   },
 ]
 

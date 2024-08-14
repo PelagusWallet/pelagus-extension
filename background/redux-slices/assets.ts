@@ -209,9 +209,11 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
       }
     } catch (e) {
       logger.error(e)
+
       dispatch(
         setSnackbarMessage("Failed to get gas price, please enter manually")
       )
+
       return {
         maxFeePerGas: toBigInt(6000000000),
         maxPriorityFeePerGas: toBigInt(2000000000),

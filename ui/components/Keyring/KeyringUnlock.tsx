@@ -1,18 +1,8 @@
 import React, { ReactElement, useEffect, useState } from "react"
-import { Redirect, useHistory, useLocation } from "react-router-dom"
+import { useHistory, useLocation } from "react-router-dom"
 import { unlockKeyrings } from "@pelagus/pelagus-background/redux-slices/keyrings"
-import { rejectTransactionSignature } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { useTranslation } from "react-i18next"
-import {
-  setShowingAccountsModal,
-  setShowingAddAccountModal,
-  setSnackbarMessage,
-} from "@pelagus/pelagus-background/redux-slices/ui"
-import {
-  useBackgroundDispatch,
-  useAreKeyringsUnlocked,
-  useIsDappPopup,
-} from "../../hooks"
+import { useBackgroundDispatch, useAreKeyringsUnlocked } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import PasswordInput from "../Shared/PasswordInput"
 
@@ -23,7 +13,6 @@ export default function KeyringUnlock(): ReactElement {
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const { t } = useTranslation("translation", { keyPrefix: "keyring.unlock" })
 
-  console.log("=== test", location.state)
   const redirectPath = (location.state as any)?.from || "/"
   const [password, setPassword] = useState("")
   const [errorMessage, setErrorMessage] = useState("")

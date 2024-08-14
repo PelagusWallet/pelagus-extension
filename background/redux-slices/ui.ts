@@ -47,7 +47,6 @@ export type UIState = {
     showAlphaWalletBanner: boolean
   }
   snackbarMessage: string
-  routeHistoryEntries?: Partial<Location>[]
   slippageTolerance: number
   accountSignerSettings: AccountSignerSettings[]
 }
@@ -205,13 +204,6 @@ const uiSlice = createSlice({
         networkConnectError,
       },
     }),
-    setRouteHistoryEntries: (
-      state,
-      { payload: routeHistoryEntries }: { payload: Partial<Location>[] }
-    ) => ({
-      ...state,
-      routeHistoryEntries,
-    }),
     setSlippageTolerance: (
       state,
       { payload: slippageTolerance }: { payload: number }
@@ -254,7 +246,6 @@ export const {
   setDefaultWallet,
   setNetworkConnectError,
   clearSnackbarMessage,
-  setRouteHistoryEntries,
   setSlippageTolerance,
   setAccountsSignerSettings,
   setShowDefaultWalletBanner,

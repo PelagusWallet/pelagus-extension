@@ -104,6 +104,12 @@ function Navigation({
             max-width: 300px;
           }
 
+          @media (max-width: 1065px) {
+            .right_container {
+              padding: 10% 65px 0;
+            }
+          }
+
           @media (max-width: 980px) {
             .left_container {
               display: none;
@@ -111,6 +117,7 @@ function Navigation({
 
             .right_container {
               width: 100%;
+              padding: 10% 80px 0;
             }
           }
         `}

@@ -2,6 +2,7 @@ import React, { ReactElement, useEffect, useState } from "react"
 import { useHistory, useLocation } from "react-router-dom"
 import { unlockKeyrings } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { useTranslation } from "react-i18next"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useBackgroundDispatch, useAreKeyringsUnlocked } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import PasswordInput from "../Shared/PasswordInput"
@@ -27,7 +28,9 @@ export default function KeyringUnlock(): ReactElement {
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault()
-    const { success } = await dispatch(unlockKeyrings(password))
+    const { success } = (await dispatch(
+      unlockKeyrings(password)
+    )) as AsyncThunkFulfillmentType<typeof unlockKeyrings>
     if (!success) {
       setErrorMessage(t("error.incorrect"))
     }
@@ -81,6 +84,7 @@ export default function KeyringUnlock(): ReactElement {
             width: 100%;
             height: 100%;
             gap: 16px;
+            padding-top: 40px;
           }
 
           .subtitle {

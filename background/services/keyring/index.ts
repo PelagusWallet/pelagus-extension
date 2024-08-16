@@ -42,8 +42,8 @@ import { sameQuaiAddress } from "../../lib/utils"
 import { generateRandomBytes, isSignerPrivateKeyType } from "./utils"
 import { isGoldenAgeQuaiAddress } from "../../utils/addresses"
 
-export const MAX_KEYRING_IDLE_TIME = 60 * MINUTE
-export const MAX_OUTSIDE_IDLE_TIME = 60 * MINUTE
+export const MAX_KEYRING_IDLE_TIME = 10 * MINUTE
+export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
 
 /*
  * KeyringService is responsible for all key material, as well as applying the
@@ -227,7 +227,12 @@ export default class KeyringService extends BaseService<Events> {
     const now = Date.now()
     const timeSinceLastKeyringActivity = now - this.lastKeyringActivity
     const timeSinceLastOutsideActivity = now - this.lastOutsideActivity
-
+    console.log("autolockIfNeeded", {
+      timeSinceLastKeyringActivity,
+      timeSinceLastOutsideActivity,
+      MAX_KEYRING_IDLE_TIME,
+      MAX_OUTSIDE_IDLE_TIME,
+    })
     if (
       timeSinceLastKeyringActivity >= MAX_KEYRING_IDLE_TIME ||
       timeSinceLastOutsideActivity >= MAX_OUTSIDE_IDLE_TIME

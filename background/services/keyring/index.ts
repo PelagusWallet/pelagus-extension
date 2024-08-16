@@ -227,12 +227,7 @@ export default class KeyringService extends BaseService<Events> {
     const now = Date.now()
     const timeSinceLastKeyringActivity = now - this.lastKeyringActivity
     const timeSinceLastOutsideActivity = now - this.lastOutsideActivity
-    console.log("autolockIfNeeded", {
-      timeSinceLastKeyringActivity,
-      timeSinceLastOutsideActivity,
-      MAX_KEYRING_IDLE_TIME,
-      MAX_OUTSIDE_IDLE_TIME,
-    })
+
     if (
       timeSinceLastKeyringActivity >= MAX_KEYRING_IDLE_TIME ||
       timeSinceLastOutsideActivity >= MAX_OUTSIDE_IDLE_TIME

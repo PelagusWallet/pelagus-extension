@@ -2,7 +2,8 @@ import i18next from "i18next"
 
 const MIN_PASSWORD_LENGTH = 8
 
-const PASSWORD_REGEX = /^[A-Za-z0-9!"#$%&'()*+,\-.\/:;<=>?@[\\\]^_`{|}~]+$/
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!"#$%&'()*+,\-.\/:;<=>?@[\\\]^_`{|}~])[A-Za-z\d!"#$%&'()*+,\-.\/:;<=>?@[\\\]^_`{|}~]+$/
 
 export const validatePassword = (
   password: string,

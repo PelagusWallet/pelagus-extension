@@ -94,7 +94,7 @@
       "error": {
         "characterCount": "Must be at least 8 characters",
         "noMatch": "Passwords don’t match",
-        "invalidCharacters": "Must be at least one number, uppercase, lowercase and special character"
+        "invalidCharacters": "Must contain at least one number, uppercase, lowercase and special character"
       }
     },
     "unlock": {

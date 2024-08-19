@@ -104,9 +104,9 @@ function Navigation({
             max-width: 300px;
           }
 
-          @media (max-width: 1065px) {
+          @media (max-width: 1090px) {
             .right_container {
-              padding: 10% 65px 0;
+              padding: 10% 55px 0;
             }
           }
 

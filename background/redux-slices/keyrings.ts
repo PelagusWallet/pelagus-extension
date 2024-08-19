@@ -59,25 +59,32 @@ export const importKeyring = createBackgroundAsyncThunk(
     signerRaw: SignerImportMetadata,
     { getState, dispatch, extra: { main } }
   ): Promise<{ success: boolean; errorMessage?: string }> => {
-    const address = await main.importSigner(signerRaw)
-    if (!address)
-      return {
-        success: false,
-        errorMessage: "Unexpected error during signer import",
+    try {
+      const address = await main.importSigner(signerRaw)
+      if (!address)
+        return {
+          success: false,
+          errorMessage: "Unexpected error during signer import",
+        }
+
+      const { ui } = getState() as {
+        ui: UIState
       }
 
-    const { ui } = getState() as {
-      ui: UIState
+      dispatch(
+        setNewSelectedAccount({
+          address,
+          network: ui.selectedAccount.network,
+        })
+      )
+
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        errorMessage: "Unexpected error occurred",
+      }
     }
-
-    dispatch(
-      setNewSelectedAccount({
-        address,
-        network: ui.selectedAccount.network,
-      })
-    )
-
-    return { success: true }
   }
 )
 

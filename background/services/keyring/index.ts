@@ -12,7 +12,6 @@ import {
   QuaiTransactionRequest,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
-import { SerializedHDWallet } from "quais/lib/commonjs/wallet/hdwallet"
 import { DataHexString } from "quais/lib/commonjs/utils"
 import {
   decryptVault,
@@ -23,12 +22,12 @@ import {
 import BaseService from "../base"
 import { getEncryptedVaults, writeLatestEncryptedVault } from "./storage"
 import {
+  AddToVaultOptions,
   Events,
   InternalSignerWithType,
   Keyring,
   KeyringAccountSigner,
   PrivateKey,
-  SerializedPrivateKey,
   SerializedVaultData,
   SignerImportMetadata,
   SignerImportSource,
@@ -61,9 +60,13 @@ export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
 export default class KeyringService extends BaseService<Events> {
   private cachedKey: SaltedKey | null = null
 
-  private wallets: Wallet[] = []
+  private wallets: PrivateKey[] = []
 
-  private quaiHDWallets: QuaiHDWallet[] = []
+  private quaiHDWallets: Keyring[] = []
+
+  private lastKeyringActivity: UNIXTime | undefined
+
+  private lastOutsideActivity: UNIXTime | undefined
 
   private readonly quaiHDWalletAccountIndex: number = 0
 
@@ -73,22 +76,8 @@ export default class KeyringService extends BaseService<Events> {
 
   private hiddenAccounts: { [address: HexString]: boolean } = {}
 
-  /**
-   * The last time a keyring took an action that required the service to be
-   * unlocked (signing, adding a keyring, etc.)
-   */
-  private lastKeyringActivity: UNIXTime | undefined
-
-  /**
-   * The last time the keyring was notified of an activity outside the
-   * keyring. {@see markOutsideActivity}
-   */
-  private lastOutsideActivity: UNIXTime | undefined
-
   static create: ServiceCreatorFunction<Events, KeyringService, []> =
-    async () => {
-      return new this()
-    }
+    async () => new this()
 
   private constructor() {
     super({
@@ -104,13 +93,15 @@ export default class KeyringService extends BaseService<Events> {
   }
 
   override async internalStartService(): Promise<void> {
-    // Emit locked status on startup. Should always be locked, but the main
-    // goal is to have external viewers synced to internal state no matter what
-    // it is. Don't emit if there are no quaiHDWallets to unlock.
     await super.internalStartService()
-    if ((await getEncryptedVaults()).vaults.length > 0) {
-      this.emitter.emit("locked", this.locked())
-    }
+
+    // Don't emit if there are no quaiHDWallets to unlock
+    const { vaults } = await getEncryptedVaults()
+    if (!vaults.length) return
+
+    // Emit locked status on startup. Should always be locked, but the main
+    // goal is to have external viewers synced to internal state no matter what it is.
+    await this.emitter.emit("locked", this.isLocked())
   }
 
   override async internalStopService(): Promise<void> {
@@ -121,17 +112,18 @@ export default class KeyringService extends BaseService<Events> {
   /**
    * @return True if the keyring is locked, false if it is unlocked.
    */
-  public locked(): boolean {
+  public isLocked(): boolean {
     return this.cachedKey === null
   }
 
   /**
    * Update activity timestamps and emit unlocked event.
    */
-  private internalUnlock(): void {
+  private async internalUnlock(): Promise<void> {
     this.lastKeyringActivity = Date.now()
     this.lastOutsideActivity = Date.now()
-    this.emitter.emit("locked", false)
+
+    await this.emitter.emit("locked", false)
   }
 
   /**
@@ -144,38 +136,21 @@ export default class KeyringService extends BaseService<Events> {
    *
    *        Note that losing this password means losing access to any key
    *        material stored in a vault.
-   * @param ignoreExistingVaults If true, ignore any existing, previously
-   *        persisted vaults on unlock, instead starting with a clean slate.
-   *        This option makes sense if a user has lost their password, and needs
-   *        to generate a new keyring.
-   *
-   *        Note that old vaults aren't deleted, and can still be recovered
-   *        later in an emergency.
    * @returns true if the service was successfully unlocked using the password,
    *          and false otherwise.
    */
-  public async unlock(
-    password: string,
-    ignoreExistingVaults = false
-  ): Promise<boolean> {
+  public async unlock(password: string): Promise<boolean> {
     try {
-      if (!this.locked()) {
+      if (!this.isLocked()) {
         logger.warn("KeyringService is already unlocked!")
-        this.internalUnlock()
+        await this.internalUnlock()
         return true
       }
 
-      if (!ignoreExistingVaults) {
-        await this.loadKeyrings(password)
-      }
+      await this.loadKeyrings(password)
 
-      // if there's no vault, or we want to force a new vault, generate a new key and unlock
-      if (!this.cachedKey) {
-        this.cachedKey = await deriveSymmetricKeyFromPassword(password)
-        await this.persistKeyrings()
-      }
-
-      this.internalUnlock()
+      await this.internalUnlock()
+      // await this.persistKeyrings({})
       return true
     } catch (error) {
       logger.error("Error while unlocking keyring service")
@@ -188,13 +163,12 @@ export default class KeyringService extends BaseService<Events> {
    * encryption key and quaiHDWallets.
    */
   public async lock(): Promise<void> {
+    this.cachedKey = null
     this.lastKeyringActivity = undefined
     this.lastOutsideActivity = undefined
-    this.cachedKey = null
-    this.quaiHDWallets = []
     this.keyringMetadata = {}
-    this.wallets = []
-    this.emitter.emit("locked", true)
+
+    await this.emitter.emit("locked", true)
     this.emitKeyrings()
   }
 
@@ -217,7 +191,7 @@ export default class KeyringService extends BaseService<Events> {
       // Normally both activity counters should be undefined only if the keyring
       // is locked, otherwise they should both be set; regardless, fail-safe if
       // either is undefined and the keyring is unlocked.
-      if (!this.locked()) {
+      if (!this.isLocked()) {
         await this.lock()
       }
 
@@ -238,7 +212,7 @@ export default class KeyringService extends BaseService<Events> {
 
   // Throw if the keyring is not unlocked; if it is, update the last keyring activity timestamp.
   private requireUnlocked(): void {
-    if (this.locked()) {
+    if (this.isLocked()) {
       throw new Error("KeyringService must be unlocked.")
     }
 
@@ -247,18 +221,17 @@ export default class KeyringService extends BaseService<Events> {
   }
 
   private emitKeyrings() {
-    if (this.locked()) {
+    if (this.isLocked()) {
       this.emitter.emit("keyrings", {
         privateKeys: [],
         keyrings: [],
         keyringMetadata: {},
       })
     } else {
-      const quaiHDWallets = this.getQuaiHDWallets()
-      const privateKeys = this.getWallets()
+      const { wallets, quaiHDWallets } = this
 
       this.emitter.emit("keyrings", {
-        privateKeys,
+        privateKeys: wallets,
         keyrings: quaiHDWallets,
         keyringMetadata: { ...this.keyringMetadata },
       })
@@ -282,7 +255,9 @@ export default class KeyringService extends BaseService<Events> {
 
       switch (signerMetadata.type) {
         case SignerSourceTypes.privateKey:
-          address = this.importWalletWithPrivateKey(signerMetadata.privateKey)
+          address = await this.importWalletWithPrivateKey(
+            signerMetadata.privateKey
+          )
           break
         case SignerSourceTypes.keyring:
           address = await this.importQuaiHDWalletWithMnemonic(
@@ -298,8 +273,6 @@ export default class KeyringService extends BaseService<Events> {
         throw new Error("Failed to import keyring")
       }
 
-      this.hiddenAccounts[address] = false
-      await this.persistKeyrings()
       this.emitter.emit("address", address)
       this.emitKeyrings()
 
@@ -322,11 +295,11 @@ export default class KeyringService extends BaseService<Events> {
     mnemonic: string,
     source: SignerImportSource
   ): Promise<string> {
-    const quaiMnemonic = Mnemonic.fromPhrase(mnemonic)
-    const newQuaiHDWallet = QuaiHDWallet.fromMnemonic(quaiMnemonic)
+    const mnemonicFromPhrase = Mnemonic.fromPhrase(mnemonic)
+    const newQuaiHDWallet = QuaiHDWallet.fromMnemonic(mnemonicFromPhrase)
 
-    const existingQuaiHDWallet = this.quaiHDWallets.find(
-      (HDWallet) => HDWallet.xPub === newQuaiHDWallet.xPub
+    const existingQuaiHDWallet = await this.getQuaiHDWallet(
+      newQuaiHDWallet.xPub
     )
     if (existingQuaiHDWallet) {
       const { address } = existingQuaiHDWallet.getAddressesForAccount(
@@ -335,21 +308,143 @@ export default class KeyringService extends BaseService<Events> {
       return address
     }
 
-    this.quaiHDWallets.push(newQuaiHDWallet)
-
     const { address } = await newQuaiHDWallet.getNextAddress(
       this.quaiHDWalletAccountIndex,
       Zone.Cyprus1
     )
 
+    const serializedQuaiHDWallet = newQuaiHDWallet.serialize()
+
     // If address was previously imported as a private key then remove it
-    if (this.findWalletByAddress(address)) {
+    if (await this.findWalletByAddress(address)) {
       await this.removeWallet(address)
     }
 
-    this.keyringMetadata[newQuaiHDWallet.xPub] = { source }
+    this.quaiHDWallets = [
+      ...this.quaiHDWallets,
+      {
+        type: KeyringTypes.mnemonicBIP39S256,
+        addresses: [
+          ...newQuaiHDWallet
+            .getAddressesForAccount(this.quaiHDWalletAccountIndex)
+            .filter(
+              (quaiHDWallet) => !this.hiddenAccounts[quaiHDWallet.address]
+            )
+            .map((quaiHDWallet) => quaiHDWallet.address),
+        ],
+        id: newQuaiHDWallet.xPub,
+        path: null,
+      },
+    ]
+
+    this.keyringMetadata[newQuaiHDWallet.xPub] = {
+      source,
+    }
+    await this.addToVault({
+      quaiHDWallets: [serializedQuaiHDWallet],
+      metadata: { [newQuaiHDWallet.xPub]: { source } },
+    })
 
     return address
+  }
+
+  /**
+   * Import wallet with private key
+   * @param privateKeyParam - string
+   * @returns string - address of imported or existing account
+   */
+  private async importWalletWithPrivateKey(
+    privateKeyParam: string
+  ): Promise<string> {
+    const newWallet = new Wallet(privateKeyParam)
+    const { address } = newWallet
+
+    if (!isGoldenAgeQuaiAddress(address)) return ""
+
+    if (await this.findSigner(address)) return address
+
+    const { publicKey, privateKey } = new SigningKey(newWallet.privateKey)
+
+    const serializedWallet = {
+      version: 1,
+      id: publicKey,
+      privateKey,
+    }
+
+    this.wallets = [
+      ...this.wallets,
+      {
+        type: KeyringTypes.singleSECP,
+        addresses: [address],
+        id: publicKey,
+        path: null,
+      },
+    ]
+
+    this.keyringMetadata[publicKey] = {
+      source: SignerImportSource.import,
+    }
+
+    await this.addToVault({
+      wallets: [serializedWallet],
+      metadata: { [publicKey]: { source: SignerImportSource.import } },
+    })
+
+    return address
+  }
+
+  public async exportWalletPrivateKey(address: string): Promise<string> {
+    this.requireUnlocked()
+
+    const signerWithType = await this.findSigner(address)
+    if (!signerWithType) {
+      logger.error(`Export private key for address ${address} failed`)
+      return ""
+    }
+
+    if (isSignerPrivateKeyType(signerWithType)) {
+      return signerWithType.signer.privateKey
+    }
+
+    // export private key from HDWallet address
+    const privateKey = signerWithType.signer.getPrivateKey(address)
+    return privateKey ?? "Not found"
+  }
+
+  /**
+   * Derive and return the next address for a KeyringAccountSigner representing
+   * an QuaiHDWallet.
+   */
+  async deriveAddress({
+    keyringID,
+    zone,
+  }: KeyringAccountSigner): Promise<void> {
+    this.requireUnlocked()
+
+    const quaiHDWallet = await this.getQuaiHDWallet(keyringID)
+    if (!quaiHDWallet) {
+      throw new Error("QuaiHDWallet not found.")
+    }
+
+    const { address } = await quaiHDWallet.getNextAddress(
+      this.quaiHDWalletAccountIndex,
+      zone
+    )
+
+    this.quaiHDWallets = this.quaiHDWallets.map((HDWallet) => {
+      return HDWallet?.id === quaiHDWallet.xPub
+        ? {
+            ...HDWallet,
+            addresses: [...HDWallet.addresses, address],
+          }
+        : HDWallet
+    })
+
+    await this.updateVault({ quaiHDWallets: [quaiHDWallet.serialize()] })
+
+    await this.emitter.emit("address", address)
+
+    this.emitKeyrings()
   }
 
   /**
@@ -380,75 +475,8 @@ export default class KeyringService extends BaseService<Events> {
     return { id: keyringIdToVerify, mnemonic: phrase.split(" ") }
   }
 
-  /**
-   * Import wallet with private key
-   * @param privateKey - string
-   * @returns string - address of imported or existing account
-   */
-  private importWalletWithPrivateKey(privateKey: string): string {
-    const newWallet = new Wallet(privateKey)
-    const { address } = newWallet
-
-    if (!isGoldenAgeQuaiAddress(address)) return ""
-
-    if (this.findSigner(address)) return address
-
-    this.wallets.push(newWallet)
-    this.keyringMetadata[address] = {
-      source: SignerImportSource.import,
-    }
-    return address
-  }
-
-  public async exportWalletPrivateKey(address: string): Promise<string> {
-    this.requireUnlocked()
-
-    const signerWithType = this.findSigner(address)
-    if (!signerWithType) {
-      logger.error(`Export private key for address ${address} failed`)
-      return ""
-    }
-
-    if (isSignerPrivateKeyType(signerWithType)) {
-      return signerWithType.signer.privateKey
-    }
-
-    // export private key from HDWallet address
-    const privateKey = signerWithType.signer.getPrivateKey(address)
-    return privateKey ?? "Not found"
-  }
-
-  /**
-   * Derive and return the next address for a KeyringAccountSigner representing
-   * an QuaiHDWallet.
-   */
-  async deriveAddress({
-    keyringID,
-    zone,
-  }: KeyringAccountSigner): Promise<void> {
-    this.requireUnlocked()
-
-    const quaiHDWallet = this.quaiHDWallets.find(
-      (HDWallet) => HDWallet.xPub === keyringID
-    )
-    if (!quaiHDWallet) {
-      throw new Error("QuaiHDWallet not found.")
-    }
-
-    const { address } = await quaiHDWallet.getNextAddress(
-      this.quaiHDWalletAccountIndex,
-      zone
-    )
-
-    await this.persistKeyrings()
-
-    this.emitter.emit("address", address)
-
-    this.emitKeyrings()
-  }
-
   public async removeQuaiHDWallet(address: string): Promise<void> {
-    const foundedHDWallet = this.findQuaiHDWalletByAddress(address)
+    const foundedHDWallet = await this.findQuaiHDWalletByAddress(address)
     if (!foundedHDWallet) {
       logger.error("QuaiHDWallet associated with an address is not found.")
       return
@@ -461,7 +489,7 @@ export default class KeyringService extends BaseService<Events> {
       })
 
     const filteredQuaiHDWallets = this.quaiHDWallets.filter(
-      (HDWallet) => HDWallet.xPub !== foundedHDWallet.xPub
+      (HDWallet) => HDWallet.id !== foundedHDWallet.xPub
     )
 
     if (filteredQuaiHDWallets.length === this.quaiHDWallets.length) {
@@ -471,14 +499,20 @@ export default class KeyringService extends BaseService<Events> {
     }
     this.quaiHDWallets = filteredQuaiHDWallets
 
-    await this.persistKeyrings()
+    await this.removeFromVault({
+      hdWalletId: foundedHDWallet.serialize().phrase,
+    })
     this.emitKeyrings()
   }
 
   public async removeWallet(address: HexString): Promise<void> {
-    const filteredPrivateKeys = this.wallets.filter(
-      (wallet) => !sameQuaiAddress(wallet.address, address)
-    )
+    let targetWalletPublicKey = ""
+    const filteredPrivateKeys = this.wallets.filter((wallet) => {
+      if (!sameQuaiAddress(wallet.addresses[0], address)) return true
+
+      targetWalletPublicKey = wallet.id
+      return false
+    })
 
     if (filteredPrivateKeys.length === this.wallets.length) {
       throw new Error(
@@ -487,9 +521,19 @@ export default class KeyringService extends BaseService<Events> {
     }
 
     this.wallets = filteredPrivateKeys
-    delete this.keyringMetadata[address]
+    delete this.keyringMetadata[targetWalletPublicKey]
 
-    await this.persistKeyrings()
+    const { wallets } = await this.retrieveVaultData()
+    const walletsWithoutTargetWallet = wallets.filter(
+      (serializedWallet) => serializedWallet.id !== targetWalletPublicKey
+    )
+
+    await this.addToVault(
+      { wallets: walletsWithoutTargetWallet },
+      { overwriteWallets: true }
+    )
+    await this.removeFromVault({ metadataKey: targetWalletPublicKey })
+
     this.emitKeyrings()
   }
   // -------------------------------------------------------------------
@@ -501,12 +545,14 @@ export default class KeyringService extends BaseService<Events> {
    * @param address - The account to find the signer for.
    * @returns An object containing the signer and its type, or null if no signer is found.
    */
-  private findSigner(address: AddressLike): InternalSignerWithType | null {
+  private async findSigner(
+    address: AddressLike
+  ): Promise<InternalSignerWithType | null> {
     // we format the address because it can also come from a request from outside the wallet,
     // which may be in the wrong format
     const formatedAddress = getAddress(address as string)
 
-    const HDWallet = this.findQuaiHDWalletByAddress(address)
+    const HDWallet = await this.findQuaiHDWalletByAddress(address)
     if (HDWallet) {
       return {
         signer: HDWallet,
@@ -515,7 +561,7 @@ export default class KeyringService extends BaseService<Events> {
       }
     }
 
-    const privateKey = this.findWalletByAddress(address)
+    const privateKey = await this.findWalletByAddress(address)
     if (privateKey) {
       return {
         signer: privateKey,
@@ -533,15 +579,21 @@ export default class KeyringService extends BaseService<Events> {
    * @param address - the account address desired to search the keyring for.
    * @returns HD keyring object
    */
-  private findQuaiHDWalletByAddress(address: AddressLike): QuaiHDWallet | null {
-    const foundedHDWallet = this.quaiHDWallets.find((HDWallet) =>
+  private async findQuaiHDWalletByAddress(
+    address: AddressLike
+  ): Promise<QuaiHDWallet | undefined> {
+    const { quaiHDWallets } = await this.retrieveVaultData()
+
+    const deserializedHDWallets: QuaiHDWallet[] = await Promise.all(
+      quaiHDWallets.map((HDWallet) => QuaiHDWallet.deserialize(HDWallet))
+    )
+
+    return deserializedHDWallets.find((HDWallet) =>
       HDWallet.getAddressesForAccount(this.quaiHDWalletAccountIndex).find(
         (HDWalletAddress) =>
           sameQuaiAddress(HDWalletAddress.address, address as string)
       )
     )
-
-    return foundedHDWallet ?? null
   }
 
   /**
@@ -550,56 +602,50 @@ export default class KeyringService extends BaseService<Events> {
    * @param address - the account address desired to search the wallet for.
    * @returns Quai`s Wallet object
    */
-  private findWalletByAddress(address: AddressLike): Wallet | null {
-    const foundedWallet = this.wallets.find((wallet) =>
-      sameQuaiAddress(wallet.address, address as string)
+  private async findWalletByAddress(
+    address: AddressLike
+  ): Promise<Wallet | undefined> {
+    const { wallets } = await this.retrieveVaultData()
+
+    return wallets
+      .map((serializedWallet) => new Wallet(serializedWallet.privateKey))
+      .find((deserializedWallet) =>
+        sameQuaiAddress(deserializedWallet.address, address as string)
+      )
+  }
+
+  private async getQuaiHDWallet(
+    xPub: string
+  ): Promise<QuaiHDWallet | undefined> {
+    const { quaiHDWallets } = await this.retrieveVaultData()
+
+    const deserializedHDWallets: QuaiHDWallet[] = await Promise.all(
+      quaiHDWallets.map((HDWallet) => QuaiHDWallet.deserialize(HDWallet))
     )
 
-    return foundedWallet ?? null
-  }
-
-  public getWallets(): PrivateKey[] {
-    this.requireUnlocked()
-
-    return this.wallets.map((wallet) => ({
-      type: KeyringTypes.singleSECP,
-      addresses: [wallet.address],
-      id: wallet.signingKey.publicKey,
-      path: null,
-    }))
-  }
-
-  public getQuaiHDWallets(): Keyring[] {
-    this.requireUnlocked()
-
-    return this.quaiHDWallets.map((HDWallet) => ({
-      type: KeyringTypes.mnemonicBIP39S256,
-      addresses: [
-        ...HDWallet.getAddressesForAccount(this.quaiHDWalletAccountIndex)
-          .filter(({ address }) => !this.hiddenAccounts[address])
-          .map(({ address }) => address),
-      ],
-      id: HDWallet.xPub,
-      path: null, // TODO-MIGRATION
-    }))
+    return deserializedHDWallets.find(
+      (HDWallet: QuaiHDWallet) => HDWallet.xPub === xPub
+    )
   }
 
   /**
    * Return the source of a given address' keyring if it exists. If an
    * address does not have a keyring associated with it - returns null.
    */
-  public getQuaiHDWalletSourceForAddress(
+  public async getKeyringSourceForAddress(
     address: string
-  ): SignerImportSource | null {
+  ): Promise<SignerImportSource | null> {
     this.requireUnlocked()
 
-    const foundedHDWallet = this.findQuaiHDWalletByAddress(address)
-    if (!foundedHDWallet) {
-      logger.error("QuaiHDWallet associated with an address is not found.")
+    const foundedKeyring = [...this.quaiHDWallets, ...this.wallets].find(
+      (keyring) => keyring.addresses.includes(address)
+    )
+    if (!foundedKeyring) {
+      logger.error("foundedKeyring associated with an address is not found.")
       return null
     }
 
-    return this.keyringMetadata[foundedHDWallet.xPub].source
+    return this.keyringMetadata[foundedKeyring.id].source
   }
   // -------------------------------------------------------------------
 
@@ -611,7 +657,7 @@ export default class KeyringService extends BaseService<Events> {
 
     const { from: fromAddress } = txRequest
 
-    const signerWithType = this.findSigner(fromAddress)
+    const signerWithType = await this.findSigner(fromAddress)
     if (!signerWithType) {
       throw new Error(
         `Signing transaction failed. Signer for address ${fromAddress} was not found.`
@@ -628,7 +674,7 @@ export default class KeyringService extends BaseService<Events> {
 
     const { from: fromAddress } = transactionRequest
 
-    const signerWithType = this.findSigner(fromAddress)
+    const signerWithType = await this.findSigner(fromAddress)
     if (!signerWithType) {
       throw new Error(
         `Signing transaction failed. Signer for address ${fromAddress} was not found.`
@@ -671,7 +717,7 @@ export default class KeyringService extends BaseService<Events> {
 
     const { domain, types, message } = typedData
 
-    const signerWithType = this.findSigner(address)
+    const signerWithType = await this.findSigner(address)
     if (!signerWithType) {
       throw new Error(
         `Signing transaction failed. Signer for address ${address} was not found.`
@@ -707,7 +753,7 @@ export default class KeyringService extends BaseService<Events> {
   ): Promise<string> {
     this.requireUnlocked()
 
-    const signerWithType = this.findSigner(address)
+    const signerWithType = await this.findSigner(address)
     if (!signerWithType) {
       throw new Error(
         `Signing transaction failed. Signer for address ${address} was not found.`
@@ -731,33 +777,62 @@ export default class KeyringService extends BaseService<Events> {
   private async loadKeyrings(password: string) {
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
-    if (!currentEncryptedVault) return
 
     const saltedKey = await deriveSymmetricKeyFromPassword(
       password,
-      currentEncryptedVault.salt
+      currentEncryptedVault?.salt
     )
+
+    this.cachedKey = saltedKey
+
+    if (!currentEncryptedVault) return
 
     const plainTextVault = await decryptVault<SerializedVaultData>(
       currentEncryptedVault,
       saltedKey
     )
 
-    this.cachedKey = saltedKey
     this.wallets = []
     this.quaiHDWallets = []
     this.keyringMetadata = {}
     this.hiddenAccounts = {}
 
-    plainTextVault.wallets?.forEach((wallet) =>
-      this.wallets.push(new Wallet(wallet.privateKey))
-    )
+    plainTextVault.wallets?.forEach((serializedWallet) => {
+      const wallet = new Wallet(serializedWallet.privateKey)
+      this.wallets = [
+        ...this.wallets,
+        {
+          type: KeyringTypes.singleSECP,
+          addresses: [wallet.address],
+          id: wallet.signingKey.publicKey,
+          path: null,
+        },
+      ]
+    })
+
     const deserializedHDWallets = await Promise.all(
       plainTextVault.quaiHDWallets.map((HDWallet) =>
         QuaiHDWallet.deserialize(HDWallet)
       )
     )
-    this.quaiHDWallets.push(...deserializedHDWallets)
+
+    deserializedHDWallets.forEach((quaiHDWallet) => {
+      this.quaiHDWallets = [
+        ...this.quaiHDWallets,
+        {
+          type: KeyringTypes.mnemonicBIP39S256,
+          addresses: [
+            ...quaiHDWallet
+              .getAddressesForAccount(this.quaiHDWalletAccountIndex)
+              .filter(({ address }) => !this.hiddenAccounts[address])
+              .map(({ address }) => address),
+          ],
+          id: quaiHDWallet.xPub,
+          path: null,
+        },
+      ]
+    })
+
     this.keyringMetadata = {
       ...plainTextVault.metadata,
     }
@@ -768,34 +843,161 @@ export default class KeyringService extends BaseService<Events> {
     this.emitKeyrings()
   }
 
-  private async persistKeyrings() {
+  private async addToVault(
+    data: Partial<SerializedVaultData>,
+    options: AddToVaultOptions = {}
+  ): Promise<void> {
     this.requireUnlocked()
 
-    const serializedQuaiHDWallets: SerializedHDWallet[] =
-      this.quaiHDWallets.map((HDWallet) => HDWallet.serialize())
+    const saltedKey = this.cachedKey
+    if (!saltedKey) return
 
-    const serializedWallets: SerializedPrivateKey[] = this.wallets.map(
-      (wallet) => {
-        const { privateKey } = wallet
-        const signingKey = new SigningKey(privateKey)
-        const { publicKey } = signingKey
+    const { wallets, quaiHDWallets, metadata, hiddenAccounts } =
+      await this.retrieveVaultData()
 
-        return {
-          version: 1,
-          id: publicKey,
-          privateKey,
+    const mergedVaultData: SerializedVaultData = {
+      wallets: options.overwriteWallets
+        ? data.wallets ?? []
+        : [...wallets, ...(data.wallets ?? [])],
+
+      quaiHDWallets: options.overwriteQuaiHDWallets
+        ? data.quaiHDWallets ?? []
+        : [...quaiHDWallets, ...(data.quaiHDWallets ?? [])],
+
+      metadata: options.overwriteMetadata
+        ? data.metadata ?? {}
+        : {
+            ...metadata,
+            ...data.metadata,
+          },
+
+      hiddenAccounts: options.overwriteHiddenAccounts
+        ? data.hiddenAccounts ?? {}
+        : {
+            ...hiddenAccounts,
+            ...data.hiddenAccounts,
+          },
+    }
+
+    const encryptedVault = await encryptVault(mergedVaultData, saltedKey)
+    await writeLatestEncryptedVault(encryptedVault)
+  }
+
+  private async updateVault(data: Partial<SerializedVaultData>): Promise<void> {
+    this.requireUnlocked()
+
+    const saltedKey = this.cachedKey
+    if (!saltedKey) return
+
+    const { wallets, quaiHDWallets, metadata, hiddenAccounts } =
+      await this.retrieveVaultData()
+
+    const updatedWallets = data.wallets
+      ? wallets.map(
+          (wallet) =>
+            data.wallets?.find((newWallet) => newWallet.id === wallet.id) ||
+            wallet
+        )
+      : [...wallets]
+
+    const updatedQuaiHDWallets = data.quaiHDWallets
+      ? quaiHDWallets.map(
+          (hdWallet) =>
+            data.quaiHDWallets?.find(
+              (newHdWallet) => newHdWallet.phrase === hdWallet.phrase
+            ) || hdWallet
+        )
+      : [...quaiHDWallets]
+
+    const updatedMetadata = data.metadata
+      ? {
+          ...metadata,
+          ...Object.entries(data.metadata || {}).reduce(
+            (acc, [keyringId, metadataEntry]) => {
+              acc[keyringId] = metadataEntry
+              return acc
+            },
+            {} as SerializedVaultData["metadata"]
+          ),
         }
-      }
-    )
+      : { ...metadata }
 
-    const hiddenAccounts = { ...this.hiddenAccounts }
-    const metadata = { ...this.keyringMetadata }
+    const updatedHiddenAccounts = data.hiddenAccounts
+      ? {
+          ...hiddenAccounts,
+          ...Object.entries(data.hiddenAccounts || {}).reduce(
+            (acc, [address, hidden]) => {
+              acc[address] = hidden
+              return acc
+            },
+            {} as SerializedVaultData["hiddenAccounts"]
+          ),
+        }
+      : { ...hiddenAccounts }
+
+    const mergedVaultData: SerializedVaultData = {
+      wallets: updatedWallets,
+      quaiHDWallets: updatedQuaiHDWallets,
+      metadata: updatedMetadata,
+      hiddenAccounts: updatedHiddenAccounts,
+    }
+
+    const encryptedVault = await encryptVault(mergedVaultData, saltedKey)
+    await writeLatestEncryptedVault(encryptedVault)
+  }
+
+  private async removeFromVault(options: {
+    walletId?: string
+    hdWalletId?: string
+    metadataKey?: string
+    hiddenAccount?: string
+  }): Promise<void> {
+    this.requireUnlocked()
+
+    const saltedKey = this.cachedKey
+    if (!saltedKey) return
+
+    const { wallets, quaiHDWallets, metadata, hiddenAccounts } =
+      await this.retrieveVaultData()
+
+    const filteredWallets = options.walletId
+      ? wallets.filter((wallet) => wallet.id !== options.walletId)
+      : wallets
+
+    const filteredHDWallets = options.hdWalletId
+      ? quaiHDWallets.filter(
+          (hdWallet) => hdWallet.phrase !== options.hdWalletId
+        )
+      : quaiHDWallets
+
+    const updatedMetadata = { ...metadata }
+    if (options.metadataKey) delete updatedMetadata[options.metadataKey]
+
+    const updatedHiddenAccounts = { ...hiddenAccounts }
+    if (options.hiddenAccount)
+      delete updatedHiddenAccounts[options.hiddenAccount]
+
+    const mergedVaultData: SerializedVaultData = {
+      wallets: filteredWallets,
+      quaiHDWallets: filteredHDWallets,
+      metadata: updatedMetadata,
+      hiddenAccounts: updatedHiddenAccounts,
+    }
+
+    const encryptedVault = await encryptVault(mergedVaultData, saltedKey)
+    await writeLatestEncryptedVault(encryptedVault)
+  }
+
+  private async getVault() {
+    const { vaults } = await getEncryptedVaults()
+    const currentEncryptedVault = vaults.slice(-1)[0]?.vault
+    if (currentEncryptedVault) return currentEncryptedVault
 
     const serializedVaultData: SerializedVaultData = {
-      wallets: serializedWallets,
-      quaiHDWallets: serializedQuaiHDWallets,
-      metadata,
-      hiddenAccounts,
+      wallets: [],
+      quaiHDWallets: [],
+      metadata: {},
+      hiddenAccounts: {},
     }
     const encryptedVault = await encryptVault(
       serializedVaultData,
@@ -805,5 +1007,17 @@ export default class KeyringService extends BaseService<Events> {
     )
 
     await writeLatestEncryptedVault(encryptedVault)
+
+    return encryptedVault
+  }
+
+  private async retrieveVaultData(): Promise<SerializedVaultData> {
+    this.requireUnlocked()
+
+    const currentEncryptedVault = await this.getVault()
+    const saltedKey = this.cachedKey
+    if (!saltedKey) throw new Error("No cached key found.")
+
+    return decryptVault<SerializedVaultData>(currentEncryptedVault, saltedKey)
   }
 }

@@ -503,7 +503,7 @@ export default class ChainService extends BaseService<Events> {
   }
 
   async addAccountToTrack(addressNetwork: AddressOnNetwork): Promise<void> {
-    const source = this.keyringService.getQuaiHDWalletSourceForAddress(
+    const source = await this.keyringService.getKeyringSourceForAddress(
       addressNetwork.address
     )
 

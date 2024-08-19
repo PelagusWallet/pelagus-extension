@@ -106,7 +106,7 @@ function Navigation({
 
           @media (max-width: 1090px) {
             .right_container {
-              padding: 10% 55px 0;
+              padding: 10% 50px 0;
             }
           }
 

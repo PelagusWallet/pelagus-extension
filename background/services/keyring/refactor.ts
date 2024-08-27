@@ -1,11 +1,22 @@
+import {
+  QuaiTransactionRequest,
+  QuaiTransactionResponse,
+} from "quais/lib/commonjs/providers"
+import { DataHexString } from "quais/lib/commonjs/utils"
+import { getBytes } from "quais"
 import { IWalletManager, WalletManager } from "./wallet-manager"
 import logger from "../../lib/logger"
 import { ServiceCreatorFunction } from "../types"
-import { Events, SignerImportMetadata } from "./types"
+import {
+  Events,
+  KeyringAccountSigner,
+  SignerImportMetadata,
+  SignerImportSource,
+} from "./types"
 import { getEncryptedVaults } from "./storage"
 import BaseService from "../base"
 import { IVaultManager, VaultManager } from "./vault-manager"
-import { UNIXTime } from "../../types"
+import { EIP712TypedData, UNIXTime } from "../../types"
 import { MINUTE } from "../../constants"
 import { isSignerPrivateKeyType } from "./utils"
 
@@ -169,5 +180,139 @@ class Keyring extends BaseService<Events> {
     // export private key from HDWallet address
     const privateKey = signerWithType.signer.getPrivateKey(address)
     return privateKey ?? "Not found"
+  }
+
+  public async signQuaiTransaction(
+    txRequest: QuaiTransactionRequest
+  ): Promise<string> {
+    this.requireUnlockKeyring()
+
+    const { from: fromAddress } = txRequest
+
+    const signerWithType = await this.walletManager.findSigner(fromAddress)
+    if (!signerWithType) {
+      throw new Error(
+        `Signing transaction failed. Signer for address ${fromAddress} was not found.`
+      )
+    }
+
+    return signerWithType.signer.signTransaction(txRequest)
+  }
+
+  public async signAndSendQuaiTransaction(
+    transactionRequest: QuaiTransactionRequest
+  ): Promise<QuaiTransactionResponse> {
+    this.requireUnlockKeyring()
+
+    const { from: fromAddress } = transactionRequest
+
+    const signerWithType = await this.walletManager.findSigner(fromAddress)
+    if (!signerWithType) {
+      throw new Error(
+        `Signing transaction failed. Signer for address ${fromAddress} was not found.`
+      )
+    }
+
+    const { jsonRpcProvider } = globalThis.main.chainService
+
+    if (isSignerPrivateKeyType(signerWithType)) {
+      const walletResponse = await signerWithType.signer
+        .connect(jsonRpcProvider)
+        .sendTransaction(transactionRequest)
+
+      return walletResponse as QuaiTransactionResponse
+    }
+
+    signerWithType.signer.connect(jsonRpcProvider)
+    const quaiHDWalletResponse = await signerWithType.signer
+      .sendTransaction(transactionRequest)
+      .catch((e) => {
+        logger.error(e)
+        throw new Error("Failed send transaction")
+      })
+
+    return quaiHDWalletResponse as QuaiTransactionResponse
+  }
+
+  public async signTypedData(
+    address: string,
+    typedData: EIP712TypedData
+  ): Promise<string> {
+    this.requireUnlockKeyring()
+
+    const { domain, types, message } = typedData
+
+    const signerWithType = await this.walletManager.findSigner(address)
+    if (!signerWithType) {
+      throw new Error(
+        `Signing transaction failed. Signer for address ${address} was not found.`
+      )
+    }
+
+    try {
+      const { address: formatedAddress } = signerWithType
+
+      return isSignerPrivateKeyType(signerWithType)
+        ? await signerWithType.signer.signTypedData(domain, types, message)
+        : await signerWithType.signer.signTypedData(
+            formatedAddress,
+            domain,
+            types,
+            message
+          )
+    } catch (error) {
+      throw new Error("Signing data failed")
+    }
+  }
+
+  public async personalSign(
+    address: string,
+    signingData: DataHexString
+  ): Promise<string> {
+    this.requireUnlockKeyring()
+
+    const signerWithType = await this.walletManager.findSigner(address)
+    if (!signerWithType) {
+      throw new Error(
+        `Signing transaction failed. Signer for address ${address} was not found.`
+      )
+    }
+
+    try {
+      const messageBytes = getBytes(signingData)
+      const { address: formatedAddress } = signerWithType
+
+      return isSignerPrivateKeyType(signerWithType)
+        ? await signerWithType.signer.signMessage(messageBytes)
+        : await signerWithType.signer.signMessage(formatedAddress, messageBytes)
+    } catch (error) {
+      throw new Error("Signing data failed")
+    }
+  }
+
+  public async getKeyringSourceForAddress(
+    address: string
+  ): Promise<SignerImportSource | null> {
+    this.requireUnlockKeyring()
+
+    return this.walletManager.getSource(address)
+  }
+
+  public async deriveAddress(
+    keyringAccountSigner: KeyringAccountSigner
+  ): Promise<void> {
+    this.requireUnlockKeyring()
+
+    const address = await this.walletManager.deriveQuaiHDWalletAddress(
+      keyringAccountSigner
+    )
+
+    await this.emitter.emit("address", address)
+    await this.notifyUIWithKeyringUpdates()
+  }
+
+  public async generateMnemonic(): Promise<{ id: string; mnemonic: string[] }> {
+    this.requireUnlockKeyring()
+    return this.walletManager.createQuaiHDWalletMnemonic()
   }
 }

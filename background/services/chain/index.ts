@@ -56,6 +56,7 @@ import {
   QuaiTransactionStatus,
   SerializedTransactionForHistory,
 } from "./types"
+import { isSignerPrivateKeyType } from "../keyring/utils"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -768,11 +769,26 @@ export default class ChainService extends BaseService<Events> {
     request: QuaiTransactionRequest
   ): Promise<QuaiTransactionResponse | null> {
     try {
-      const transactionResponse =
-        await this.keyringService.signAndSendQuaiTransaction(request)
+      let transactionResponse: QuaiTransactionResponse
+      const signerWithType = await this.keyringService.getSigner(
+        request.from.toString()
+      )
+
+      if (isSignerPrivateKeyType(signerWithType)) {
+        transactionResponse = (await signerWithType.signer
+          .connect(this.jsonRpcProvider)
+          .sendTransaction(request)) as QuaiTransactionResponse
+      } else {
+        signerWithType.signer.connect(this.jsonRpcProvider)
+        transactionResponse = (await signerWithType.signer
+          .sendTransaction(request)
+          .catch((e) => {
+            logger.error(e)
+            throw new Error("Failed send transaction")
+          })) as QuaiTransactionResponse
+      }
 
       const network = getNetworkById(transactionResponse?.chainId)
-
       if (!network) {
         throw new Error("Network is null.")
       }

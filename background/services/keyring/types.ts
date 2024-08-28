@@ -4,11 +4,18 @@ import { HexString, KeyringTypes } from "../../types"
 import { ServiceLifecycleEvents } from "../types"
 import { QuaiTransactionState } from "../chain/types"
 
-export interface AddToVaultOptions {
-  overwriteWallets?: boolean
-  overwriteQuaiHDWallets?: boolean
-  overwriteMetadata?: boolean
-  overwriteHiddenAccounts?: boolean
+export type KeyringMetadata = {
+  [keyringId: string]: { source: SignerImportSource }
+}
+
+export type HiddenAccounts = { [address: HexString]: boolean }
+
+export type PublicWalletsData = {
+  wallets: PrivateKey[]
+  quaiHDWallets: Keyring[]
+  keyringMetadata: {
+    [keyringId: string]: { source: SignerImportSource }
+  }
 }
 
 export type Keyring = {

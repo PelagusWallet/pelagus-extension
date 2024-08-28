@@ -18,6 +18,27 @@ export type PublicWalletsData = {
   }
 }
 
+export type DeleteProps = {
+  walletId?: string
+  hdWalletId?: string
+  metadataKey?: string
+  hiddenAccount?: string
+}
+
+export interface AddOptions {
+  overwriteWallets?: boolean
+  overwriteQuaiHDWallets?: boolean
+  overwriteMetadata?: boolean
+  overwriteHiddenAccounts?: boolean
+}
+
+export type AddressWithQuaiHDWallet = {
+  address: string
+  quaiHDWallet: QuaiHDWallet
+}
+
+export type AddressWithPublicKey = { address: string; publicKey: string }
+
 export type Keyring = {
   type: KeyringTypes
   id: string

@@ -1,37 +1,40 @@
 import { AddressLike, Mnemonic, QuaiHDWallet, Zone } from "quais"
-import logger from "../../lib/logger"
+import { IVaultManager } from "./vault-manager"
 import { sameQuaiAddress } from "../../lib/utils"
-import { WalletManager } from "./wallet-manager"
+import { AddressWithQuaiHDWallet } from "./types"
 
-export default class QuaiHDWalletManager {
+export interface IQuaiHDWalletManager {
+  add(mnemonic: string): Promise<AddressWithQuaiHDWallet>
+  getByXPub(xPub: string): Promise<QuaiHDWallet | undefined>
+  getByAddress(address: AddressLike): Promise<QuaiHDWallet | undefined>
+  deriveAddress(xPub: string, zone: Zone): Promise<AddressWithQuaiHDWallet>
+}
+
+export default class QuaiHDWalletManager implements IQuaiHDWalletManager {
   public readonly quaiHDWalletAccountIndex: number = 0
 
-  constructor(private walletManager: WalletManager) {}
+  constructor(private vaultManager: IVaultManager) {}
 
   // -------------------------- public methods --------------------------
-  public async add(mnemonic: string): Promise<string> {
+  public async add(mnemonic: string): Promise<AddressWithQuaiHDWallet> {
     const mnemonicFromPhrase = Mnemonic.fromPhrase(mnemonic)
-    const newQuaiHDWallet = QuaiHDWallet.fromMnemonic(mnemonicFromPhrase)
+    const quaiHDWallet = QuaiHDWallet.fromMnemonic(mnemonicFromPhrase)
 
-    const existingQuaiHDWallet = await this.getByAddress(newQuaiHDWallet.xPub)
-
+    const existingQuaiHDWallet = await this.getByXPub(quaiHDWallet.xPub)
     if (existingQuaiHDWallet) {
-      const { address } = existingQuaiHDWallet.getAddressesForAccount(
-        this.quaiHDWalletAccountIndex
-      )[0]
-      return address
+      throw new Error("Quai HD Wallet already exists")
     }
 
-    const { address } = await newQuaiHDWallet.getNextAddress(
+    const { address } = await quaiHDWallet.getNextAddress(
       this.quaiHDWalletAccountIndex,
       Zone.Cyprus1
     )
 
-    return address
+    return { address, quaiHDWallet }
   }
 
-  public async get(xPub: string): Promise<QuaiHDWallet | undefined> {
-    const { quaiHDWallets } = await this.walletManager.vaultManager.get()
+  public async getByXPub(xPub: string): Promise<QuaiHDWallet | undefined> {
+    const { quaiHDWallets } = await this.vaultManager.get()
 
     const deserializedHDWallets: QuaiHDWallet[] = await Promise.all(
       quaiHDWallets.map((HDWallet) => QuaiHDWallet.deserialize(HDWallet))
@@ -45,7 +48,7 @@ export default class QuaiHDWalletManager {
   public async getByAddress(
     address: AddressLike
   ): Promise<QuaiHDWallet | undefined> {
-    const { quaiHDWallets } = await this.walletManager.vaultManager.get()
+    const { quaiHDWallets } = await this.vaultManager.get()
 
     const deserializedHDWallets: QuaiHDWallet[] = await Promise.all(
       quaiHDWallets.map((HDWallet) => QuaiHDWallet.deserialize(HDWallet))
@@ -59,34 +62,20 @@ export default class QuaiHDWalletManager {
     )
   }
 
-  async deleteByAddress(address: string): Promise<void> {
-    const foundedHDWallet = await this.getByAddress(address)
-    if (!foundedHDWallet) {
-      logger.error("QuaiHDWallet associated with an address is not found.")
-      return
+  public async deriveAddress(
+    xPub: string,
+    zone: Zone
+  ): Promise<AddressWithQuaiHDWallet> {
+    const quaiHDWallet = await this.getByXPub(xPub)
+    if (!quaiHDWallet) {
+      throw new Error("QuaiHDWallet not found.")
     }
 
-    foundedHDWallet
-      .getAddressesForAccount(this.quaiHDWalletAccountIndex)
-      .forEach(({ address: walletAddress }) => {
-        delete this.walletManager.hiddenAccounts[walletAddress]
-      })
-
-    const filteredQuaiHDWallets = this.walletManager.quaiHDWallets.filter(
-      (HDWallet) => HDWallet.id !== foundedHDWallet.xPub
+    const { address } = await quaiHDWallet.getNextAddress(
+      this.quaiHDWalletAccountIndex,
+      zone
     )
 
-    if (
-      filteredQuaiHDWallets.length === this.walletManager.quaiHDWallets.length
-    ) {
-      throw new Error(
-        `Attempting to remove Quai HDWallet that does not exist. xPub: (${foundedHDWallet.xPub})`
-      )
-    }
-    this.walletManager.quaiHDWallets = filteredQuaiHDWallets
-
-    await this.walletManager.vaultManager.delete({
-      hdWalletId: foundedHDWallet.serialize().phrase,
-    })
+    return { address, quaiHDWallet }
   }
 }

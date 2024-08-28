@@ -5,32 +5,17 @@ import {
   encryptVault,
   SaltedKey,
 } from "./encryption"
-import { SerializedVaultData } from "./types"
+import { AddOptions, DeleteProps, SerializedVaultData } from "./types"
 import { getEncryptedVaults, writeLatestEncryptedVault } from "./storage"
 
-export type DeleteProps = {
-  walletId?: string
-  hdWalletId?: string
-  metadataKey?: string
-  hiddenAccount?: string
-}
-
-export interface AddOptions {
-  overwriteWallets?: boolean
-  overwriteQuaiHDWallets?: boolean
-  overwriteMetadata?: boolean
-  overwriteHiddenAccounts?: boolean
-}
-
 export interface IVaultManager {
-  clearSymmetricKey(): void
-  isSymmetricKeyInitialized(): boolean
-  initializeWithPassword(password: string): Promise<void>
-
   get(): Promise<SerializedVaultData>
   add(data: Partial<SerializedVaultData>, options: AddOptions): Promise<void>
   delete(options: DeleteProps): Promise<void>
   update(data: Partial<SerializedVaultData>): Promise<void>
+  clearSymmetricKey(): void
+  isSymmetricKeyInitialized(): boolean
+  initializeWithPassword(password: string): Promise<void>
 }
 
 export class VaultManager implements IVaultManager {
@@ -46,7 +31,13 @@ export class VaultManager implements IVaultManager {
   }
 
   public async initializeWithPassword(password: string): Promise<void> {
-    await this.createSymmetricKey(password)
+    const { vaults } = await getEncryptedVaults()
+    const currentEncryptedVault = vaults.slice(-1)[0]?.vault
+
+    this.cachedVaultSymmetricKey = await deriveSymmetricKeyFromPassword(
+      password,
+      currentEncryptedVault?.salt
+    )
   }
 
   public async get(): Promise<SerializedVaultData> {
@@ -184,16 +175,6 @@ export class VaultManager implements IVaultManager {
     return this.cachedVaultSymmetricKey
   }
 
-  private async createSymmetricKey(password: string): Promise<void> {
-    const { vaults } = await getEncryptedVaults()
-    const currentEncryptedVault = vaults.slice(-1)[0]?.vault
-
-    this.cachedVaultSymmetricKey = await deriveSymmetricKeyFromPassword(
-      password,
-      currentEncryptedVault?.salt
-    )
-  }
-
   private async getData(): Promise<EncryptedVault> {
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
@@ -211,7 +192,7 @@ export class VaultManager implements IVaultManager {
       serializedVaultData,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore this.cachedKey won't be undefined | null due to requireUnlocked
-      this.cachedKey
+      this.cachedVaultSymmetricKey
     )
 
     await writeLatestEncryptedVault(encryptedVault)

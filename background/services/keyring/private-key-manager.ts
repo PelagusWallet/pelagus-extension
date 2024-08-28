@@ -1,59 +1,31 @@
-import { AddressLike, Wallet } from "quais"
+import { AddressLike, SigningKey, Wallet } from "quais"
+import { AddressWithPublicKey } from "./types"
+import { IVaultManager } from "./vault-manager"
 import { sameQuaiAddress } from "../../lib/utils"
-import { WalletManager } from "./wallet-manager"
 
-export default class PrivateKeyManager {
-  constructor(private walletManager: WalletManager) {}
+export interface IPrivateKeyManager {
+  add(privateKey: string): Promise<AddressWithPublicKey>
+  getByAddress(address: AddressLike): Promise<Wallet | undefined>
+}
 
-  public async add(privateKey: string): Promise<string> {
+export default class PrivateKeyManager implements IPrivateKeyManager {
+  constructor(private vaultManager: IVaultManager) {}
+
+  public async add(privateKey: string): Promise<AddressWithPublicKey> {
     const newWallet = new Wallet(privateKey)
     const { address } = newWallet
-    // const { publicKey } = new SigningKey(newWallet.privateKey)
+    const { publicKey } = new SigningKey(newWallet.privateKey)
 
-    return address
+    return { address, publicKey }
   }
 
   public async getByAddress(address: AddressLike): Promise<Wallet | undefined> {
-    const { wallets } = await this.walletManager.vaultManager.get()
+    const { wallets } = await this.vaultManager.get()
 
     return wallets
       .map((serializedWallet) => new Wallet(serializedWallet.privateKey))
       .find((deserializedWallet) =>
         sameQuaiAddress(deserializedWallet.address, address as string)
       )
-  }
-
-  async deleteByAddress(address: string): Promise<void> {
-    let targetWalletPublicKey = ""
-    const filteredPrivateKeys = this.walletManager.privateKeys.filter(
-      (wallet) => {
-        if (!sameQuaiAddress(wallet.addresses[0], address)) return true
-
-        targetWalletPublicKey = wallet.id
-        return false
-      }
-    )
-
-    if (filteredPrivateKeys.length === this.walletManager.privateKeys.length) {
-      throw new Error(
-        `Attempting to remove wallet that does not exist. Address: (${address})`
-      )
-    }
-
-    this.walletManager.privateKeys = filteredPrivateKeys
-    delete this.walletManager.keyringMetadata[targetWalletPublicKey]
-
-    const { wallets } = await this.walletManager.vaultManager.get()
-    const walletsWithoutTargetWallet = wallets.filter(
-      (serializedWallet) => serializedWallet.id !== targetWalletPublicKey
-    )
-
-    await this.walletManager.vaultManager.add(
-      { wallets: walletsWithoutTargetWallet },
-      { overwriteWallets: true }
-    )
-    await this.walletManager.vaultManager.delete({
-      metadataKey: targetWalletPublicKey,
-    })
   }
 }

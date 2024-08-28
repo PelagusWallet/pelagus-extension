@@ -5,8 +5,8 @@ import {
   encryptVault,
   SaltedKey,
 } from "./encryption"
-import { getEncryptedVaults, writeLatestEncryptedVault } from "./storage"
 import { SerializedVaultData } from "./types"
+import { getEncryptedVaults, writeLatestEncryptedVault } from "./storage"
 
 export type DeleteProps = {
   walletId?: string

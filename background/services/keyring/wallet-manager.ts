@@ -1,55 +1,27 @@
 import { AddressLike, getAddress, Mnemonic, QuaiHDWallet, Wallet } from "quais"
 
 import {
+  HiddenAccounts,
   InternalSignerWithType,
   Keyring,
   KeyringAccountSigner,
+  KeyringMetadata,
   PrivateKey,
+  PublicWalletsData,
   SignerImportMetadata,
   SignerImportSource,
   SignerSourceTypes,
 } from "./types"
 import { IVaultManager } from "./vault-manager"
-import { HexString, KeyringTypes } from "../../types"
+import { KeyringTypes } from "../../types"
 import PrivateKeyManager from "./private-key-manager"
 import QuaiHDWalletManager from "./quai-hd-wallet-manager"
 import { isGoldenAgeQuaiAddress } from "../../utils/addresses"
-import { sameQuaiAddress } from "../../lib/utils"
 import logger from "../../lib/logger"
+import { SignerType } from "../signing"
+import { generateMnemonic } from "./utils"
 
-export type KeyringMetadata = {
-  [keyringId: string]: { source: SignerImportSource }
-}
-
-export type HiddenAccounts = { [address: HexString]: boolean }
-
-export type PublicWalletsData = {
-  wallets: PrivateKey[]
-  quaiHDWallets: Keyring[]
-  keyringMetadata: {
-    [keyringId: string]: { source: SignerImportSource }
-  }
-}
-
-export interface IWalletManager {
-  init(password: string): Promise<void>
-  clearState(): void
-  getStateData(): PublicWalletsData
-  import(signerMetadata: SignerImportMetadata): Promise<string>
-  findSigner(address: AddressLike): Promise<InternalSignerWithType | null>
-  getSource(address: string): Promise<SignerImportSource | null>
-  createQuaiHDWalletMnemonic(): Promise<{ id: string; mnemonic: string[] }>
-  deriveQuaiHDWalletAddress({
-    keyringID,
-    zone,
-  }: KeyringAccountSigner): Promise<string>
-}
-
-export class WalletManager implements IWalletManager {
-  private privateKeyManager: PrivateKeyManager
-
-  private quaiHDWalletManager: QuaiHDWalletManager
-
+export class WalletManager {
   public privateKeys: PrivateKey[] = []
 
   public quaiHDWallets: Keyring[] = []
@@ -58,26 +30,27 @@ export class WalletManager implements IWalletManager {
 
   public keyringMetadata: KeyringMetadata = {}
 
-  public readonly quaiHDWalletAccountIndex: number = 0
+  private privateKeyManager: PrivateKeyManager
 
-  constructor(protected vaultManager: IVaultManager) {
-    this.privateKeyManager = new PrivateKeyManager(this.vaultManager)
-    this.quaiHDWalletManager = new QuaiHDWalletManager(this.vaultManager)
-  }
+  private quaiHDWalletManager: QuaiHDWalletManager
 
   // -------------------------- public methods --------------------------
+  constructor(public vaultManager: IVaultManager) {
+    this.privateKeyManager = new PrivateKeyManager(this)
+    this.quaiHDWalletManager = new QuaiHDWalletManager(this)
+  }
+
   public async init(password: string): Promise<void> {
     await this.vaultManager.initializeWithPassword(password)
     await this.initializeState()
   }
 
   public clearState(): void {
-    this.vaultManager.clearSymmetricKey()
-
     this.privateKeys = []
     this.quaiHDWallets = []
     this.hiddenAccounts = {}
     this.keyringMetadata = {}
+    this.vaultManager.clearSymmetricKey()
   }
 
   public getStateData(): PublicWalletsData {
@@ -89,153 +62,35 @@ export class WalletManager implements IWalletManager {
   }
 
   public async import(signerMetadata: SignerImportMetadata): Promise<string> {
-    let address: string
-    const { type } = signerMetadata
-
-    switch (type) {
+    switch (signerMetadata.type) {
       case SignerSourceTypes.privateKey:
-        address = await this.importPrivateKey(signerMetadata.privateKey)
-        break
+        return this.importPrivateKey(signerMetadata.privateKey)
       case SignerSourceTypes.keyring:
-        address = await this.importQuaiHDWallet(
+        return this.importQuaiHDWallet(
           signerMetadata.mnemonic,
           signerMetadata.source
         )
+      default:
+        throw new Error(`Unsupported signer type`)
+    }
+  }
+
+  async deleteAccount(address: string, signerType: SignerType): Promise<void> {
+    switch (signerType) {
+      case "private-key":
+        await this.privateKeyManager.deleteByAddress(address)
+        break
+      case "keyring":
+        await this.quaiHDWalletManager.deleteByAddress(address)
         break
       default:
         throw new Error(`Unsupported signer type`)
     }
-
-    if (!address) {
-      throw new Error("Failed to import keyring")
-    }
-
-    return address
-  }
-
-  public async importPrivateKey(privateKey: string): Promise<string> {
-    const address = await this.privateKeyManager.add(privateKey)
-
-    if (!isGoldenAgeQuaiAddress(address)) {
-      throw new Error("Not golden age address")
-    }
-
-    if (await this.findSigner(address)) {
-      throw new Error("Private key already exists")
-    }
-
-    // TODO think about public key as id
-    const serializedWallet = {
-      version: 1,
-      id: address,
-      privateKey,
-    }
-
-    this.privateKeys = [
-      ...this.privateKeys,
-      {
-        type: KeyringTypes.singleSECP,
-        addresses: [address],
-        id: address,
-        path: null,
-      },
-    ]
-
-    this.keyringMetadata[address] = {
-      source: SignerImportSource.import,
-    }
-
-    await this.vaultManager.add(
-      {
-        wallets: [serializedWallet],
-        metadata: { [address]: { source: SignerImportSource.import } },
-      },
-      {}
-    )
-
-    return address
-  }
-
-  async importQuaiHDWallet(
-    mnemonic: string,
-    source: SignerImportSource
-  ): Promise<string> {
-    const address = await this.quaiHDWalletManager.add(mnemonic)
-
-    const mnemonicFromPhrase = Mnemonic.fromPhrase(mnemonic)
-    const newQuaiHDWallet = QuaiHDWallet.fromMnemonic(mnemonicFromPhrase)
-
-    const serializedQuaiHDWallet = newQuaiHDWallet.serialize()
-
-    // If address was previously imported as a private key then remove it
-    const existingAddress = await this.findSigner(address)
-
-    if (existingAddress) {
-      let targetWalletPublicKey = ""
-      const filteredPrivateKeys = this.privateKeys.filter((wallet) => {
-        if (!sameQuaiAddress(wallet.addresses[0], address)) return true
-
-        targetWalletPublicKey = wallet.id
-        return false
-      })
-
-      if (filteredPrivateKeys.length === this.privateKeys.length) {
-        throw new Error(
-          `Attempting to remove wallet that does not exist. Address: (${address})`
-        )
-      }
-
-      this.privateKeys = filteredPrivateKeys
-      delete this.keyringMetadata[targetWalletPublicKey]
-
-      const { wallets } = await this.vaultManager.get()
-      const walletsWithoutTargetWallet = wallets.filter(
-        (serializedWallet) => serializedWallet.id !== targetWalletPublicKey
-      )
-
-      await this.vaultManager.add(
-        { wallets: walletsWithoutTargetWallet },
-        { overwriteWallets: true }
-      )
-      await this.vaultManager.delete({ metadataKey: targetWalletPublicKey })
-    }
-
-    this.quaiHDWallets = [
-      ...this.quaiHDWallets,
-      {
-        type: KeyringTypes.mnemonicBIP39S256,
-        addresses: [
-          ...newQuaiHDWallet
-            .getAddressesForAccount(this.quaiHDWalletAccountIndex)
-            .filter(
-              (quaiHDWallet) => !this.hiddenAccounts[quaiHDWallet.address]
-            )
-            .map((quaiHDWallet) => quaiHDWallet.address),
-        ],
-        id: newQuaiHDWallet.xPub,
-        path: null,
-      },
-    ]
-
-    this.keyringMetadata[newQuaiHDWallet.xPub] = {
-      source,
-    }
-    await this.vaultManager.add(
-      {
-        quaiHDWallets: [serializedQuaiHDWallet],
-        metadata: { [newQuaiHDWallet.xPub]: { source } },
-      },
-      {}
-    )
-
-    return address
   }
 
   public async findSigner(
     address: AddressLike
   ): Promise<InternalSignerWithType | null> {
-    // we format the address because it can also come from a request from outside the wallet,
-    // which may be in the wrong format
     const formatedAddress = getAddress(address as string)
 
     const quaiHDWallet = await this.quaiHDWalletManager.getByAddress(address)
@@ -275,10 +130,9 @@ export class WalletManager implements IWalletManager {
     id: string
     mnemonic: string[]
   }> {
-    // used only for redux, so we can use quaiHDWallets length as id
+    const mnemonic = generateMnemonic().split(" ")
     const keyringIdToVerify = this.quaiHDWallets.length.toString()
-    const phrase = await this.quaiHDWalletManager.createMnemonic()
-    return { id: keyringIdToVerify, mnemonic: phrase.split(" ") }
+    return { id: keyringIdToVerify, mnemonic }
   }
 
   public async deriveQuaiHDWalletAddress({
@@ -291,7 +145,7 @@ export class WalletManager implements IWalletManager {
     }
 
     const { address } = await quaiHDWallet.getNextAddress(
-      this.quaiHDWalletAccountIndex,
+      this.quaiHDWalletManager.quaiHDWalletAccountIndex,
       zone
     )
 
@@ -338,7 +192,9 @@ export class WalletManager implements IWalletManager {
           type: KeyringTypes.mnemonicBIP39S256,
           addresses: [
             ...quaiHDWallet
-              .getAddressesForAccount(this.quaiHDWalletAccountIndex)
+              .getAddressesForAccount(
+                this.quaiHDWalletManager.quaiHDWalletAccountIndex
+              )
               .filter(({ address }) => !this.hiddenAccounts[address])
               .map(({ address }) => address),
           ],
@@ -352,5 +208,100 @@ export class WalletManager implements IWalletManager {
     this.quaiHDWallets = publicQuaiHDWalletsData
     this.keyringMetadata = metadata
     this.hiddenAccounts = hiddenAccounts
+  }
+
+  private async importPrivateKey(privateKey: string): Promise<string> {
+    const address = await this.privateKeyManager.add(privateKey)
+    if (!isGoldenAgeQuaiAddress(address)) {
+      throw new Error("Not golden age address")
+    }
+
+    if (await this.findSigner(address)) {
+      throw new Error("Private key already exists")
+    }
+
+    this.privateKeys = [
+      ...this.privateKeys,
+      {
+        type: KeyringTypes.singleSECP,
+        addresses: [address],
+        id: address,
+        path: null,
+      },
+    ]
+    this.keyringMetadata[address] = {
+      source: SignerImportSource.import,
+    }
+
+    await this.vaultManager.add(
+      {
+        wallets: [
+          {
+            version: 1,
+            id: address,
+            privateKey,
+          },
+        ],
+        metadata: { [address]: { source: SignerImportSource.import } },
+      },
+      {}
+    )
+
+    return address
+  }
+
+  private async importQuaiHDWallet(
+    mnemonic: string,
+    source: SignerImportSource
+  ): Promise<string> {
+    const address = await this.quaiHDWalletManager.add(mnemonic)
+
+    const mnemonicFromPhrase = Mnemonic.fromPhrase(mnemonic)
+    const newQuaiHDWallet = QuaiHDWallet.fromMnemonic(mnemonicFromPhrase)
+
+    const existingQuaiHDWallet = await this.quaiHDWalletManager.getByAddress(
+      address
+    )
+    if (existingQuaiHDWallet) return address
+
+    const existingPrivateKey = await this.privateKeyManager.getByAddress(
+      address
+    )
+    if (existingPrivateKey)
+      await this.privateKeyManager.deleteByAddress(address)
+
+    const serializedQuaiHDWallet = newQuaiHDWallet.serialize()
+
+    this.quaiHDWallets = [
+      ...this.quaiHDWallets,
+      {
+        type: KeyringTypes.mnemonicBIP39S256,
+        addresses: [
+          ...newQuaiHDWallet
+            .getAddressesForAccount(
+              this.quaiHDWalletManager.quaiHDWalletAccountIndex
+            )
+            .filter(
+              (quaiHDWallet) => !this.hiddenAccounts[quaiHDWallet.address]
+            )
+            .map((quaiHDWallet) => quaiHDWallet.address),
+        ],
+        id: newQuaiHDWallet.xPub,
+        path: null,
+      },
+    ]
+
+    this.keyringMetadata[newQuaiHDWallet.xPub] = {
+      source,
+    }
+    await this.vaultManager.add(
+      {
+        quaiHDWallets: [serializedQuaiHDWallet],
+        metadata: { [newQuaiHDWallet.xPub]: { source } },
+      },
+      {}
+    )
+
+    return address
   }
 }

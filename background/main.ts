@@ -1141,11 +1141,11 @@ export default class Main extends BaseService<never> {
     })
 
     keyringSliceEmitter.on("createPassword", async (password) => {
-      await this.keyringService.unlock(password)
+      await this.keyringService.unlockKeyring(password)
     })
 
     keyringSliceEmitter.on("lockKeyrings", async () => {
-      await this.keyringService.lock()
+      await this.keyringService.lockKeyring()
     })
 
     keyringSliceEmitter.on("deriveAddress", (keyringData) => {
@@ -1161,9 +1161,7 @@ export default class Main extends BaseService<never> {
       const generated: {
         id: string
         mnemonic: string[]
-      } = await this.keyringService.generateQuaiHDWalletMnemonic(
-        KeyringTypes.mnemonicBIP39S256
-      )
+      } = await this.keyringService.generateMnemonic()
 
       this.store.dispatch(setKeyringToVerify(generated))
     })
@@ -1595,7 +1593,7 @@ export default class Main extends BaseService<never> {
   }
 
   async unlockKeyrings(password: string): Promise<boolean> {
-    return this.keyringService.unlock(password)
+    return this.keyringService.unlockKeyring(password)
   }
 
   async exportPrivKey(address: string): Promise<string> {

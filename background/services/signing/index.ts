@@ -1,4 +1,4 @@
-import { QuaiTransaction } from "quais"
+import { getBytes, QuaiTransaction } from "quais"
 import {
   QuaiTransactionRequest,
   QuaiTransactionResponse,
@@ -11,6 +11,7 @@ import ChainService from "../chain"
 import { AddressOnNetwork } from "../../accounts"
 import { assertUnreachable } from "../../lib/utils/type-guards"
 import { KeyringAccountSigner, PrivateKeyAccountSigner } from "../keyring/types"
+import { isSignerPrivateKeyType } from "../keyring/utils"
 
 type SigningErrorReason = "userRejected" | "genericError"
 type ErrorResponse = {
@@ -111,10 +112,10 @@ export default class SigningService extends BaseService<Events> {
     if (signerType) {
       switch (signerType) {
         case "private-key":
-          await this.keyringService.removeWallet(address)
+          await this.keyringService.removeKeyringAccount(address, signerType)
           break
         case "keyring":
-          await this.keyringService.removeQuaiHDWallet(address)
+          await this.keyringService.removeKeyringAccount(address, signerType)
           break
         case "read-only":
           break
@@ -174,8 +175,13 @@ export default class SigningService extends BaseService<Events> {
       switch (accountSigner.type) {
         case "private-key":
         case "keyring": {
-          signedTransactionString =
-            await this.keyringService.signQuaiTransaction(transactionRequest)
+          const { from } = transactionRequest
+          const signerWithType = await this.keyringService.getSigner(
+            from.toString()
+          )
+          signedTransactionString = await signerWithType.signer.signTransaction(
+            transactionRequest
+          )
           break
         }
         case "read-only":
@@ -228,12 +234,24 @@ export default class SigningService extends BaseService<Events> {
 
       switch (accountSigner.type) {
         case "private-key":
-        case "keyring":
-          signedData = await this.keyringService.signTypedData(
-            account.address,
-            typedData
+        case "keyring": {
+          const { domain, types, message } = typedData
+          const signerWithType = await this.keyringService.getSigner(
+            account.address
           )
+
+          const { address: formatedAddress } = signerWithType
+
+          signedData = isSignerPrivateKeyType(signerWithType)
+            ? await signerWithType.signer.signTypedData(domain, types, message)
+            : await signerWithType.signer.signTypedData(
+                formatedAddress,
+                domain,
+                types,
+                message
+              )
           break
+        }
         case "read-only":
           throw new Error("Read-only signers cannot sign.")
         default:
@@ -268,12 +286,22 @@ export default class SigningService extends BaseService<Events> {
       let signedData
       switch (accountSigner.type) {
         case "private-key":
-        case "keyring":
-          signedData = await this.keyringService.personalSign(
-            addressOnNetwork.address,
-            hexDataToSign
+        case "keyring": {
+          const signerWithType = await this.keyringService.getSigner(
+            addressOnNetwork.address
           )
+
+          const messageBytes = getBytes(hexDataToSign)
+          const { address: formatedAddress } = signerWithType
+          signedData = isSignerPrivateKeyType(signerWithType)
+            ? await signerWithType.signer.signMessage(messageBytes)
+            : await signerWithType.signer.signMessage(
+                formatedAddress,
+                messageBytes
+              )
+
           break
+        }
         case "read-only":
           throw new Error("Read-only signers cannot sign.")
         default:

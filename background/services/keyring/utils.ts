@@ -19,3 +19,5 @@ export const generateMnemonic = (): string => {
   const { phrase } = Mnemonic.fromEntropy(generateRandomBytes(24))
   return phrase
 }
+
+export const customError = "customError"

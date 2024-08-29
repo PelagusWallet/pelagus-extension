@@ -18,7 +18,7 @@ import {
 } from "@pelagus/pelagus-background/assets"
 import { useHistory } from "react-router-dom"
 import { bigIntToDecimal } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
-import { useBackgroundSelector } from "../hooks"
+import { useAreKeyringsUnlocked, useBackgroundSelector } from "../hooks"
 import SharedPanelSwitcher from "../components/Shared/SharedPanelSwitcher"
 import WalletAssetList from "../components/Wallet/WalletAssetList"
 import WalletActivityList from "../components/Wallet/WalletActivityList"
@@ -34,6 +34,12 @@ export default function Wallet(): ReactElement {
   const [panelNumber, setPanelNumber] = useState(0)
 
   const history = useHistory()
+
+  const areKeyringUnlock = useAreKeyringsUnlocked(false)
+
+  useEffect(() => {
+    if (!areKeyringUnlock) history.push("/keyring/unlock")
+  }, [areKeyringUnlock])
 
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)

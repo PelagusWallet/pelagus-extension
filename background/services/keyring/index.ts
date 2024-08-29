@@ -12,7 +12,7 @@ import BaseService from "../base"
 import { IVaultManager, VaultManager } from "./vault-manager"
 import { UNIXTime } from "../../types"
 import { MINUTE } from "../../constants"
-import { isSignerPrivateKeyType } from "./utils"
+import { customError, isSignerPrivateKeyType } from "./utils"
 import { SignerType } from "../signing"
 import WalletManager from "./wallet-manager"
 
@@ -95,7 +95,9 @@ export default class KeyringService extends BaseService<Events> {
 
   private autoLockKeyring(): void {
     if (!this.lastInternalWalletActivity || !this.lastExternalWalletActivity) {
-      this.walletManager.clearState()
+      this.notifyUIWithKeyringUpdates().then(() =>
+        this.walletManager.clearState()
+      )
       return
     }
 
@@ -107,7 +109,9 @@ export default class KeyringService extends BaseService<Events> {
       timeSinceLastKeyringActivity >= MAX_KEYRING_IDLE_TIME ||
       timeSinceLastOutsideActivity >= MAX_OUTSIDE_IDLE_TIME
     ) {
-      this.walletManager.clearState()
+      this.notifyUIWithKeyringUpdates().then(() =>
+        this.walletManager.clearState()
+      )
     }
   }
 
@@ -153,7 +157,7 @@ export default class KeyringService extends BaseService<Events> {
   // -------------------------- public methods --------------------------
   public async importKeyring(
     signerMetadata: SignerImportMetadata
-  ): Promise<string> {
+  ): Promise<{ address: string | null; errorMessage: string }> {
     this.requireUnlockKeyring()
 
     try {
@@ -162,10 +166,16 @@ export default class KeyringService extends BaseService<Events> {
       await this.emitter.emit("address", address)
       await this.notifyUIWithKeyringUpdates()
 
-      return address
-    } catch (error) {
+      return { address, errorMessage: "" }
+    } catch (error: any) {
       logger.error("Signer import failed:", error)
-      return ""
+
+      return error?.cause === customError
+        ? { address: null, errorMessage: error?.message }
+        : {
+            address: null,
+            errorMessage: "Unexpected error during signer import",
+          }
     }
   }
 

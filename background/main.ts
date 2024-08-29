@@ -1600,7 +1600,9 @@ export default class Main extends BaseService<never> {
     return this.keyringService.exportWalletPrivateKey(address)
   }
 
-  async importSigner(signerRaw: SignerImportMetadata): Promise<string> {
+  async importSigner(
+    signerRaw: SignerImportMetadata
+  ): Promise<{ address: string | null; errorMessage: string }> {
     return this.keyringService.importKeyring(signerRaw)
   }
 

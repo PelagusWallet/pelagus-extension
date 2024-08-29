@@ -183,7 +183,8 @@
           "submit": "Import account",
           "errors": {
             "phraseLengthError": "Must be a 12 or 24 word recovery phrase",
-            "invalidPhraseError": "Invalid recovery phrase"
+            "invalidPhraseError": "Invalid recovery phrase",
+            "errorImport": "Importing recovery phrase failed"
           }
         },
         "importPrivateKey": {

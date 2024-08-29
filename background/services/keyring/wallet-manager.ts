@@ -19,7 +19,7 @@ import QuaiHDWalletManager from "./quai-hd-wallet-manager"
 import { isGoldenAgeQuaiAddress } from "../../utils/addresses"
 import logger from "../../lib/logger"
 import { SignerType } from "../signing"
-import { generateMnemonic } from "./utils"
+import { customError, generateMnemonic } from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
 
 export default class WalletManager {
@@ -199,11 +199,11 @@ export default class WalletManager {
   private async importPrivateKey(privateKey: string): Promise<string> {
     const { address, publicKey } = await this.privateKeyManager.add(privateKey)
     if (!isGoldenAgeQuaiAddress(address)) {
-      throw new Error("Not golden age address")
+      throw new Error("Not golden age address", { cause: customError })
     }
 
     if (await this.findSigner(address)) {
-      throw new Error("Private key already exists")
+      throw new Error("Private key already exists", { cause: customError })
     }
 
     this.privateKeys = [

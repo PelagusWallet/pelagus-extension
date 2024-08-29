@@ -71,7 +71,7 @@ export default function ImportSeed(props: Props): ReactElement {
     } else if (Mnemonic.isValidMnemonic(plainRecoveryPhrase)) {
       setIsImporting(true)
 
-      const { success } = (await dispatch(
+      const { success, errorMessage: customError } = (await dispatch(
         importKeyring({
           type: SignerSourceTypes.keyring,
           mnemonic: plainRecoveryPhrase,
@@ -85,6 +85,7 @@ export default function ImportSeed(props: Props): ReactElement {
         history.push(nextPage)
       } else {
         setIsImporting(false)
+        setErrorMessage(customError || t("errors.errorImport"))
       }
     } else {
       setErrorMessage(t("errors.invalidPhraseError"))

@@ -29,7 +29,7 @@ export default function ImportPrivateKey(props: Props): ReactElement {
 
   const importWallet = useCallback(async () => {
     const trimmedPrivateKey = privateKey.toLowerCase().trim()
-    const { success } = (await dispatch(
+    const { success, errorMessage: customError } = (await dispatch(
       importKeyring({
         type: SignerSourceTypes.privateKey,
         privateKey: trimmedPrivateKey,
@@ -39,7 +39,7 @@ export default function ImportPrivateKey(props: Props): ReactElement {
     if (success) {
       finalize()
     } else {
-      setErrorMessage(t("errorImport"))
+      setErrorMessage(customError || "errorImport")
     }
   }, [dispatch, privateKey, finalize, t])
 

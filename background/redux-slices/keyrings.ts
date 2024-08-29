@@ -58,13 +58,14 @@ export const importKeyring = createBackgroundAsyncThunk(
   async (
     signerRaw: SignerImportMetadata,
     { getState, dispatch, extra: { main } }
-  ): Promise<{ success: boolean; errorMessage?: string }> => {
+  ): Promise<{ success: boolean; errorMessage: string }> => {
     try {
-      const address = await main.importSigner(signerRaw)
+      const { address, errorMessage } = await main.importSigner(signerRaw)
+
       if (!address)
         return {
           success: false,
-          errorMessage: "Unexpected error during signer import",
+          errorMessage,
         }
 
       const { ui } = getState() as {
@@ -78,7 +79,7 @@ export const importKeyring = createBackgroundAsyncThunk(
         })
       )
 
-      return { success: true }
+      return { success: true, errorMessage: "" }
     } catch (error) {
       return {
         success: false,

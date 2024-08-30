@@ -1141,11 +1141,11 @@ export default class Main extends BaseService<never> {
     })
 
     keyringSliceEmitter.on("createPassword", async (password) => {
-      await this.keyringService.unlockKeyring(password)
+      await this.keyringService.unlock(password)
     })
 
     keyringSliceEmitter.on("lockKeyrings", async () => {
-      await this.keyringService.lockKeyring()
+      await this.keyringService.lock()
     })
 
     keyringSliceEmitter.on("deriveAddress", (keyringData) => {
@@ -1593,7 +1593,7 @@ export default class Main extends BaseService<never> {
   }
 
   async unlockKeyrings(password: string): Promise<boolean> {
-    return this.keyringService.unlockKeyring(password)
+    return this.keyringService.unlock(password)
   }
 
   async exportPrivKey(address: string): Promise<string> {

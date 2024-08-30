@@ -99,7 +99,7 @@ export default class SigningService extends BaseService<Events> {
 
   deriveAddress(signer: AccountSigner): Promise<void> {
     if (signer.type === "keyring") {
-      return this.keyringService.deriveAddress(signer)
+      return this.keyringService.deriveKeyringAddress(signer)
     }
 
     throw new Error(`Unknown signerID: ${signer}`)
@@ -112,10 +112,10 @@ export default class SigningService extends BaseService<Events> {
     if (signerType) {
       switch (signerType) {
         case "private-key":
-          await this.keyringService.removeKeyringAccount(address, signerType)
+          await this.keyringService.removeKeyring(address, signerType)
           break
         case "keyring":
-          await this.keyringService.removeKeyringAccount(address, signerType)
+          await this.keyringService.removeKeyring(address, signerType)
           break
         case "read-only":
           break

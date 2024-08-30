@@ -11,10 +11,9 @@ export interface IPrivateKeyManager {
 export default class PrivateKeyManager implements IPrivateKeyManager {
   constructor(private vaultManager: IVaultManager) {}
 
-  public async add(privateKey: string): Promise<AddressWithPublicKey> {
-    const newWallet = new Wallet(privateKey)
-    const { address } = newWallet
-    const { publicKey } = new SigningKey(newWallet.privateKey)
+  public async add(privateKeyParam: string): Promise<AddressWithPublicKey> {
+    const { address, privateKey } = new Wallet(privateKeyParam)
+    const { publicKey } = new SigningKey(privateKey)
 
     return { address, publicKey }
   }

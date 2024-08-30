@@ -13,28 +13,28 @@ export interface IVaultManager {
   add(data: Partial<SerializedVaultData>, options: AddOptions): Promise<void>
   delete(options: DeleteProps): Promise<void>
   update(data: Partial<SerializedVaultData>): Promise<void>
-  clearSymmetricKey(): void
-  isSymmetricKeyInitialized(): boolean
+  clearSaltedKey(): void
+  isSaltedKeyInitialized(): boolean
   initializeWithPassword(password: string): Promise<void>
 }
 
 export class VaultManager implements IVaultManager {
-  private cachedVaultSymmetricKey: SaltedKey | null = null
+  private vaultSaltedKey: SaltedKey | null = null
 
   // -------------------------- public methods --------------------------
-  public clearSymmetricKey(): void {
-    this.cachedVaultSymmetricKey = null
+  public clearSaltedKey(): void {
+    this.vaultSaltedKey = null
   }
 
-  public isSymmetricKeyInitialized(): boolean {
-    return this.cachedVaultSymmetricKey !== null
+  public isSaltedKeyInitialized(): boolean {
+    return this.vaultSaltedKey !== null
   }
 
   public async initializeWithPassword(password: string): Promise<void> {
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
 
-    this.cachedVaultSymmetricKey = await deriveSymmetricKeyFromPassword(
+    this.vaultSaltedKey = await deriveSymmetricKeyFromPassword(
       password,
       currentEncryptedVault?.salt
     )
@@ -42,7 +42,7 @@ export class VaultManager implements IVaultManager {
 
   public async get(): Promise<SerializedVaultData> {
     const saltedKey = this.getSaltedKey()
-    const currentEncryptedVault = await this.getData()
+    const currentEncryptedVault = await this.getVaultData()
     return decryptVault<SerializedVaultData>(currentEncryptedVault, saltedKey)
   }
 
@@ -77,7 +77,7 @@ export class VaultManager implements IVaultManager {
           },
     }
 
-    await this.saveData(mergedVaultData)
+    await this.persistToVault(mergedVaultData)
   }
 
   public async delete(options: DeleteProps): Promise<void> {
@@ -107,7 +107,7 @@ export class VaultManager implements IVaultManager {
       metadata: updatedMetadata,
       hiddenAccounts: updatedHiddenAccounts,
     }
-    await this.saveData(mergedVaultData)
+    await this.persistToVault(mergedVaultData)
   }
 
   public async update(data: Partial<SerializedVaultData>): Promise<void> {
@@ -163,19 +163,19 @@ export class VaultManager implements IVaultManager {
       metadata: updatedMetadata,
       hiddenAccounts: updatedHiddenAccounts,
     }
-    await this.saveData(mergedVaultData)
+    await this.persistToVault(mergedVaultData)
   }
 
   // -------------------------- private methods --------------------------
   private getSaltedKey(): SaltedKey {
-    if (!this.cachedVaultSymmetricKey) {
+    if (!this.vaultSaltedKey) {
       throw new Error("Salted key is not initialized")
     }
 
-    return this.cachedVaultSymmetricKey
+    return this.vaultSaltedKey
   }
 
-  private async getData(): Promise<EncryptedVault> {
+  private async getVaultData(): Promise<EncryptedVault> {
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
     if (currentEncryptedVault) {
@@ -192,7 +192,7 @@ export class VaultManager implements IVaultManager {
       serializedVaultData,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore this.cachedKey won't be undefined | null due to requireUnlocked
-      this.cachedVaultSymmetricKey
+      this.vaultSaltedKey
     )
 
     await writeLatestEncryptedVault(encryptedVault)
@@ -200,7 +200,7 @@ export class VaultManager implements IVaultManager {
     return encryptedVault
   }
 
-  private async saveData(data: SerializedVaultData): Promise<void> {
+  private async persistToVault(data: SerializedVaultData): Promise<void> {
     const saltedKey = this.getSaltedKey()
     const encryptedVault = await encryptVault(data, saltedKey)
     await writeLatestEncryptedVault(encryptedVault)

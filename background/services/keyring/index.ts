@@ -12,13 +12,27 @@ import BaseService from "../base"
 import { IVaultManager, VaultManager } from "./vault-manager"
 import { UNIXTime } from "../../types"
 import { MINUTE } from "../../constants"
-import { customError, isSignerPrivateKeyType } from "./utils"
+import { isSignerPrivateKeyType } from "./utils"
 import { SignerType } from "../signing"
 import WalletManager from "./wallet-manager"
+import { applicationError } from "../../constants/errorsCause"
 
 export const MAX_KEYRING_IDLE_TIME = 10 * MINUTE
 export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
 
+/*
+ * KeyringService is responsible for all key material, as well as applying the
+ * material to sign messages, and derive child keypair.
+ *
+ * The service can be in two states, locked or unlocked, and starts up locked.
+ * Keyrings are persisted in encrypted form when the service is locked.
+ *
+ * When unlocked, the service automatically locks itself after it has not seen
+ * activity for a certain amount of time. The service can be notified of
+ * outside activity that should be considered for the purposes of keeping the
+ * service unlocked. No keyring activity for 10 minutes causes the service to
+ * lock, while no outside activity for 10 minutes has the same effect.
+ */
 export default class KeyringService extends BaseService<Events> {
   private walletManager: WalletManager
 
@@ -38,7 +52,7 @@ export default class KeyringService extends BaseService<Events> {
           periodInMinutes: 1,
         },
         handler: () => {
-          this.autoLockKeyring()
+          this.serviceAutoLockHandler()
         },
       },
     })
@@ -56,36 +70,36 @@ export default class KeyringService extends BaseService<Events> {
 
     // Emit locked status on startup. Should always be locked, but the main
     // goal is to have external viewers synced to internal state no matter what it is.
-    const isLocked = !this.vaultManager.isSymmetricKeyInitialized()
+    const isLocked = !this.vaultManager.isSaltedKeyInitialized()
     await this.emitter.emit("locked", isLocked)
   }
 
   override async internalStopService(): Promise<void> {
-    await this.lockKeyring()
+    await this.lock()
     await super.internalStopService()
   }
 
-  public isLockedKeyring(): boolean {
-    return !this.vaultManager.isSymmetricKeyInitialized()
+  public isLocked(): boolean {
+    return !this.vaultManager.isSaltedKeyInitialized()
   }
 
-  public async lockKeyring(): Promise<void> {
+  public async lock(): Promise<void> {
     this.walletManager.clearState()
     this.lastExternalWalletActivity = null
     this.lastInternalWalletActivity = null
 
-    await this.notifyUIWithKeyringUpdates()
+    await this.notifyUIWithUpdates()
   }
 
-  public async unlockKeyring(password: string): Promise<boolean> {
+  public async unlock(password: string): Promise<boolean> {
     try {
       await this.vaultManager.initializeWithPassword(password)
-      await this.walletManager.initState()
+      await this.walletManager.initializeState()
 
       this.lastInternalWalletActivity = Date.now()
       this.lastExternalWalletActivity = Date.now()
 
-      await this.notifyUIWithKeyringUpdates()
+      await this.notifyUIWithUpdates()
       return true
     } catch (error) {
       logger.error("Error while unlocking keyring service", error)
@@ -93,11 +107,10 @@ export default class KeyringService extends BaseService<Events> {
     }
   }
 
-  private autoLockKeyring(): void {
+  // Locks the keyring if the time since last keyring or outside activity exceeds preset levels.
+  private serviceAutoLockHandler(): void {
     if (!this.lastInternalWalletActivity || !this.lastExternalWalletActivity) {
-      this.notifyUIWithKeyringUpdates().then(() =>
-        this.walletManager.clearState()
-      )
+      this.notifyUIWithUpdates().then(() => this.walletManager.clearState())
       return
     }
 
@@ -109,29 +122,31 @@ export default class KeyringService extends BaseService<Events> {
       timeSinceLastKeyringActivity >= MAX_KEYRING_IDLE_TIME ||
       timeSinceLastOutsideActivity >= MAX_OUTSIDE_IDLE_TIME
     ) {
-      this.notifyUIWithKeyringUpdates().then(() =>
-        this.walletManager.clearState()
-      )
+      this.notifyUIWithUpdates().then(() => this.walletManager.clearState())
     }
   }
 
-  private requireUnlockKeyring(): void {
-    if (this.isLockedKeyring()) {
-      throw new Error("KeyringService must be unlocked.")
+  private verifyKeyringIsUnlocked(): void {
+    if (this.isLocked()) {
+      throw new Error("KeyringService must be unlocked")
     }
 
     this.lastInternalWalletActivity = Date.now()
     this.lastExternalWalletActivity = Date.now()
   }
 
+  /**
+   * Notifies the keyring that an outside activity occurred. Outside activities
+   * are used to delay auto locking.
+   */
   public markOutsideActivity(): void {
     if (typeof this.lastExternalWalletActivity !== "undefined") {
       this.lastExternalWalletActivity = Date.now()
     }
   }
 
-  public async notifyUIWithKeyringUpdates(): Promise<void> {
-    const isLocked = this.isLockedKeyring()
+  public async notifyUIWithUpdates(): Promise<void> {
+    const isLocked = this.isLocked()
     if (isLocked) {
       await this.emitter.emit("locked", true)
       await this.emitter.emit("keyrings", {
@@ -158,29 +173,30 @@ export default class KeyringService extends BaseService<Events> {
   public async importKeyring(
     signerMetadata: SignerImportMetadata
   ): Promise<{ address: string | null; errorMessage: string }> {
-    this.requireUnlockKeyring()
+    this.verifyKeyringIsUnlocked()
 
     try {
-      const address = await this.walletManager.import(signerMetadata)
+      const address = await this.walletManager.importSigner(signerMetadata)
 
       await this.emitter.emit("address", address)
-      await this.notifyUIWithKeyringUpdates()
+      await this.notifyUIWithUpdates()
 
       return { address, errorMessage: "" }
     } catch (error: any) {
       logger.error("Signer import failed:", error)
 
-      return error?.cause === customError
-        ? { address: null, errorMessage: error?.message }
-        : {
-            address: null,
-            errorMessage: "Unexpected error during signer import",
-          }
+      return {
+        address: null,
+        errorMessage:
+          error?.cause === applicationError
+            ? error?.message
+            : "Unexpected error during signer import",
+      }
     }
   }
 
   public async exportWalletPrivateKey(address: string): Promise<string> {
-    this.requireUnlockKeyring()
+    this.verifyKeyringIsUnlocked()
 
     const signerWithType = await this.walletManager.findSigner(address)
     if (!signerWithType) {
@@ -198,7 +214,7 @@ export default class KeyringService extends BaseService<Events> {
   }
 
   public async getSigner(address: string): Promise<InternalSignerWithType> {
-    this.requireUnlockKeyring()
+    this.verifyKeyringIsUnlocked()
 
     const signerWithType = await this.walletManager.findSigner(address)
     if (!signerWithType) {
@@ -211,34 +227,34 @@ export default class KeyringService extends BaseService<Events> {
   public async getKeyringSourceForAddress(
     address: string
   ): Promise<SignerImportSource | null> {
-    this.requireUnlockKeyring()
+    this.verifyKeyringIsUnlocked()
 
-    return this.walletManager.getSource(address)
+    return this.walletManager.getSignerSource(address)
   }
 
-  public async deriveAddress(
+  public async deriveKeyringAddress(
     keyringAccountSigner: KeyringAccountSigner
   ): Promise<void> {
-    this.requireUnlockKeyring()
+    this.verifyKeyringIsUnlocked()
 
     const address = await this.walletManager.deriveQuaiHDWalletAddress(
       keyringAccountSigner
     )
 
     await this.emitter.emit("address", address)
-    await this.notifyUIWithKeyringUpdates()
+    await this.notifyUIWithUpdates()
   }
 
   public async generateMnemonic(): Promise<{ id: string; mnemonic: string[] }> {
-    this.requireUnlockKeyring()
-    return this.walletManager.createQuaiHDWalletMnemonic()
+    this.verifyKeyringIsUnlocked()
+    return this.walletManager.generateQuaiHDWalletMnemonic()
   }
 
-  public async removeKeyringAccount(
+  public async removeKeyring(
     address: string,
     signerType: SignerType
   ): Promise<void> {
-    await this.walletManager.deleteAccount(address, signerType)
-    await this.notifyUIWithKeyringUpdates()
+    await this.walletManager.deleteSigner(address, signerType)
+    await this.notifyUIWithUpdates()
   }
 }

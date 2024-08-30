@@ -179,6 +179,13 @@ export default class WalletManager {
     const { address, quaiHDWallet } =
       await this.quaiHDWalletManager.deriveAddress(keyringID, zone)
 
+    const existingPrivateKey = await this.privateKeyManager.getByAddress(
+      address
+    )
+    if (existingPrivateKey) {
+      await this.deletePrivateKey(address)
+    }
+
     this.quaiHDWallets = this.quaiHDWallets.map((HDWallet) => {
       return HDWallet?.id === quaiHDWallet.xPub
         ? {

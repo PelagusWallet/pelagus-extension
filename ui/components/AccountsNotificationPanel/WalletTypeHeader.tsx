@@ -203,7 +203,8 @@ export default function WalletTypeHeader({
                   width: "fit-content",
                   marginLeft: "75%",
                 }}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation()
                   onClickAddAddress && onClickAddAddress()
                   setShowZoneMenu(false)
                   dispatch(setShowingAddAccountModal(false))

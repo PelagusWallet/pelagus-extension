@@ -327,6 +327,7 @@ export default function AccountsNotificationPanelAccounts({
         ) {
           return <p className="noAccounts">{t("accounts.noResults")}</p>
         }
+        // console.log("accountTotalsByType", accountTotalsByType)
 
         return (
           <div
@@ -353,73 +354,29 @@ export default function AccountsNotificationPanelAccounts({
                       accountSigner={accountTotalsBySignerId[0].accountSigner}
                       signerId={accountTotalsBySignerId[0].signerId}
                       setZone={handleSetZone}
-                      onClickAddAddress={
-                        accountType === "imported" ||
-                        accountType === "internal" ||
-                        accountType === "private-key"
-                          ? () => {
-                              if (zone.current === null) {
-                                throw new Error("zone is empty")
-                              } else if (!VALID_ZONES.includes(zone.current)) {
-                                dispatch(setSnackbarMessage("Invalid zone"))
-                                throw new Error("zone is invalid")
-                              }
+                      onClickAddAddress={() => {
+                        if (zone.current === null) {
+                          throw new Error("zone is empty")
+                        } else if (!VALID_ZONES.includes(zone.current)) {
+                          dispatch(setSnackbarMessage("Invalid zone"))
+                          throw new Error("zone is invalid")
+                        }
 
-                              if (selectedAccountSigner === "private-key") {
-                                setSelectedAccountSigner(defaultSigner.current)
-                                dispatch(
-                                  deriveAddress({
-                                    signerId: defaultSigner.current,
-                                    zone: zone.current,
-                                  })
-                                )
-                                return
-                              }
-
-                              if (!selectedAccountSigner) {
-                                for (const account in accountTotals) {
-                                  const accountTotalsArray =
-                                    accountTotals[
-                                      account as keyof CategorizedAccountTotals
-                                    ]
-                                  if (
-                                    accountTotalsArray &&
-                                    accountTotalsArray.find(
-                                      (accountTotal) =>
-                                        accountTotal.address ===
-                                        selectedAccountAddress
-                                    ) !== undefined
-                                  ) {
-                                    if (
-                                      accountTotalsArray[0].signerId ===
-                                      "private-key"
-                                    )
-                                      break
-
-                                    defaultSigner.current =
-                                      accountTotalsArray[0].signerId ?? ""
-                                    break
-                                  }
-                                }
-
-                                setSelectedAccountSigner(defaultSigner.current)
-                                dispatch(
-                                  deriveAddress({
-                                    signerId: defaultSigner.current,
-                                    zone: zone.current,
-                                  })
-                                )
-                              } else {
-                                dispatch(
-                                  deriveAddress({
-                                    signerId: selectedAccountSigner,
-                                    zone: zone.current,
-                                  })
-                                )
-                              }
-                            }
-                          : undefined
-                      }
+                        let signerId = selectedAccountSigner
+                        if (
+                          !selectedAccountSigner ||
+                          selectedAccountSigner === "private-key"
+                        ) {
+                          signerId = defaultSigner.current
+                          setSelectedAccountSigner(defaultSigner.current)
+                        }
+                        dispatch(
+                          deriveAddress({
+                            signerId,
+                            zone: zone.current,
+                          })
+                        )
+                      }}
                       addAddressSelected={isShowingAddAccountModal}
                       updateCustomOrder={updateCustomOrder}
                       updateUseCustomOrder={updateUseCustomOrder}

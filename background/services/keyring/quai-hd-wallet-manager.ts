@@ -2,7 +2,7 @@ import { AddressLike, Mnemonic, QuaiHDWallet, Zone } from "quais"
 import { IVaultManager } from "./vault-manager"
 import { sameQuaiAddress } from "../../lib/utils"
 import { AddressWithQuaiHDWallet } from "./types"
-import { customError } from "./utils"
+import { applicationError } from "../../constants/errorsCause"
 
 export interface IQuaiHDWalletManager {
   add(mnemonic: string): Promise<AddressWithQuaiHDWallet>
@@ -23,7 +23,9 @@ export default class QuaiHDWalletManager implements IQuaiHDWalletManager {
 
     const existingQuaiHDWallet = await this.getByXPub(quaiHDWallet.xPub)
     if (existingQuaiHDWallet) {
-      throw new Error("Quai HD Wallet already exists", { cause: customError })
+      throw new Error("Quai HD Wallet already in use", {
+        cause: applicationError,
+      })
     }
 
     const { address } = await quaiHDWallet.getNextAddress(

@@ -125,7 +125,7 @@ describe("KeyringService when uninitialized", () => {
 
   describe("and unlocked", () => {
     beforeEach(async () => {
-      await service.unlockKeyring(testPassword)
+      await service.unlock(testPassword)
     })
 
     it.each(validMnemonics.metamask)(
@@ -186,7 +186,7 @@ describe("KeyringService when initialized", () => {
     })
 
     service = await startKeyringService()
-    await service.unlockKeyring(testPassword)
+    await service.unlock(testPassword)
     service.emitter.on("address", (emittedAddress) => {
       address = emittedAddress
     })
@@ -247,8 +247,8 @@ describe("KeyringService when initialized", () => {
       // We should log if we try to unlock an unlocked keyring
       expect(arg).toEqual("KeyringService is already unlocked!")
     })
-    expect(service.isLockedKeyring()).toEqual(false)
-    expect(await service.unlockKeyring(testPassword)).toEqual(true)
+    expect(service.isLocked()).toEqual(false)
+    expect(await service.unlock(testPassword)).toEqual(true)
   })
 })
 
@@ -283,7 +283,7 @@ describe("KeyringService when saving keyrings", () => {
 
   it("saves data encrypted", async () => {
     const service = await startKeyringService()
-    await service.unlockKeyring(testPassword)
+    await service.unlock(testPassword)
 
     expect(localStorageCalls.shift()).toMatchObject({
       tallyVaults: expect.objectContaining({
@@ -356,7 +356,7 @@ describe("KeyringService when saving keyrings", () => {
       storedKeyrings.push(...keyringEvent.keyrings)
       return Promise.resolve()
     })
-    await service.unlockKeyring(testPassword)
+    await service.unlock(testPassword)
 
     await expect(
       // Wait for the emitter to emit the keyrings event.
@@ -399,7 +399,7 @@ describe("Keyring service when autolocking", () => {
     jest.spyOn(Date, "now").mockReturnValue(dateNowValue)
 
     service = await startKeyringService()
-    await service.unlockKeyring(testPassword)
+    await service.unlock(testPassword)
     service.emitter.on("address", (emittedAddress) => {
       address = emittedAddress
     })
@@ -412,23 +412,23 @@ describe("Keyring service when autolocking", () => {
   })
 
   it("will autolock after the keyring idle time but not sooner", async () => {
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(MAX_KEYRING_IDLE_TIME - 10)
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(MAX_KEYRING_IDLE_TIME)
-    expect(service.isLockedKeyring()).toEqual(true)
+    expect(service.isLocked()).toEqual(true)
   })
 
   it("will autolock after the outside activity idle time but not sooner", async () => {
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(MAX_OUTSIDE_IDLE_TIME - 10)
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(MAX_OUTSIDE_IDLE_TIME)
-    expect(service.isLockedKeyring()).toEqual(true)
+    expect(service.isLocked()).toEqual(true)
   })
 
   it.each([
@@ -463,13 +463,13 @@ describe("Keyring service when autolocking", () => {
     service.markOutsideActivity()
 
     callAutolockHandler(MAX_KEYRING_IDLE_TIME)
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(2 * MAX_KEYRING_IDLE_TIME - 10)
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(2 * MAX_KEYRING_IDLE_TIME)
-    expect(service.isLockedKeyring()).toEqual(true)
+    expect(service.isLocked()).toEqual(true)
   })
 
   it("will bump the outside activity idle time when outside activity is marked", async () => {
@@ -487,12 +487,12 @@ describe("Keyring service when autolocking", () => {
     await service.generateMnemonic()
 
     callAutolockHandler(MAX_OUTSIDE_IDLE_TIME)
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(2 * MAX_OUTSIDE_IDLE_TIME - 10)
-    expect(service.isLockedKeyring()).toEqual(false)
+    expect(service.isLocked()).toEqual(false)
 
     callAutolockHandler(2 * MAX_OUTSIDE_IDLE_TIME)
-    expect(service.isLockedKeyring()).toEqual(true)
+    expect(service.isLocked()).toEqual(true)
   })
 })

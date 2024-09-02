@@ -103,6 +103,7 @@ export default class KeyringService extends BaseService<Events> {
       return true
     } catch (error) {
       logger.error("Error while unlocking keyring service", error)
+      this.vaultManager.clearSaltedKey()
       return false
     }
   }

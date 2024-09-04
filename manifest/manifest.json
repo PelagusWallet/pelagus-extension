@@ -57,7 +57,8 @@
     "unlimitedStorage",
     "activeTab",
     "offscreen",
-    "clipboardWrite"
+    "clipboardWrite",
+    "notifications"
   ],
   "background": {
     "service_worker": "background.js"

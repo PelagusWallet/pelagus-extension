@@ -57,6 +57,7 @@ import {
   SerializedTransactionForHistory,
 } from "./types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
+import NotificationsManager from "../notifications"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -198,6 +199,8 @@ export default class ChainService extends BaseService<Events> {
    */
   private transactionsToRetrieve: PriorityQueuedTxToRetrieve[]
 
+  private notificationManager: NotificationsManager
+
   /**
    * Internal timer for the transactionsToRetrieve FIFO queue.
    * Starting multiple transaction requests at the same time is resource intensive
@@ -295,6 +298,7 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedNetworks = []
     this.transactionsToRetrieve = []
     this.providerFactory = providerFactoryService
+    this.notificationManager = new NotificationsManager()
   }
 
   override async internalStartService(): Promise<void> {
@@ -1233,11 +1237,15 @@ export default class ChainService extends BaseService<Events> {
 
       const receipt = await this.jsonRpcProvider.getTransactionReceipt(hash)
 
-      if (receipt && transactionResponse.blockNumber)
-        await this.saveTransaction(
-          createConfirmedQuaiTransaction(transactionResponse, receipt),
-          "local"
+      if (receipt && transactionResponse.blockNumber) {
+        const successTx = createConfirmedQuaiTransaction(
+          transactionResponse,
+          receipt
         )
+        const txFromDB = await this.db.getQuaiTransactionByHash(hash)
+        this.notificationManager.createSuccessTxNotification(txFromDB?.nonce)
+        await this.saveTransaction(successTx, "local")
+      }
     } catch (error) {
       logger.error(`Error retrieving transaction ${hash}`, error)
       if (Date.now() <= firstSeen + TRANSACTION_CHECK_LIFETIME_MS) {

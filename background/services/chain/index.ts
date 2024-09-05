@@ -199,8 +199,6 @@ export default class ChainService extends BaseService<Events> {
    */
   private transactionsToRetrieve: PriorityQueuedTxToRetrieve[]
 
-  private notificationManager: NotificationsManager
-
   /**
    * Internal timer for the transactionsToRetrieve FIFO queue.
    * Starting multiple transaction requests at the same time is resource intensive
@@ -298,7 +296,6 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedNetworks = []
     this.transactionsToRetrieve = []
     this.providerFactory = providerFactoryService
-    this.notificationManager = new NotificationsManager()
   }
 
   override async internalStartService(): Promise<void> {
@@ -1243,7 +1240,10 @@ export default class ChainService extends BaseService<Events> {
           receipt
         )
         const txFromDB = await this.db.getQuaiTransactionByHash(hash)
-        this.notificationManager.createSuccessTxNotification(txFromDB?.nonce)
+        NotificationsManager.createSuccessTxNotification(
+          txFromDB?.nonce,
+          txFromDB?.hash
+        )
         await this.saveTransaction(successTx, "local")
       }
     } catch (error) {

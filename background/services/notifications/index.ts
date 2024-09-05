@@ -1,5 +1,6 @@
 import { TemplateType } from "./types"
 import { QUAI_SCAN_URL } from "../../constants"
+import { truncateAddress } from "../../lib/utils"
 
 export default abstract class NotificationsManager {
   public static createSuccessTxNotification(
@@ -44,5 +45,21 @@ export default abstract class NotificationsManager {
         })
       })
     })
+  }
+
+  public static createIncomingAssetsNotification(
+    amount: string,
+    symbol: string,
+    address: string
+  ): void {
+    const options = {
+      type: TemplateType.basic,
+      iconUrl: "../../icon-128.png",
+      title: "Funds Received",
+      message: `You have received ${amount} ${symbol} in your wallet address ${truncateAddress(
+        address
+      )}`,
+    }
+    chrome.notifications.create(options)
   }
 }

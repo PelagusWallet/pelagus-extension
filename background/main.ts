@@ -31,8 +31,8 @@ import {
 import { HexString, KeyringTypes } from "./types"
 import { ChainIdWithError } from "./networks"
 import {
-  AccountSignerWithId,
   AccountBalance,
+  AccountSignerWithId,
   AddressOnNetwork,
   NameOnNetwork,
 } from "./accounts"
@@ -140,7 +140,10 @@ import {
   isOneTimeAnalyticsEvent,
   OneTimeAnalyticsEvent,
 } from "./lib/posthog"
-import { isBuiltInNetworkBaseAsset } from "./redux-slices/utils/asset-utils"
+import {
+  bigIntToDecimal,
+  isBuiltInNetworkBaseAsset,
+} from "./redux-slices/utils/asset-utils"
 import localStorageShim from "./utils/local-storage-shim"
 import { getExtendedZoneForAddress } from "./services/chain/utils"
 import { NetworkInterface } from "./constants/networks/networkTypes"
@@ -151,6 +154,7 @@ import {
 } from "./constants/networks/networks"
 import ProviderFactory from "./services/provider-factory/provider-factory"
 import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/events"
+import NotificationsManager from "./services/notifications"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -267,6 +271,8 @@ export default class Main extends BaseService<never> {
   public ready: Promise<boolean>
 
   balanceChecker: NodeJS.Timeout
+
+  balanceNotifications: NodeJS.Timeout
 
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
@@ -454,6 +460,59 @@ export default class Main extends BaseService<never> {
     await this.store.dispatch(setNewNetworkConnectError(chainIdWithError))
   }
 
+  async startBalanceNotifications(): Promise<void> {
+    this.balanceNotifications = setInterval(async () => {
+      const { selectedAccount } = this.store.getState().ui
+      const currentAccountState =
+        this.store.getState().account.accountsData.evm[
+          selectedAccount.network.chainID
+        ]?.[selectedAccount.address]
+      if (
+        currentAccountState === undefined ||
+        currentAccountState === "loading"
+      )
+        return
+
+      const { balances } = currentAccountState
+      for (const assetSymbol in balances) {
+        const { asset, amount } = balances[assetSymbol].assetAmount
+        let newBalance = BigInt(0)
+        if (isSmartContractFungibleAsset(asset)) {
+          if (
+            getExtendedZoneForAddress(asset.contractAddress, false) !==
+            getExtendedZoneForAddress(selectedAccount.address, false)
+          ) {
+            continue
+          }
+          newBalance = (
+            await this.chainService.assetData.getTokenBalance(
+              selectedAccount,
+              asset.contractAddress
+            )
+          ).amount
+        } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
+          newBalance = (
+            await this.chainService.getLatestBaseAccountBalance(selectedAccount)
+          ).assetAmount.amount
+        } else {
+          logger.error(
+            `Unknown asset type for balance checker, asset: ${asset.symbol}`
+          )
+          continue
+        }
+
+        if (newBalance > amount) {
+          const parsedAmount = bigIntToDecimal(newBalance - amount)
+          NotificationsManager.createIncomingAssetsNotification(
+            parsedAmount,
+            asset.symbol,
+            selectedAccount.address
+          )
+        }
+      }
+    }, 10000)
+  }
+
   async startBalanceChecker(): Promise<void> {
     const interval = setInterval(async () => {
       if (!walletOpen) return
@@ -608,6 +667,7 @@ export default class Main extends BaseService<never> {
       this.signingService.startService(),
       this.analyticsService.startService(),
       this.startBalanceChecker(),
+      this.startBalanceNotifications(),
     ]
 
     await Promise.all(servicesToBeStarted)
@@ -628,6 +688,7 @@ export default class Main extends BaseService<never> {
       this.signingService.stopService(),
       this.analyticsService.stopService(),
       clearInterval(this.balanceChecker),
+      clearInterval(this.balanceNotifications),
     ]
 
     await Promise.all(servicesToBeStopped)

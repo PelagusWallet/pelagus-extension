@@ -1,82 +1,87 @@
-import { TemplateType } from "./types"
-import { QUAI_SCAN_URL } from "../../constants"
-import { truncateAddress } from "../../lib/utils"
 import {
   setShowingActivityDetail,
   setSnackbarConfig,
 } from "../../redux-slices/ui"
+import { TemplateType } from "./types"
 import { walletOpen } from "../../main"
+import { QUAI_SCAN_URL } from "../../constants"
+import { truncateAddress } from "../../lib/utils"
 import { SnackBarType } from "../../redux-slices/utils"
 
+const DEFAULT_NOTIFICATION_OPTIONS = {
+  type: TemplateType.basic,
+  iconUrl: "../../icon-128.png",
+}
+
 export default abstract class NotificationsManager {
-  private static async isNotificationsEnabled(): Promise<boolean> {
-    const isEnabled =
-      await globalThis.main.preferenceService.getShowPelagusNotificationsValue()
-    return isEnabled
+  private static isNotificationsEnabled(): boolean {
+    return globalThis.main.store.getState().ui.settings.showPelagusNotifications
   }
 
-  public static async createSuccessTxNotification(
+  private static createChromeNotification(
+    options: chrome.notifications.NotificationOptions<true>,
+    onClickUrl?: string
+  ): void {
+    chrome.notifications.create(options, (notificationId) => {
+      if (!onClickUrl) return
+
+      chrome.notifications.onClicked.addListener((listenerId) => {
+        if (listenerId === notificationId) {
+          chrome.tabs.create({ url: onClickUrl })
+        }
+      })
+    })
+  }
+
+  public static createSuccessTxNotification(
     nonce: number | null | undefined,
-    txHash: string | undefined
-  ): Promise<void> {
-    const isEnabled = await this.isNotificationsEnabled()
-    if (!isEnabled) return
+    txHash: string
+  ): void {
+    if (!this.isNotificationsEnabled()) return
 
     const options = {
-      type: TemplateType.basic,
-      iconUrl: "../../icon-128.png",
+      ...DEFAULT_NOTIFICATION_OPTIONS,
       title: "Confirmed transaction",
       message: `Transaction ${nonce ?? 0} confirmed! View on QuaiScan`,
     }
 
     if (!walletOpen) {
-      chrome.notifications.create(options, (notificationId) => {
-        chrome.notifications.onClicked.addListener((listenerId) => {
-          if (listenerId !== notificationId) return
-
-          chrome.tabs.create({
-            url: txHash ? `${QUAI_SCAN_URL}/tx/${txHash}` : QUAI_SCAN_URL,
-          })
+      this.createChromeNotification(options, `${QUAI_SCAN_URL}/tx/${txHash}`)
+    } else {
+      const { store } = globalThis.main
+      store.dispatch(
+        setSnackbarConfig({
+          message: `Transaction ${nonce ?? 0} confirmed! Click to view details`,
+          withSound: true,
+          type: SnackBarType.transactionSettled,
         })
-      })
-      return
+      )
+      store.dispatch(setShowingActivityDetail(txHash))
     }
-
-    globalThis.main.store.dispatch(
-      setSnackbarConfig({
-        message: `Transaction ${nonce ?? 0} confirmed! Click to view details`,
-        withSound: true,
-        type: SnackBarType.transactionSettled,
-      })
-    )
-    globalThis.main.store.dispatch(setShowingActivityDetail(txHash ?? ""))
   }
 
-  public static async createIncomingAssetsNotification(
+  public static createIncomingAssetsNotification(
     amount: string,
     symbol: string,
     address: string
-  ): Promise<void> {
-    const isEnabled = await this.isNotificationsEnabled()
-    if (!isEnabled) return
+  ): void {
+    if (!this.isNotificationsEnabled()) return
 
     const message = `You have received ${amount} ${symbol} in your wallet address ${truncateAddress(
       address
     )}`
     const options = {
-      type: TemplateType.basic,
-      iconUrl: "../../icon-128.png",
+      ...DEFAULT_NOTIFICATION_OPTIONS,
       title: "Funds Received",
       message,
     }
 
     if (!walletOpen) {
-      chrome.notifications.create(options)
-      return
+      this.createChromeNotification(options)
+    } else {
+      globalThis.main.store.dispatch(
+        setSnackbarConfig({ message, withSound: true })
+      )
     }
-
-    globalThis.main.store.dispatch(
-      setSnackbarConfig({ message, withSound: true })
-    )
   }
 }

@@ -504,7 +504,7 @@ export default class Main extends BaseService<never> {
 
         if (newBalance > amount && !this.keyringService.isLocked()) {
           const parsedAmount = bigIntToDecimal(newBalance - amount)
-          await NotificationsManager.createIncomingAssetsNotification(
+          NotificationsManager.createIncomingAssetsNotification(
             parsedAmount,
             asset.symbol,
             selectedAccount.address

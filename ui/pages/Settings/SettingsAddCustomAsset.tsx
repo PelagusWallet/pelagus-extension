@@ -12,7 +12,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   selectHideDust,
-  setSnackbarMessage,
+  setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { HexString } from "@pelagus/pelagus-background/types"
@@ -188,7 +188,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
       importCustomToken({ asset: assetData.asset })
     )) as AsyncThunkFulfillmentType<typeof importCustomToken>
     if (success) {
-      await dispatch(setSnackbarMessage(t("snackbar.success")))
+      await dispatch(setSnackbarConfig({ message: t("snackbar.success") }))
       setIsImportingToken(false)
       history.push("/")
       await dispatch(
@@ -213,7 +213,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
         })
       )
     } else {
-      await dispatch(setSnackbarMessage(t("snackbar.failed")))
+      await dispatch(setSnackbarConfig({ message: t("snackbar.failed") }))
       setIsImportingToken(false)
     }
   }

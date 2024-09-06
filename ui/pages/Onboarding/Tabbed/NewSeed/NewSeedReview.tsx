@@ -1,4 +1,4 @@
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import SharedButton from "../../../../components/Shared/SharedButton"
@@ -23,7 +23,7 @@ export default function NewSeedReview({
 
   const onCopyMnemonic = async () => {
     await addToOffscreenClipboardSensitiveData(mnemonic?.join(" ") ?? "")
-    dispatch(setSnackbarMessage(sharedT("copyTextSnackbar")))
+    dispatch(setSnackbarConfig({ message: sharedT("copyTextSnackbar") }))
   }
 
   return (

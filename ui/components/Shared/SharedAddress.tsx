@@ -1,5 +1,5 @@
 import { truncateAddress } from "@pelagus/pelagus-background/lib/utils"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { NameResolverSystem } from "@pelagus/pelagus-background/services/name"
 import classNames from "classnames"
 import React, { ReactElement, useCallback } from "react"
@@ -27,7 +27,7 @@ export default function SharedAddress({
 
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
-    dispatch(setSnackbarMessage("Address copied to clipboard"))
+    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
   }, [address, dispatch])
 
   return (

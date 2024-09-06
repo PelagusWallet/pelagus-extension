@@ -3,7 +3,7 @@ import {
   selectCurrentAccount,
   selectCurrentAccountTotal,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
@@ -47,7 +47,7 @@ export default function TopMenuProfileButton(props: {
     if (address) {
       navigator.clipboard.writeText(address)
       hideTooltip()
-      dispatch(setSnackbarMessage(t("topMenu.addressCopiedMsg")))
+      dispatch(setSnackbarConfig({ message: t("topMenu.addressCopiedMsg") }))
     }
   }
 

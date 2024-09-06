@@ -22,7 +22,7 @@ import { convertFixedPoint } from "../lib/fixed-point"
 import { removeAssetReferences, updateAssetReferences } from "./accounts"
 import type { RootState } from "."
 import { AccountSigner } from "../services/signing"
-import { setSnackbarMessage } from "./ui"
+import { setSnackbarConfig } from "./ui"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import logger from "../lib/logger"
 
@@ -211,7 +211,9 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
       logger.error(e)
 
       dispatch(
-        setSnackbarMessage("Failed to get gas price, please enter manually")
+        setSnackbarConfig({
+          message: "Failed to get gas price, please enter manually",
+        })
       )
 
       return {

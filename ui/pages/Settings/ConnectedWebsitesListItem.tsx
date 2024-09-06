@@ -1,6 +1,6 @@
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { denyOrRevokePermission } from "@pelagus/pelagus-background/redux-slices/dapp"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import SharedIcon from "../../components/Shared/SharedIcon"
@@ -28,7 +28,11 @@ export default function ConnectedWebsitesListItem(
   const handleDisconnect = useCallback(async () => {
     await dispatch(denyOrRevokePermission({ ...permission, state: "deny" }))
 
-    dispatch(setSnackbarMessage(t("connectedWebsitesSettings.disconnected")))
+    dispatch(
+      setSnackbarConfig({
+        message: t("connectedWebsitesSettings.disconnected"),
+      })
+    )
   }, [dispatch, permission, t])
 
   return (

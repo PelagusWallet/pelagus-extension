@@ -33,7 +33,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { useHistory, useLocation } from "react-router-dom"
 import classNames from "classnames"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import { toBigInt } from "quais"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
@@ -212,7 +212,7 @@ export default function Send(): ReactElement {
     }
 
     navigator.clipboard.writeText(destinationAddress)
-    dispatch(setSnackbarMessage("Address copied to clipboard"))
+    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
   }, [destinationAddress, dispatch])
 
   const {

@@ -3,7 +3,7 @@ import {
   selectDefaultWallet,
   selectShowDefaultWalletBanner,
   setNewDefaultWalletValue,
-  setSnackbarMessage,
+  setSnackbarConfig,
   updateShowDefaultWalletBanner,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
@@ -30,7 +30,7 @@ export function WalletDefaultToggle(): ReactElement {
   const toggleDefaultWallet = (defaultWalletValue: boolean) => {
     dispatch(setNewDefaultWalletValue(defaultWalletValue))
     if (defaultWalletValue) {
-      dispatch(setSnackbarMessage(t("snackbar")))
+      dispatch(setSnackbarConfig({ message: t("snackbar") }))
     }
   }
 

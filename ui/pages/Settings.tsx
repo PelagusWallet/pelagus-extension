@@ -6,6 +6,8 @@ import {
   selectDefaultWallet,
   toggleHideBanners,
   selectHideBanners,
+  selectShowPelagusNotifications,
+  setNewPelagusNotificationsValue,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import {
@@ -122,8 +124,14 @@ export default function Settings(): ReactElement {
   const dispatch = useDispatch()
   const hideBanners = useSelector(selectHideBanners)
   const defaultWallet = useSelector(selectDefaultWallet)
+  const showPelagusNotifications = useSelector(selectShowPelagusNotifications)
   const toggleDefaultWallet = (defaultWalletValue: boolean) => {
     dispatch(setNewDefaultWalletValue(defaultWalletValue))
+  }
+  const toggleShowPelagusNotifications = (
+    pelagusNotificationsValue: boolean
+  ) => {
+    dispatch(setNewPelagusNotificationsValue(pelagusNotificationsValue))
   }
 
   const toggleHideNotificationBanners = (toggleValue: boolean) => {
@@ -136,6 +144,16 @@ export default function Settings(): ReactElement {
       <SharedToggleButtonGA
         onChange={(toggleValue) => toggleDefaultWallet(toggleValue)}
         value={defaultWallet}
+      />
+    ),
+  }
+
+  const pelagusNotifications = {
+    title: t("settings.showPelagusNotifications"),
+    component: () => (
+      <SharedToggleButtonGA
+        onChange={(toggleValue) => toggleShowPelagusNotifications(toggleValue)}
+        value={showPelagusNotifications}
       />
     ),
   }
@@ -221,6 +239,7 @@ export default function Settings(): ReactElement {
           setAsDefault
         ),
         dAppsSettings,
+        pelagusNotifications,
         ...wrapIfEnabled(FeatureFlags.SUPPORT_MULTIPLE_LANGUAGES, languages),
         ...wrapIfEnabled(
           FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER,

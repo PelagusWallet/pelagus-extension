@@ -20,6 +20,7 @@ const defaultPreferences: Preferences = {
   },
   showDefaultWalletBanner: true,
   showTestNetworks: false,
+  showPelagusNotifications: true,
 }
 
 export default defaultPreferences

@@ -7,6 +7,7 @@ export enum AnalyticsEvent {
   ACCOUNT_NAME_EDITED = "Account Name Edited",
   ANALYTICS_TOGGLED = "Analytics Toggled",
   DEFAULT_WALLET_TOGGLED = "Default Wallet Toggled",
+  PELAGUS_NOTIFICATIONS_TOGGLED = "Show Pelagus notifications Toggled",
   TRANSACTION_SIGNED = "Transaction Signed",
   NEW_ACCOUNT_TO_TRACK = "Address added to tracking on network",
   CUSTOM_CHAIN_ADDED = "Custom chain added",
@@ -29,7 +30,7 @@ const POSTHOG_PROJECT_ID = "0"
 const PERSON_ENDPOINT = `https://app.posthog.com/api/projects/${POSTHOG_PROJECT_ID}/persons`
 export const POSTHOG_URL =
   process.env.POSTHOG_URL ?? "https://app.posthog.com/capture/"
-export const USE_ANALYTICS_SOURCE = process.env.USE_ANALYTICS_SOURCE
+export const { USE_ANALYTICS_SOURCE } = process.env
 
 export function shouldSendPosthogEvents(): boolean {
   return false // FIXME I haven't deleted yet, maybe there will be logic in the future

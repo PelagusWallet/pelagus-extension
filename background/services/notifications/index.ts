@@ -3,6 +3,11 @@ import { QUAI_SCAN_URL } from "../../constants"
 import { truncateAddress } from "../../lib/utils"
 
 export default abstract class NotificationsManager {
+  /*
+  HOW TO OBTAIN BOOLEAN DATA
+  const isNotificationsEnabled = globalThis.main.preferenceService.getShowPelagusNotificationsValue()
+   */
+
   public static createSuccessTxNotification(
     nonce: number | null | undefined,
     txHash: string | undefined

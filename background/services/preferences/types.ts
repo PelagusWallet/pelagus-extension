@@ -18,6 +18,7 @@ export interface Preferences {
   }
   showDefaultWalletBanner: boolean
   showTestNetworks: boolean
+  showPelagusNotifications: boolean
 }
 
 export type AnalyticsPreferences = Preferences["analytics"]

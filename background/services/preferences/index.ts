@@ -168,6 +168,18 @@ export default class PreferenceService extends BaseService<Events> {
     return this.db.setDefaultWalletValue(newDefaultWalletValue)
   }
 
+  async getShowPelagusNotificationsValue(): Promise<boolean> {
+    return (await this.db.getPreferences())?.showPelagusNotifications
+  }
+
+  async setShowPelagusNotificationsValue(
+    newShowPelagusNotificationsValue: boolean
+  ): Promise<void> {
+    return this.db.setShowPelagusNotificationsValue(
+      newShowPelagusNotificationsValue
+    )
+  }
+
   async getSelectedAccount(): Promise<AddressOnNetwork> {
     return (await this.db.getPreferences())?.selectedAccount
   }

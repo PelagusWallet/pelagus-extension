@@ -25,6 +25,7 @@ export const defaultSettings = {
   hideBanners: false,
   showDefaultWalletBanner: true,
   showAlphaWalletBanner: true,
+  showPelagusNotifications: true,
 }
 
 export type UIState = {
@@ -37,6 +38,7 @@ export type UIState = {
   settings: {
     hideDust: boolean
     defaultWallet: boolean
+    showPelagusNotifications: boolean
     networkConnectError: ChainIdWithError[]
     showTestNetworks: boolean
     collectAnalytics: boolean
@@ -55,6 +57,7 @@ export type Events = {
   snackbarMessage: string
   deleteAnalyticsData: never
   newDefaultWalletValue: boolean
+  newPelagusNotificationsValue: boolean
   newNetworkConnectError: ChainIdWithError[]
   refreshBackgroundPage: null
   sendEvent: AnalyticsEvent | OneTimeAnalyticsEvent
@@ -194,6 +197,16 @@ const uiSlice = createSlice({
         defaultWallet,
       },
     }),
+    setShowPelagusNotifications: (
+      state,
+      { payload: pelagusNotifications }: { payload: boolean }
+    ) => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        showPelagusNotifications: pelagusNotifications,
+      },
+    }),
     setNetworkConnectError: (
       state,
       { payload: networkConnectError }: { payload: ChainIdWithError[] }
@@ -244,6 +257,7 @@ export const {
   setSelectedAccount,
   setSnackbarMessage,
   setDefaultWallet,
+  setShowPelagusNotifications,
   setNetworkConnectError,
   clearSnackbarMessage,
   setSlippageTolerance,
@@ -276,6 +290,19 @@ export const setNewDefaultWalletValue = createBackgroundAsyncThunk(
   async (defaultWallet: boolean, { dispatch }) => {
     await emitter.emit("newDefaultWalletValue", defaultWallet)
     dispatch(uiSlice.actions.setDefaultWallet(defaultWallet))
+  }
+)
+
+export const setNewPelagusNotificationsValue = createBackgroundAsyncThunk(
+  "ui/setNewPelagusNotificationsValue",
+  async (pelagusNotificationsValue: boolean, { dispatch }) => {
+    await emitter.emit(
+      "newPelagusNotificationsValue",
+      pelagusNotificationsValue
+    )
+    dispatch(
+      uiSlice.actions.setShowPelagusNotifications(pelagusNotificationsValue)
+    )
   }
 )
 
@@ -436,6 +463,11 @@ export const selectSnackbarMessage = createSelector(selectUI, (ui) =>
 export const selectDefaultWallet = createSelector(
   selectSettings,
   (settings) => settings?.defaultWallet
+)
+
+export const selectShowPelagusNotifications = createSelector(
+  selectSettings,
+  (settings) => settings?.showPelagusNotifications
 )
 
 export const selectNetworkConnectError = createSelector(

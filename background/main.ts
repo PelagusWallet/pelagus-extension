@@ -357,7 +357,7 @@ export default class Main extends BaseService<never> {
      * A promise to the preference service, a dependency for most other services.
      * The promise will be resolved when the service is initialized.
      */
-    private preferenceService: PreferenceService,
+    public preferenceService: PreferenceService,
     /**
      * A promise to the chain service, keeping track of base asset balances,
      * transactions, and network status. The promise will be resolved when the
@@ -1638,6 +1638,22 @@ export default class Main extends BaseService<never> {
           AnalyticsEvent.DEFAULT_WALLET_TOGGLED,
           {
             setToDefault: newDefaultWalletValue,
+          }
+        )
+      }
+    )
+
+    uiSliceEmitter.on(
+      "newPelagusNotificationsValue",
+      async (newShowPelagusNotificationsValue) => {
+        await this.preferenceService.setShowPelagusNotificationsValue(
+          newShowPelagusNotificationsValue
+        )
+
+        this.analyticsService.sendAnalyticsEvent(
+          AnalyticsEvent.PELAGUS_NOTIFICATIONS_TOGGLED,
+          {
+            setPelagusNotifications: newShowPelagusNotificationsValue,
           }
         )
       }

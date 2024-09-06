@@ -42,6 +42,7 @@ export interface Preferences {
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
   showTestNetworks: boolean
+  showPelagusNotifications: boolean
 }
 
 export class PreferenceDatabase extends Dexie {
@@ -408,6 +409,12 @@ export class PreferenceDatabase extends Dexie {
 
   async setDefaultWalletValue(defaultWallet: boolean): Promise<void> {
     await this.preferences.toCollection().modify({ defaultWallet })
+  }
+
+  async setShowPelagusNotificationsValue(
+    showPelagusNotifications: boolean
+  ): Promise<void> {
+    await this.preferences.toCollection().modify({ showPelagusNotifications })
   }
 
   async setSelectedAccount(addressNetwork: AddressOnNetwork): Promise<void> {

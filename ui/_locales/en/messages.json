@@ -273,6 +273,7 @@
     },
     "mainMenu": "Settings",
     "setAsDefault": "Use Pelagus as default wallet",
+    "showPelagusNotifications": "Pelagus notifications",
     "language": "Language",
     "bugReport": "Bug report",
     "connectedWebsites": "Connected websites",

@@ -10,20 +10,14 @@ import classNames from "classnames"
 import {
   selectSnackbarConfig,
   resetSnackbarConfig,
-  setShowingActivityDetail,
 } from "@pelagus/pelagus-background/redux-slices/ui"
+import { SnackBarType } from "@pelagus/pelagus-background/redux-slices/utils"
 import {
   useBackgroundSelector,
   useDelayContentChange,
   useIsOnboarding,
 } from "../../hooks"
-import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
-import WalletActivityDetails from "../Wallet/WalletActivityDetails"
-import { SnackBarType } from "@pelagus/pelagus-background/redux-slices/utils"
-import {
-  selectCurrentAccount,
-  selectShowingActivityDetail,
-} from "@pelagus/pelagus-background/redux-slices/selectors"
+import SnackbarTransactionActivityModal from "./OnClickModals/SnackbarTransactionActivityModal"
 
 const DISMISS_MS = 2500
 const DISMISS_ANIMATION_MS = 300
@@ -79,19 +73,15 @@ export default function Snackbar({
   }, [clearSnackbarTimeout, dispatch])
 
   useEffect(() => {
-    if (!displayMessage || !withSound) return
+    if (!withSound) return
     audioRef.current?.play()
-  }, [displayMessage, withSound])
+  }, [withSound])
 
-  const showingActivityDetail = useBackgroundSelector(
-    selectShowingActivityDetail
-  )
-
-  const currentAddress = useBackgroundSelector(selectCurrentAccount).address
-
-  const [isOenActivityDetails, setIsOpenActivityDetails] = useState(false)
+  const [isOpenActivityDetails, setIsOpenActivityDetails] = useState(false)
 
   const handleClick = () => {
+    clearSnackbarTimeout()
+
     switch (type) {
       case SnackBarType.transactionSettled:
         setIsOpenActivityDetails(true)
@@ -111,19 +101,7 @@ export default function Snackbar({
     >
       <audio ref={audioRef} src="./sounds/ding.mp3" preload="auto" />
 
-      {isOenActivityDetails && (
-        <SharedSlideUpMenu
-          isOpen={!!showingActivityDetail}
-          close={() => dispatch(setShowingActivityDetail(null))}
-        >
-          {showingActivityDetail && (
-            <WalletActivityDetails
-              activityItem={showingActivityDetail}
-              activityInitiatorAddress={currentAddress}
-            />
-          )}
-        </SharedSlideUpMenu>
-      )}
+      {isOpenActivityDetails && <SnackbarTransactionActivityModal />}
 
       <div className="snackbar_wrap">{displayMessage}</div>
       <style jsx>

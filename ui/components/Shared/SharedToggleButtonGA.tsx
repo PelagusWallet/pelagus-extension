@@ -22,10 +22,17 @@ export default function SharedToggleButtonGA({
 
   const [isActive, setIsActive] = useState(value || false)
 
-  useEffect(() => setIsActive(!!value), [value])
+  useEffect(() => {
+    if (value !== isActive) {
+      setIsActive(!!value)
+    }
+  }, [value, isActive])
 
-  const handleToggleAction = () => onChange(!isActive)
-
+  const handleToggleAction = () => {
+    const newValue = !isActive
+    setIsActive(newValue)
+    onChange(newValue)
+  }
   const ToggleButtonComponent = () => (
     <button
       type="button"

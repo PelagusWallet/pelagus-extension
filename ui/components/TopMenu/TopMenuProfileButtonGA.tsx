@@ -1,5 +1,5 @@
 import { selectCurrentAccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
@@ -27,7 +27,7 @@ export default function TopMenuProfileButtonGA(props: {
   const copyAddress = () => {
     if (!address) return
     navigator.clipboard.writeText(address)
-    dispatch(setSnackbarMessage(t("topMenu.addressCopiedMsg")))
+    dispatch(setSnackbarConfig({ message: t("topMenu.addressCopiedMsg") }))
   }
 
   if (!address) {

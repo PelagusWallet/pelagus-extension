@@ -1,4 +1,4 @@
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
@@ -19,7 +19,7 @@ export default function AnalyticsSlideUpMenu(props: {
 
   const handleSubmit = () => {
     onSubmit()
-    dispatch(setSnackbarMessage(t(`${prefix}.snackbar`)))
+    dispatch(setSnackbarConfig({ message: t(`${prefix}.snackbar`) }))
   }
 
   return (

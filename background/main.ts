@@ -64,6 +64,7 @@ import {
 import {
   emitter as uiSliceEmitter,
   initializationLoadingTimeHitLimit,
+  resetSnackbarConfig,
   setAccountsSignerSettings,
   setDefaultWallet,
   setNewNetworkConnectError,
@@ -72,7 +73,7 @@ import {
   setShowAlphaWalletBanner,
   setShowAnalyticsNotification,
   setShowDefaultWalletBanner,
-  setSnackbarMessage,
+  setSnackbarConfig,
   toggleCollectAnalytics,
   toggleTestNetworks,
 } from "./redux-slices/ui"
@@ -251,7 +252,7 @@ type ReduxStoreType = ReturnType<typeof initializeStore>
 
 export const popupMonitorPortName = "popup-monitor"
 
-let walletOpen = false
+export let walletOpen = false
 
 // TODO Rename ReduxService or CoordinationService, move to services/, etc.
 export default class Main extends BaseService<never> {
@@ -503,7 +504,7 @@ export default class Main extends BaseService<never> {
 
         if (newBalance > amount && !this.keyringService.isLocked()) {
           const parsedAmount = bigIntToDecimal(newBalance - amount)
-          NotificationsManager.createIncomingAssetsNotification(
+          await NotificationsManager.createIncomingAssetsNotification(
             parsedAmount,
             asset.symbol,
             selectedAccount.address
@@ -933,7 +934,7 @@ export default class Main extends BaseService<never> {
 
     this.chainService.emitter.on("transactionSend", () => {
       this.store.dispatch(
-        setSnackbarMessage("Transaction signed, broadcasting...")
+        setSnackbarConfig({ message: "Transaction signed, broadcasting..." })
       )
       this.store.dispatch(
         clearTransactionState(TransactionConstructionStatus.Idle)
@@ -942,7 +943,7 @@ export default class Main extends BaseService<never> {
 
     this.chainService.emitter.on("transactionSendFailure", () => {
       this.store.dispatch(
-        setSnackbarMessage("Transaction failed to broadcast.")
+        setSnackbarConfig({ message: "Transaction failed to broadcast." })
       )
     })
 
@@ -1884,6 +1885,7 @@ export default class Main extends BaseService<never> {
           unit: "s",
         })
         walletOpen = false
+        this.store.dispatch(resetSnackbarConfig())
         logger.info("Pelagus Disconnected")
         this.onPopupDisconnected()
       })

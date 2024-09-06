@@ -1,15 +1,15 @@
-import { createSlice, createSelector } from "@reduxjs/toolkit"
+import { createSelector, createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
 import { AnalyticsEvent, OneTimeAnalyticsEvent } from "../lib/posthog"
 import { ChainIdWithError } from "../networks"
 import { AnalyticsPreferences } from "../services/preferences/types"
 import {
-  AddressOnNetwork,
-  AccountSignerWithId,
   AccountSignerSettings,
+  AccountSignerWithId,
+  AddressOnNetwork,
 } from "../accounts"
 import { AccountState, addAddressNetwork } from "./accounts"
-import { createBackgroundAsyncThunk } from "./utils"
+import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QuaiGoldenAgeTestnet } from "../constants/networks/networks"
@@ -48,13 +48,21 @@ export type UIState = {
     showDefaultWalletBanner: boolean
     showAlphaWalletBanner: boolean
   }
-  snackbarMessage: string
+  snackbarConfig: {
+    message: string
+    withSound: boolean
+    type: SnackBarType
+  }
   slippageTolerance: number
   accountSignerSettings: AccountSignerSettings[]
 }
 
 export type Events = {
-  snackbarMessage: string
+  snackbarConfig: {
+    message: string
+    withSound?: boolean
+    type: SnackBarType
+  }
   deleteAnalyticsData: never
   newDefaultWalletValue: boolean
   newPelagusNotificationsValue: boolean
@@ -84,7 +92,7 @@ export const initialState: UIState = {
   },
   initializationLoadingTimeExpired: false,
   settings: defaultSettings,
-  snackbarMessage: "",
+  snackbarConfig: { message: "", withSound: false, type: SnackBarType.base },
   slippageTolerance: 0.01,
   accountSignerSettings: [],
 }
@@ -176,16 +184,28 @@ const uiSlice = createSlice({
       ...state,
       initializationLoadingTimeExpired: true,
     }),
-    setSnackbarMessage: (
+    setSnackbarConfig: (
       state,
-      { payload: snackbarMessage }: { payload: string }
+      {
+        payload: { message, withSound, type },
+      }: {
+        payload: { message: string; withSound?: boolean; type?: SnackBarType }
+      }
     ): UIState => ({
       ...state,
-      snackbarMessage,
+      snackbarConfig: {
+        message,
+        withSound: withSound ?? false,
+        type: type ?? SnackBarType.base,
+      },
     }),
-    clearSnackbarMessage: (state): UIState => ({
+    resetSnackbarConfig: (state): UIState => ({
       ...state,
-      snackbarMessage: "",
+      snackbarConfig: {
+        message: "",
+        withSound: false,
+        type: SnackBarType.base,
+      },
     }),
     setDefaultWallet: (
       state,
@@ -255,11 +275,11 @@ export const {
   setShowAnalyticsNotification,
   toggleHideBanners,
   setSelectedAccount,
-  setSnackbarMessage,
+  setSnackbarConfig,
   setDefaultWallet,
   setShowPelagusNotifications,
   setNetworkConnectError,
-  clearSnackbarMessage,
+  resetSnackbarConfig,
   setSlippageTolerance,
   setAccountsSignerSettings,
   setShowDefaultWalletBanner,
@@ -456,8 +476,10 @@ export const selectHideDust = createSelector(
   (settings) => settings?.hideDust
 )
 
-export const selectSnackbarMessage = createSelector(selectUI, (ui) =>
-  ui ? ui.snackbarMessage : ""
+export const selectSnackbarConfig = createSelector(selectUI, (ui) =>
+  ui
+    ? ui.snackbarConfig
+    : { message: "", withSound: false, type: SnackBarType.base }
 )
 
 export const selectDefaultWallet = createSelector(

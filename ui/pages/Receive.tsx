@@ -2,7 +2,7 @@ import React, { ReactElement } from "react"
 import { useDispatch } from "react-redux"
 import { useTranslation } from "react-i18next"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import QRCode from "react-qr-code"
 import { useBackgroundSelector } from "../hooks"
 import SharedButton from "../components/Shared/SharedButton"
@@ -31,7 +31,7 @@ export default function Receive(): ReactElement {
           type="primary"
           onClick={() => {
             navigator.clipboard.writeText(currentAccount.address)
-            dispatch(setSnackbarMessage("Copied!"))
+            dispatch(setSnackbarConfig({ message: "Copied!" }))
           }}
         >
           {`${currentAccount.address.slice(

@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react"
 import { useDispatch } from "react-redux"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useTranslation } from "react-i18next"
 import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import SharedButton from "../../../Shared/SharedButton"
@@ -17,7 +17,7 @@ export default function RawDataPanel({
 
   const copyData = () => {
     navigator.clipboard.writeText(data ?? "")
-    dispatch(setSnackbarMessage(t("rawDataCopyMsg")))
+    dispatch(setSnackbarConfig({ message: t("rawDataCopyMsg") }))
   }
 
   return (

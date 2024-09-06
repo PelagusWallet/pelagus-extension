@@ -1240,7 +1240,7 @@ export default class ChainService extends BaseService<Events> {
           receipt
         )
         const txFromDB = await this.db.getQuaiTransactionByHash(hash)
-        NotificationsManager.createSuccessTxNotification(
+        await NotificationsManager.createSuccessTxNotification(
           txFromDB?.nonce,
           txFromDB?.hash
         )

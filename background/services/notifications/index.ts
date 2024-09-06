@@ -1,17 +1,27 @@
 import { TemplateType } from "./types"
 import { QUAI_SCAN_URL } from "../../constants"
 import { truncateAddress } from "../../lib/utils"
+import {
+  setShowingActivityDetail,
+  setSnackbarConfig,
+} from "../../redux-slices/ui"
+import { walletOpen } from "../../main"
+import { SnackBarType } from "../../redux-slices/utils"
 
 export default abstract class NotificationsManager {
-  /*
-  HOW TO OBTAIN BOOLEAN DATA
-  const isNotificationsEnabled = globalThis.main.preferenceService.getShowPelagusNotificationsValue()
-   */
+  private static async isNotificationsEnabled(): Promise<boolean> {
+    const isEnabled =
+      await globalThis.main.preferenceService.getShowPelagusNotificationsValue()
+    return isEnabled
+  }
 
-  public static createSuccessTxNotification(
+  public static async createSuccessTxNotification(
     nonce: number | null | undefined,
     txHash: string | undefined
-  ): void {
+  ): Promise<void> {
+    const isEnabled = await this.isNotificationsEnabled()
+    if (!isEnabled) return
+
     const options = {
       type: TemplateType.basic,
       iconUrl: "../../icon-128.png",
@@ -19,30 +29,54 @@ export default abstract class NotificationsManager {
       message: `Transaction ${nonce ?? 0} confirmed! View on QuaiScan`,
     }
 
-    chrome.notifications.create(options, (notificationId) => {
-      chrome.notifications.onClicked.addListener((listenerId) => {
-        if (listenerId !== notificationId) return
+    if (!walletOpen) {
+      chrome.notifications.create(options, (notificationId) => {
+        chrome.notifications.onClicked.addListener((listenerId) => {
+          if (listenerId !== notificationId) return
 
-        chrome.tabs.create({
-          url: txHash ? `${QUAI_SCAN_URL}/tx/${txHash}` : QUAI_SCAN_URL,
+          chrome.tabs.create({
+            url: txHash ? `${QUAI_SCAN_URL}/tx/${txHash}` : QUAI_SCAN_URL,
+          })
         })
       })
-    })
+      return
+    }
+
+    globalThis.main.store.dispatch(
+      setSnackbarConfig({
+        message: `Transaction ${nonce ?? 0} confirmed! Click to view details`,
+        withSound: true,
+        type: SnackBarType.transactionSettled,
+      })
+    )
+    globalThis.main.store.dispatch(setShowingActivityDetail(txHash ?? ""))
   }
 
-  public static createIncomingAssetsNotification(
+  public static async createIncomingAssetsNotification(
     amount: string,
     symbol: string,
     address: string
-  ): void {
+  ): Promise<void> {
+    const isEnabled = await this.isNotificationsEnabled()
+    if (!isEnabled) return
+
+    const message = `You have received ${amount} ${symbol} in your wallet address ${truncateAddress(
+      address
+    )}`
     const options = {
       type: TemplateType.basic,
       iconUrl: "../../icon-128.png",
       title: "Funds Received",
-      message: `You have received ${amount} ${symbol} in your wallet address ${truncateAddress(
-        address
-      )}`,
+      message,
     }
-    chrome.notifications.create(options)
+
+    if (!walletOpen) {
+      chrome.notifications.create(options)
+      return
+    }
+
+    globalThis.main.store.dispatch(
+      setSnackbarConfig({ message, withSound: true })
+    )
   }
 }

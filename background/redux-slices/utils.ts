@@ -183,3 +183,8 @@ export type AsyncThunkFulfillmentType<T> = T extends Pick<
   : never
 
 export const noopAction = createBackgroundAsyncThunk("noop", () => {})
+
+export enum SnackBarType {
+  base = "base",
+  transactionSettled = "transactionSettled",
+}

@@ -8,14 +8,22 @@ import React, {
 import { useDispatch } from "react-redux"
 import classNames from "classnames"
 import {
-  selectSnackbarMessage,
-  clearSnackbarMessage,
+  selectSnackbarConfig,
+  resetSnackbarConfig,
+  setShowingActivityDetail,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   useBackgroundSelector,
   useDelayContentChange,
   useIsOnboarding,
 } from "../../hooks"
+import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
+import WalletActivityDetails from "../Wallet/WalletActivityDetails"
+import { SnackBarType } from "@pelagus/pelagus-background/redux-slices/utils"
+import {
+  selectCurrentAccount,
+  selectShowingActivityDetail,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 
 const DISMISS_MS = 2500
 const DISMISS_ANIMATION_MS = 300
@@ -31,7 +39,11 @@ export default function Snackbar({
   const [isOnboarding] = useState(useIsOnboarding())
   const showInRightContainer = isTabbedOnboarding ? isOnboarding : false
 
-  const snackbarMessage = useBackgroundSelector(selectSnackbarMessage)
+  const {
+    message: snackbarMessage,
+    withSound,
+    type,
+  } = useBackgroundSelector(selectSnackbarConfig)
   const shouldHide = snackbarMessage.trim() === ""
   // Delay the display message clearing to allow the animation to complete
   // before the message is hidden.
@@ -42,6 +54,7 @@ export default function Snackbar({
   )
 
   const snackbarTimeout = useRef<number | undefined>()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const clearSnackbarTimeout = useCallback(() => {
     if (typeof snackbarTimeout.current !== "undefined") {
@@ -54,16 +67,39 @@ export default function Snackbar({
     clearSnackbarTimeout()
 
     snackbarTimeout.current = window.setTimeout(() => {
-      dispatch(clearSnackbarMessage())
+      dispatch(resetSnackbarConfig())
     }, DISMISS_MS)
   }, [snackbarMessage, clearSnackbarTimeout, dispatch])
 
   useEffect(() => {
     window.onblur = () => {
       clearSnackbarTimeout()
-      dispatch(clearSnackbarMessage())
+      dispatch(resetSnackbarConfig())
     }
   }, [clearSnackbarTimeout, dispatch])
+
+  useEffect(() => {
+    if (!displayMessage || !withSound) return
+    audioRef.current?.play()
+  }, [displayMessage, withSound])
+
+  const showingActivityDetail = useBackgroundSelector(
+    selectShowingActivityDetail
+  )
+
+  const currentAddress = useBackgroundSelector(selectCurrentAccount).address
+
+  const [isOenActivityDetails, setIsOpenActivityDetails] = useState(false)
+
+  const handleClick = () => {
+    switch (type) {
+      case SnackBarType.transactionSettled:
+        setIsOpenActivityDetails(true)
+        return
+      default:
+        dispatch(resetSnackbarConfig())
+    }
+  }
 
   return (
     <div
@@ -71,7 +107,24 @@ export default function Snackbar({
         hidden: shouldHide,
         right_container: showInRightContainer,
       })}
+      onClick={handleClick}
     >
+      <audio ref={audioRef} src="./sounds/ding.mp3" preload="auto" />
+
+      {isOenActivityDetails && (
+        <SharedSlideUpMenu
+          isOpen={!!showingActivityDetail}
+          close={() => dispatch(setShowingActivityDetail(null))}
+        >
+          {showingActivityDetail && (
+            <WalletActivityDetails
+              activityItem={showingActivityDetail}
+              activityInitiatorAddress={currentAddress}
+            />
+          )}
+        </SharedSlideUpMenu>
+      )}
+
       <div className="snackbar_wrap">{displayMessage}</div>
       <style jsx>
         {`
@@ -81,6 +134,7 @@ export default function Snackbar({
             bottom: 72px;
             left: 0;
             right: 0;
+            cursor: pointer;
           }
 
           .snackbar_wrap {

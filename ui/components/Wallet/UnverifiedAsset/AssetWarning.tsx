@@ -13,7 +13,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import classNames from "classnames"
 import { isUnverifiedAssetByUser } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { useHistory, useLocation } from "react-router-dom"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
@@ -63,13 +63,13 @@ export default function AssetWarning(props: AssetWarningProps): ReactElement {
   const handleVerifyAsset = async () => {
     const metadata = { ...asset.metadata, verified: true }
     await dispatch(updateAssetMetadata({ asset, metadata }))
-    dispatch(setSnackbarMessage(t("verifyAssetSnackbar")))
+    dispatch(setSnackbarConfig({ message: t("verifyAssetSnackbar") }))
     close()
   }
 
   const handleHideAsset = async () => {
     await dispatch(hideAsset({ asset }))
-    dispatch(setSnackbarMessage(t("removeAssetSnackbar")))
+    dispatch(setSnackbarConfig({ message: t("removeAssetSnackbar") }))
     close()
 
     if (pathname === "/singleAsset") {

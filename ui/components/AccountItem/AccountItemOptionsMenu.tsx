@@ -1,5 +1,5 @@
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { setSnackbarMessage } from "@pelagus/pelagus-background/redux-slices/ui"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
@@ -46,12 +46,12 @@ export default function AccountItemOptionsMenu({
   const [showClearTXHistory, setShowClearTXHistory] = useState(false)
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
-    dispatch(setSnackbarMessage("Address copied to clipboard"))
+    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
   }, [address, dispatch])
 
   const copyPrivateKey = async () => {
     await addToOffscreenClipboardSensitiveData(key)
-    dispatch(setSnackbarMessage("Key copied to clipboard"))
+    dispatch(setSnackbarConfig({ message: "Key copied to clipboard" }))
   }
 
   const onClosePrivateKeyModal = () => {

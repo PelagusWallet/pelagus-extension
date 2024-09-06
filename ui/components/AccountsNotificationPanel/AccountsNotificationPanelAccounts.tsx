@@ -6,7 +6,7 @@ import React, { ReactElement, useEffect, useRef, useState } from "react"
 import {
   selectShowingAddAccountModal,
   setNewSelectedAccount,
-  setSnackbarMessage,
+  setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   AccountTotal,
@@ -199,7 +199,9 @@ export default function AccountsNotificationPanelAccounts({
     if (!isMounted.current) {
       isMounted.current = true
     } else if (!areKeyringsUnlocked) {
-      dispatch(setSnackbarMessage(t("accounts.notificationPanel.snackbar")))
+      dispatch(
+        setSnackbarConfig({ message: t("accounts.notificationPanel.snackbar") })
+      )
     }
   }, [history, areKeyringsUnlocked, dispatch, t])
 
@@ -327,7 +329,6 @@ export default function AccountsNotificationPanelAccounts({
         ) {
           return <p className="noAccounts">{t("accounts.noResults")}</p>
         }
-        // console.log("accountTotalsByType", accountTotalsByType)
 
         return (
           <div
@@ -358,7 +359,9 @@ export default function AccountsNotificationPanelAccounts({
                         if (zone.current === null) {
                           throw new Error("zone is empty")
                         } else if (!VALID_ZONES.includes(zone.current)) {
-                          dispatch(setSnackbarMessage("Invalid zone"))
+                          dispatch(
+                                  setSnackbarConfig({ message: "Invalid zone" })
+                                )
                           throw new Error("zone is invalid")
                         }
 

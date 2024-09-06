@@ -273,8 +273,6 @@ export default class Main extends BaseService<never> {
 
   balanceChecker: NodeJS.Timeout
 
-  balanceNotifications: NodeJS.Timeout
-
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
     const providerFactoryService = ProviderFactory.create()
@@ -461,8 +459,13 @@ export default class Main extends BaseService<never> {
     await this.store.dispatch(setNewNetworkConnectError(chainIdWithError))
   }
 
-  async startBalanceNotifications(): Promise<void> {
-    this.balanceNotifications = setInterval(async () => {
+  async startBalanceChecker(): Promise<void> {
+    const interval = setInterval(async () => {
+      if (!walletOpen) return
+
+      // Also refresh the transactions in the account
+      this.enrichActivitiesForSelectedAccount()
+
       const { selectedAccount } = this.store.getState().ui
       const currentAccountState =
         this.store.getState().account.accountsData.evm[
@@ -501,6 +504,11 @@ export default class Main extends BaseService<never> {
           )
           continue
         }
+        // isSmartContractFungibleAsset(asset)
+        //   ? logger.info(
+        //       `Balance checker: ${asset.symbol} ${newBalance} ${asset.contractAddress}`
+        //     )
+        //   : logger.info(`Balance checker: ${asset.symbol} ${newBalance}`)
 
         if (newBalance > amount && !this.keyringService.isLocked()) {
           const parsedAmount = bigIntToDecimal(newBalance - amount)
@@ -510,61 +518,7 @@ export default class Main extends BaseService<never> {
             selectedAccount.address
           )
         }
-      }
-    }, 10000)
-  }
-
-  async startBalanceChecker(): Promise<void> {
-    const interval = setInterval(async () => {
-      if (!walletOpen) return
-
-      // Also refresh the transactions in the account
-      this.enrichActivitiesForSelectedAccount()
-
-      const { selectedAccount } = this.store.getState().ui
-      const currentAccountState =
-        this.store.getState().account.accountsData.evm[
-          selectedAccount.network.chainID
-        ]?.[selectedAccount.address]
-      if (
-        currentAccountState === undefined ||
-        currentAccountState === "loading"
-      )
-        return
-
-      const { balances } = currentAccountState
-      for (const assetSymbol in balances) {
-        const { asset } = balances[assetSymbol].assetAmount
-        let newBalance = BigInt(0)
-        if (isSmartContractFungibleAsset(asset)) {
-          if (
-            getExtendedZoneForAddress(asset.contractAddress, false) !==
-            getExtendedZoneForAddress(selectedAccount.address, false)
-          ) {
-            continue
-          }
-          newBalance = (
-            await this.chainService.assetData.getTokenBalance(
-              selectedAccount,
-              asset.contractAddress
-            )
-          ).amount
-        } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
-          newBalance = (
-            await this.chainService.getLatestBaseAccountBalance(selectedAccount)
-          ).assetAmount.amount
-        } else {
-          logger.error(
-            `Unknown asset type for balance checker, asset: ${asset.symbol}`
-          )
-          continue
-        }
-        isSmartContractFungibleAsset(asset)
-          ? logger.info(
-              `Balance checker: ${asset.symbol} ${newBalance} ${asset.contractAddress}`
-            )
-          : logger.info(`Balance checker: ${asset.symbol} ${newBalance}`)
-        await this.store.dispatch(
+        this.store.dispatch(
           updateAccountBalance({
             balances: [
               {
@@ -668,7 +622,6 @@ export default class Main extends BaseService<never> {
       this.signingService.startService(),
       this.analyticsService.startService(),
       this.startBalanceChecker(),
-      this.startBalanceNotifications(),
     ]
 
     await Promise.all(servicesToBeStarted)
@@ -689,7 +642,6 @@ export default class Main extends BaseService<never> {
       this.signingService.stopService(),
       this.analyticsService.stopService(),
       clearInterval(this.balanceChecker),
-      clearInterval(this.balanceNotifications),
     ]
 
     await Promise.all(servicesToBeStopped)

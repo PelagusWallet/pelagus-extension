@@ -67,20 +67,23 @@ export default abstract class NotificationsManager {
   ): void {
     if (!this.isNotificationsEnabled()) return
 
-    const message = `You have received ${amount} ${symbol} in your wallet address ${truncateAddress(
-      address
-    )}`
     const options = {
       ...DEFAULT_NOTIFICATION_OPTIONS,
       title: "Funds Received",
-      message,
+      message: `You have received ${amount} ${symbol} in your wallet address ${truncateAddress(
+        address
+      )}`,
     }
 
     if (!walletOpen) {
       this.createChromeNotification(options)
     } else {
-      globalThis.main.store.dispatch(
-        setSnackbarConfig({ message, withSound: true })
+      const { store } = globalThis.main
+      store.dispatch(
+        setSnackbarConfig({
+          message: `You have received ${amount} ${symbol}`,
+          withSound: true,
+        })
       )
     }
   }

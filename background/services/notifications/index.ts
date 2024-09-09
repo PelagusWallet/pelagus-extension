@@ -13,6 +13,8 @@ const DEFAULT_NOTIFICATION_OPTIONS = {
   iconUrl: "../../icon-128.png",
 }
 
+const DURATION_MS = 5000
+
 export default abstract class NotificationsManager {
   private static isNotificationsEnabled(): boolean {
     return globalThis.main.store.getState().ui.settings.showPelagusNotifications
@@ -54,6 +56,7 @@ export default abstract class NotificationsManager {
           message: `Transaction ${nonce ?? 0} confirmed! Click to view details`,
           withSound: true,
           type: SnackBarType.transactionSettled,
+          duration: DURATION_MS,
         })
       )
       store.dispatch(setShowingActivityDetail(txHash))
@@ -83,6 +86,7 @@ export default abstract class NotificationsManager {
         setSnackbarConfig({
           message: `You have received ${amount} ${symbol}`,
           withSound: true,
+          duration: DURATION_MS,
         })
       )
     }

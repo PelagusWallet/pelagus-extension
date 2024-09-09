@@ -19,7 +19,6 @@ import {
 } from "../../hooks"
 import SnackbarTransactionActivityModal from "./OnClickModals/SnackbarTransactionActivityModal"
 
-const DISMISS_MS = 2500
 const DISMISS_ANIMATION_MS = 300
 
 export default function Snackbar({
@@ -37,6 +36,7 @@ export default function Snackbar({
     message: snackbarMessage,
     withSound,
     type,
+    duration: DISMISS_MS,
   } = useBackgroundSelector(selectSnackbarConfig)
   const shouldHide = snackbarMessage.trim() === ""
   // Delay the display message clearing to allow the animation to complete

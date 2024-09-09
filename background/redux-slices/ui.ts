@@ -28,6 +28,8 @@ export const defaultSettings = {
   showPelagusNotifications: true,
 }
 
+const defaultSnackbarDuration = 2500
+
 export type UIState = {
   selectedAccount: AddressOnNetwork
   showingActivityDetailID: string | null
@@ -52,6 +54,7 @@ export type UIState = {
     message: string
     withSound: boolean
     type: SnackBarType
+    duration: number
   }
   slippageTolerance: number
   accountSignerSettings: AccountSignerSettings[]
@@ -62,6 +65,7 @@ export type Events = {
     message: string
     withSound?: boolean
     type: SnackBarType
+    duration?: number
   }
   deleteAnalyticsData: never
   newDefaultWalletValue: boolean
@@ -92,7 +96,12 @@ export const initialState: UIState = {
   },
   initializationLoadingTimeExpired: false,
   settings: defaultSettings,
-  snackbarConfig: { message: "", withSound: false, type: SnackBarType.base },
+  snackbarConfig: {
+    message: "",
+    withSound: false,
+    type: SnackBarType.base,
+    duration: defaultSnackbarDuration,
+  },
   slippageTolerance: 0.01,
   accountSignerSettings: [],
 }
@@ -187,9 +196,14 @@ const uiSlice = createSlice({
     setSnackbarConfig: (
       state,
       {
-        payload: { message, withSound, type },
+        payload: { message, withSound, type, duration },
       }: {
-        payload: { message: string; withSound?: boolean; type?: SnackBarType }
+        payload: {
+          message: string
+          withSound?: boolean
+          type?: SnackBarType
+          duration?: number
+        }
       }
     ): UIState => ({
       ...state,
@@ -197,6 +211,7 @@ const uiSlice = createSlice({
         message,
         withSound: withSound ?? false,
         type: type ?? SnackBarType.base,
+        duration: duration ?? defaultSnackbarDuration,
       },
     }),
     resetSnackbarConfig: (state): UIState => ({
@@ -205,6 +220,7 @@ const uiSlice = createSlice({
         message: "",
         withSound: false,
         type: SnackBarType.base,
+        duration: defaultSnackbarDuration,
       },
     }),
     setDefaultWallet: (
@@ -479,7 +495,12 @@ export const selectHideDust = createSelector(
 export const selectSnackbarConfig = createSelector(selectUI, (ui) =>
   ui
     ? ui.snackbarConfig
-    : { message: "", withSound: false, type: SnackBarType.base }
+    : {
+        message: "",
+        withSound: false,
+        type: SnackBarType.base,
+        duration: defaultSnackbarDuration,
+      }
 )
 
 export const selectDefaultWallet = createSelector(

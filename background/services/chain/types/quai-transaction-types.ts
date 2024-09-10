@@ -7,7 +7,10 @@ import {
 } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { QuaiTransactionLike } from "quais/lib/commonjs/transaction/quai-transaction"
-import { QuaiTransactionResponseParams } from "quais/lib/commonjs/providers/formatting"
+import {
+  EtxParams,
+  QuaiTransactionResponseParams,
+} from "quais/lib/commonjs/providers/formatting"
 
 import { TransactionAnnotation } from "../../enrichment"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
@@ -75,8 +78,9 @@ export type SerializedTransactionForHistory = {
   value: BigNumberish | null | undefined
   index: bigint
   blockNumber: number | null
-  etxs: ReadonlyArray<string>
+  etxs: readonly EtxParams[]
   gasPrice: BigNumberish | null | undefined
   logs: ReadonlyArray<LogParams>
   gasUsed?: bigint | null
+  etxType: string | null
 }

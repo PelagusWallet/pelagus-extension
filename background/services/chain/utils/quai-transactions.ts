@@ -110,6 +110,7 @@ export const createSerializedQuaiTransaction = (
         gasPrice,
         logs: [],
         gasUsed: undefined,
+        etxType: null,
       }
 
     case QuaiTransactionStatus.PENDING:
@@ -139,6 +140,7 @@ export const createSerializedQuaiTransaction = (
         gasPrice,
         logs: [],
         gasUsed: undefined,
+        etxType: transaction?.etxType ?? null,
       }
 
     case QuaiTransactionStatus.CONFIRMED:
@@ -164,6 +166,7 @@ export const createSerializedQuaiTransaction = (
         gasPrice,
         logs: transaction?.logs,
         gasUsed: transaction?.gasPrice,
+        etxType: null,
       }
 
     default:
@@ -189,6 +192,7 @@ export const createSerializedQuaiTransaction = (
         gasPrice: undefined,
         logs: [],
         gasUsed: undefined,
+        etxType: null,
       }
   }
 }

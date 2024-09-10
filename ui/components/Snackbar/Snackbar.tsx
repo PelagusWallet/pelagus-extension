@@ -31,6 +31,7 @@ export default function Snackbar({
   // Snackbar for tabbed onboarding should be displayed under the button in the right container on the page
   const [isOnboarding] = useState(useIsOnboarding())
   const showInRightContainer = isTabbedOnboarding ? isOnboarding : false
+  const [isOpenActivityDetails, setIsOpenActivityDetails] = useState(false)
 
   const {
     message: snackbarMessage,
@@ -77,10 +78,8 @@ export default function Snackbar({
     audioRef.current?.play()
   }, [withSound])
 
-  const [isOpenActivityDetails, setIsOpenActivityDetails] = useState(false)
-
   const handleClick = () => {
-    clearSnackbarTimeout()
+    dispatch(resetSnackbarConfig())
 
     switch (type) {
       case SnackBarType.transactionSettled:
@@ -92,18 +91,21 @@ export default function Snackbar({
   }
 
   return (
-    <div
-      className={classNames("snackbar_container", {
-        hidden: shouldHide,
-        right_container: showInRightContainer,
-      })}
-      onClick={handleClick}
-    >
-      <audio ref={audioRef} src="./sounds/ding.mp3" preload="auto" />
+    <>
+      <div
+        className={classNames("snackbar_container", {
+          hidden: shouldHide,
+          right_container: showInRightContainer,
+        })}
+        onClick={handleClick}
+      >
+        <audio ref={audioRef} src="./sounds/ding.mp3" preload="auto" />
+
+        <div className="snackbar_wrap">{displayMessage}</div>
+      </div>
 
       {isOpenActivityDetails && <SnackbarTransactionActivityModal />}
 
-      <div className="snackbar_wrap">{displayMessage}</div>
       <style jsx>
         {`
           .snackbar_container {
@@ -155,6 +157,6 @@ export default function Snackbar({
           }
         `}
       </style>
-    </div>
+    </>
   )
 }

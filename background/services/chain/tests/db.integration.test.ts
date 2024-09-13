@@ -50,15 +50,15 @@ describe("Chain Database ", () => {
       expect(accountBalances[0].address).toEqual(accountBalance.address)
     })
   })
-  describe("addBlock", () => {
-    it("should correctly persist blocks to indexedDB", async () => {
-      expect((await db.table("blocks").toArray()).length).toEqual(0)
-      const block = createAnyEVMBlock()
-      await db.addBlock(block)
-      const blocks = await db.table("blocks").toArray()
-      expect(blocks.length).toEqual(1)
-    })
-  })
+  // describe("addBlock", () => {
+  //   it("should correctly persist blocks to indexedDB", async () => {
+  //     expect((await db.table("blocks").toArray()).length).toEqual(0)
+  //     const block = createAnyEVMBlock()
+  //     await db.addBlock(block)
+  //     const blocks = await db.table("blocks").toArray()
+  //     expect(blocks.length).toEqual(1)
+  //   })
+  // })
   describe("addOrUpdateTransaction", () => {
     const addTransactionEth = createAnyEVMTransaction({
       chainId: QuaiGoldenAgeTestnet.chainID,
@@ -136,20 +136,20 @@ describe("Chain Database ", () => {
   //     expect(allTransactions.filter((key) => !!key)).toHaveLength(4)
   //   })
   // })
-  describe("getBlock", () => {
-    /* Creating two blocks. */
-    it("should return a block if that block is in indexedDB", async () => {
-      const block = createAnyEVMBlock()
-      await db.addBlock(block)
-      const persistedBlock = await db.getBlock(block.network, block.hash)
-      expect(persistedBlock?.hash).toEqual(block.hash)
-    })
-    it("should not return a block if that block is not in indexedDB", async () => {
-      const block2 = createAnyEVMBlock()
-      const persistedBlock = await db.getBlock(block2.network, block2.hash)
-      expect(persistedBlock).toEqual(null)
-    })
-  })
+  // describe("getBlock", () => {
+  //   /* Creating two blocks. */
+  //   it("should return a block if that block is in indexedDB", async () => {
+  //     const block = createAnyEVMBlock()
+  //     await db.addBlock(block)
+  //     const persistedBlock = await db.getBlock(block.network, block.hash)
+  //     expect(persistedBlock?.hash).toEqual(block.hash)
+  //   })
+  //   it("should not return a block if that block is not in indexedDB", async () => {
+  //     const block2 = createAnyEVMBlock()
+  //     const persistedBlock = await db.getBlock(block2.network, block2.hash)
+  //     expect(persistedBlock).toEqual(null)
+  //   })
+  // })
   describe("getChainIdsToTrack", () => {
     it("should return chainIds corresponding to the networks of accounts being tracked", async () => {
       await db.addAccountToTrack(account1)
@@ -201,15 +201,15 @@ describe("Chain Database ", () => {
       expect(latest).toBeNull()
     })
   })
-  describe("getLatestBlock", () => {
-    const block = createAnyEVMBlock({
-      network: QuaiGoldenAgeTestnet,
-    })
-    it("should retrieve the most recent block for a given network", async () => {
-      await db.addBlock(block)
-      expect(await db.getLatestBlock(QuaiGoldenAgeTestnet)).toBeTruthy()
-    })
-  })
+  // describe("getLatestBlock", () => {
+  //   const block = createAnyEVMBlock({
+  //     network: QuaiGoldenAgeTestnet,
+  //   })
+  //   it("should retrieve the most recent block for a given network", async () => {
+  //     await db.addBlock(block)
+  //     expect(await db.getLatestBlock(QuaiGoldenAgeTestnet)).toBeTruthy()
+  //   })
+  // })
   // TODO-MIGRATION
   // describe("getNetworkPendingTransactions", () => {
   //   it("should return all pending transactions", async () => {
@@ -277,21 +277,21 @@ describe("Chain Database ", () => {
       expect(oldest).toEqual(1n)
     })
   })
-  describe("getTransaction", () => {
-    describe("getBlock", () => {
-      const block = createAnyEVMBlock()
-      const block2 = createAnyEVMBlock()
-      it("should return a block if that block is in indexedDB", async () => {
-        await db.addBlock(block)
-        const persistedBlock = await db.getBlock(block.network, block.hash)
-        expect(persistedBlock?.hash).toEqual(block.hash)
-      })
-      it("should not return a block if that block is not in indexedDB", async () => {
-        const persistedBlock = await db.getBlock(block2.network, block2.hash)
-        expect(persistedBlock).toEqual(null)
-      })
-    })
-  })
+  // describe("getTransaction", () => {
+  //   describe("getBlock", () => {
+  //     const block = createAnyEVMBlock()
+  //     const block2 = createAnyEVMBlock()
+  //     it("should return a block if that block is in indexedDB", async () => {
+  //       await db.addBlock(block)
+  //       const persistedBlock = await db.getBlock(block.network, block.hash)
+  //       expect(persistedBlock?.hash).toEqual(block.hash)
+  //     })
+  //     it("should not return a block if that block is not in indexedDB", async () => {
+  //       const persistedBlock = await db.getBlock(block2.network, block2.hash)
+  //       expect(persistedBlock).toEqual(null)
+  //     })
+  //   })
+  // })
   describe("recordAccountAssetTransferLookup", () => {
     it("should correctly persist accountAssetTransferLookups", async () => {
       const addressNetwork = createAddressOnNetwork()

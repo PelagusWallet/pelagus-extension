@@ -4,11 +4,9 @@ import ChainService, {
   QueuedTxToRetrieve,
 } from ".."
 import { MINUTE, SECOND } from "../../../constants"
-import * as gas from "../../../lib/gas"
 import {
   createAddressOnNetwork,
   createArrayWith0xHash,
-  createBlockPrices,
   createChainService,
   createTransactionsToRetrieve,
 } from "../../../tests/factories"
@@ -98,19 +96,19 @@ describe("Chain Service", () => {
       jest.useRealTimers()
     })
 
-    it("should get block prices if the NETWORK_POLLING_TIMEOUT has been exceeded", async () => {
-      // Set last activity time to 10 minutes ago
-      ;(
-        chainService as unknown as ChainServiceExternalized
-      ).lastUserActivityOnNetwork[QuaiGoldenAgeTestnet.chainID] =
-        Date.now() - 10 * MINUTE
-      const getBlockPricesStub = sandbox
-        .stub(gas, "default")
-        .callsFake(async () => createBlockPrices())
-
-      await chainService.markNetworkActivity(QuaiGoldenAgeTestnet.chainID)
-      expect(getBlockPricesStub.called).toEqual(true)
-    })
+    // it("should get block prices if the NETWORK_POLLING_TIMEOUT has been exceeded", async () => {
+    //   // Set last activity time to 10 minutes ago
+    //   ;(
+    //     chainService as unknown as ChainServiceExternalized
+    //   ).lastUserActivityOnNetwork[QuaiGoldenAgeTestnet.chainID] =
+    //     Date.now() - 10 * MINUTE
+    //   const getBlockPricesStub = sandbox
+    //     .stub(gas, "default")
+    //     .callsFake(async () => createBlockPrices())
+    //
+    //   await chainService.markNetworkActivity(QuaiGoldenAgeTestnet.chainID)
+    //   expect(getBlockPricesStub.called).toEqual(true)
+    // })
   })
 
   describe("markAccountActivity", () => {

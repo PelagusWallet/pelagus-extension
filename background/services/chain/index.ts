@@ -20,10 +20,8 @@ import { NetworksArray } from "../../constants/networks/networks"
 import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
-import getBlockPrices from "../../lib/gas"
 import { HexString, UNIXTime } from "../../types"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
-import { AnyEVMBlock, BlockPrices, toHexChainID } from "../../networks"
 import {
   AnyAssetAmount,
   AssetTransfer,
@@ -34,11 +32,7 @@ import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, createDB, QuaiTransactionDBEntry } from "./db"
 import BaseService from "../base"
-import {
-  blockFromProviderBlock,
-  getExtendedZoneForAddress,
-  getNetworkById,
-} from "./utils"
+import { getExtendedZoneForAddress, getNetworkById } from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
 import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
@@ -82,9 +76,6 @@ const NETWORK_POLLING_TIMEOUT = MINUTE * 2.05
 // mempool) reasons.
 const TRANSACTION_CHECK_LIFETIME_MS = 10 * HOUR
 
-const GAS_POLLS_PER_PERIOD = 1 // 1 time per 5 minutes
-const GAS_POLLING_PERIOD = 5 // 5 minutes
-
 // Maximum number of transactions with priority.
 // Transactions that will be retrieved before others for one account.
 // Transactions with priority for individual accounts will keep the order of loading
@@ -122,12 +113,10 @@ interface Events extends ServiceLifecycleEvents {
     addressNetwork: AddressOnNetwork
     assetTransfers: AssetTransfer[]
   }
-  block: AnyEVMBlock
   transaction: {
     forAccounts: string[]
     transaction: SerializedTransactionForHistory
   }
-  blockPrices: { blockPrices: BlockPrices; network: NetworkInterface }
   customChainAdded: ValidatedAddEthereumChainParameter
 }
 
@@ -281,15 +270,6 @@ export default class ChainService extends BaseService<Events> {
           this.handleRecentAssetTransferAlarm(true)
         },
       },
-      blockPrices: {
-        runAtStart: false,
-        schedule: {
-          periodInMinutes: GAS_POLLING_PERIOD,
-        },
-        handler: () => {
-          this.pollBlockPrices()
-        },
-      },
     })
 
     this.subscribedAccounts = []
@@ -349,7 +329,6 @@ export default class ChainService extends BaseService<Events> {
   ): Promise<void> => {
     networks.forEach((network) => {
       Promise.allSettled([
-        this.pollLatestBlock(network),
         this.subscribeToNewHeads(network),
         this.emitter.emit("networkSubscribed", network),
       ]).catch((e) => logger.error(e))
@@ -546,88 +525,6 @@ export default class ChainService extends BaseService<Events> {
     }
   }
 
-  // ----------------------------------------- BLOCKS -------------------------------------------------
-  async getBlockHeight(network: NetworkInterface): Promise<number> {
-    try {
-      const cachedBlock = await this.db.getLatestBlock(network)
-      const { address } = await this.preferenceService.getSelectedAccount()
-      const shard = getExtendedZoneForAddress(address, false) as Shard
-
-      if (cachedBlock) return cachedBlock.blockHeight
-
-      const blockNumber = await this.jsonRpcProvider.getBlockNumber(shard)
-
-      return blockNumber
-    } catch (e) {
-      logger.error(e)
-      throw new Error("Failed get block number")
-    }
-  }
-
-  /**
-   * Polls the latest block number from the blockchain, saves it into the database,
-   * and emits a block event.
-   *
-   * @param {NetworkInterface} network - The network interface to use for polling the block.
-   */
-  private async pollLatestBlock(network: NetworkInterface): Promise<void> {
-    try {
-      const { address } = await this.preferenceService.getSelectedAccount()
-
-      const shard = getExtendedZoneForAddress(address, false) as Shard
-
-      const latestBlock = await this.jsonRpcProvider.getBlock(shard, "latest")
-      if (!latestBlock) return
-
-      const block = blockFromProviderBlock(network, latestBlock)
-      await this.db.addBlock(block)
-
-      this.emitter.emit("block", block)
-
-      // TODO if it matches a known block height and the difficulty is higher,
-      // emit a reorg event
-    } catch (e) {
-      logger.error("Error getting block number", e)
-    }
-  }
-
-  /**
-   * Return cached information on a block if it's in the local DB.
-   *
-   * If the block is not cached, retrieve it from the specified shard,
-   * cache it in the local DB, and return the block object.
-   *
-   * @param network - The EVM network we're interested in.
-   * @param shard - The shard from which to retrieve the block.
-   * @param blockHash - The hash of the block we're interested in.
-   * @returns {Promise<AnyEVMBlock>} - The block object, either from cache or from the network.
-   * @throws {Error} - If the block cannot be retrieved from the network.
-   */
-  async getBlockByHash(
-    network: NetworkInterface,
-    shard: Shard,
-    blockHash: string
-  ): Promise<AnyEVMBlock> {
-    try {
-      const cachedBlock = await this.db.getBlock(network, blockHash)
-
-      if (cachedBlock) return cachedBlock
-
-      const resultBlock = await this.jsonRpcProvider.getBlock(shard, blockHash)
-      if (!resultBlock) {
-        throw new Error(`Failed to get block`)
-      }
-
-      const block = blockFromProviderBlock(network, resultBlock)
-      await this.db.addBlock(block)
-
-      this.emitter.emit("block", block)
-      return block
-    } catch (e) {
-      logger.error(e)
-      throw new Error(`Failed to get block`)
-    }
-  }
   // ------------------------------------------------------------------------------------------------
 
   /**
@@ -906,7 +803,8 @@ export default class ChainService extends BaseService<Events> {
     const networkWasInactive = this.networkIsInactive(chainID)
     this.lastUserActivityOnNetwork[chainID] = Date.now()
     if (networkWasInactive) {
-      this.pollBlockPricesForNetwork(chainID)
+      // TODO
+      // await this.blockService.pollBlockPricesForNetwork(chainID)
     }
   }
 
@@ -922,59 +820,6 @@ export default class ChainService extends BaseService<Events> {
       Date.now() - NETWORK_POLLING_TIMEOUT >
       this.lastUserActivityOnNetwork[chainID]
     )
-  }
-
-  /*
-   * Periodically fetch block prices and emit an event whenever new data is received
-   * Write block prices to IndexedDB, so we have them for later
-   */
-  async pollBlockPrices(): Promise<void> {
-    // Schedule next N polls at even interval
-    for (let i = 1; i < GAS_POLLS_PER_PERIOD; i += 1) {
-      setTimeout(async () => {
-        await Promise.allSettled(
-          this.subscribedNetworks.map(async ({ network }) =>
-            this.pollBlockPricesForNetwork(network.chainID)
-          )
-        )
-      }, (GAS_POLLING_PERIOD / GAS_POLLS_PER_PERIOD) * (GAS_POLLING_PERIOD * MINUTE) * i)
-    }
-
-    // Immediately run the first poll
-    await Promise.allSettled(
-      this.subscribedNetworks.map(async ({ network }) =>
-        this.pollBlockPricesForNetwork(network.chainID)
-      )
-    )
-  }
-
-  async pollBlockPricesForNetwork(chainID: string): Promise<void> {
-    if (!this.isCurrentlyActiveChainID(chainID)) return
-
-    const subscription = this.subscribedNetworks.find(
-      ({ network }) => toHexChainID(network.chainID) === toHexChainID(chainID)
-    )
-
-    if (!subscription) {
-      logger.warn(
-        `Can't fetch block prices for unsubscribed chainID ${chainID}`
-      )
-      return
-    }
-
-    const { address } = await this.preferenceService.getSelectedAccount()
-    const shard = getExtendedZoneForAddress(address, false) as Shard
-    const zone = Zone.Cyprus1 // TODO-MIGRATION toZone function can not be imported from quais
-    const blockPrices = await getBlockPrices(
-      subscription.network,
-      subscription.provider,
-      shard,
-      zone
-    )
-    this.emitter.emit("blockPrices", {
-      blockPrices,
-      network: subscription.network,
-    })
   }
 
   async send(method: string, params: unknown[]): Promise<unknown> {
@@ -1032,9 +877,19 @@ export default class ChainService extends BaseService<Events> {
   private async loadRecentAssetTransfers(
     addressNetwork: AddressOnNetwork
   ): Promise<void> {
+    const shard = getExtendedZoneForAddress(
+      addressNetwork.address,
+      false
+    ) as Shard
+
     const blockHeight =
-      (await this.getBlockHeight(addressNetwork.network)) -
+      (await this.jsonRpcProvider.getBlockNumber(shard)) -
       BLOCKS_TO_SKIP_FOR_TRANSACTION_HISTORY
+
+    // TODO - import blockService in future service with tx
+    // const blockHeight =
+    //   (await this.blockService.getBlockHeight(addressNetwork.network)) -
+    //   BLOCKS_TO_SKIP_FOR_TRANSACTION_HISTORY
     const fromBlock = blockHeight - BLOCKS_FOR_TRANSACTION_HISTORY
 
     try {
@@ -1063,9 +918,17 @@ export default class ChainService extends BaseService<Events> {
   private async loadHistoricAssetTransfers(
     addressNetwork: AddressOnNetwork
   ): Promise<void> {
+    const shard = getExtendedZoneForAddress(
+      addressNetwork.address,
+      false
+    ) as Shard
+
     const oldest =
       (await this.db.getOldestAccountAssetTransferLookup(addressNetwork)) ??
-      BigInt(await this.getBlockHeight(addressNetwork.network))
+      BigInt(await this.jsonRpcProvider.getBlockNumber(shard))
+
+    // TODO - import blockService in future service with tx
+    // BigInt(await this.blockService.getBlockHeight(addressNetwork.network))
 
     if (oldest !== 0n) {
       await this.loadAssetTransfers(addressNetwork, 0n, oldest)
@@ -1368,9 +1231,6 @@ export default class ChainService extends BaseService<Events> {
       network,
       provider: jsonRpcProvider,
     })
-
-    this.pollLatestBlock(network)
-    this.pollBlockPrices()
   }
 
   /**

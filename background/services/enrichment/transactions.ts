@@ -28,6 +28,7 @@ import { getExtendedZoneForAddress, getNetworkById } from "../chain/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { SerializedTransactionForHistory } from "../chain/types"
 import logger from "../../lib/logger"
+import BlockService from "../block"
 
 async function buildSubannotations(
   chainService: ChainService,
@@ -175,6 +176,7 @@ export async function annotationsFromLogs(
 let latestWorkedAsk = 0
 let numAsks = 0
 export default async function resolveTransactionAnnotation(
+  blockService: BlockService,
   chainService: ChainService,
   indexingService: IndexingService,
   nameService: NameService,
@@ -282,12 +284,12 @@ export default async function resolveTransactionAnnotation(
     try {
       block =
         useDestinationShard && transaction.to
-          ? await chainService.getBlockByHash(
+          ? await blockService.getBlockByHash(
               network,
               getExtendedZoneForAddress(transaction.to, false) as Shard,
               blockHash
             )
-          : await chainService.getBlockByHash(
+          : await blockService.getBlockByHash(
               network,
               getExtendedZoneForAddress(transaction.from, false) as Shard,
               blockHash

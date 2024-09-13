@@ -28,6 +28,7 @@ import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { isQuaiHandle } from "../../constants/networks/networkUtils"
 import { NetworksArray } from "../../constants/networks/networks"
 import { EnrichedQuaiTransaction } from "../chain/types"
+import BlockService from "../block"
 
 // Transactions seen within this many blocks of the chain tip will schedule a
 // token refresh sooner than the standard rate.
@@ -88,19 +89,21 @@ export default class IndexingService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     IndexingService,
-    [Promise<PreferenceService>, Promise<ChainService>]
-  > = async (preferenceService, chainService, dexieOptions) => {
+    [Promise<PreferenceService>, Promise<ChainService>, Promise<BlockService>]
+  > = async (preferenceService, chainService, blockService, dexieOptions) => {
     return new this(
       await getOrCreateDb(dexieOptions),
       await preferenceService,
-      await chainService
+      await chainService,
+      await blockService
     )
   }
 
   private constructor(
     private db: IndexingDatabase,
     private preferenceService: PreferenceService,
-    private chainService: ChainService
+    private chainService: ChainService,
+    private blockService: BlockService
   ) {
     super({
       balance: {
@@ -428,7 +431,7 @@ export default class IndexingService extends BaseService<Events> {
           transaction.status === 1 &&
           transaction?.blockNumber &&
           transaction.blockNumber >
-            (await this.chainService.getBlockHeight(transactionNetwork)) -
+            (await this.blockService.getBlockHeight(transactionNetwork)) -
               FAST_TOKEN_REFRESH_BLOCK_RANGE
         ) {
           this.scheduledTokenRefresh = true

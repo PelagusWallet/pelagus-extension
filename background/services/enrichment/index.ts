@@ -17,6 +17,7 @@ import {
 } from "../chain/types"
 import { QuaiTransactionDBEntry } from "../chain/db"
 import { getNetworkById } from "../chain/utils"
+import BlockService from "../block"
 
 export * from "./types"
 
@@ -51,19 +52,26 @@ export default class EnrichmentService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     EnrichmentService,
-    [Promise<ChainService>, Promise<IndexingService>, Promise<NameService>]
-  > = async (chainService, indexingService, nameService) => {
+    [
+      Promise<ChainService>,
+      Promise<IndexingService>,
+      Promise<NameService>,
+      Promise<BlockService>
+    ]
+  > = async (chainService, indexingService, nameService, blockService) => {
     return new this(
       await chainService,
       await indexingService,
-      await nameService
+      await nameService,
+      await blockService
     )
   }
 
   private constructor(
     private chainService: ChainService,
     private indexingService: IndexingService,
-    private nameService: NameService
+    private nameService: NameService,
+    private blockService: BlockService
   ) {
     super({})
   }
@@ -128,6 +136,7 @@ export default class EnrichmentService extends BaseService<Events> {
     return {
       ...transaction,
       annotation: await resolveTransactionAnnotation(
+        this.blockService,
         this.chainService,
         this.indexingService,
         this.nameService,

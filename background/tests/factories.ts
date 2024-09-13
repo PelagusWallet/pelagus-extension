@@ -34,6 +34,7 @@ import {
   QuaiTransactionStatus,
 } from "../services/chain/types"
 import ProviderFactory from "../services/provider-factory/provider-factory"
+import BlockService from "../services/block"
 
 const createRandom0xHash = () =>
   keccak256(Buffer.from(Math.random().toString()))
@@ -83,13 +84,17 @@ export async function createIndexingService(overrides?: {
   chainService?: Promise<ChainService>
   preferenceService?: Promise<PreferenceService>
   dexieOptions?: DexieOptions
+  blockService: Promise<BlockService>
 }): Promise<IndexingService> {
   const preferenceService =
     overrides?.preferenceService ?? createPreferenceService()
+  const chainService =
+    overrides?.chainService ?? createChainService({ preferenceService })
 
   return IndexingService.create(
     preferenceService,
-    overrides?.chainService ?? createChainService({ preferenceService }),
+    chainService,
+    BlockService.create(chainService, preferenceService),
     overrides?.dexieOptions
   )
 }

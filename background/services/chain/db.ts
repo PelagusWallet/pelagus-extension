@@ -1,13 +1,13 @@
 import Dexie, { DexieOptions, IndexableTypeArray } from "dexie"
+import { HexString } from "quais/lib/commonjs/utils"
 import { UNIXTime } from "../../types"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
-import { AnyEVMBlock, NetworkBaseAsset } from "../../networks"
+import { NetworkBaseAsset } from "../../networks"
 import { FungibleAsset } from "../../assets"
 import { BASE_ASSETS } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
 import { QuaiTransactionStatus, SerializedTransactionForHistory } from "./types"
-import { HexString } from "quais/lib/commonjs/utils"
 
 type AdditionalTransactionFieldsForDB = {
   dataSource: "local"
@@ -48,13 +48,6 @@ export class ChainDatabase extends Dexie {
   >
 
   /*
-   * Partial block headers cached to track reorgs and network status.
-   *
-   * Keyed by the [block hash, network name] pair.
-   */
-  private blocks!: Dexie.Table<AnyEVMBlock, [string, string]>
-
-  /*
    * Quai transactions relevant to tracked accounts.
    *
    * Keyed by the [transaction hash, network chainID] pair.
@@ -86,8 +79,6 @@ export class ChainDatabase extends Dexie {
         "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
       quaiTransactions:
         "&[hash+chainId],hash,from,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,firstSeen,dataSource",
-      blocks:
-        "&[hash+network.baseAsset.name],[network.baseAsset.name+timestamp],hash,network.baseAsset.name,timestamp,parentHash,blockHeight,[blockHeight+network.baseAsset.name]",
       networks: "&chainID,baseAsset.name,family",
       baseAssets: "&chainID,symbol,name",
     })
@@ -157,43 +148,6 @@ export class ChainDatabase extends Dexie {
         (chainID): chainID is string => typeof chainID === "string"
       )
     )
-  }
-
-  /** BLOCKS */
-  async getLatestBlock(network: NetworkInterface): Promise<AnyEVMBlock | null> {
-    return (
-      (
-        await this.blocks
-          .where("[network.baseAsset.name+timestamp]")
-          // Only query blocks from the last 86 seconds
-          .aboveOrEqual([network.baseAsset.name, Date.now() - 60 * 60 * 24])
-          .and(
-            (block) => block.network.baseAsset.name === network.baseAsset.name
-          )
-          .reverse()
-          .sortBy("timestamp")
-      )[0] || null
-    )
-  }
-
-  async getBlock(
-    network: NetworkInterface,
-    blockHash: string
-  ): Promise<AnyEVMBlock | null> {
-    return (
-      (
-        await this.blocks
-          .where("[hash+network.baseAsset.name]")
-          .equals([blockHash, network.baseAsset.name])
-          .toArray()
-      )[0] || null
-    )
-  }
-
-  async addBlock(block: AnyEVMBlock): Promise<void> {
-    // TODO Consider exposing whether the block was added or updated.
-    // TODO Consider tracking history of block changes, e.g. in case of reorg.
-    await this.blocks.put(block)
   }
 
   /** ASSETS */

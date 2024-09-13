@@ -28,7 +28,7 @@ import {
   SigningService,
   TelemetryService,
 } from "./services"
-import { HexString, KeyringTypes } from "./types"
+import { HexString } from "./types"
 import { ChainIdWithError } from "./networks"
 import {
   AccountBalance,
@@ -156,6 +156,7 @@ import {
 import ProviderFactory from "./services/provider-factory/provider-factory"
 import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/events"
 import NotificationsManager from "./services/notifications"
+import BlockService from "./services/block"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -282,15 +283,18 @@ export default class Main extends BaseService<never> {
       preferenceService,
       keyringService
     )
+    const blockService = BlockService.create(chainService, preferenceService)
     const indexingService = IndexingService.create(
       preferenceService,
-      chainService
+      chainService,
+      blockService
     )
     const nameService = NameService.create(chainService, preferenceService)
     const enrichmentService = EnrichmentService.create(
       chainService,
       indexingService,
-      nameService
+      nameService,
+      blockService
     )
     const internalQuaiProviderService = InternalQuaiProviderService.create(
       chainService,
@@ -345,7 +349,8 @@ export default class Main extends BaseService<never> {
       await providerBridgeService,
       await telemetryService,
       await signingService,
-      await analyticsService
+      await analyticsService,
+      await blockService
     )
   }
 
@@ -410,7 +415,9 @@ export default class Main extends BaseService<never> {
      * A promise to the analytics service which will be responsible for listening
      * to events and dispatching to our analytics backend
      */
-    private analyticsService: AnalyticsService
+    private analyticsService: AnalyticsService,
+
+    private blockService: BlockService
   ) {
     super({
       initialLoadWaitExpired: {
@@ -880,7 +887,7 @@ export default class Main extends BaseService<never> {
       this.store.dispatch(setEVMNetworks(supportedNetworks))
     })
 
-    this.chainService.emitter.on("block", (block) => {
+    this.blockService.emitter.on("block", (block) => {
       this.store.dispatch(blockSeen(block))
     })
 
@@ -972,7 +979,7 @@ export default class Main extends BaseService<never> {
       }
     )
 
-    this.chainService.emitter.on(
+    this.blockService.emitter.on(
       "blockPrices",
       async ({ blockPrices, network }) => {
         this.store.dispatch(
@@ -1301,7 +1308,7 @@ export default class Main extends BaseService<never> {
         resolver: (result: string | PromiseLike<string>) => void
         rejecter: () => void
       }) => {
-        this.chainService.pollBlockPricesForNetwork(
+        await this.blockService.pollBlockPricesForNetwork(
           payload.account.network.chainID
         )
         this.store.dispatch(signDataRequest(payload))
@@ -1360,7 +1367,7 @@ export default class Main extends BaseService<never> {
         [{ chainId: network.chainID }],
         PELAGUS_INTERNAL_ORIGIN
       )
-      this.chainService.pollBlockPricesForNetwork(network.chainID)
+      this.blockService.pollBlockPricesForNetwork(network.chainID)
       this.chainService.switchNetwork(network)
       this.store.dispatch(clearCustomGas())
     })

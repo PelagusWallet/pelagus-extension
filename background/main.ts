@@ -157,6 +157,7 @@ import ProviderFactory from "./services/provider-factory/provider-factory"
 import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/events"
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
+import TransactionService from "./services/transactions"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -284,6 +285,10 @@ export default class Main extends BaseService<never> {
       keyringService
     )
     const blockService = BlockService.create(chainService, preferenceService)
+    const transactionService = TransactionService.create(
+      chainService,
+      keyringService
+    )
     const indexingService = IndexingService.create(
       preferenceService,
       chainService,
@@ -350,7 +355,8 @@ export default class Main extends BaseService<never> {
       await telemetryService,
       await signingService,
       await analyticsService,
-      await blockService
+      await blockService,
+      await transactionService
     )
   }
 
@@ -417,7 +423,9 @@ export default class Main extends BaseService<never> {
      */
     private analyticsService: AnalyticsService,
 
-    private blockService: BlockService
+    private blockService: BlockService,
+
+    private transactionService: TransactionService
   ) {
     super({
       initialLoadWaitExpired: {
@@ -628,10 +636,15 @@ export default class Main extends BaseService<never> {
       this.telemetryService.startService(),
       this.signingService.startService(),
       this.analyticsService.startService(),
+      this.transactionService.startService(),
       this.startBalanceChecker(),
     ]
 
+    // TODO need to rewrite Promise.all(),
+    //  because it runs each promise "concurrently" and if we have service that relies,
+    //  on another service we need to be careful of initialization order and forcefully wait
     await Promise.all(servicesToBeStarted)
+    await this.transactionService.startService()
   }
 
   protected override async internalStopService(): Promise<void> {
@@ -648,6 +661,7 @@ export default class Main extends BaseService<never> {
       this.telemetryService.stopService(),
       this.signingService.stopService(),
       this.analyticsService.stopService(),
+      this.transactionService.stopService(),
       clearInterval(this.balanceChecker),
     ]
 

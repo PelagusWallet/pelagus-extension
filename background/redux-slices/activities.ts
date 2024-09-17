@@ -17,6 +17,7 @@ import {
   EnrichedQuaiTransaction,
   SerializedTransactionForHistory,
 } from "../services/chain/types"
+import { QuaiTransactionDB } from "../services/transactions/types"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
 export type Activities = {
@@ -45,7 +46,7 @@ const addActivityToState =
   (
     address: string,
     chainID: string,
-    transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
+    transaction: QuaiTransactionDB | EnrichedQuaiTransaction
   ) => {
     // TODO temp fix
     // const isEtx =
@@ -88,7 +89,7 @@ const initializeActivitiesFromTransactions = ({
   transactions,
   accounts,
 }: {
-  transactions: SerializedTransactionForHistory[]
+  transactions: QuaiTransactionDB[]
   accounts: AddressOnNetwork[]
 }): Activities => {
   const activities: {
@@ -101,14 +102,15 @@ const initializeActivitiesFromTransactions = ({
 
   transactions.forEach((transaction) => {
     const { to, from, chainId } = transaction
-
     const isTrackedTo = accounts.some(
       ({ address, network: activeNetwork }) =>
-        chainId === activeNetwork.chainID && sameQuaiAddress(to, address)
+        chainId.toString() === activeNetwork.chainID &&
+        sameQuaiAddress(to, address)
     )
     const isTrackedFrom = accounts.some(
       ({ address, network: activeNetwork }) =>
-        chainId === activeNetwork.chainID && sameQuaiAddress(from, address)
+        chainId.toString() === activeNetwork.chainID &&
+        sameQuaiAddress(from, address)
     )
 
     // adding tx to UI for receiver(to)
@@ -139,7 +141,7 @@ const activitiesSlice = createSlice({
         payload,
       }: {
         payload: {
-          transactions: SerializedTransactionForHistory[]
+          transactions: QuaiTransactionDB[]
           accounts: AddressOnNetwork[]
         }
       }
@@ -152,7 +154,7 @@ const activitiesSlice = createSlice({
         payload: { transactions, account },
       }: {
         payload: {
-          transactions: SerializedTransactionForHistory[]
+          transactions: QuaiTransactionDB[]
           account: AddressOnNetwork
         }
       }

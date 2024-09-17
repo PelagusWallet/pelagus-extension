@@ -17,6 +17,7 @@ import {
   EnrichedQuaiTransaction,
   SerializedTransactionForHistory,
 } from "../../services/chain/types"
+import { QuaiTransactionDB } from "../../services/transactions/types"
 
 export const INFINITE_VALUE = "infinite"
 
@@ -31,7 +32,7 @@ export type Activity = {
   value: string
   nonce: number
   hash: string
-  blockHash: string | null
+  // blockHash: string | null
   blockTimestamp?: number
   assetSymbol: string
   assetLogoUrl?: string
@@ -46,7 +47,7 @@ export type ActivityDetail = {
 const ACTIVITY_DECIMALS = 2
 
 function isEnrichedTransaction(
-  transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
+  transaction: QuaiTransactionDB | EnrichedQuaiTransaction
 ): transaction is EnrichedQuaiTransaction {
   return "annotation" in transaction
 }
@@ -101,9 +102,7 @@ const getAssetSymbol = (transaction: EnrichedQuaiTransaction) => {
   }
 }
 
-const getValue = (
-  transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
-) => {
+const getValue = (transaction: QuaiTransactionDB | EnrichedQuaiTransaction) => {
   const txNetwork = getNetworkById(transaction?.chainId)
 
   if (!txNetwork)
@@ -137,7 +136,7 @@ const getValue = (
   return localizedValue
 }
 
-const getAnnotationType = (transaction: SerializedTransactionForHistory) => {
+const getAnnotationType = (transaction: QuaiTransactionDB) => {
   const { to, from } = transaction
   if (!to) return "contract-deployment"
 
@@ -150,9 +149,17 @@ const getAnnotationType = (transaction: SerializedTransactionForHistory) => {
 }
 
 export const getActivity = (
-  transaction: SerializedTransactionForHistory | EnrichedQuaiTransaction
+  transaction: QuaiTransactionDB | EnrichedQuaiTransaction
 ): Activity => {
-  const { to, from, nonce, hash, blockHash, chainId, blockNumber } = transaction
+  const {
+    to,
+    from,
+    nonce,
+    hash,
+    // blockHash, TODO
+    chainId,
+    blockNumber,
+  } = transaction
 
   const txNetwork = getNetworkById(chainId)
 
@@ -169,7 +176,7 @@ export const getActivity = (
     assetSymbol: txNetwork?.baseAsset.symbol,
     nonce: nonce ?? 0,
     hash: hash ?? "",
-    blockHash,
+    // blockHash,
     value: getValue(transaction),
   }
 

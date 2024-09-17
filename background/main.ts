@@ -158,6 +158,10 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
+import {
+  initializeQuaiTransactions,
+  updateQuaiTransaction,
+} from "./redux-slices/transactions"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -299,7 +303,8 @@ export default class Main extends BaseService<never> {
       chainService,
       indexingService,
       nameService,
-      blockService
+      blockService,
+      transactionService
     )
     const internalQuaiProviderService = InternalQuaiProviderService.create(
       chainService,
@@ -679,6 +684,7 @@ export default class Main extends BaseService<never> {
     this.connectProviderBridgeService()
     this.connectEnrichmentService()
     this.connectTelemetryService()
+    this.connectTransactionService()
 
     await this.connectChainService()
 
@@ -731,7 +737,7 @@ export default class Main extends BaseService<never> {
 
   async removeAccountActivity(address: HexString): Promise<void> {
     this.store.dispatch(removeActivities(address))
-    await this.chainService.removeActivities(address)
+    await this.transactionService.removeActivities(address)
   }
 
   async removeAccount(
@@ -783,7 +789,7 @@ export default class Main extends BaseService<never> {
 
   async enrichITXActivity(txHash: HexString): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
-    const transaction = await this.chainService.getTransaction(txHash)
+    const transaction = await this.transactionService.getTransaction(txHash)
     if (!transaction) return
 
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
@@ -806,12 +812,14 @@ export default class Main extends BaseService<never> {
 
   async enrichETXActivity(txHash: HexString): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
-    const transaction = await this.chainService.getTransaction(txHash)
 
-    if (transaction?.blockHash && !transaction?.etxs?.length) {
-      logger.warn("No ETXs emitted for tx: ", transaction?.hash)
-      return
-    }
+    const transaction = await this.transactionService.getTransaction(txHash)
+
+    // TODO: TRANSACTION SERVICE
+    // if (transaction?.blockHash && !transaction?.etxs?.length) {
+    //   logger.warn("No ETXs emitted for tx: ", transaction?.hash)
+    //   return
+    // }
 
     logger.info("Enriching again because status has changed")
 
@@ -833,26 +841,23 @@ export default class Main extends BaseService<never> {
 
   async signAndSendQuaiTransaction({
     request,
-    accountSigner,
   }: {
     request: QuaiTransactionRequest
-    accountSigner: AccountSigner
   }): Promise<boolean> {
     try {
       const transactionResponse =
-        await this.signingService.signAndSendQuaiTransaction(
-          request,
-          accountSigner
+        await this.transactionService.signAndSendQuaiTransaction(request)
+
+      if (transactionResponse) {
+        await this.analyticsService.sendAnalyticsEvent(
+          AnalyticsEvent.TRANSACTION_SIGNED,
+          {
+            chainId: transactionResponse.chainId,
+          }
         )
 
-      await this.analyticsService.sendAnalyticsEvent(
-        AnalyticsEvent.TRANSACTION_SIGNED,
-        {
-          chainId: transactionResponse.chainId,
-        }
-      )
-
-      this.store.dispatch(quaiTransactionResponse(transactionResponse))
+        this.store.dispatch(quaiTransactionResponse(transactionResponse))
+      }
 
       return true
     } catch (exception) {
@@ -863,31 +868,54 @@ export default class Main extends BaseService<never> {
     }
   }
 
-  async connectChainService(): Promise<void> {
-    // Initialize activities for all accounts once on and then
-    // initialize for each account when it is needed
-    this.chainService.emitter.on("initializeActivities", async (payload) => {
-      this.store.dispatch(initializeActivities(payload))
-      await this.enrichActivitiesForSelectedAccount()
-
-      // Set up initial state.
-      const existingAccounts = await this.chainService.getAccountsToTrack()
-      existingAccounts.forEach((addressNetwork) => {
-        // Mark as loading and wire things up.
-        this.store.dispatch(loadAccount(addressNetwork))
-        // Force a refresh of the account balance to populate the store.
-        this.chainService.getLatestBaseAccountBalance(addressNetwork)
-      })
-    })
-
-    this.chainService.emitter.on(
-      "initializeActivitiesForAccount",
-      async (payloadForAccount) => {
-        this.store.dispatch(initializeActivitiesForAccount(payloadForAccount))
+  async connectTransactionService(): Promise<void> {
+    this.transactionService.emitter.on(
+      "initializeQuaiTransactions",
+      async (payload) => {
+        this.store.dispatch(initializeActivities(payload))
         await this.enrichActivitiesForSelectedAccount()
+
+        // Set up initial state.
+        const existingAccounts = await this.chainService.getAccountsToTrack()
+        existingAccounts.forEach((addressNetwork) => {
+          // Mark as loading and wire things up.
+          this.store.dispatch(loadAccount(addressNetwork))
+          // Force a refresh of the account balance to populate the store.
+          this.chainService.getLatestBaseAccountBalance(addressNetwork)
+        })
+
+        // TODO
+        // this.chainService.emitter.on(
+        //   "initializeActivitiesForAccount",
+        //   async (payloadForAccount) => {
+        //     this.store.dispatch(
+        //       initializeActivitiesForAccount(payloadForAccount)
+        //     )
+        //     await this.enrichActivitiesForSelectedAccount()
+        //   }
+        // )
+
+        // this.store.dispatch(initializeQuaiTransactions(payload))
       }
     )
 
+    this.transactionService.emitter.on("transactionSend", () => {
+      this.store.dispatch(
+        setSnackbarConfig({ message: "Transaction signed, broadcasting..." })
+      )
+      this.store.dispatch(
+        clearTransactionState(TransactionConstructionStatus.Idle)
+      )
+    })
+
+    this.transactionService.emitter.on("transactionSendFailure", () => {
+      this.store.dispatch(
+        setSnackbarConfig({ message: "Transaction failed to broadcast." })
+      )
+    })
+  }
+
+  async connectChainService(): Promise<void> {
     // Wire up chain service to account slice.
     this.chainService.emitter.on(
       "accountsWithBalances",
@@ -903,21 +931,6 @@ export default class Main extends BaseService<never> {
 
     this.blockService.emitter.on("block", (block) => {
       this.store.dispatch(blockSeen(block))
-    })
-
-    this.chainService.emitter.on("transactionSend", () => {
-      this.store.dispatch(
-        setSnackbarConfig({ message: "Transaction signed, broadcasting..." })
-      )
-      this.store.dispatch(
-        clearTransactionState(TransactionConstructionStatus.Idle)
-      )
-    })
-
-    this.chainService.emitter.on("transactionSendFailure", () => {
-      this.store.dispatch(
-        setSnackbarConfig({ message: "Transaction failed to broadcast." })
-      )
     })
 
     transactionConstructionSliceEmitter.on(
@@ -1658,7 +1671,7 @@ export default class Main extends BaseService<never> {
   }
 
   async getActivityDetails(txHash: string): Promise<ActivityDetail[]> {
-    const transaction = await this.chainService.getTransaction(txHash)
+    const transaction = await this.transactionService.getTransaction(txHash)
     if (!transaction) return []
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
       transaction,

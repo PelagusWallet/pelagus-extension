@@ -29,6 +29,7 @@ import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { SerializedTransactionForHistory } from "../chain/types"
 import logger from "../../lib/logger"
 import BlockService from "../block"
+import { QuaiTransactionDB } from "../transactions/types"
 
 async function buildSubannotations(
   chainService: ChainService,
@@ -181,7 +182,7 @@ export default async function resolveTransactionAnnotation(
   indexingService: IndexingService,
   nameService: NameService,
   network: NetworkInterface,
-  transaction: SerializedTransactionForHistory,
+  transaction: QuaiTransactionDB,
   desiredDecimals: number
 ): Promise<TransactionAnnotation> {
   const assets = indexingService.getCachedAssets(network)
@@ -254,7 +255,10 @@ export default async function resolveTransactionAnnotation(
     network,
   })
 
-  const { gasLimit, blockHash } = transaction
+  const {
+    gasLimit,
+    // blockHash TODO: TRANSACTION SERVICE
+  } = transaction
 
   const additionalL1Gas = 0n
   const gasFee: bigint = isEIP1559TransactionRequest(transaction)
@@ -280,37 +284,38 @@ export default async function resolveTransactionAnnotation(
   }
 
   // If the transaction has been mined, get the block and set the timestamp
-  if (blockHash) {
-    try {
-      block =
-        useDestinationShard && transaction.to
-          ? await blockService.getBlockByHash(
-              network,
-              getExtendedZoneForAddress(transaction.to, false) as Shard,
-              blockHash
-            )
-          : await blockService.getBlockByHash(
-              network,
-              getExtendedZoneForAddress(transaction.from, false) as Shard,
-              blockHash
-            )
-
-      txAnnotation = {
-        ...txAnnotation,
-        blockTimestamp: block?.timestamp,
-      }
-    } catch (e) {
-      logger.error(e)
-      chainService
-        .getTransactionFirstSeenFromDB(transaction?.hash)
-        .then((date) => {
-          txAnnotation = {
-            ...txAnnotation,
-            blockTimestamp: date,
-          }
-        })
-    }
-  }
+  // TODO: TRANSACTION SERVICE
+  // if (blockHash) {
+  //   try {
+  //     block =
+  //       useDestinationShard && transaction.to
+  //         ? await blockService.getBlockByHash(
+  //             network,
+  //             getExtendedZoneForAddress(transaction.to, false) as Shard,
+  //             blockHash
+  //           )
+  //         : await blockService.getBlockByHash(
+  //             network,
+  //             getExtendedZoneForAddress(transaction.from, false) as Shard,
+  //             blockHash
+  //           )
+  //
+  //     txAnnotation = {
+  //       ...txAnnotation,
+  //       blockTimestamp: block?.timestamp,
+  //     }
+  //   } catch (e) {
+  //     logger.error(e)
+  //     chainService
+  //       .getTransactionFirstSeenFromDB(transaction?.hash)
+  //       .then((date) => {
+  //         txAnnotation = {
+  //           ...txAnnotation,
+  //           blockTimestamp: date,
+  //         }
+  //       })
+  //   }
+  // }
 
   // If the tx has a recipient, its a contract interaction or another tx type
   // rather than a deployment.
@@ -480,22 +485,23 @@ export default async function resolveTransactionAnnotation(
   }
 
   // Look up logs and resolve subannotations, if available.
-  if (transaction?.logs?.length) {
-    const subannotations = await annotationsFromLogs(
-      chainService,
-      indexingService,
-      nameService,
-      transaction.logs,
-      network,
-      desiredDecimals,
-      txAnnotation.timestamp,
-      block
-    )
-
-    if (subannotations?.length) {
-      txAnnotation.subannotations = subannotations
-    }
-  }
+  // TODO-TRANSACTION_SERVICE
+  // if (transaction?.logs?.length) {
+  //   const subannotations = await annotationsFromLogs(
+  //     chainService,
+  //     indexingService,
+  //     nameService,
+  //     transaction.logs,
+  //     network,
+  //     desiredDecimals,
+  //     txAnnotation.timestamp,
+  //     block
+  //   )
+  //
+  //   if (subannotations?.length) {
+  //     txAnnotation.subannotations = subannotations
+  //   }
+  // }
 
   return txAnnotation
 }

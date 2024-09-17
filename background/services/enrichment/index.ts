@@ -15,9 +15,11 @@ import {
   EnrichedQuaiTransaction,
   SerializedTransactionForHistory,
 } from "../chain/types"
-import { QuaiTransactionDBEntry } from "../chain/db"
 import { getNetworkById } from "../chain/utils"
 import BlockService from "../block"
+import { QuaiTransactionDB } from "../transactions/types"
+import { QuaiTransactionDBEntry } from "../transactions/db"
+import TransactionService from "../transactions"
 
 export * from "./types"
 
@@ -56,14 +58,22 @@ export default class EnrichmentService extends BaseService<Events> {
       Promise<ChainService>,
       Promise<IndexingService>,
       Promise<NameService>,
-      Promise<BlockService>
+      Promise<BlockService>,
+      Promise<TransactionService>
     ]
-  > = async (chainService, indexingService, nameService, blockService) => {
+  > = async (
+    chainService,
+    indexingService,
+    nameService,
+    blockService,
+    transactionService
+  ) => {
     return new this(
       await chainService,
       await indexingService,
       await nameService,
-      await blockService
+      await blockService,
+      await transactionService
     )
   }
 
@@ -71,19 +81,20 @@ export default class EnrichmentService extends BaseService<Events> {
     private chainService: ChainService,
     private indexingService: IndexingService,
     private nameService: NameService,
-    private blockService: BlockService
+    private blockService: BlockService,
+    private transactionService: TransactionService
   ) {
     super({})
   }
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-    await this.connectChainServiceEvents()
+    await this.connectTransactionServiceEvents()
   }
 
-  private async connectChainServiceEvents(): Promise<void> {
-    this.chainService.emitter.on(
-      "transaction",
+  private async connectTransactionServiceEvents(): Promise<void> {
+    this.transactionService.emitter.on(
+      "updateQuaiTransaction",
       async ({ transaction, forAccounts }) => {
         const enrichedTransaction = await this.enrichTransaction(transaction, 2)
 
@@ -123,10 +134,7 @@ export default class EnrichmentService extends BaseService<Events> {
   }
 
   async enrichTransaction(
-    transaction:
-      | SerializedTransactionForHistory
-      | QuaiTransactionDBEntry
-      | null,
+    transaction: QuaiTransactionDB | QuaiTransactionDBEntry | null,
     desiredDecimals: number
   ): Promise<EnrichedQuaiTransaction> {
     const network = getNetworkById(transaction?.chainId)

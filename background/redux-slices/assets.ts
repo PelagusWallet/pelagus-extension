@@ -252,7 +252,6 @@ export const sendAsset = createBackgroundAsyncThunk(
       gasLimit,
       maxPriorityFeePerGas,
       maxFeePerGas,
-      accountSigner,
     } = transferDetails
 
     try {
@@ -301,7 +300,6 @@ export const sendAsset = createBackgroundAsyncThunk(
 
       const isSignedAndSent = await main.signAndSendQuaiTransaction({
         request,
-        accountSigner,
       })
 
       return { success: isSignedAndSent }

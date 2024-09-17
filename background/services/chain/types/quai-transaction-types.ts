@@ -14,6 +14,7 @@ import {
 
 import { TransactionAnnotation } from "../../enrichment"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
+import { QuaiTransactionDB } from "../../transactions/types"
 
 export enum QuaiTransactionStatus {
   FAILED = 0,
@@ -43,7 +44,7 @@ export type QuaiTransactionState =
   | ConfirmedQuaiTransaction
   | PendingQuaiTransaction
 
-export type EnrichedQuaiTransaction = SerializedTransactionForHistory & {
+export type EnrichedQuaiTransaction = QuaiTransactionDB & {
   annotation?: TransactionAnnotation
   network: NetworkInterface
 }

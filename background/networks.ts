@@ -7,6 +7,7 @@ import {
   QuaiTransactionState,
   SerializedTransactionForHistory,
 } from "./services/chain/types"
+import { QuaiTransactionDB } from "./services/transactions/types"
 
 /**
  * Each supported network family is generally incompatible with others from a
@@ -163,6 +164,7 @@ export const isEIP1559TransactionRequest = (
     | QuaiTransactionRequest
     | QuaiTransactionState
     | SerializedTransactionForHistory
+    | QuaiTransactionDB
 ) =>
   !!transactionRequest?.maxFeePerGas ||
   !!transactionRequest?.maxPriorityFeePerGas

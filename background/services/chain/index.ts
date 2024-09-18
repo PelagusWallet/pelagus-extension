@@ -430,11 +430,7 @@ export default class ChainService extends BaseService<Events> {
           })
         }
         logger.error(
-          `Global shard: ${
-            globalThis.main.SelectedShard
-          } Address shard: ${addrShard} Provider: ${
-            this.jsonRpcProvider._getConnection().url
-          }`
+          `Global shard: ${globalThis.main.SelectedShard} Address shard: ${addrShard} Provider: ${this.jsonRpcProvider}`
         )
       }
     } finally {

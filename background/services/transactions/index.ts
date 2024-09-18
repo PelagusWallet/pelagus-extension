@@ -20,6 +20,8 @@ import { QuaiTransactionStatus } from "../chain/types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { createTransactionsDataBase, TransactionsDatabase } from "./db"
+import NotificationsManager from "../notifications"
+import logger from "../../lib/logger"
 
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
   static create: ServiceCreatorFunction<
@@ -51,7 +53,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   // ------------------------------------ public methods ------------------------------------
   public async signAndSendQuaiTransaction(
     request: QuaiTransactionRequest
-  ): Promise<QuaiTransactionResponse | undefined> {
+  ): Promise<QuaiTransactionResponse | null> {
     try {
       const { jsonRpcProvider } = this.chainService
       let transactionResponse: QuaiTransactionResponse
@@ -80,12 +82,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       this.subscribeToTransactionConfirmation(transactionResponse.hash)
       return transactionResponse
     } catch (error) {
-      const transaction = quaiTransactionFromRequest(
-        request,
-        QuaiTransactionStatus.FAILED
-      )
-      await this.saveTransaction(transaction)
+      logger.error(error)
       await this.emitter.emit("transactionSendFailure")
+      return null
     }
   }
 
@@ -186,6 +185,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       receipt.hash
     )
     if (!foundedTransaction) return
+
+    NotificationsManager.createSuccessTxNotification(
+      foundedTransaction?.nonce,
+      foundedTransaction?.hash
+    )
 
     const transaction = quaiTransactionFromReceipt(
       foundedTransaction,

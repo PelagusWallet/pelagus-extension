@@ -7,17 +7,15 @@ import { QuaiTransaction, TransactionReceipt } from "quais"
 import { QuaiTransactionDB } from "../types"
 import { QuaiTransactionStatus } from "../../chain/types"
 
-// FIXME
 export const quaiTransactionFromRequest = (
   request: QuaiTransactionRequest | QuaiTransaction,
   status: QuaiTransactionStatus
 ): QuaiTransactionDB => {
   return {
     to: request.to?.toString() ?? "",
-    // @ts-ignore
-    from: request.from.toString(),
+    from: request?.from ? request?.from.toString() : "",
     chainId: Number(request.chainId) ?? 0,
-    hash: "",
+    hash: crypto.randomUUID(), // TODO: NEED TO CONFIRM THIS (TEMPORARY)
     data: request.data ?? null,
     gasLimit: null,
     maxFeePerGas: null,
@@ -25,7 +23,7 @@ export const quaiTransactionFromRequest = (
     nonce: request.nonce ?? null,
     status,
     type: null,
-    value: null,
+    value: request?.value ?? null,
     index: BigInt(0),
     blockHash: null,
     blockNumber: null,
@@ -41,10 +39,19 @@ export const quaiTransactionFromResponse = (
   status: QuaiTransactionStatus
 ): QuaiTransactionDB => {
   return {
-    ...transactionResponse,
     to: transactionResponse.to ?? "",
+    from: transactionResponse.from,
     chainId: Number(transactionResponse.chainId),
+    hash: transactionResponse.hash,
+    data: transactionResponse.data,
+    gasLimit: transactionResponse.gasLimit,
+    maxFeePerGas: transactionResponse.maxFeePerGas,
+    maxPriorityFeePerGas: transactionResponse.maxPriorityFeePerGas,
+    nonce: transactionResponse.nonce,
     status,
+    type: transactionResponse.type,
+    value: transactionResponse.value,
+    index: transactionResponse.index,
     blockHash: null,
     blockNumber: null,
     gasPrice: null,

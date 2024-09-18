@@ -12,6 +12,7 @@ import { AddressOnNetwork } from "../../accounts"
 import { assertUnreachable } from "../../lib/utils/type-guards"
 import { KeyringAccountSigner, PrivateKeyAccountSigner } from "../keyring/types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
+import TransactionService from "../transactions"
 
 type SigningErrorReason = "userRejected" | "genericError"
 type ErrorResponse = {
@@ -81,14 +82,23 @@ export default class SigningService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     SigningService,
-    [Promise<KeyringService>, Promise<ChainService>]
-  > = async (keyringService, chainService) => {
-    return new this(await keyringService, await chainService)
+    [
+      Promise<KeyringService>,
+      Promise<ChainService>,
+      Promise<TransactionService>
+    ]
+  > = async (keyringService, chainService, transactionService) => {
+    return new this(
+      await keyringService,
+      await chainService,
+      await transactionService
+    )
   }
 
   private constructor(
     private keyringService: KeyringService,
-    private chainService: ChainService
+    private chainService: ChainService,
+    private transactionService: TransactionService
   ) {
     super()
   }
@@ -141,7 +151,7 @@ export default class SigningService extends BaseService<Events> {
         case "private-key":
         case "keyring": {
           transactionResponse =
-            await this.chainService.signAndSendQuaiTransaction(
+            await this.transactionService.signAndSendQuaiTransaction(
               transactionRequest
             )
           break

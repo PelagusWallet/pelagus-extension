@@ -4,25 +4,38 @@ import {
 } from "quais/lib/commonjs/providers"
 import { getZoneForAddress, QuaiTransaction, TransactionReceipt } from "quais"
 
-import {
-  quaiTransactionFromReceipt,
-  quaiTransactionFromRequest,
-  quaiTransactionFromResponse,
-} from "./utils"
 import BaseService from "../base"
 import ChainService from "../chain"
+import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
+import { MINUTE } from "../../constants"
 import { QuaiTransactionDB } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
+import NotificationsManager from "../notifications"
+import { quaiTransactionFromResponse } from "./utils"
 import { QuaiTransactionStatus } from "../chain/types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { createTransactionsDataBase, TransactionsDatabase } from "./db"
-import NotificationsManager from "../notifications"
-import logger from "../../lib/logger"
 
+const TRANSACTION_CONFIRMATIONS = 1
+const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
+
+/**
+ * The `TransactionService` class is responsible for handling user transactions, including sending,
+ * tracking, and updating transaction statuses. This service uses a database to save and
+ * update transaction records and emits events to update the UI with the latest transaction statuses.
+ *
+ * Key functionalities include:
+ * 1. Sending user transactions and emitting events upon transaction submission and updates.
+ * 2. Maintaining its own database to store and manage transactions.
+ * 3. Emitting all users' transactions on startup, and updating the UI upon transaction status changes.
+ * 4. Subscribing to transactions once they are sent, and updating the transaction data with receipts upon confirmation.
+ * 5. Fetching pending transactions from the database on startup and checking their status (confirmed or still pending).
+ *    This ensures transactions are resubscribed to if the extension process is killed before transaction confirmation.
+ */
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
@@ -44,13 +57,25 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     super()
   }
 
+  /**
+   * Starts the TransactionService, initializes transactions, and checks for any pending transactions.
+   * This ensures that all relevant transactions are being tracked and that the UI is up-to-date.
+   */
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-    await this.initializeTransactions()
-    this.checkPendingTransactions()
+    await this.initializeQuaiTransactions()
+    this.checkPendingQuaiTransactions()
   }
 
   // ------------------------------------ public methods ------------------------------------
+  /**
+   * Signs and sends a new Quai transaction.
+   * Emits an event when the transaction is successfully sent and stores the transaction in the database.
+   * Subscribes to transaction confirmation to track the transaction status.
+   *
+   * @param {QuaiTransactionRequest} request - The transaction request data.
+   * @returns {Promise<QuaiTransactionResponse | null>} - The response of the sent transaction or null in case of failure.
+   */
   public async signAndSendQuaiTransaction(
     request: QuaiTransactionRequest
   ): Promise<QuaiTransactionResponse | null> {
@@ -71,23 +96,23 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           request
         )) as QuaiTransactionResponse
       }
-
-      const transaction = quaiTransactionFromResponse(
-        transactionResponse,
-        QuaiTransactionStatus.PENDING
-      )
-      await this.saveTransaction(transaction)
-      await this.emitter.emit("transactionSend", transactionResponse.hash)
-
-      this.subscribeToTransactionConfirmation(transactionResponse.hash)
+      await this.processQuaiTransactionResponse(transactionResponse)
       return transactionResponse
     } catch (error) {
-      logger.error(error)
-      await this.emitter.emit("transactionSendFailure")
+      logger.error("Failed to sign and send Quai transaction", error)
+      this.emitter.emit("transactionSendFailure")
       return null
     }
   }
 
+  /**
+   * Broadcasts a signed Quai transaction to the network.
+   * Emits an event when the transaction is successfully sent and stores the transaction in the database.
+   * Subscribes to transaction confirmation to track the transaction status.
+   *
+   * @param {QuaiTransaction} quaiTransaction - The signed transaction to send.
+   * @returns {Promise<void>} - Resolves when the transaction is sent.
+   */
   public async sendQuaiTransaction(
     quaiTransaction: QuaiTransaction
   ): Promise<void> {
@@ -110,47 +135,55 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         zone,
         signedTransaction
       )) as QuaiTransactionResponse
-
-      const transaction = quaiTransactionFromResponse(
-        transactionResponse,
-        QuaiTransactionStatus.PENDING
-      )
-      await this.saveTransaction(transaction)
-      await this.emitter.emit("transactionSend", transactionResponse.hash)
-
-      this.subscribeToTransactionConfirmation(transactionResponse.hash)
+      await this.processQuaiTransactionResponse(transactionResponse)
     } catch (error) {
-      const failedTransaction = quaiTransactionFromRequest(
-        quaiTransaction,
-        QuaiTransactionStatus.FAILED
-      )
-      await this.saveTransaction(failedTransaction)
-      await this.emitter.emit("transactionSendFailure")
+      logger.error("Failed to send Quai transaction", error)
+      this.emitter.emit("transactionSendFailure")
     }
   }
 
+  /**
+   * Removes all Quai transaction activities associated with a specific address.
+   *
+   * @param {string} address - The address whose transaction activities will be removed.
+   * @returns {Promise<void>} - Resolves once the activities are removed.
+   */
   public async removeActivities(address: string): Promise<void> {
     await this.db.deleteQuaiTransactionsByAddress(address)
   }
 
-  public async getTransaction(
+  /**
+   * Retrieves a Quai transaction from the database based on its hash.
+   *
+   * @param {HexString} txHash - The hash of the transaction to retrieve.
+   * @returns {Promise<QuaiTransactionDB | null>} - The transaction details, or null if not found.
+   */
+  public async getQuaiTransaction(
     txHash: HexString
   ): Promise<QuaiTransactionDB | null> {
     return this.db.getQuaiTransactionByHash(txHash)
   }
 
   // ------------------------------------ private methods ------------------------------------
-  private async initializeTransactions(): Promise<void> {
+  /**
+   * Fetches all transactions from the database and emits them to update the UI,
+   * on TransactionService initialization.
+   */
+  private async initializeQuaiTransactions(): Promise<void> {
     const transactions = await this.db.getAllQuaiTransactions()
     const accounts = await this.chainService.getAccountsToTrack()
-
-    await this.emitter.emit("initializeQuaiTransactions", {
+    this.emitter.emit("initializeQuaiTransactions", {
       transactions,
       accounts,
     })
   }
 
-  private async checkPendingTransactions(): Promise<void> {
+  /**
+   * Gets all pending transactions from the database and attempts to confirm them.
+   * If the transaction is already confirmed and has a receipt, it updates the transaction with the receipt.
+   * Otherwise, subscribes to transaction confirmation.
+   */
+  private async checkPendingQuaiTransactions(): Promise<void> {
     const { jsonRpcProvider } = this.chainService
 
     const pendingTransactions = await this.db.getPendingQuaiTransactions()
@@ -160,58 +193,123 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       pendingTransactions.map(async ({ hash }) => {
         const receipt = await jsonRpcProvider.getTransactionReceipt(hash)
         if (receipt) {
-          await this.updateTransactionWithReceipt(receipt)
+          await this.handleQuaiTransactionReceipt(receipt)
         } else {
-          await this.subscribeToTransactionConfirmation(hash)
+          await this.subscribeToQuaiTransaction(hash)
         }
       })
     )
   }
 
-  private async subscribeToTransactionConfirmation(
-    hash: string
+  /**
+   * Processes a new Quai transaction response by converting it into a transaction object
+   * with a `PENDING` status, saving it to the database, and emitting an event with the transaction hash.
+   * Subscribes to the transaction for future updates or confirmations.
+   *
+   * @param {QuaiTransactionResponse} transactionResponse - The response received after sending the transaction.
+   */
+  private async processQuaiTransactionResponse(
+    transactionResponse: QuaiTransactionResponse
   ): Promise<void> {
+    const transaction = quaiTransactionFromResponse(
+      transactionResponse,
+      QuaiTransactionStatus.PENDING
+    )
+    await this.saveQuaiTransaction(transaction)
+    this.emitter.emit("transactionSend", transactionResponse.hash)
+    this.subscribeToQuaiTransaction(transactionResponse.hash)
+  }
+
+  /**
+   * Subscribes to a transaction confirmation event and updates the transaction status once confirmed.
+   *
+   * @param {string} hash - The hash of the transaction to subscribe to.
+   */
+  private async subscribeToQuaiTransaction(hash: string): Promise<void> {
     const { jsonRpcProvider } = this.chainService
-    const receipt = await jsonRpcProvider.waitForTransaction(hash)
-    if (!receipt) throw new Error("Transaction receipt is null")
 
-    await this.updateTransactionWithReceipt(receipt)
+    try {
+      const receipt = await jsonRpcProvider.waitForTransaction(
+        hash,
+        TRANSACTION_CONFIRMATIONS,
+        TRANSACTION_RECEIPT_WAIT_TIMEOUT
+      )
+      if (receipt) {
+        await this.handleQuaiTransactionReceipt(receipt)
+      } else {
+        // dropped / failed
+        await this.handleQuaiTransactionFail(hash)
+      }
+    } catch (error) {
+      // dropped / failed
+      await this.handleQuaiTransactionFail(hash)
+    }
   }
 
-  private async updateTransactionWithReceipt(
-    receipt: TransactionReceipt
-  ): Promise<void> {
-    const foundedTransaction = await this.db.getQuaiTransactionByHash(
-      receipt.hash
-    )
-    if (!foundedTransaction) return
-
-    NotificationsManager.createSuccessTxNotification(
-      foundedTransaction?.nonce,
-      foundedTransaction?.hash
-    )
-
-    const transaction = quaiTransactionFromReceipt(
-      foundedTransaction,
-      receipt,
-      QuaiTransactionStatus.CONFIRMED
-    )
-    await this.saveTransaction(transaction)
-  }
-
-  private async saveTransaction(transaction: QuaiTransactionDB): Promise<void> {
-    await this.db.addOrUpdateQuaiTransaction(transaction)
-    await this.notifyQuaiTransactionUpdate(transaction)
-  }
-
-  private async notifyQuaiTransactionUpdate(
+  /**
+   * Saves or updates a transaction in the database and notifies the UI about the updated transaction.
+   * Emits an event to notify the UI about a transaction update.
+   *
+   * @param {QuaiTransactionDB} transaction - The transaction to save or update.
+   */
+  private async saveQuaiTransaction(
     transaction: QuaiTransactionDB
   ): Promise<void> {
+    await this.db.addOrUpdateQuaiTransaction(transaction)
     const accounts = await this.chainService.getAccountsToTrack()
     const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
-    await this.emitter.emit("updateQuaiTransaction", {
+    this.emitter.emit("updateQuaiTransaction", {
       transaction,
       forAccounts,
     })
+  }
+
+  /**
+   * Updates a transaction in the database with the receipt data.
+   * Checks the status of a receipt to determine whether the transaction has been confirmed or reverted.
+   *
+   * @param {TransactionReceipt} receipt - The transaction receipt data.
+   */
+  private async handleQuaiTransactionReceipt(
+    receipt: TransactionReceipt
+  ): Promise<void> {
+    const transaction = await this.db.getQuaiTransactionByHash(receipt.hash)
+    if (!transaction) return
+
+    const { status, blockHash, blockNumber, gasPrice, gasUsed, etxs, logs } =
+      receipt
+
+    if (status === 1) {
+      transaction.status = QuaiTransactionStatus.CONFIRMED
+      NotificationsManager.createSuccessTxNotification(
+        transaction.nonce,
+        transaction.hash
+      )
+    } else if (status === 0) {
+      // reverted
+      transaction.status = QuaiTransactionStatus.FAILED
+    }
+
+    transaction.blockHash = blockHash
+    transaction.blockNumber = blockNumber
+    transaction.gasPrice = gasPrice
+    transaction.gasUsed = gasUsed
+    transaction.etxs = [...etxs]
+    transaction.logs = [...logs]
+
+    await this.saveQuaiTransaction(transaction)
+  }
+
+  /**
+   * Updates a transaction in the database with the failed status.
+   *
+   * @param {string} hash - The hash of the transaction to update.
+   */
+  private async handleQuaiTransactionFail(hash: string): Promise<void> {
+    const transaction = await this.db.getQuaiTransactionByHash(hash)
+    if (transaction) {
+      transaction.status = QuaiTransactionStatus.FAILED
+      await this.saveQuaiTransaction(transaction)
+    }
   }
 }

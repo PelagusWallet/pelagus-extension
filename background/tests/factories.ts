@@ -35,6 +35,7 @@ import {
 } from "../services/chain/types"
 import ProviderFactory from "../services/provider-factory/provider-factory"
 import BlockService from "../services/block"
+import TransactionService from "../services/transactions"
 
 const createRandom0xHash = () =>
   keccak256(Buffer.from(Math.random().toString()))
@@ -64,6 +65,20 @@ export const createChainService = async (
   return ChainService.create(
     overrides.providerFactoryService ?? createProviderFactoryService(),
     overrides.preferenceService ?? createPreferenceService(),
+    overrides.keyringService ?? createKeyringService()
+  )
+}
+
+type CreateTransactionServiceOverrides = {
+  chainService?: Promise<ChainService>
+  keyringService?: Promise<KeyringService>
+}
+
+export const createTransactionService = async (
+  overrides: CreateTransactionServiceOverrides = {}
+): Promise<TransactionService> => {
+  return TransactionService.create(
+    overrides.chainService ?? createChainService(),
     overrides.keyringService ?? createKeyringService()
   )
 }
@@ -111,6 +126,7 @@ type CreateProviderBridgeServiceOverrides = {
 
 type CreateInternalQuaiProviderServiceOverrides = {
   chainService?: Promise<ChainService>
+  transactionService?: Promise<TransactionService>
   preferenceService?: Promise<PreferenceService>
 }
 
@@ -137,6 +153,7 @@ export const createInternalQuaiProviderService = async (
 ): Promise<InternalQuaiProviderService> => {
   return InternalQuaiProviderService.create(
     overrides.chainService ?? createChainService(),
+    overrides.transactionService ?? createTransactionService(),
     overrides.preferenceService ?? createPreferenceService()
   )
 }

@@ -304,6 +304,7 @@ export default class Main extends BaseService<never> {
     )
     const internalQuaiProviderService = InternalQuaiProviderService.create(
       chainService,
+      transactionService,
       preferenceService
     )
     const providerBridgeService = ProviderBridgeService.create(
@@ -789,7 +790,7 @@ export default class Main extends BaseService<never> {
 
   async enrichITXActivity(txHash: HexString): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
-    const transaction = await this.transactionService.getTransaction(txHash)
+    const transaction = await this.transactionService.getQuaiTransaction(txHash)
     if (!transaction) return
 
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
@@ -812,9 +813,7 @@ export default class Main extends BaseService<never> {
 
   async enrichETXActivity(txHash: HexString): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
-
-    const transaction = await this.transactionService.getTransaction(txHash)
-
+    const transaction = await this.transactionService.getQuaiTransaction(txHash)
     if (transaction?.blockHash && !transaction?.etxs?.length) {
       logger.warn("No ETXs emitted for tx: ", transaction?.hash)
       return
@@ -846,7 +845,6 @@ export default class Main extends BaseService<never> {
     try {
       const transactionResponse =
         await this.transactionService.signAndSendQuaiTransaction(request)
-
       if (!transactionResponse) return false
 
       await this.analyticsService.sendAnalyticsEvent(
@@ -944,7 +942,7 @@ export default class Main extends BaseService<never> {
     transactionConstructionSliceEmitter.on(
       "broadcastSignedTransaction",
       async (transaction: QuaiTransaction) => {
-        await this.chainService.broadcastSignedTransaction(transaction)
+        await this.transactionService.sendQuaiTransaction(transaction)
       }
     )
 
@@ -1667,7 +1665,7 @@ export default class Main extends BaseService<never> {
   }
 
   async getActivityDetails(txHash: string): Promise<ActivityDetail[]> {
-    const transaction = await this.transactionService.getTransaction(txHash)
+    const transaction = await this.transactionService.getQuaiTransaction(txHash)
     if (!transaction) return []
     const enrichedTransaction = await this.enrichmentService.enrichTransaction(
       transaction,

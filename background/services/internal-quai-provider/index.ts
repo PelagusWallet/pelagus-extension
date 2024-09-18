@@ -32,6 +32,7 @@ import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
 import { QuaiTransactionRequestWithAnnotation } from "../chain/types"
 import { normalizeHexAddress } from "../../utils/addresses"
+import TransactionService from "../transactions"
 
 // A type representing the transaction requests that come in over JSON-RPC
 // requests like eth_sendTransaction and eth_signTransaction. These are very
@@ -109,11 +110,16 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     InternalQuaiProviderService,
-    [Promise<ChainService>, Promise<PreferenceService>]
-  > = async (chainService, preferenceService) => {
+    [
+      Promise<ChainService>,
+      Promise<TransactionService>,
+      Promise<PreferenceService>
+    ]
+  > = async (chainService, transactionService, preferenceService) => {
     return new this(
       await getOrCreateDB(),
       await chainService,
+      await transactionService,
       await preferenceService
     )
   }
@@ -121,6 +127,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
   private constructor(
     private db: InternalQuaiProviderDatabase,
     private chainService: ChainService,
+    private transactionsService: TransactionService,
     private preferenceService: PreferenceService
   ) {
     super()
@@ -229,7 +236,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           },
           origin
         ).then(async (signed) => {
-          // await this.chainService.broadcastSignedTransaction(signed) // TODO-MIGRATION
+          await this.transactionsService.sendQuaiTransaction(signed)
           return signed.hash
         })
       case "quai_signTransaction":

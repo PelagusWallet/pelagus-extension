@@ -815,11 +815,10 @@ export default class Main extends BaseService<never> {
 
     const transaction = await this.transactionService.getTransaction(txHash)
 
-    // TODO: TRANSACTION SERVICE
-    // if (transaction?.blockHash && !transaction?.etxs?.length) {
-    //   logger.warn("No ETXs emitted for tx: ", transaction?.hash)
-    //   return
-    // }
+    if (transaction?.blockHash && !transaction?.etxs?.length) {
+      logger.warn("No ETXs emitted for tx: ", transaction?.hash)
+      return
+    }
 
     logger.info("Enriching again because status has changed")
 

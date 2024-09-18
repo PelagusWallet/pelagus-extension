@@ -1,8 +1,8 @@
 import Dexie, { DexieOptions } from "dexie"
 
 import { UNIXTime } from "../../types"
-import { QuaiTransactionStatus } from "../chain/types"
 import { QuaiTransactionDB } from "./types"
+import { QuaiTransactionStatus } from "../chain/types"
 
 type AdditionalTransactionFieldsForDB = {
   dataSource: "local"

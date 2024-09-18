@@ -12,14 +12,14 @@ import {
 import BaseService from "../base"
 import ChainService from "../chain"
 import KeyringService from "../keyring"
+import { HexString } from "../../types"
 import { QuaiTransactionDB } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import { QuaiTransactionStatus } from "../chain/types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
-import { createTransactionsDataBase, TransactionsDatabase } from "./db"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
-import { HexString } from "../../types"
+import { createTransactionsDataBase, TransactionsDatabase } from "./db"
 
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
   static create: ServiceCreatorFunction<
@@ -89,10 +89,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
   }
 
-  public async removeActivities(address: string): Promise<void> {
-    await this.db.deleteQuaiTransactionsByAddress(address)
-  }
-
   public async sendQuaiTransaction(
     quaiTransaction: QuaiTransaction
   ): Promise<void> {
@@ -134,6 +130,16 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
   }
 
+  public async removeActivities(address: string): Promise<void> {
+    await this.db.deleteQuaiTransactionsByAddress(address)
+  }
+
+  public async getTransaction(
+    txHash: HexString
+  ): Promise<QuaiTransactionDB | null> {
+    return this.db.getQuaiTransactionByHash(txHash)
+  }
+
   // ------------------------------------ private methods ------------------------------------
   private async initializeTransactions(): Promise<void> {
     const transactions = await this.db.getAllQuaiTransactions()
@@ -173,17 +179,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await this.updateTransactionWithReceipt(receipt)
   }
 
-  private async saveTransaction(transaction: QuaiTransactionDB): Promise<void> {
-    await this.db.addOrUpdateQuaiTransaction(transaction)
-    const accounts = await this.chainService.getAccountsToTrack()
-
-    const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
-    await this.emitter.emit("updateQuaiTransaction", {
-      transaction,
-      forAccounts,
-    })
-  }
-
   private async updateTransactionWithReceipt(
     receipt: TransactionReceipt
   ): Promise<void> {
@@ -197,18 +192,22 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       receipt,
       QuaiTransactionStatus.CONFIRMED
     )
-    const accounts = await this.chainService.getAccountsToTrack()
+    await this.saveTransaction(transaction)
+  }
 
-    const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
-
+  private async saveTransaction(transaction: QuaiTransactionDB): Promise<void> {
     await this.db.addOrUpdateQuaiTransaction(transaction)
+    await this.notifyQuaiTransactionUpdate(transaction)
+  }
+
+  private async notifyQuaiTransactionUpdate(
+    transaction: QuaiTransactionDB
+  ): Promise<void> {
+    const accounts = await this.chainService.getAccountsToTrack()
+    const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
     await this.emitter.emit("updateQuaiTransaction", {
       transaction,
       forAccounts,
     })
-  }
-
-  async getTransaction(txHash: HexString): Promise<QuaiTransactionDB | null> {
-    return this.db.getQuaiTransactionByHash(txHash)
   }
 }

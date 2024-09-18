@@ -1,21 +1,28 @@
-import { BigNumberish } from "quais"
+import { BigNumberish, LogParams } from "quais"
+import { EtxParams } from "quais/lib/commonjs/providers/formatting"
 import { QuaiTransactionStatus } from "../../chain/types"
 
 export type QuaiTransactionDB = {
   to: string
   from: string
-  chainId: number
   hash: string
+  chainId: number
+  type: number | null
   data: string | null
+  nonce: number | null
+  status: QuaiTransactionStatus
+
+  gasUsed?: bigint | null
+  gasPrice: BigNumberish | null
   gasLimit: BigNumberish | null
   maxFeePerGas: BigNumberish | null
   maxPriorityFeePerGas: BigNumberish | null
-  nonce: number | null
-  status: QuaiTransactionStatus
-  type: number | null
-  value: BigNumberish | null
+
   index: bigint
+  value: BigNumberish | null
+  blockHash: string | null
   blockNumber: number | null
-  gasPrice: BigNumberish | null
-  gasUsed?: bigint | null
+
+  etxs: EtxParams[]
+  logs: LogParams[]
 }

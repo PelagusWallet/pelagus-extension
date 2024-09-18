@@ -13,7 +13,7 @@ export const QUAI: NetworkBaseAsset = {
   },
 }
 export const QUAI_LOCAL: NetworkBaseAsset = {
-  chainID: "1337",
+  chainID: "17000",
   name: "Quai Network Local",
   symbol: "QUAI",
   decimals: 18,

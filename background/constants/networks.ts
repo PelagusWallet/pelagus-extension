@@ -186,7 +186,7 @@ export const QUAI_NETWORK: EVMNetwork = {
 export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   name: "Quai Network Local",
   baseAsset: QUAI_LOCAL,
-  chainID: "1337",
+  chainID: "17000",
   family: "EVM",
   chains: DEFAULT_QUAI_LOCAL.chains,
   derivationPath: "m/44'/1'/0'/0",

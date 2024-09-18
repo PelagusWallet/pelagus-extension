@@ -158,10 +158,6 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
-import {
-  initializeQuaiTransactions,
-  updateQuaiTransaction,
-} from "./redux-slices/transactions"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -315,7 +311,11 @@ export default class Main extends BaseService<never> {
       preferenceService
     )
     const telemetryService = TelemetryService.create()
-    const signingService = SigningService.create(keyringService, chainService)
+    const signingService = SigningService.create(
+      keyringService,
+      chainService,
+      transactionService
+    )
     const analyticsService = AnalyticsService.create(preferenceService)
 
     let savedReduxState = {}
@@ -847,17 +847,16 @@ export default class Main extends BaseService<never> {
       const transactionResponse =
         await this.transactionService.signAndSendQuaiTransaction(request)
 
-      if (transactionResponse) {
-        await this.analyticsService.sendAnalyticsEvent(
-          AnalyticsEvent.TRANSACTION_SIGNED,
-          {
-            chainId: transactionResponse.chainId,
-          }
-        )
+      if (!transactionResponse) return false
 
-        this.store.dispatch(quaiTransactionResponse(transactionResponse))
-      }
+      await this.analyticsService.sendAnalyticsEvent(
+        AnalyticsEvent.TRANSACTION_SIGNED,
+        {
+          chainId: transactionResponse.chainId,
+        }
+      )
 
+      this.store.dispatch(quaiTransactionResponse(transactionResponse))
       return true
     } catch (exception) {
       this.store.dispatch(
@@ -893,8 +892,6 @@ export default class Main extends BaseService<never> {
         //     await this.enrichActivitiesForSelectedAccount()
         //   }
         // )
-
-        // this.store.dispatch(initializeQuaiTransactions(payload))
       }
     )
 

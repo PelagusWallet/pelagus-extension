@@ -28,7 +28,6 @@ import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import WalletAlphaBanner from "../components/Wallet/WalletAlphaBanner"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
-import { selectCurrentAccountTransactions } from "@pelagus/pelagus-background/redux-slices/selectors/transactionSelectors"
 
 export default function Wallet(): ReactElement {
   const { t } = useTranslation()
@@ -45,10 +44,6 @@ export default function Wallet(): ReactElement {
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showUnverifiedAssets = useBackgroundSelector(selectShowUnverifiedAssets)
-
-  const test = useBackgroundSelector(selectCurrentAccountTransactions)
-
-  console.log("TEST NEW SLICE", test)
 
   const { assetAmounts, unverifiedAssetAmounts } = accountData ?? {
     assetAmounts: [],

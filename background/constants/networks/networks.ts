@@ -69,7 +69,7 @@ export const QuaiGoldenAgeTestnet: NetworkInterface = {
 }
 
 export const QuaiLocalNodeNetwork: NetworkInterface = {
-  chainID: "1337",
+  chainID: "17000",
   baseAsset: { name: "Quai Network Local", symbol: "QUAI", decimals: 18 },
   family: "EVM",
   isDisabled: true,

@@ -22,7 +22,7 @@ import {
   NameService,
   PreferenceService,
   ProviderBridgeService,
-  SigningService,
+  // SigningService,
 } from "../services"
 import {
   PriorityQueuedTxToRetrieve,
@@ -99,10 +99,10 @@ export async function createIndexingService(overrides?: {
   )
 }
 
-type CreateSigningServiceOverrides = {
-  keyringService?: Promise<KeyringService>
-  chainService?: Promise<ChainService>
-}
+// type CreateSigningServiceOverrides = {
+//   keyringService?: Promise<KeyringService>
+//   chainService?: Promise<ChainService>
+// }
 
 type CreateProviderBridgeServiceOverrides = {
   internalQuaiProviderService?: Promise<InternalQuaiProviderService>
@@ -123,14 +123,14 @@ export async function createAnalyticsService(overrides?: {
   return AnalyticsService.create(preferenceService)
 }
 
-export const createSigningService = async (
-  overrides: CreateSigningServiceOverrides = {}
-): Promise<SigningService> => {
-  return SigningService.create(
-    overrides.keyringService ?? createKeyringService(),
-    overrides.chainService ?? createChainService()
-  )
-}
+// export const createSigningService = async (
+//   overrides: CreateSigningServiceOverrides = {}
+// ): Promise<SigningService> => {
+//   return SigningService.create(
+//     overrides.keyringService ?? createKeyringService(),
+//     overrides.chainService ?? createChainService()
+//   )
+// }
 
 export const createInternalQuaiProviderService = async (
   overrides: CreateInternalQuaiProviderServiceOverrides = {}

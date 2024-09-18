@@ -12,7 +12,7 @@ export const MULTICALL_CONTRACT_ADDRESS =
   "0x15b6351eDEcd7142ac4c6fE54948b603D4566862" // TODO: Different for each network. Must be deployed on all shards!
 
 export const CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES = {
-  "1337": "0x15b6351eDEcd7142ac4c6fE54948b603D4566862", // cyprus1 local
+  "17000": "0x15b6351eDEcd7142ac4c6fE54948b603D4566862", // cyprus1 local
 } as { [chainId: string]: string }
 
 const MULTICALL_FUNCTIONS = {

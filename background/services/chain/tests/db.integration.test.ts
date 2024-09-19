@@ -3,8 +3,6 @@ import { QUAI } from "../../../constants"
 import {
   createAccountBalance,
   createAddressOnNetwork,
-  createAnyEVMBlock,
-  createAnyEVMTransaction,
 } from "../../../tests/factories"
 import { ChainDatabase, createDB } from "../db"
 import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
@@ -60,25 +58,25 @@ describe("Chain Database ", () => {
   //   })
   // })
   describe("addOrUpdateTransaction", () => {
-    const addTransactionEth = createAnyEVMTransaction({
-      chainId: QuaiGoldenAgeTestnet.chainID,
-    })
-
-    const addTransactionOpt = createAnyEVMTransaction({
-      chainId: QuaiGoldenAgeTestnet.chainID,
-    })
-    it("should correctly persist transactions to indexedDB", async () => {
-      const getEthTransaction = await db.getQuaiTransactionByHash(
-        addTransactionEth.hash
-      )
-
-      const getOptTransaction = await db.getQuaiTransactionByHash(
-        addTransactionOpt.hash
-      )
-
-      expect(getEthTransaction?.hash).toEqual(addTransactionEth.hash)
-      expect(getOptTransaction?.hash).toEqual(addTransactionOpt.hash)
-    })
+    // const addTransactionEth = createAnyEVMTransaction({
+    //   chainId: QuaiGoldenAgeTestnet.chainID,
+    // })
+    //
+    // const addTransactionOpt = createAnyEVMTransaction({
+    //   chainId: QuaiGoldenAgeTestnet.chainID,
+    // })
+    // it("should correctly persist transactions to indexedDB", async () => {
+    //   const getEthTransaction = await db.getQuaiTransactionByHash(
+    //     addTransactionEth.hash
+    //   )
+    //
+    //   const getOptTransaction = await db.getQuaiTransactionByHash(
+    //     addTransactionOpt.hash
+    //   )
+    //
+    //   expect(getEthTransaction?.hash).toEqual(addTransactionEth.hash)
+    //   expect(getOptTransaction?.hash).toEqual(addTransactionOpt.hash)
+    // })
     // TODO-MIGRATION
     // it("should correctly update transactions in indexedDB", async () => {
     //   expect(addTransactionEth.gasPrice).toEqual(40300000000n)

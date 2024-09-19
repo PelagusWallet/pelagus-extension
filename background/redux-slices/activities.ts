@@ -15,9 +15,8 @@ import {
 } from "./utils/activities-utils"
 import {
   EnrichedQuaiTransaction,
-  SerializedTransactionForHistory,
-} from "../services/chain/types"
-import { QuaiTransactionDB } from "../services/transactions/types"
+  QuaiTransactionDB,
+} from "../services/transactions/types"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
 export type Activities = {

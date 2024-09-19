@@ -22,8 +22,8 @@ import {
   unitPricePointForPricePoint,
 } from "@pelagus/pelagus-background/assets"
 import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import { useBackgroundSelector } from "../../hooks"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 const getFeeDollarValue = (
   currencyPrice: PricePoint | undefined,

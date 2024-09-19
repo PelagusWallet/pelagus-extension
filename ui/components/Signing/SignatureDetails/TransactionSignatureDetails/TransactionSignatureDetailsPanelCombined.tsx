@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import DetailsPanel from "./DetailsPanel"
 import RawDataPanel from "./RawDataPanel"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 export default function TransactionSignatureDetailsPanelCombined({
   transactionRequest,

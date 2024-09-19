@@ -1,8 +1,8 @@
 import Dexie, { DexieOptions } from "dexie"
 
 import { UNIXTime } from "../../types"
-import { QuaiTransactionDB } from "./types"
-import { QuaiTransactionStatus } from "../chain/types"
+import { QuaiTransactionDB, QuaiTransactionStatus } from "./types"
+import { HexString } from "quais/lib/commonjs/utils"
 
 type AdditionalTransactionFieldsForDB = {
   dataSource: "local"
@@ -85,6 +85,13 @@ export class TransactionsDatabase extends Dexie {
       await this.quaiTransactions.where("to").equals(address).delete()
     })
     await Promise.all(deletePromises)
+  }
+
+  async getQuaiTransactionFirstSeen(txHash: HexString): Promise<number> {
+    return (
+      (await this.quaiTransactions.where("hash").equals(txHash).toArray())[0]
+        .firstSeen || Date.now()
+    )
   }
 }
 

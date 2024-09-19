@@ -27,8 +27,9 @@ import { getExtendedZoneForAddress, getNetworkById } from "../chain/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { isQuaiHandle } from "../../constants/networks/networkUtils"
 import { NetworksArray } from "../../constants/networks/networks"
-import { EnrichedQuaiTransaction } from "../chain/types"
 import BlockService from "../block"
+import TransactionService from "../transactions"
+import { EnrichedQuaiTransaction } from "../transactions/types"
 
 // Transactions seen within this many blocks of the chain tip will schedule a
 // token refresh sooner than the standard rate.
@@ -89,12 +90,24 @@ export default class IndexingService extends BaseService<Events> {
   static create: ServiceCreatorFunction<
     Events,
     IndexingService,
-    [Promise<PreferenceService>, Promise<ChainService>, Promise<BlockService>]
-  > = async (preferenceService, chainService, blockService, dexieOptions) => {
+    [
+      Promise<PreferenceService>,
+      Promise<ChainService>,
+      Promise<TransactionService>,
+      Promise<BlockService>
+    ]
+  > = async (
+    preferenceService,
+    chainService,
+    transactionService,
+    blockService,
+    dexieOptions
+  ) => {
     return new this(
       await getOrCreateDb(dexieOptions),
       await preferenceService,
       await chainService,
+      await transactionService,
       await blockService
     )
   }
@@ -103,6 +116,7 @@ export default class IndexingService extends BaseService<Events> {
     private db: IndexingDatabase,
     private preferenceService: PreferenceService,
     private chainService: ChainService,
+    private transactionService: TransactionService,
     private blockService: BlockService
   ) {
     super({
@@ -419,8 +433,8 @@ export default class IndexingService extends BaseService<Events> {
       }
     )
 
-    this.chainService.emitter.on(
-      "transaction",
+    this.transactionService.emitter.on(
+      "updateQuaiTransaction",
       async ({ transaction, forAccounts }) => {
         const transactionNetwork = getNetworkById(transaction?.chainId)
 

@@ -6,11 +6,11 @@ import {
   NetworksArray,
   QuaiGoldenAgeTestnet,
 } from "../../../constants/networks/networks"
-import { QuaiTransactionState } from "../types"
+import { QuaiTransactionDB } from "../../transactions/types"
 
 type ChainServiceExternalized = Omit<ChainService, ""> & {
   db: ChainDatabase
-  handlePendingTransaction: (transaction: QuaiTransactionState) => void
+  handlePendingTransaction: (transaction: QuaiTransactionDB) => void
   evmChainLastSeenNoncesByNormalizedAddress: {
     [chainID: string]: { [normalizedAddress: string]: number }
   }

@@ -29,6 +29,7 @@ import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
 import BlockService from "../block"
 import { QuaiTransactionDB } from "../transactions/types"
+import TransactionService from "../transactions"
 
 async function buildSubannotations(
   chainService: ChainService,
@@ -178,6 +179,7 @@ let numAsks = 0
 export default async function resolveTransactionAnnotation(
   blockService: BlockService,
   chainService: ChainService,
+  transactionService: TransactionService,
   indexingService: IndexingService,
   nameService: NameService,
   network: NetworkInterface,
@@ -299,7 +301,7 @@ export default async function resolveTransactionAnnotation(
       }
     } catch (e) {
       logger.error(e)
-      chainService
+      transactionService
         .getTransactionFirstSeenFromDB(transaction?.hash)
         .then((date) => {
           txAnnotation = {

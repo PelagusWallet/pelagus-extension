@@ -30,9 +30,9 @@ import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/util
 import { decodeJSON } from "../../lib/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
-import { QuaiTransactionRequestWithAnnotation } from "../chain/types"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
+import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
 
 // A type representing the transaction requests that come in over JSON-RPC
 // requests like eth_sendTransaction and eth_signTransaction. These are very
@@ -224,7 +224,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "net_version":
       case "web3_clientVersion":
       case "web3_sha3":
-        return this.chainService.send(method, params)
+        return this.transactionsService.send(method, params)
       case "quai_accounts": {
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
@@ -440,11 +440,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     origin: string,
     supportedNetwork: NetworkInterface
   ): Promise<void> {
-    const { address } = await this.preferenceService.getSelectedAccount()
-    await this.chainService.markAccountActivity({
-      address,
-      network: supportedNetwork,
-    })
     await this.db.setCurrentChainIdForOrigin(origin, supportedNetwork)
   }
 

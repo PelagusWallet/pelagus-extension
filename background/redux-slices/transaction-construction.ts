@@ -12,10 +12,7 @@ import {
 import { createBackgroundAsyncThunk } from "./utils"
 import { SignOperation } from "./signing"
 import { NetworkInterface } from "../constants/networks/networkTypes"
-import {
-  QuaiTransactionRequestWithAnnotation,
-  QuaiTransactionState,
-} from "../services/chain/types"
+import { QuaiTransactionRequestWithAnnotation } from "../services/transactions/types"
 
 export const enum TransactionConstructionStatus {
   Idle = "idle",
@@ -84,7 +81,6 @@ export type Events = {
   requestSignature: SignOperation<QuaiTransactionRequestWithAnnotation>
   signatureRejected: never
   broadcastSignedTransaction: QuaiTransaction
-  signedTransactionResult: QuaiTransactionState
 }
 
 export type GasOption = {

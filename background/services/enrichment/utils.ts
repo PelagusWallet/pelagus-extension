@@ -6,8 +6,10 @@ import { ERC20TransferLog } from "../../lib/erc20"
 import { sameQuaiAddress } from "../../lib/utils"
 import { AddressOnNetwork } from "../../accounts"
 import { SmartContractFungibleAsset } from "../../assets"
-import { EnrichedQuaiTransaction, QuaiTransactionState } from "../chain/types"
-import { QuaiTransactionDB } from "../transactions/types"
+import {
+  EnrichedQuaiTransaction,
+  QuaiTransactionDB,
+} from "../transactions/types"
 
 export function isEIP2612TypedData(
   typedData: EIP712TypedData
@@ -79,10 +81,7 @@ export const getERC20LogsForAddresses = (
 }
 
 export function getRecipient(
-  transaction:
-    | QuaiTransactionState
-    | EnrichedQuaiTransaction
-    | QuaiTransactionDB
+  transaction: EnrichedQuaiTransaction | QuaiTransactionDB
 ): {
   address?: HexString
   name?: string
@@ -119,10 +118,7 @@ export function getRecipient(
 }
 
 export function getSender(
-  transaction:
-    | QuaiTransactionState
-    | EnrichedQuaiTransaction
-    | QuaiTransactionDB
+  transaction: EnrichedQuaiTransaction | QuaiTransactionDB
 ): {
   address?: HexString
   name?: string
@@ -146,10 +142,7 @@ export function getSender(
 }
 
 export function getRelevantTransactionAddresses(
-  transaction:
-    | QuaiTransactionState
-    | EnrichedQuaiTransaction
-    | QuaiTransactionDB,
+  transaction: EnrichedQuaiTransaction | QuaiTransactionDB,
   trackedAccounts: AddressOnNetwork[]
 ): string[] {
   const { address: recipientAddress } = getRecipient(transaction)

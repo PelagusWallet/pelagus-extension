@@ -10,12 +10,11 @@ import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
 import { MINUTE } from "../../constants"
-import { QuaiTransactionDB } from "./types"
+import { QuaiTransactionDB, QuaiTransactionStatus } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import NotificationsManager from "../notifications"
 import { quaiTransactionFromResponse } from "./utils"
-import { QuaiTransactionStatus } from "../chain/types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { createTransactionsDataBase, TransactionsDatabase } from "./db"
@@ -162,6 +161,16 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     txHash: HexString
   ): Promise<QuaiTransactionDB | null> {
     return this.db.getQuaiTransactionByHash(txHash)
+  }
+
+  public async getTransactionFirstSeenFromDB(
+    txHash: HexString
+  ): Promise<number> {
+    return this.db.getQuaiTransactionFirstSeen(txHash)
+  }
+
+  public async send(method: string, params: unknown[]): Promise<unknown> {
+    return this.chainService.jsonRpcProvider.send(method, params)
   }
 
   // ------------------------------------ private methods ------------------------------------

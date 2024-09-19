@@ -6,7 +6,7 @@ import { EnrichedSignTypedDataRequest } from "../services/enrichment"
 import { EIP712TypedData } from "../types"
 import { AddressOnNetwork } from "../accounts"
 import { AccountSigner } from "../services/signing"
-import { QuaiTransactionRequestWithAnnotation } from "../services/chain/types"
+import { QuaiTransactionRequestWithAnnotation } from "../services/transactions/types"
 
 /**
  * The different types of SignOperations that can be executed. These types

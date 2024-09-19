@@ -3,10 +3,6 @@ import { ChainData, Slip44CoinType } from "./constants"
 import { HexString, UNIXTime } from "./types"
 import type { FungibleAsset } from "./assets"
 import { NetworkInterface } from "./constants/networks/networkTypes"
-import {
-  QuaiTransactionState,
-  SerializedTransactionForHistory,
-} from "./services/chain/types"
 import { QuaiTransactionDB } from "./services/transactions/types"
 
 /**
@@ -160,11 +156,7 @@ export function toHexChainID(chainID: string | number): string {
 
 // There is probably some clever way to combine the following type guards into one function
 export const isEIP1559TransactionRequest = (
-  transactionRequest:
-    | QuaiTransactionRequest
-    | QuaiTransactionState
-    | SerializedTransactionForHistory
-    | QuaiTransactionDB
+  transactionRequest: QuaiTransactionRequest | QuaiTransactionDB
 ) =>
   !!transactionRequest?.maxFeePerGas ||
   !!transactionRequest?.maxPriorityFeePerGas

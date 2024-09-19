@@ -1,21 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 /* eslint-disable import/no-cycle */
-import {
-  getZoneForAddress,
-  JsonRpcProvider,
-  QuaiTransaction,
-  Shard,
-  toBigInt,
-  TransactionReceipt,
-  TransactionResponse,
-  WebSocketProvider,
-  Zone,
-} from "quais"
-import {
-  QuaiTransactionRequest,
-  QuaiTransactionResponse,
-} from "quais/lib/commonjs/providers"
+import { JsonRpcProvider, Shard, toBigInt, WebSocketProvider } from "quais"
 import { NetworksArray } from "../../constants/networks/networks"
 import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
@@ -27,31 +13,16 @@ import {
   AssetTransfer,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MINUTE, SECOND } from "../../constants"
+import { HOUR, MINUTE } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
-import { ChainDatabase, createDB, QuaiTransactionDBEntry } from "./db"
+import { ChainDatabase, createDB } from "./db"
 import BaseService from "../base"
-import { getExtendedZoneForAddress, getNetworkById } from "./utils"
+import { getExtendedZoneForAddress } from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
 import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
-import { getRelevantTransactionAddresses } from "../enrichment/utils"
-import {
-  createConfirmedQuaiTransaction,
-  createFailedQuaiTransaction,
-  createPendingQuaiTransaction,
-  createSerializedQuaiTransaction,
-} from "./utils/quai-transactions"
-import {
-  PendingQuaiTransaction,
-  QuaiTransactionState,
-  QuaiTransactionStatus,
-  SerializedTransactionForHistory,
-} from "./types"
-import { isSignerPrivateKeyType } from "../keyring/utils"
-import NotificationsManager from "../notifications"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -70,27 +41,7 @@ const BLOCKS_TO_SKIP_FOR_TRANSACTION_HISTORY = 20
 // Add a little bit of wiggle room
 const NETWORK_POLLING_TIMEOUT = MINUTE * 2.05
 
-// The number of milliseconds after a request to look up a transaction was
-// first seen to continue looking in case the transaction fails to be found
-// for either internal (request failure) or external (transaction dropped from
-// mempool) reasons.
-const TRANSACTION_CHECK_LIFETIME_MS = 10 * HOUR
-
-// Maximum number of transactions with priority.
-// Transactions that will be retrieved before others for one account.
-// Transactions with priority for individual accounts will keep the order of loading
-// from adding accounts.
-const TRANSACTIONS_WITH_PRIORITY_MAX_COUNT = 25
-
 interface Events extends ServiceLifecycleEvents {
-  initializeActivities: {
-    transactions: SerializedTransactionForHistory[]
-    accounts: AddressOnNetwork[]
-  }
-  initializeActivitiesForAccount: {
-    transactions: SerializedTransactionForHistory[]
-    account: AddressOnNetwork
-  }
   newAccountToTrack: {
     addressOnNetwork: AddressOnNetwork
     source: "import" | "internal" | null
@@ -106,33 +57,12 @@ interface Events extends ServiceLifecycleEvents {
      */
     addressOnNetwork: AddressOnNetwork
   }
-  transactionSend: HexString
   networkSubscribed: NetworkInterface
-  transactionSendFailure: undefined
   assetTransfers: {
     addressNetwork: AddressOnNetwork
     assetTransfers: AssetTransfer[]
   }
-  transaction: {
-    forAccounts: string[]
-    transaction: SerializedTransactionForHistory
-  }
   customChainAdded: ValidatedAddEthereumChainParameter
-}
-
-export type QueuedTxToRetrieve = {
-  network: NetworkInterface
-  hash: HexString
-  firstSeen: UNIXTime
-}
-/**
- * The queue object contains transaction and priority.
- * The priority value is a number. The value of the highest priority has not been set.
- * The lowest possible priority is 0.
- */
-export type PriorityQueuedTxToRetrieve = {
-  transaction: QueuedTxToRetrieve
-  priority: number
 }
 
 /**
@@ -181,27 +111,6 @@ export default class ChainService extends BaseService<Events> {
     [address: HexString]: UNIXTime
   } = {}
 
-  /**
-   * Modified FIFO queues with priority of transaction hashes per network that should be retrieved and
-   * cached, alongside information about when that hash request was first seen
-   * for expiration purposes. In the absence of priorities, it acts as a regular FIFO queue.
-   */
-  private transactionsToRetrieve: PriorityQueuedTxToRetrieve[]
-
-  /**
-   * Internal timer for the transactionsToRetrieve FIFO queue.
-   * Starting multiple transaction requests at the same time is resource intensive
-   * on the user's machine and also can result in rate limitations with the provider.
-   *
-   * Because of this we need to smooth out the retrieval scheduling.
-   *
-   * Limitations
-   *   - handlers can fire only in 1+ minute intervals
-   *   - in manifest v3 / service worker context the background thread can be shut down any time.
-   *     Because of this we need to keep the granular queue tied to the persisted list of txs
-   */
-  private transactionToRetrieveGranularTimer: NodeJS.Timeout | undefined
-
   static create: ServiceCreatorFunction<
     Events,
     ChainService,
@@ -228,15 +137,6 @@ export default class ChainService extends BaseService<Events> {
     private keyringService: KeyringService
   ) {
     super({
-      queuedTransactions: {
-        schedule: {
-          delayInMinutes: 1,
-          periodInMinutes: 1,
-        },
-        handler: () => {
-          this.handleQueuedTransactionAlarm()
-        },
-      },
       historicAssetTransfers: {
         schedule: {
           periodInMinutes: 6,
@@ -274,7 +174,6 @@ export default class ChainService extends BaseService<Events> {
 
     this.subscribedAccounts = []
     this.subscribedNetworks = []
-    this.transactionsToRetrieve = []
     this.providerFactory = providerFactoryService
   }
 
@@ -297,15 +196,9 @@ export default class ChainService extends BaseService<Events> {
     this.assetData = new AssetDataHelper(jsonRpcProvider)
 
     const accounts = await this.getAccountsToTrack()
-    const transactions = await this.db.getAllQuaiTransactions()
-    await this.emitter.emit("initializeActivities", {
-      transactions,
-      accounts,
-    })
 
     this.emitter.emit("supportedNetworks", NetworksArray)
 
-    await this.subscribeOnAccountTransactions(this.supportedNetworks, accounts)
     await this.subscribeOnNetworksAndAddresses(this.supportedNetworks, accounts)
   }
 
@@ -345,35 +238,6 @@ export default class ChainService extends BaseService<Events> {
     })
   }
 
-  private subscribeOnAccountTransactions = async (
-    networks: NetworkInterface[],
-    accounts: AddressOnNetwork[]
-  ): Promise<void> => {
-    networks.forEach((network) => {
-      Promise.allSettled([
-        this.db
-          .getQuaiTransactionsByStatus(network, QuaiTransactionStatus.PENDING)
-          .then((pendingTransactions) => {
-            pendingTransactions.forEach(({ hash, firstSeen }) => {
-              if (!hash)
-                throw new Error("Failed subscribe on account transactions")
-              logger.debug(
-                `Queuing pending transaction ${hash} for status lookup.`
-              )
-              this.queueTransactionHashToRetrieve(network, hash, firstSeen)
-            })
-          }),
-      ]).catch((e) => logger.error(e))
-
-      accounts.forEach(async (account) => {
-        Promise.allSettled([
-          this.subscribeToAccountTransactions(account),
-          this.getLatestBaseAccountBalance(account),
-        ]).catch((e) => logger.error(e))
-      })
-    })
-  }
-
   async getAccountsToTrack(
     onlyActiveAccounts = false
   ): Promise<AddressOnNetwork[]> {
@@ -396,10 +260,6 @@ export default class ChainService extends BaseService<Events> {
 
   async removeAccountToTrack(address: string): Promise<void> {
     await this.db.removeAccountToTrack(address)
-  }
-
-  async removeActivities(address: string): Promise<void> {
-    await this.db.deleteQuaiTransactionsByAddress(address)
   }
 
   async getLatestBaseAccountBalance({
@@ -495,14 +355,6 @@ export default class ChainService extends BaseService<Events> {
         source,
       })
     }
-    this.emitSavedTransactions(addressNetwork)
-
-    this.subscribeToAccountTransactions(addressNetwork).catch((e) => {
-      logger.error(
-        "chainService/addAccountToTrack: Error subscribing to account transactions",
-        e
-      )
-    })
 
     this.getLatestBaseAccountBalance(addressNetwork).catch((e) => {
       logger.error(
@@ -518,337 +370,6 @@ export default class ChainService extends BaseService<Events> {
           e
         )
       })
-    }
-  }
-
-  // ------------------------------------------------------------------------------------------------
-
-  /**
-   * Return cached information on a transaction, if it's both confirmed and
-   * in the local DB.
-   *
-   * Otherwise, retrieve the transaction from the specified network, caching and
-   * returning the object.
-   *
-   * @param txHash the hash of the unconfirmed transaction we're interested in
-   */
-  async getTransaction(
-    txHash: HexString
-  ): Promise<SerializedTransactionForHistory | QuaiTransactionDBEntry | null> {
-    const cachedTx = await this.db.getQuaiTransactionByHash(txHash)
-    return this.jsonRpcProvider
-      .getTransaction(txHash)
-      .then(async (tx) => {
-        const transaction = tx as QuaiTransactionResponse | null
-
-        if (!transaction) throw new Error("Failed to get transaction")
-
-        const receipt = await this.jsonRpcProvider.getTransactionReceipt(txHash)
-
-        if (!receipt || !transaction?.blockNumber) return cachedTx
-
-        const confirmedQuaiTransaction = createConfirmedQuaiTransaction(
-          transaction,
-          receipt
-        )
-
-        await this.saveTransaction(confirmedQuaiTransaction, "local")
-
-        return this.db.getQuaiTransactionByHash(confirmedQuaiTransaction?.hash)
-      })
-      .catch(async () => {
-        if (!cachedTx) throw new Error("Failed to get transaction")
-        return cachedTx
-      })
-  }
-
-  async getTransactionFirstSeenFromDB(txHash: HexString): Promise<number> {
-    return this.db.getQuaiTransactionFirstSeen(txHash)
-  }
-
-  /**
-   * Queues up a particular transaction hash for later retrieval.
-   *
-   * Using this method means the service can decide when to retrieve a
-   * particular transaction. Queued transactions are generally retrieved on a
-   * periodic basis.
-   *
-   * @param network The network on which the transaction has been broadcast.
-   * @param txHash The tx hash identifier of the transaction we want to retrieve.
-   * @param firstSeen The timestamp at which the queued transaction was first
-   *        seen; used to treat transactions as dropped after a certain amount
-   *        of time.
-   * @param priority The priority of the transaction in the queue to be retrieved
-   */
-  queueTransactionHashToRetrieve(
-    network: NetworkInterface,
-    txHash: HexString,
-    firstSeen: UNIXTime,
-    priority = 0
-  ): void {
-    const newElement: PriorityQueuedTxToRetrieve = {
-      transaction: { hash: txHash, network, firstSeen },
-      priority,
-    }
-    const seen = this.isTransactionHashQueued(network, txHash)
-    if (!seen) {
-      // @TODO Interleave initial transaction retrieval by network
-      const existingTransactionIndex = this.transactionsToRetrieve.findIndex(
-        ({ priority: txPriority }) => newElement.priority > txPriority
-      )
-      if (existingTransactionIndex >= 0) {
-        this.transactionsToRetrieve.splice(
-          existingTransactionIndex,
-          0,
-          newElement
-        )
-      } else {
-        this.transactionsToRetrieve.push(newElement)
-      }
-    }
-  }
-
-  /**
-   * Checks if a transaction with a given hash on a network is in the queue or not.
-   *
-   * @param txNetwork
-   * @param txHash The hash of a tx to check.
-   * @returns true if the tx hash is in the queue, false otherwise.
-   */
-  isTransactionHashQueued(
-    txNetwork: NetworkInterface,
-    txHash: HexString
-  ): boolean {
-    return this.transactionsToRetrieve.some(
-      ({ transaction }) =>
-        transaction.hash === txHash &&
-        txNetwork.chainID === transaction.network.chainID
-    )
-  }
-
-  /**
-   * Removes a particular hash from our queue.
-   *
-   * @param network The network on which the transaction has been broadcast.
-   * @param txHash The tx hash identifier of the transaction we want to retrieve.
-   */
-  removeTransactionHashFromQueue(
-    network: NetworkInterface,
-    txHash: HexString
-  ): void {
-    const seen = this.isTransactionHashQueued(network, txHash)
-
-    if (seen) {
-      // Let's clean up the tx queue if the hash is present.
-      // The pending tx hash should be on chain as soon as it's broadcasted.
-      this.transactionsToRetrieve = this.transactionsToRetrieve.filter(
-        ({ transaction }) => transaction.hash !== txHash
-      )
-    }
-  }
-
-  /**
-   * Estimate the gas needed to make a transaction. Adds 10% as a safety net to
-   * the base estimate returned by the provider.
-   */
-  private async estimateGasPrice(tx: QuaiTransactionRequest): Promise<bigint> {
-    const estimate = await this.jsonRpcProvider.estimateGas(tx)
-
-    if (!estimate) throw new Error("Failed to estimate gas")
-    // Add 10% more gas as a safety net
-    return (estimate * 11n) / 10n
-  }
-
-  async signAndSendQuaiTransaction(
-    request: QuaiTransactionRequest
-  ): Promise<QuaiTransactionResponse | null> {
-    try {
-      let transactionResponse: QuaiTransactionResponse
-      const signerWithType = await this.keyringService.getSigner(
-        request.from.toString()
-      )
-
-      if (isSignerPrivateKeyType(signerWithType)) {
-        transactionResponse = (await signerWithType.signer
-          .connect(this.jsonRpcProvider)
-          .sendTransaction(request)) as QuaiTransactionResponse
-      } else {
-        signerWithType.signer.connect(this.jsonRpcProvider)
-        transactionResponse = (await signerWithType.signer
-          .sendTransaction(request)
-          .catch((e) => {
-            logger.error(e)
-            throw new Error("Failed send transaction")
-          })) as QuaiTransactionResponse
-      }
-
-      const network = getNetworkById(transactionResponse?.chainId)
-      if (!network) {
-        throw new Error("Network is null.")
-      }
-
-      this.emitter.emit("transactionSend", transactionResponse.hash)
-
-      const pendingQuaiTransaction = createPendingQuaiTransaction(
-        transactionResponse as QuaiTransactionResponse
-      )
-      this.saveTransaction(pendingQuaiTransaction, "local")
-      this.subscribeToTransactionConfirmation(network, pendingQuaiTransaction)
-
-      return transactionResponse
-    } catch (error) {
-      logger.debug(
-        "Broadcast error caught, saving failed status...",
-        request,
-        error
-      )
-
-      // TODO
-      const temporary = request as QuaiTransactionResponse
-
-      const failedTransaction = createFailedQuaiTransaction(temporary)
-      this.saveTransaction(failedTransaction, "local")
-
-      this.emitter.emit("transactionSendFailure")
-
-      return null
-    }
-  }
-
-  /**
-   * Broadcast a signed EVM transaction.
-   *
-   * @param transaction A signed EVM transaction to broadcast. Since the tx is signed,
-   *        it needs to include all gas limit and price params.
-   */
-  async broadcastSignedTransaction(
-    transaction: QuaiTransaction
-  ): Promise<void> {
-    try {
-      if (!transaction.to) {
-        throw new Error("Transaction 'to' field is not specified.")
-      }
-
-      const zoneToBroadcast = getZoneForAddress(transaction.to)
-      if (!zoneToBroadcast) {
-        throw new Error(
-          "Invalid address shard: Unable to determine the zone for the given 'to' address."
-        )
-      }
-
-      const network = getNetworkById(transaction?.chainId)
-      if (!network) {
-        throw new Error("Network is null.")
-      }
-
-      const { serialized: signedTransaction } = transaction
-
-      await Promise.all([
-        this.jsonRpcProvider
-          ?.broadcastTransaction(zoneToBroadcast, signedTransaction)
-          .then((transactionResponse) => {
-            this.emitter.emit("transactionSend", transactionResponse.hash)
-
-            const pendingQuaiTransaction = createPendingQuaiTransaction(
-              transactionResponse as QuaiTransactionResponse
-            )
-            this.saveTransaction(pendingQuaiTransaction, "local")
-            this.subscribeToTransactionConfirmation(
-              network,
-              pendingQuaiTransaction
-            )
-          })
-          .catch((error) => {
-            logger.debug(
-              "Broadcast error caught, saving failed status and releasing nonce...",
-              transaction,
-              error
-            )
-
-            const failedTransaction = createFailedQuaiTransaction(
-              transaction,
-              error.toString()
-            )
-            this.saveTransaction(failedTransaction, "local")
-            return Promise.reject(error)
-          }),
-      ])
-    } catch (error) {
-      this.emitter.emit("transactionSendFailure")
-      logger.error("Error broadcasting transaction", transaction, error)
-      throw error
-    }
-  }
-
-  async markAccountActivity({
-    address,
-    network,
-  }: AddressOnNetwork): Promise<void> {
-    const addressWasInactive = this.addressIsInactive(address)
-    const networkWasInactive = this.networkIsInactive(network.chainID)
-    this.lastUserActivityOnNetwork[network.chainID] = Date.now()
-    this.lastUserActivityOnAddress[address] = Date.now()
-    if (addressWasInactive || networkWasInactive) {
-      // Reactivating a potentially deactivated address
-      this.loadRecentAssetTransfers({ address, network })
-      this.getLatestBaseAccountBalance({ address, network })
-    }
-  }
-
-  addressIsInactive(address: string): boolean {
-    return (
-      Date.now() - NETWORK_POLLING_TIMEOUT >
-      this.lastUserActivityOnAddress[address]
-    )
-  }
-
-  networkIsInactive(chainID: string): boolean {
-    return (
-      Date.now() - NETWORK_POLLING_TIMEOUT >
-      this.lastUserActivityOnNetwork[chainID]
-    )
-  }
-
-  async send(method: string, params: unknown[]): Promise<unknown> {
-    return this.jsonRpcProvider.send(method, params)
-  }
-
-  /**
-   * Retrieves a confirmed or unconfirmed transaction's details from chain.
-   * If found, then returns the transaction result received from chain.
-   * If the tx hash is not found on chain, then remove it from the lookup queue
-   * and mark it as dropped in the db. This will filter and fix those situations
-   * when our records differ from what the chain/mempool sees. This can happen in
-   * case of unstable networking conditions.
-   *
-   * @param network
-   * @param hash
-   */
-  async getOrCancelTransaction(
-    network: NetworkInterface,
-    hash: string
-  ): Promise<TransactionResponse | null | undefined> {
-    try {
-      return await this.jsonRpcProvider.getTransaction(hash)
-    } catch (e) {
-      logger.error(e)
-      logger.warn(
-        `Tx hash ${hash} is found in our local registry but not on chain.`
-      )
-
-      this.removeTransactionHashFromQueue(network, hash)
-      await this.jsonRpcProvider.off(hash)
-
-      const savedTx = await this.db.getQuaiTransactionByHash(hash)
-      if (savedTx && savedTx.status === QuaiTransactionStatus.FAILED) {
-        const failedTransaction = createFailedQuaiTransaction(
-          savedTx,
-          "Transaction was in our local db but was not found on chain."
-        )
-        // Let's see if we have the tx in the db, and if yes let's mark it as dropped.
-        await this.saveTransaction(failedTransaction, "local")
-      }
-      return null
     }
   }
 
@@ -960,23 +481,6 @@ export default class ChainService extends BaseService<Events> {
       addressNetwork: addressOnNetwork,
       assetTransfers,
     })
-
-    const firstSeen = Date.now()
-
-    const savedTransactionHashes = new Set(
-      await this.db.getAllQuaiTransactionHashes()
-    )
-    /// send all new tx hashes into a queue to retrieve + cache
-    assetTransfers.forEach((a, idx) => {
-      if (!savedTransactionHashes.has(a.txHash)) {
-        this.queueTransactionHashToRetrieve(
-          addressOnNetwork.network,
-          a.txHash,
-          firstSeen,
-          idx <= TRANSACTIONS_WITH_PRIORITY_MAX_COUNT ? 0 : 1
-        )
-      }
-    })
   }
 
   /**
@@ -1030,161 +534,6 @@ export default class ChainService extends BaseService<Events> {
     )
   }
 
-  private async handleQueuedTransactionAlarm(): Promise<void> {
-    if (
-      !this.transactionToRetrieveGranularTimer &&
-      this.transactionsToRetrieve.length
-    ) {
-      this.transactionToRetrieveGranularTimer = setInterval(() => {
-        if (
-          !this.transactionsToRetrieve.length &&
-          this.transactionToRetrieveGranularTimer
-        ) {
-          // Clean up if we have a timer, but we don't have anything in the queue
-          clearInterval(this.transactionToRetrieveGranularTimer)
-          this.transactionToRetrieveGranularTimer = undefined
-          return
-        }
-
-        // TODO: balance getting txs between networks
-        const { transaction } = this.transactionsToRetrieve[0]
-        this.removeTransactionHashFromQueue(
-          transaction.network,
-          transaction.hash
-        )
-        this.retrieveTransaction(transaction)
-      }, 2 * SECOND)
-    }
-  }
-
-  /**
-   * Retrieve a confirmed or unconfirmed transaction's details, saving the
-   * results. If the transaction is confirmed, triggers retrieval and storage
-   * of transaction receipt information as well. If lookup fails, re-queues the
-   * transaction for a future retry until a constant lifetime is exceeded, at
-   * which point the transaction is marked as dropped unless it was
-   * independently marked as successful.
-   *
-   * @param network the EVM network we're interested in
-   * @param transaction the confirmed transaction we're interested in
-   */
-  private async retrieveTransaction({
-    network,
-    hash,
-    firstSeen,
-  }: QueuedTxToRetrieve): Promise<void> {
-    try {
-      const transactionResponse = (await this.getOrCancelTransaction(
-        network,
-        hash
-      )) as QuaiTransactionResponse | null
-
-      if (!transactionResponse)
-        throw new Error(`Failed to get or cancel transaction`)
-
-      const receipt = await this.jsonRpcProvider.getTransactionReceipt(hash)
-
-      if (receipt && transactionResponse.blockNumber) {
-        const successTx = createConfirmedQuaiTransaction(
-          transactionResponse,
-          receipt
-        )
-        const txFromDB = await this.db.getQuaiTransactionByHash(hash)
-        NotificationsManager.createSuccessTxNotification(txFromDB?.nonce, hash)
-        await this.saveTransaction(successTx, "local")
-      }
-    } catch (error) {
-      logger.error(`Error retrieving transaction ${hash}`, error)
-      if (Date.now() <= firstSeen + TRANSACTION_CHECK_LIFETIME_MS) {
-        this.queueTransactionHashToRetrieve(network, hash, firstSeen)
-      } else {
-        logger.warn(
-          `Transaction ${hash} is too old to keep looking for it; treating ` +
-            "it as expired."
-        )
-
-        this.db.getQuaiTransactionByHash(hash).then((existingTransaction) => {
-          if (existingTransaction) {
-            logger.debug(
-              "Found existing transaction for expired lookup; marking as " +
-                "failed if no other status exists."
-            )
-            const failedTransaction =
-              createFailedQuaiTransaction(existingTransaction)
-
-            this.saveTransaction(failedTransaction, "local")
-          }
-        })
-      }
-    }
-  }
-
-  /**
-   * Save a transaction to the database and emit an event.
-   *
-   * @param transaction The transaction to save and emit. Uniqueness and
-   *        ordering will be handled by the database.
-   * @param dataSource Where the transaction was seen.
-   */
-  public async saveTransaction(
-    transaction: QuaiTransactionState,
-    dataSource: "local"
-  ): Promise<void> {
-    const network = getNetworkById(transaction?.chainId)
-    if (!network) throw new Error("Failed find network before save transaction")
-
-    let error: unknown = null
-    const serializedTx = createSerializedQuaiTransaction(transaction)
-    try {
-      await this.db.addOrUpdateQuaiTransaction(serializedTx, dataSource)
-    } catch (err) {
-      error = err
-      logger.error(`Error saving tx ${serializedTx}`, error)
-    }
-    try {
-      let accounts = await this.getAccountsToTrack()
-
-      if (!accounts.length) {
-        await this.db.addAccountToTrack({
-          address: transaction.from ?? "",
-          network,
-        })
-        accounts = await this.getAccountsToTrack()
-      }
-
-      const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
-
-      await this.emitter.emit("transaction", {
-        transaction: serializedTx,
-        forAccounts,
-      })
-    } catch (err) {
-      error = err
-      logger.error(`Error emitting tx ${transaction}`, error)
-    }
-    if (error) {
-      throw error
-    }
-  }
-
-  async emitSavedTransactions(account: AddressOnNetwork): Promise<void> {
-    const { address, network } = account
-    const transactionsForNetwork = await this.db.getQuaiTransactionsByNetwork(
-      network
-    )
-
-    const transactions = transactionsForNetwork.filter(
-      (transaction) =>
-        sameQuaiAddress(transaction.from, address) ||
-        sameQuaiAddress(transaction.to, address)
-    )
-
-    await this.emitter.emit("initializeActivitiesForAccount", {
-      transactions,
-      account,
-    })
-  }
-
   /**
    * Given a list of AddressOnNetwork objects, return only the ones that
    * are currently being tracked.
@@ -1218,102 +567,6 @@ export default class ChainService extends BaseService<Events> {
       network,
       provider: jsonRpcProvider,
     })
-  }
-
-  /**
-   * Watch logs for an account's transactions on a particular network.
-   *
-   * @param addressOnNetwork The network and address to watch.
-   */
-  private async subscribeToAccountTransactions({
-    address,
-    network,
-  }: AddressOnNetwork): Promise<void> {
-    const provider = this.jsonRpcProvider
-    if (!provider) throw new Error("Failed to get provider")
-
-    const zone = getZoneForAddress(address) ?? undefined
-    await provider.on(
-      "pending",
-      async (transactionHash: string) => {
-        try {
-          const tx = (await this.getTransaction(
-            transactionHash
-          )) as PendingQuaiTransaction
-
-          if (tx.status !== QuaiTransactionStatus.PENDING)
-            throw new Error("tx status is not pending")
-
-          await this.handlePendingTransaction(tx, network)
-        } catch (innerError) {
-          logger.error(
-            `Error handling incoming pending transaction hash: ${transactionHash}`,
-            innerError
-          )
-        }
-      },
-      zone
-    )
-
-    this.subscribedAccounts.push({
-      account: address,
-      provider,
-    })
-  }
-
-  /**
-   * Persists pending transactions and subscribes to their confirmation
-   *
-   * @param transaction The pending transaction
-   * @param network
-   */
-  private async handlePendingTransaction(
-    transaction: PendingQuaiTransaction,
-    network: NetworkInterface
-  ): Promise<void> {
-    try {
-      if (!network)
-        throw new Error("Failed find network handlePendingTransaction")
-
-      // If this is an EVM chain, we're tracking the from address's
-      // nonce, and the pending transaction has a higher nonce, update our
-      // view of it. This helps reduce the number of times when a
-      // transaction submitted outside of this wallet causes this wallet to
-      await this.saveTransaction(transaction, "local")
-
-      // Wait for confirmation/receipt information.
-      await this.subscribeToTransactionConfirmation(network, transaction)
-    } catch (error) {
-      logger.error(`Error saving tx: ${transaction}`, error)
-    }
-  }
-
-  /**
-   * Track a pending transaction's confirmation status, saving any updates to
-   * the database and informing subscribers via the emitter.
-   *
-   * @param network the EVM network we're interested in
-   * @param transaction the unconfirmed transaction we're interested in
-   */
-  private async subscribeToTransactionConfirmation(
-    network: NetworkInterface,
-    transaction: PendingQuaiTransaction
-  ): Promise<void> {
-    this.webSocketProvider.once(
-      transaction.hash,
-      (receipt: TransactionReceipt) => {
-        const confirmedTransaction = createConfirmedQuaiTransaction(
-          transaction,
-          receipt
-        )
-        this.saveTransaction(confirmedTransaction, "local")
-        this.removeTransactionHashFromQueue(network, transaction.hash)
-      }
-    )
-
-    // Let's add the transaction to the queued lookup. If the transaction is dropped
-    // because of wrong nonce on chain the event will never arrive.
-    this.queueTransactionHashToRetrieve(network, transaction.hash, Date.now())
   }
 
   async queryAccountTokenDetails(

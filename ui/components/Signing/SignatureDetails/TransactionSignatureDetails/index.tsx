@@ -1,8 +1,8 @@
 import React, { ReactElement } from "react"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import TransactionSignatureDetailsPanelSwitcher from "./TransactionSignatureDetailsPanelSwitcher"
 import TransactionSignatureDetailsPanelCombined from "./TransactionSignatureDetailsPanelCombined"
 import TransactionSignatureSummary from "./TransactionSignatureSummary"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 export type TransactionSignatureDetailsProps = {
   transactionRequest: QuaiTransactionRequestWithAnnotation

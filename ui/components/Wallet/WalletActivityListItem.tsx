@@ -9,7 +9,7 @@ import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import SharedActivityIcon from "../Shared/SharedActivityIcon"
 import useActivityViewDetails from "../../hooks/activity-hooks"
-import { QuaiTransactionStatus } from "@pelagus/pelagus-background/services/chain/types"
+import { QuaiTransactionStatus } from "@pelagus/pelagus-background/services/transactions/types"
 
 interface Props {
   onClick: () => void

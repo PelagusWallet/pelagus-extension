@@ -7,13 +7,13 @@ import { updateTransactionData } from "@pelagus/pelagus-background/redux-slices/
 import { useTranslation } from "react-i18next"
 import classNames from "classnames"
 import { getMaxFeeAndMaxPriorityFeePerGas } from "@pelagus/pelagus-background/redux-slices/assets"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSlideUpMenu from "../../../Shared/SharedSlideUpMenu"
 import NetworkSettingsChooser from "../../../NetworkFees/NetworkSettingsChooser"
 import FeeSettingsButton from "../../../NetworkFees/FeeSettingsButton"
 import TransactionSignatureDetailsWarning from "./TransactionSignatureDetailsWarning"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 export type PanelState = {
   dismissedWarnings: string[]

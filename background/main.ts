@@ -292,6 +292,7 @@ export default class Main extends BaseService<never> {
     const indexingService = IndexingService.create(
       preferenceService,
       chainService,
+      transactionService,
       blockService
     )
     const nameService = NameService.create(chainService, preferenceService)
@@ -879,17 +880,6 @@ export default class Main extends BaseService<never> {
           // Force a refresh of the account balance to populate the store.
           this.chainService.getLatestBaseAccountBalance(addressNetwork)
         })
-
-        // TODO
-        // this.chainService.emitter.on(
-        //   "initializeActivitiesForAccount",
-        //   async (payloadForAccount) => {
-        //     this.store.dispatch(
-        //       initializeActivitiesForAccount(payloadForAccount)
-        //     )
-        //     await this.enrichActivitiesForSelectedAccount()
-        //   }
-        // )
       }
     )
 
@@ -1008,10 +998,6 @@ export default class Main extends BaseService<never> {
         )
       }
     )
-
-    uiSliceEmitter.on("userActivityEncountered", (addressOnNetwork) => {
-      this.chainService.markAccountActivity(addressOnNetwork)
-    })
   }
 
   async connectProviderFactoryService(): Promise<void> {
@@ -1593,8 +1579,6 @@ export default class Main extends BaseService<never> {
 
     uiSliceEmitter.on("newSelectedAccount", async (addressNetwork) => {
       await this.preferenceService.setSelectedAccount(addressNetwork)
-
-      await this.chainService.markAccountActivity(addressNetwork)
 
       this.providerBridgeService.notifyContentScriptsAboutAddressChange(
         addressNetwork.address

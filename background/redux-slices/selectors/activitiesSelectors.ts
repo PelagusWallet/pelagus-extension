@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit"
 import { selectCurrentAccount, selectCurrentNetwork } from "./uiSelectors"
 import { RootState } from ".."
-import { QuaiTransactionStatus } from "../../services/chain/types"
+import { QuaiTransactionStatus } from "../../services/transactions/types"
 
 export const selectCurrentAccountActivities = createSelector(
   (state: RootState) => state.activities.activities,

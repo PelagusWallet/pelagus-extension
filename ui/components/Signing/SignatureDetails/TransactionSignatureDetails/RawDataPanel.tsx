@@ -2,8 +2,8 @@ import React, { ReactElement } from "react"
 import { useDispatch } from "react-redux"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useTranslation } from "react-i18next"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import SharedButton from "../../../Shared/SharedButton"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 export default function RawDataPanel({
   transactionRequest,

@@ -75,7 +75,6 @@ export type Events = {
   sendEvent: AnalyticsEvent | OneTimeAnalyticsEvent
   newSelectedAccount: AddressOnNetwork
   newSelectedAccountSwitched: never
-  userActivityEncountered: AddressOnNetwork
   newSelectedNetwork: NetworkInterface
   updateAnalyticsPreferences: Partial<AnalyticsPreferences>
   addCustomNetworkResponse: [string, boolean]
@@ -415,13 +414,6 @@ export const addNetworkUserResponse = createBackgroundAsyncThunk(
   "ui/handleAddNetworkConfirmation",
   async ([requestId, result]: [string, boolean]) => {
     emitter.emit("addCustomNetworkResponse", [requestId, result])
-  }
-)
-
-export const userActivityEncountered = createBackgroundAsyncThunk(
-  "ui/userActivityEncountered",
-  async (addressNetwork: AddressOnNetwork) => {
-    await emitter.emit("userActivityEncountered", addressNetwork)
   }
 )
 

@@ -1,7 +1,6 @@
 import { QuaiTransactionResponse } from "quais/lib/commonjs/providers"
 
-import { QuaiTransactionDB } from "../types"
-import { QuaiTransactionStatus } from "../../chain/types"
+import { QuaiTransactionDB, QuaiTransactionStatus } from "../types"
 
 export const quaiTransactionFromResponse = (
   transactionResponse: QuaiTransactionResponse,

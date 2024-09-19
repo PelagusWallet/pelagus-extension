@@ -17,10 +17,10 @@ import {
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
 import { AnyAction } from "redux"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/chain/types"
 import TransactionSignatureDetails from "./TransactionSignatureDetails"
 import MessageDataSignatureDetails from "./DataSignatureDetails/MessageDataSignatureDetails"
 import TypedDataSignatureDetails from "./DataSignatureDetails/TypedDataSignatureDetails"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 /**
  * Details regarding a signature request, resolved for a signer ahead of time

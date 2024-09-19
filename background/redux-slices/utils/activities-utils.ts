@@ -15,9 +15,8 @@ import {
 } from "../../services/chain/utils"
 import {
   EnrichedQuaiTransaction,
-  SerializedTransactionForHistory,
-} from "../../services/chain/types"
-import { QuaiTransactionDB } from "../../services/transactions/types"
+  QuaiTransactionDB,
+} from "../../services/transactions/types"
 
 export const INFINITE_VALUE = "infinite"
 

@@ -1,5 +1,4 @@
-import Dexie, { DexieOptions, IndexableTypeArray } from "dexie"
-import { HexString } from "quais/lib/commonjs/utils"
+import Dexie, { DexieOptions } from "dexie"
 import { UNIXTime } from "../../types"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import { NetworkBaseAsset } from "../../networks"
@@ -7,15 +6,6 @@ import { FungibleAsset } from "../../assets"
 import { BASE_ASSETS } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
-import { QuaiTransactionStatus, SerializedTransactionForHistory } from "./types"
-
-type AdditionalTransactionFieldsForDB = {
-  dataSource: "local"
-  firstSeen: UNIXTime
-}
-
-export type QuaiTransactionDBEntry = SerializedTransactionForHistory &
-  AdditionalTransactionFieldsForDB
 
 type AccountAssetTransferLookup = {
   addressNetwork: AddressOnNetwork
@@ -25,7 +15,6 @@ type AccountAssetTransferLookup = {
 }
 
 // TODO keep track of blocks invalidated by a reorg
-// TODO keep track of transaction replacement
 export class ChainDatabase extends Dexie {
   /*
    * Accounts whose transaction and balances should be tracked on a particular
@@ -48,16 +37,6 @@ export class ChainDatabase extends Dexie {
   >
 
   /*
-   * Quai transactions relevant to tracked accounts.
-   *
-   * Keyed by the [transaction hash, network chainID] pair.
-   */
-  private quaiTransactions!: Dexie.Table<
-    QuaiTransactionDBEntry,
-    [string, string]
-  >
-
-  /*
    * Historic account balances.
    */
   private balances!: Dexie.Table<AccountBalance, number>
@@ -77,41 +56,9 @@ export class ChainDatabase extends Dexie {
       // TODO: Keep on eye: possible problem if on one chain we have two tokens with the same symbols
       balances:
         "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
-      quaiTransactions:
-        "&[hash+chainId],hash,from,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,firstSeen,dataSource",
       networks: "&chainID,baseAsset.name,family",
       baseAssets: "&chainID,symbol,name",
     })
-
-    this.quaiTransactions.hook(
-      "updating",
-      (modifications, _, chainTransaction) => {
-        // Only these properties can be updated on a stored transaction.
-        // NOTE: Currently we do NOT throw if another property modification is
-        // attempted; instead, we just ignore it.
-        const allowedVariants = ["blockHeight", "blockHash", "firstSeen"]
-
-        const filteredModifications = Object.fromEntries(
-          Object.entries(modifications).filter(([k]) =>
-            allowedVariants.includes(k)
-          )
-        )
-
-        // If there is an attempt to modify `firstSeen`, prefer the earliest
-        // first seen value between the update and the existing value.
-        if ("firstSeen" in filteredModifications) {
-          return {
-            ...filteredModifications,
-            firstSeen: Math.min(
-              chainTransaction.firstSeen,
-              filteredModifications.firstSeen
-            ),
-          }
-        }
-
-        return filteredModifications
-      }
-    )
   }
 
   async initialize(): Promise<void> {
@@ -274,97 +221,6 @@ export class ChainDatabase extends Dexie {
           .toArray()
       )[0] ?? null
     )
-  }
-
-  /** TRANSACTIONS */
-
-  async getAllQuaiTransactions(): Promise<SerializedTransactionForHistory[]> {
-    return this.quaiTransactions.toArray()
-  }
-
-  async getAllQuaiTransactionHashes(): Promise<IndexableTypeArray> {
-    return this.quaiTransactions.orderBy("hash").keys()
-  }
-
-  async getQuaiTransactionByHash(
-    txHash: string | null | undefined
-  ): Promise<QuaiTransactionDBEntry | null> {
-    if (!txHash) return null
-
-    return (
-      (await this.quaiTransactions.where("hash").equals(txHash).toArray())[0] ||
-      null
-    )
-  }
-
-  async getQuaiTransactionFirstSeen(txHash: HexString): Promise<number> {
-    return (
-      (await this.quaiTransactions.where("hash").equals(txHash).toArray())[0]
-        .firstSeen || Date.now()
-    )
-  }
-
-  async getQuaiTransactionsByNetwork(
-    network: NetworkInterface
-  ): Promise<QuaiTransactionDBEntry[]> {
-    const transactions = this.quaiTransactions
-      .where("chainId")
-      .equals(network.chainID)
-
-    return transactions.toArray()
-  }
-
-  async getQuaiTransactionsByStatus(
-    network: NetworkInterface,
-    status: QuaiTransactionStatus
-  ): Promise<QuaiTransactionDBEntry[]> {
-    const transactions = this.quaiTransactions
-      .where("[chainId+status]")
-      .equals([network.chainID, status])
-
-    return transactions.toArray()
-  }
-
-  async addOrUpdateQuaiTransaction(
-    tx: SerializedTransactionForHistory,
-    dataSource: QuaiTransactionDBEntry["dataSource"]
-  ): Promise<void> {
-    if (!tx) {
-      throw new Error("No provided tx for save")
-    }
-    try {
-      const existingTx = await this.getQuaiTransactionByHash(tx.hash)
-
-      const nonce = existingTx?.nonce ? existingTx?.nonce : tx?.nonce
-      const blockNumber = existingTx?.blockNumber
-        ? existingTx?.blockNumber
-        : tx?.blockNumber
-
-      await this.transaction("rw", this.quaiTransactions, async () => {
-        await this.quaiTransactions.put({
-          ...existingTx,
-          ...tx,
-          nonce,
-          blockNumber,
-          dataSource,
-          firstSeen: existingTx?.firstSeen ?? Date.now(),
-        })
-      })
-    } catch (error: any) {
-      throw new Error(`Failed to add or update quai transaction: ${error}`)
-    }
-  }
-
-  async deleteQuaiTransactionsByAddress(address: string): Promise<void> {
-    const txs = await this.getAllQuaiTransactions()
-
-    const deletePromises = txs.map(async () => {
-      await this.quaiTransactions.where("from").equals(address).delete()
-
-      await this.quaiTransactions.where("to").equals(address).delete()
-    })
-
-    await Promise.all(deletePromises)
   }
 }
 

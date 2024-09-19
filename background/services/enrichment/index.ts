@@ -11,13 +11,12 @@ import {
 import { SignTypedDataRequest } from "../../utils/signing"
 import { enrichEIP2612SignTypedDataRequest, isEIP2612TypedData } from "./utils"
 import resolveTransactionAnnotation from "./transactions"
-import {
-  EnrichedQuaiTransaction,
-  SerializedTransactionForHistory,
-} from "../chain/types"
 import { getNetworkById } from "../chain/utils"
 import BlockService from "../block"
-import { QuaiTransactionDB } from "../transactions/types"
+import {
+  EnrichedQuaiTransaction,
+  QuaiTransactionDB,
+} from "../transactions/types"
 import { QuaiTransactionDBEntry } from "../transactions/db"
 import TransactionService from "../transactions"
 
@@ -146,6 +145,7 @@ export default class EnrichmentService extends BaseService<Events> {
       annotation: await resolveTransactionAnnotation(
         this.blockService,
         this.chainService,
+        this.transactionService,
         this.indexingService,
         this.nameService,
         network,

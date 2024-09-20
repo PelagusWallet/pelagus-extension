@@ -12,9 +12,8 @@ export default function ErrorFallback(
 
   useOnMount(() => {
     // We only need the original stack trace available in production logs
-    if (process.env.NODE_ENV === "production") {
-      logger.error(props.error?.message, props.error?.stack)
-    }
+
+    logger.error(props.error?.message, props.error?.stack)
   })
 
   return (

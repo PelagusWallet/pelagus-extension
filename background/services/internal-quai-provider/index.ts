@@ -4,6 +4,8 @@ import {
   hexlify,
   toUtf8Bytes,
   AddressLike,
+  Zone,
+  TransactionRequest,
 } from "quais"
 import {
   EIP1193_ERROR_CODES,
@@ -36,6 +38,7 @@ import { NetworksArray } from "../../constants/networks/networks"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
 import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
+import { NetworkFeeTypeChosen } from "../../redux-slices/transaction-construction"
 
 // A type representing the transaction requests that come in over JSON-RPC
 // requests like eth_sendTransaction and eth_signTransaction. These are very
@@ -234,9 +237,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       }
       case "quai_sendTransaction":
         return this.signTransaction(
-          {
-            ...(params[0] as JsonRpcTransactionRequest),
-          },
+          params[0] as QuaiTransactionRequestWithAnnotation,
           origin
         ).then(async (signed) => {
           await this.transactionsService.sendQuaiTransaction(signed)
@@ -244,7 +245,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         })
       case "quai_signTransaction":
         return this.signTransaction(
-          params[0] as JsonRpcTransactionRequest,
+          params[0] as QuaiTransactionRequestWithAnnotation,
           origin
         ).then(
           (signedTransaction) =>
@@ -367,15 +368,14 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
   }
 
   private async signTransaction(
-    transactionRequest: JsonRpcTransactionRequest,
+    transactionRequest: QuaiTransactionRequestWithAnnotation,
     origin: string
   ): Promise<QuaiTransaction> {
     const annotation =
       origin === PELAGUS_INTERNAL_ORIGIN &&
       "annotation" in transactionRequest &&
       transactionRequest.annotation !== undefined
-        ? // We use  `as` here as we know it's from a trusted source.
-          (decodeJSON(transactionRequest.annotation) as TransactionAnnotation)
+        ? transactionRequest.annotation
         : undefined
 
     if (!transactionRequest.from) {
@@ -385,19 +385,27 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     const currentNetwork =
       globalThis.main.store.getState().ui.selectedAccount.network
 
+    const nonce =
+      await globalThis.main.chainService.jsonRpcProvider.getTransactionCount(
+        transactionRequest.from
+      )
+
+    console.log("=== 1. transactionRequest", transactionRequest)
+
     return new Promise<QuaiTransaction>((resolve, reject) => {
       this.emitter.emit("transactionSignatureRequest", {
         payload: {
           to: transactionRequest.to,
-          data: transactionRequest.input,
+          data: transactionRequest.data,
           from: transactionRequest.from,
           type: transactionRequest.type,
           value: transactionRequest.value,
-          chainId: transactionRequest.chainId,
-          gasLimit: transactionRequest.gas,
-          maxFeePerGas: transactionRequest.maxFeePerGas,
-          maxPriorityFeePerGas: transactionRequest.maxPriorityFeePerGas,
+          chainId: currentNetwork.chainID,
+          gasLimit: transactionRequest.gasLimit,
+          maxFeePerGas: 10000000000n,
+          maxPriorityFeePerGas: 4000000000n,
           network: currentNetwork,
+          nonce,
           annotation,
         },
         resolver: resolve,
@@ -407,25 +415,23 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
   }
 
   private async signTypedData(params: SignTypedDataRequest) {
-    // Ethers does not want to see the EIP712Domain field, extract it.
-    const { EIP712Domain, ...typesForSigning } = params.typedData.types
+    const { EIP712Domain: _, ...typesForSigning } = params.typedData.types
 
-    // Ask Ethers to give us a filtered payload that only includes types
-    // specified in the `types` object.
     const filteredTypedDataPayload = TypedDataEncoder.getPayload(
       params.typedData.domain,
       typesForSigning,
       params.typedData.message
     )
 
+    // We do not want to see the EIP712Domain field, extract it.
+    const { EIP712Domain, ...filteredTypes } = filteredTypedDataPayload.types
+
     const filteredRequest = {
       ...params,
       typedData: {
         ...filteredTypedDataPayload,
         types: {
-          // If there was an EIP712Domain field in the `types`, pass it along.
-          ...(EIP712Domain === undefined ? {} : { EIP712Domain }),
-          ...filteredTypedDataPayload.types,
+          ...filteredTypes,
         },
       },
     }

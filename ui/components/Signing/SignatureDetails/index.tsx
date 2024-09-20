@@ -17,10 +17,10 @@ import {
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
 import { AnyAction } from "redux"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 import TransactionSignatureDetails from "./TransactionSignatureDetails"
 import MessageDataSignatureDetails from "./DataSignatureDetails/MessageDataSignatureDetails"
 import TypedDataSignatureDetails from "./DataSignatureDetails/TypedDataSignatureDetails"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 /**
  * Details regarding a signature request, resolved for a signer ahead of time
@@ -78,10 +78,11 @@ export function resolveTransactionSignatureDetails({
   request,
   accountSigner,
 }: SignOperation<QuaiTransactionRequestWithAnnotation>): ResolvedSignatureDetails {
+  console.log("=== here", request, accountSigner)
   return {
     signer: accountSigner,
     signingAddress: {
-      address: request.from.toString(), // TODO-MIGRATION
+      address: request.from.toString(),
       network: request.network,
     },
     signingActionLabelI18nKey: "signTransaction.confirmButtonLabel",

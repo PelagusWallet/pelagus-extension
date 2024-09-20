@@ -2,8 +2,8 @@ import React, { ReactElement } from "react"
 import { useDispatch } from "react-redux"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useTranslation } from "react-i18next"
-import SharedButton from "../../../Shared/SharedButton"
 import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
+import SharedButton from "../../../Shared/SharedButton"
 
 export default function RawDataPanel({
   transactionRequest,
@@ -31,7 +31,7 @@ export default function RawDataPanel({
       >
         {t("copyRawData")}
       </SharedButton>
-      <div className="raw_data_text">{data} </div>
+      <div className="raw_data_text">{data}</div>
       <style jsx>{`
         .raw_data_wrap {
           margin-top: 15px;

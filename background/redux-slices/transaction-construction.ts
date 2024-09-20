@@ -159,7 +159,7 @@ const transactionSlice = createSlice({
         }
       }
     ) => {
-      const newState = {
+      return {
         ...state,
         status: TransactionConstructionStatus.Loaded,
         signedTransaction: undefined,
@@ -168,50 +168,6 @@ const transactionSlice = createSlice({
         },
         transactionLikelyFails,
       }
-      const feeType = state.feeTypeSelected
-
-      if (
-        // We use two guards here to satisfy the compiler but due to the spread
-        // above we know that if one is an EIP1559 then the other one must be too
-        isEIP1559TransactionRequest(newState.transactionRequest) &&
-        isEIP1559TransactionRequest(transactionRequest)
-      ) {
-        const estimatedMaxFeePerGas =
-          feeType === NetworkFeeTypeChosen.Custom
-            ? state.customFeesPerGas?.maxFeePerGas
-            : state.estimatedFeesPerGas?.chainId?.[feeType]?.maxFeePerGas // TODO-MIGRATION
-
-        newState.transactionRequest.maxFeePerGas =
-          estimatedMaxFeePerGas ?? transactionRequest.maxFeePerGas
-
-        const estimatedMaxPriorityFeePerGas =
-          feeType === NetworkFeeTypeChosen.Custom
-            ? state.customFeesPerGas?.maxPriorityFeePerGas
-            : state.estimatedFeesPerGas?.chainId?.[feeType] // TODO-MIGRATION
-                ?.maxPriorityFeePerGas
-
-        newState.transactionRequest.maxPriorityFeePerGas =
-          estimatedMaxPriorityFeePerGas ??
-          transactionRequest.maxPriorityFeePerGas
-
-        // Gas minimums
-        if (
-          newState.transactionRequest.maxPriorityFeePerGas ??
-          0n < 1000000000n
-        ) {
-          newState.transactionRequest.maxPriorityFeePerGas = 1000000000n
-        }
-
-        if (
-          (newState.transactionRequest.maxFeePerGas ?? 0n) <
-          (newState.transactionRequest.maxPriorityFeePerGas ?? 0n) + 1000000000n
-        ) {
-          newState.transactionRequest.maxFeePerGas =
-            newState.transactionRequest.maxPriorityFeePerGas ?? 0n + 1000000000n
-        }
-      }
-
-      return newState
     },
     clearTransactionState: (
       state,
@@ -219,7 +175,7 @@ const transactionSlice = createSlice({
     ) => ({
       estimatedFeesPerGas: state.estimatedFeesPerGas,
       status: payload,
-      feeTypeSelected: state.feeTypeSelected ?? NetworkFeeTypeChosen.Regular,
+      feeTypeSelected: state.feeTypeSelected ?? NetworkFeeTypeChosen.Express,
       broadcastOnSign: false,
       transactionLikelyFails: false,
       signedTransaction: undefined,

@@ -188,8 +188,8 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
     _,
     { dispatch }
   ): Promise<{
-    maxFeePerGas: BigInt
-    maxPriorityFeePerGas: BigInt
+    maxFeePerGas: bigint
+    maxPriorityFeePerGas: bigint
   }> => {
     const { jsonRpcProvider } = globalThis.main.chainService
 

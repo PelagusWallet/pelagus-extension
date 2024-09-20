@@ -8,12 +8,12 @@ import { useTranslation } from "react-i18next"
 import classNames from "classnames"
 import { getMaxFeeAndMaxPriorityFeePerGas } from "@pelagus/pelagus-background/redux-slices/assets"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSlideUpMenu from "../../../Shared/SharedSlideUpMenu"
 import NetworkSettingsChooser from "../../../NetworkFees/NetworkSettingsChooser"
 import FeeSettingsButton from "../../../NetworkFees/FeeSettingsButton"
 import TransactionSignatureDetailsWarning from "./TransactionSignatureDetailsWarning"
-import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 
 export type PanelState = {
   dismissedWarnings: string[]
@@ -28,23 +28,20 @@ export default function DetailPanel({
   transactionRequest,
   defaultPanelState,
 }: DetailPanelProps): ReactElement {
+  console.log("DetailPanel PROPS", { transactionRequest, defaultPanelState })
+  const { t } = useTranslation()
+  const dispatch = useBackgroundDispatch()
+  const reduxTransactionData = useBackgroundSelector(selectTransactionData)
+  const estimatedFeesPerGas = useBackgroundSelector(selectEstimatedFeesPerGas)
+
+  const [updateNum, setUpdateNum] = useState(0)
+  const [transactionDetails, setTransactionDetails] =
+    useState(reduxTransactionData)
   const [panelState, setPanelState] = useState(
     defaultPanelState ?? { dismissedWarnings: [] }
   )
   const [networkSettingsModalOpen, setNetworkSettingsModalOpen] =
     useState(false)
-  const [updateNum, setUpdateNum] = useState(0)
-
-  const estimatedFeesPerGas = useBackgroundSelector(selectEstimatedFeesPerGas)
-
-  const reduxTransactionData = useBackgroundSelector(selectTransactionData)
-
-  const [transactionDetails, setTransactionDetails] =
-    useState(reduxTransactionData)
-
-  const dispatch = useBackgroundDispatch()
-
-  const { t } = useTranslation()
 
   useEffect(() => {
     if (!transactionRequest) return
@@ -58,25 +55,25 @@ export default function DetailPanel({
       transactionDetails.from &&
       transactionDetails.network
     ) {
-      const { maxFeePerGas, maxPriorityFeePerGas } = dispatch(
-        getMaxFeeAndMaxPriorityFeePerGas()
-      ) as unknown as AsyncThunkFulfillmentType<
-        typeof getMaxFeeAndMaxPriorityFeePerGas
-      >
+      // FIXME temp fix
+      // const { maxFeePerGas, maxPriorityFeePerGas } = dispatch(
+      //   getMaxFeeAndMaxPriorityFeePerGas()
+      // ) as unknown as AsyncThunkFulfillmentType<
+      //   typeof getMaxFeeAndMaxPriorityFeePerGas
+      // >
 
-      const maxFeePerGasFromRedux = maxFeePerGas.valueOf()
-      const maxPriorityFeePerGasFromRedux = maxPriorityFeePerGas.valueOf()
+      const maxFeePerGas = 6000000000n
+      const maxPriorityFeePerGas = 1000000000n
 
       if (!estimatedFeesPerGas) return
 
       if (estimatedFeesPerGas.regular) {
-        estimatedFeesPerGas.regular.maxFeePerGas = maxFeePerGasFromRedux
-        estimatedFeesPerGas.regular.maxPriorityFeePerGas =
-          maxPriorityFeePerGasFromRedux
+        estimatedFeesPerGas.regular.maxFeePerGas = maxFeePerGas
+        estimatedFeesPerGas.regular.maxPriorityFeePerGas = maxPriorityFeePerGas
       }
 
-      estimatedFeesPerGas.maxFeePerGas = maxFeePerGasFromRedux
-      estimatedFeesPerGas.maxPriorityFeePerGas = maxPriorityFeePerGasFromRedux
+      estimatedFeesPerGas.maxFeePerGas = maxFeePerGas
+      estimatedFeesPerGas.maxPriorityFeePerGas = maxPriorityFeePerGas
     }
   }, [])
 
@@ -90,7 +87,6 @@ export default function DetailPanel({
 
   const networkSettingsSaved = () => {
     setUpdateNum(updateNum + 1)
-
     setNetworkSettingsModalOpen(false)
   }
 

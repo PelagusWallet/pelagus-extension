@@ -104,7 +104,11 @@ export default function Snackbar({
         <div className="snackbar_wrap">{displayMessage}</div>
       </div>
 
-      {isOpenActivityDetails && <SnackbarTransactionActivityModal />}
+      {isOpenActivityDetails && (
+        <SnackbarTransactionActivityModal
+          setIsOpenActivityDetails={setIsOpenActivityDetails}
+        />
+      )}
 
       <style jsx>
         {`

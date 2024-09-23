@@ -31,7 +31,7 @@ export type Activity = {
   value: string
   nonce: number
   hash: string
-  // blockHash: string | null
+  blockHash: string | null
   blockTimestamp?: number
   assetSymbol: string
   assetLogoUrl?: string
@@ -150,15 +150,7 @@ const getAnnotationType = (transaction: QuaiTransactionDB) => {
 export const getActivity = (
   transaction: QuaiTransactionDB | EnrichedQuaiTransaction
 ): Activity => {
-  const {
-    to,
-    from,
-    nonce,
-    hash,
-    // blockHash, TODO
-    chainId,
-    blockNumber,
-  } = transaction
+  const { to, from, nonce, hash, blockHash, chainId, blockNumber } = transaction
 
   const txNetwork = getNetworkById(chainId)
 
@@ -175,7 +167,7 @@ export const getActivity = (
     assetSymbol: txNetwork?.baseAsset.symbol,
     nonce: nonce ?? 0,
     hash: hash ?? "",
-    // blockHash,
+    blockHash,
     value: getValue(transaction),
   }
 

@@ -122,7 +122,6 @@ import {
   ActivityDetail,
   addActivity,
   initializeActivities,
-  initializeActivitiesForAccount,
   removeActivities,
 } from "./redux-slices/activities"
 import { selectActivitiesHashesForEnrichment } from "./redux-slices/selectors"
@@ -630,7 +629,8 @@ export default class Main extends BaseService<never> {
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService()
 
-    const servicesToBeStarted = [
+    // Concurrent initialization for services that don't depend on other services
+    const independentServices = [
       this.preferenceService.startService(),
       this.providerFactoryService.startService(),
       this.chainService.startService(),
@@ -643,14 +643,11 @@ export default class Main extends BaseService<never> {
       this.telemetryService.startService(),
       this.signingService.startService(),
       this.analyticsService.startService(),
-      this.transactionService.startService(),
       this.startBalanceChecker(),
     ]
+    await Promise.all(independentServices)
 
-    // TODO need to rewrite Promise.all(),
-    //  because it runs each promise "concurrently" and if we have service that relies,
-    //  on another service we need to be careful of initialization order and forcefully wait
-    await Promise.all(servicesToBeStarted)
+    // Sequential initialization for services that depend on others
     await this.transactionService.startService()
   }
 

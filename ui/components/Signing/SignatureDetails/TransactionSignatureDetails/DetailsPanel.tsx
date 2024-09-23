@@ -28,7 +28,6 @@ export default function DetailPanel({
   transactionRequest,
   defaultPanelState,
 }: DetailPanelProps): ReactElement {
-  console.log("DetailPanel PROPS", { transactionRequest, defaultPanelState })
   const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const reduxTransactionData = useBackgroundSelector(selectTransactionData)

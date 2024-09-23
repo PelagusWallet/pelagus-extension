@@ -88,6 +88,9 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
         }
         value={isEmpty ? "" : inputValue}
         spellCheck={false}
+        onChange={(event: ChangeEvent<HTMLInputElement>) =>
+          handleInputChange(event.target.value)
+        }
         onInput={(event: ChangeEvent<HTMLInputElement>) =>
           handleInputChange(event.target.value)
         }

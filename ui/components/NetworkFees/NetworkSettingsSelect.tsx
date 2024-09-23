@@ -45,10 +45,29 @@ const gasOptionFromEstimate = (
   const feeOptionData: {
     [confidence: number]: NetworkFeeTypeChosen
   } = {
+    1: NetworkFeeTypeChosen.Auto,
     70: NetworkFeeTypeChosen.Regular,
     95: NetworkFeeTypeChosen.Express,
     99: NetworkFeeTypeChosen.Instant,
     0: NetworkFeeTypeChosen.Custom,
+  }
+
+  if (feeOptionData[confidence] === NetworkFeeTypeChosen.Auto) {
+    return {
+      confidence: `${confidence}`,
+      estimatedSpeed: "",
+      type: feeOptionData[confidence],
+      estimatedGwei: "",
+      maxPriorityGwei: "",
+      maxGwei: "",
+      dollarValue: "-",
+      estimatedFeePerGas: 0n,
+      baseMaxFeePerGas: 0n,
+      baseMaxGwei: "",
+      maxFeePerGas: 0n,
+      maxPriorityFeePerGas: 0n,
+      gasPrice: "",
+    }
   }
 
   return {
@@ -151,7 +170,12 @@ export default function NetworkSettingsSelect({
         networkSettings.gasLimit ?? networkSettings.suggestedGasLimit
 
       if (typeof instant !== "undefined") {
-        const baseFees = [regular, express, instant, custom]
+        const autoFee = {
+          confidence: 1,
+          maxFeePerGas: 1000000000n,
+          maxPriorityFeePerGas: 1000000000n,
+        }
+        const baseFees = [autoFee, regular, express, instant, custom]
 
         const updatedGasOptions: GasOption[] = []
 
@@ -206,8 +230,10 @@ export default function NetworkSettingsSelect({
     updateGasOptions()
   }, [updateGasOptions])
 
-  const setGasLimit = (gasLimit: bigint | undefined) => {
-    dispatch(setCustomGasLimit(gasLimit ?? networkSettings.suggestedGasLimit))
+  const setGasLimit = async (gasLimit: bigint | undefined) => {
+    await dispatch(
+      setCustomGasLimit(gasLimit ?? networkSettings.suggestedGasLimit)
+    )
     onNetworkSettingsChange({ ...networkSettings, gasLimit })
   }
 
@@ -234,6 +260,7 @@ export default function NetworkSettingsSelect({
           <>
             {option.type === "custom" ? (
               <NetworkSettingsSelectOptionButtonCustom
+                key={option.type}
                 option={option}
                 isActive={i === activeFeeIndex}
                 handleSelectGasOption={() => handleSelectGasOption(i)}
@@ -246,6 +273,7 @@ export default function NetworkSettingsSelect({
               />
             ) : (
               <NetworkSettingsSelectOptionButton
+                key={option.type}
                 option={option}
                 isActive={i === activeFeeIndex}
                 handleSelectGasOption={() => handleSelectGasOption(i)}

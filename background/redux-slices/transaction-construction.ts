@@ -34,6 +34,7 @@ export type NetworkFeeSettings = {
 }
 
 export enum NetworkFeeTypeChosen {
+  Auto = "auto",
   Regular = "regular",
   Express = "express",
   Instant = "instant",
@@ -55,6 +56,7 @@ export type EstimatedFeesPerGas = {
   baseFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   maxFeePerGas?: bigint
+  auto?: BlockEstimate
   instant?: BlockEstimate
   express?: BlockEstimate
   regular?: BlockEstimate
@@ -69,7 +71,7 @@ const defaultCustomGas = {
 
 export const initialState: TransactionConstruction = {
   status: TransactionConstructionStatus.Idle,
-  feeTypeSelected: NetworkFeeTypeChosen.Regular,
+  feeTypeSelected: NetworkFeeTypeChosen.Auto,
   estimatedFeesPerGas: {},
   transactionLikelyFails: false,
   customFeesPerGas: defaultCustomGas,
@@ -139,8 +141,54 @@ export const updateTransactionData = createBackgroundAsyncThunk(
 
 export const signTransaction = createBackgroundAsyncThunk(
   "transaction-construction/sign",
-  async (request: SignOperation<QuaiTransactionRequestWithAnnotation>) => {
-    await emitter.emit("requestSignature", request)
+  async (
+    { accountSigner }: SignOperation<QuaiTransactionRequestWithAnnotation>,
+    { getState }
+  ) => {
+    const { transactionConstruction } = getState() as {
+      transactionConstruction: TransactionConstruction
+    }
+
+    if (!transactionConstruction?.transactionRequest) {
+      throw new Error("transactionRequest was not found")
+    }
+
+    const { to, data, from, gasLimit, value, chainId } =
+      transactionConstruction.transactionRequest
+
+    if (!chainId) throw new Error("chainId was not found")
+
+    const selectedFeesPerGas =
+      transactionConstruction.estimatedFeesPerGas?.[chainId.toString()]?.[
+        transactionConstruction.feeTypeSelected
+      ] ?? transactionConstruction.customFeesPerGas
+
+    const request = {
+      to,
+      from,
+      gasLimit,
+      maxPriorityFeePerGas: selectedFeesPerGas?.maxPriorityFeePerGas,
+      maxFeePerGas: selectedFeesPerGas?.maxFeePerGas,
+      data,
+      value,
+      chainId,
+    } as QuaiTransactionRequestWithAnnotation
+
+    const autoFeeRequest = {
+      to,
+      from,
+      data,
+      value,
+      chainId,
+    } as QuaiTransactionRequestWithAnnotation
+
+    await emitter.emit("requestSignature", {
+      request:
+        transactionConstruction.feeTypeSelected === NetworkFeeTypeChosen.Auto
+          ? autoFeeRequest
+          : request,
+      accountSigner,
+    })
   }
 )
 
@@ -175,7 +223,7 @@ const transactionSlice = createSlice({
     ) => ({
       estimatedFeesPerGas: state.estimatedFeesPerGas,
       status: payload,
-      feeTypeSelected: state.feeTypeSelected ?? NetworkFeeTypeChosen.Express,
+      feeTypeSelected: state.feeTypeSelected ?? NetworkFeeTypeChosen.Auto,
       broadcastOnSign: false,
       transactionLikelyFails: false,
       signedTransaction: undefined,
@@ -251,11 +299,7 @@ const transactionSlice = createSlice({
       immerState,
       { payload: gasLimit }: { payload: bigint | undefined }
     ) => {
-      if (
-        typeof gasLimit !== "undefined" &&
-        immerState.transactionRequest &&
-        isEIP1559TransactionRequest(immerState.transactionRequest)
-      ) {
+      if (typeof gasLimit !== "undefined" && immerState.transactionRequest) {
         immerState.transactionRequest.gasLimit = gasLimit
       }
     },

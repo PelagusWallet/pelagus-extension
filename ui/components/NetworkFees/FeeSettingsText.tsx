@@ -3,7 +3,10 @@ import {
   truncateDecimalAmount,
   weiToGwei,
 } from "@pelagus/pelagus-background/lib/utils"
-import { NetworkFeeSettings } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
+import {
+  NetworkFeeSettings,
+  NetworkFeeTypeChosen,
+} from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import {
   enrichAssetAmountWithMainCurrencyValues,
   heuristicDesiredDecimalsForUnitPrice,
@@ -116,6 +119,9 @@ export default function FeeSettingsText({
 
   if (typeof estimatedFeesPerGas === "undefined")
     return <div>{t("networkFees.unknownFee")}</div>
+
+  if (networkSettings.feeType === NetworkFeeTypeChosen.Auto)
+    return <div style={{ padding: "0 8px" }}>Auto</div>
 
   const estimatedRollupFee = 0n
 

@@ -8,10 +8,6 @@ export default function TransactionSignatureDetailsPanelCombined({
 }: {
   transactionRequest: QuaiTransactionRequestWithAnnotation
 }): ReactElement {
-  console.log(
-    "=== TransactionSignatureDetailsPanelCombined",
-    transactionRequest
-  )
   return (
     <>
       <DetailsPanel transactionRequest={transactionRequest} />

@@ -78,11 +78,10 @@ export function resolveTransactionSignatureDetails({
   request,
   accountSigner,
 }: SignOperation<QuaiTransactionRequestWithAnnotation>): ResolvedSignatureDetails {
-  console.log("=== here", request, accountSigner)
   return {
     signer: accountSigner,
     signingAddress: {
-      address: request.from.toString(),
+      address: request?.from && request.from.toString(),
       network: request.network,
     },
     signingActionLabelI18nKey: "signTransaction.confirmButtonLabel",

@@ -390,8 +390,10 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         transactionRequest.from
       )
 
-    console.log("=== 1. transactionRequest", transactionRequest)
-
+    await globalThis.main.blockService.pollBlockPricesForNetwork({
+      network: currentNetwork,
+    })
+    await globalThis.main.blockService.pollLatestBlock(currentNetwork)
     return new Promise<QuaiTransaction>((resolve, reject) => {
       this.emitter.emit("transactionSignatureRequest", {
         payload: {

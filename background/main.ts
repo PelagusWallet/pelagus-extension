@@ -429,7 +429,7 @@ export default class Main extends BaseService<never> {
      */
     private analyticsService: AnalyticsService,
 
-    private blockService: BlockService,
+    public blockService: BlockService,
 
     private transactionService: TransactionService
   ) {
@@ -649,6 +649,7 @@ export default class Main extends BaseService<never> {
 
     // Sequential initialization for services that depend on others
     await this.transactionService.startService()
+    await this.blockService.startService()
   }
 
   protected override async internalStopService(): Promise<void> {
@@ -666,6 +667,7 @@ export default class Main extends BaseService<never> {
       this.signingService.stopService(),
       this.analyticsService.stopService(),
       this.transactionService.stopService(),
+      this.blockService.stopService(),
       clearInterval(this.balanceChecker),
     ]
 
@@ -686,6 +688,8 @@ export default class Main extends BaseService<never> {
     this.connectTransactionService()
 
     await this.connectChainService()
+
+    await this.connectBlockService()
 
     // FIXME Should no longer be necessary once transaction queueing enters the
     this.store.dispatch(
@@ -937,10 +941,11 @@ export default class Main extends BaseService<never> {
       "requestSignature",
       async ({ request, accountSigner }) => {
         try {
-          const signedTransaction = await this.signingService.signTransaction(
-            request,
-            accountSigner
-          )
+          const signedTransaction =
+            await this.signingService.signAndSendQuaiTransaction(
+              request,
+              accountSigner
+            )
 
           this.store.dispatch(transactionSigned(signedTransaction))
 
@@ -995,6 +1000,10 @@ export default class Main extends BaseService<never> {
         )
       }
     )
+  }
+
+  async connectBlockService(): Promise<void> {
+    await this.blockService.pollBlockPrices()
   }
 
   async connectProviderFactoryService(): Promise<void> {
@@ -1312,9 +1321,9 @@ export default class Main extends BaseService<never> {
         resolver: (result: string | PromiseLike<string>) => void
         rejecter: () => void
       }) => {
-        await this.blockService.pollBlockPricesForNetwork(
-          payload.account.network.chainID
-        )
+        await this.blockService.pollBlockPricesForNetwork({
+          network: payload.account.network,
+        })
         this.store.dispatch(signDataRequest(payload))
 
         const clear = () => {
@@ -1371,7 +1380,7 @@ export default class Main extends BaseService<never> {
         [{ chainId: network.chainID }],
         PELAGUS_INTERNAL_ORIGIN
       )
-      this.blockService.pollBlockPricesForNetwork(network.chainID)
+      this.blockService.pollBlockPricesForNetwork({ network })
       this.chainService.switchNetwork(network)
       this.store.dispatch(clearCustomGas())
     })

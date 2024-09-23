@@ -1,8 +1,8 @@
 import { JsonRpcProvider, Shard, toZone } from "quais"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
-import { AnyEVMBlock, BlockPrices, toHexChainID } from "../../networks"
-import { EIP_1559_COMPLIANT_CHAIN_IDS, MINUTE } from "../../constants"
+import { AnyEVMBlock, BlockPrices } from "../../networks"
+import { EIP_1559_COMPLIANT_CHAIN_IDS } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import BaseService from "../base"
@@ -12,7 +12,6 @@ import { BlockDatabase, initializeBlockDatabase } from "./db"
 import { getExtendedZoneForAddress } from "../chain/utils"
 
 const GAS_POLLS_PER_PERIOD = 1 // 1 time per 5 minutes
-const GAS_POLLING_PERIOD = 5 // 5 minutes
 
 interface Events extends ServiceLifecycleEvents {
   block: AnyEVMBlock
@@ -41,7 +40,7 @@ export default class BlockService extends BaseService<Events> {
       blockPrices: {
         runAtStart: false,
         schedule: {
-          periodInMinutes: GAS_POLLING_PERIOD,
+          periodInMinutes: GAS_POLLS_PER_PERIOD,
         },
         handler: () => {
           this.pollBlockPrices()
@@ -52,13 +51,6 @@ export default class BlockService extends BaseService<Events> {
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-
-    this.chainService.supportedNetworks.forEach((network) =>
-      Promise.allSettled([
-        this.pollLatestBlock(network),
-        this.pollBlockPrices(),
-      ]).catch((e) => logger.error(e))
-    )
   }
 
   async getBlockHeight(network: NetworkInterface): Promise<number> {
@@ -79,13 +71,11 @@ export default class BlockService extends BaseService<Events> {
   async pollLatestBlock(network: NetworkInterface): Promise<void> {
     try {
       const { address } = await this.preferenceService.getSelectedAccount()
+      const { jsonRpcProvider } = this.chainService
 
       const shard = getExtendedZoneForAddress(address, false) as Shard
 
-      const latestBlock = await this.chainService.jsonRpcProvider.getBlock(
-        shard,
-        "latest"
-      )
+      const latestBlock = await jsonRpcProvider.getBlock(shard, "latest")
       if (!latestBlock) return
 
       const block = blockFromProviderBlock(network, latestBlock)
@@ -127,22 +117,9 @@ export default class BlockService extends BaseService<Events> {
   }
 
   async pollBlockPrices(): Promise<void> {
-    for (let i = 1; i < GAS_POLLS_PER_PERIOD; i += 1) {
-      setTimeout(async () => {
-        await Promise.allSettled(
-          this.chainService.subscribedNetworks.map(async ({ network }) =>
-            this.pollBlockPricesForNetwork(network.chainID)
-          )
-        )
-      }, (GAS_POLLING_PERIOD / GAS_POLLS_PER_PERIOD) * (GAS_POLLING_PERIOD * MINUTE) * i)
-    }
-
-    // Immediately run the first poll
-    await Promise.allSettled(
-      this.chainService.subscribedNetworks.map(async ({ network }) =>
-        this.pollBlockPricesForNetwork(network.chainID)
-      )
-    )
+    this.chainService.subscribedNetworks.forEach((subscribedNetworks) => {
+      this.pollBlockPricesForNetwork(subscribedNetworks)
+    })
   }
 
   async getBlockPrices(
@@ -222,17 +199,12 @@ export default class BlockService extends BaseService<Events> {
     }
   }
 
-  async pollBlockPricesForNetwork(chainID: string): Promise<void> {
-    const subscription = this.chainService.subscribedNetworks.find(
-      ({ network }) => toHexChainID(network.chainID) === toHexChainID(chainID)
-    )
-
-    if (!subscription) {
-      logger.warn(
-        `Can't fetch block prices for unsubscribed chainID ${chainID}`
-      )
-      return
-    }
+  async pollBlockPricesForNetwork(subscribedNetworks: {
+    network: NetworkInterface
+    provider?: JsonRpcProvider
+  }): Promise<void> {
+    const { jsonRpcProvider } = this.chainService
+    const { network, provider = jsonRpcProvider } = subscribedNetworks
 
     const { address } = await this.preferenceService.getSelectedAccount()
     const shard = getExtendedZoneForAddress(address, false) as Shard
@@ -241,14 +213,10 @@ export default class BlockService extends BaseService<Events> {
       logger.warn(`Can't get shard for ${address}`)
       return
     }
-    const blockPrices = await this.getBlockPrices(
-      subscription.network,
-      subscription.provider,
-      shard
-    )
+    const blockPrices = await this.getBlockPrices(network, provider, shard)
     await this.emitter.emit("blockPrices", {
       blockPrices,
-      network: subscription.network,
+      network,
     })
   }
 }

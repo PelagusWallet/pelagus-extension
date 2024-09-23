@@ -188,9 +188,6 @@ export default class SigningService extends BaseService<Events> {
           const from = transactionRequest.from.toString()
           const signerWithType = await this.keyringService.getSigner(from)
 
-          console.log("1. signer", signerWithType)
-          console.log("2. transactionRequest", transactionRequest)
-
           signedTransactionString = await signerWithType.signer.signTransaction(
             transactionRequest
           )
@@ -203,7 +200,6 @@ export default class SigningService extends BaseService<Events> {
       }
 
       const signedTransaction = QuaiTransaction.from(signedTransactionString)
-      console.log("3. QuaiTransaction", signedTransaction)
 
       await this.emitter.emit("signTransactionResponse", {
         type: "success-tx",

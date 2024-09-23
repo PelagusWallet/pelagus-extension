@@ -32,7 +32,6 @@ export default function SpendApprovalSummary({
   const { t } = useTranslation("translation", {
     keyPrefix: "signTransaction.spendApproval",
   })
-  console.log("SpendApprovalSummary PROPS", { transactionRequest, annotation })
   const { t: sharedT } = useTranslation("translation", { keyPrefix: "shared" })
 
   const dispatch = useDispatch()

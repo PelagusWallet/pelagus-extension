@@ -1,6 +1,9 @@
 import React, { ReactElement, useState } from "react"
 import { gweiToWei } from "@pelagus/pelagus-background/lib/utils"
-import { GasOption } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
+import {
+  GasOption,
+  NetworkFeeTypeChosen,
+} from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import classNames from "classnames"
 import { useTranslation } from "react-i18next"
@@ -16,7 +19,7 @@ const buttonStyle = `
   }
   .network_option {
     width: 100%;
-    height: 56px;
+    height: 50px;
     padding: 0px 15px;
     display: flex;
     justify-content: space-between;
@@ -113,13 +116,21 @@ export function NetworkSettingsSelectOptionButton({
         <div className="miner_wrap">
           <span className="subtext_large miner">
             <span className="r_label">{t("miner")}</span>
-            {`${Number(option.maxPriorityGwei).toFixed(2)}`}
+            {`${
+              option.type !== NetworkFeeTypeChosen.Auto
+                ? Number(option.maxPriorityGwei).toFixed(2)
+                : "Auto"
+            }`}
           </span>
         </div>
         <span className="subtext_large large r_label">{t("maxBase")} </span>
-        <div className="price">{` ${Number(option.baseMaxGwei).toFixed(
-          2
-        )}`}</div>
+        <div className="price">
+          {`${
+            option.type !== NetworkFeeTypeChosen.Auto
+              ? Number(option.baseMaxGwei).toFixed(2)
+              : "Auto"
+          }`}
+        </div>
       </div>
       <style jsx>
         {`

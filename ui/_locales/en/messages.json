@@ -367,7 +367,7 @@
     "signatureRequired": "Your signature is required",
     "dappSignatureRequest": "A dapp is requesting your signature",
     "message": "Message",
-    "signed": "Signed,",
+    "signed": "Signed",
     "type": "Type"
   },
   "signTransaction": {

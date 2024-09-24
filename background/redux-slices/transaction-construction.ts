@@ -4,11 +4,7 @@ import { QuaiTransactionLike } from "quais/lib/commonjs/transaction"
 import { QuaiTransaction } from "quais"
 import { QuaiTransactionResponse } from "quais/lib/commonjs/providers"
 import { EXPRESS, INSTANT, MAX_FEE_MULTIPLIER, REGULAR } from "../constants"
-import {
-  BlockEstimate,
-  BlockPrices,
-  isEIP1559TransactionRequest,
-} from "../networks"
+import { BlockEstimate, BlockPrices } from "../networks"
 import { createBackgroundAsyncThunk } from "./utils"
 import { SignOperation } from "./signing"
 import { NetworkInterface } from "../constants/networks/networkTypes"
@@ -80,8 +76,8 @@ export const initialState: TransactionConstruction = {
 export type Events = {
   updateTransaction: QuaiTransactionRequestWithAnnotation
 
-  requestSignature: SignOperation<QuaiTransactionRequestWithAnnotation>
-  signatureRejected: never
+  requestSendTransaction: SignOperation<QuaiTransactionRequestWithAnnotation>
+  sendTransactionRejected: never
   broadcastSignedTransaction: QuaiTransaction
 }
 
@@ -139,8 +135,8 @@ export const updateTransactionData = createBackgroundAsyncThunk(
   }
 )
 
-export const signTransaction = createBackgroundAsyncThunk(
-  "transaction-construction/sign",
+export const sendTransaction = createBackgroundAsyncThunk(
+  "transaction-construction/send",
   async (
     { accountSigner }: SignOperation<QuaiTransactionRequestWithAnnotation>,
     { getState }
@@ -182,7 +178,7 @@ export const signTransaction = createBackgroundAsyncThunk(
       chainId,
     } as QuaiTransactionRequestWithAnnotation
 
-    await emitter.emit("requestSignature", {
+    await emitter.emit("requestSendTransaction", {
       request:
         transactionConstruction.feeTypeSelected === NetworkFeeTypeChosen.Auto
           ? autoFeeRequest
@@ -335,23 +331,24 @@ export const quaiTransactionResponse = createBackgroundAsyncThunk(
 
 export const transactionSigned = createBackgroundAsyncThunk(
   "transaction-construction/transaction-signed",
-  async (transaction: QuaiTransaction, { dispatch, getState }) => {
+  async (transaction: QuaiTransactionResponse, { dispatch, getState }) => {
     dispatch(signed(JSON.stringify(transaction)))
 
-    const { transactionConstruction } = getState() as {
-      transactionConstruction: TransactionConstruction
-    }
+    // TODO maybe remove
+    // const { transactionConstruction } = getState() as {
+    //   transactionConstruction: TransactionConstruction
+    // }
 
-    if (transactionConstruction.broadcastOnSign ?? false) {
-      await emitter.emit("broadcastSignedTransaction", transaction)
-    }
+    // if (transactionConstruction.broadcastOnSign ?? false) {
+    //   await emitter.emit("broadcastSignedTransaction", transaction)
+    // }
   }
 )
 
-export const rejectTransactionSignature = createBackgroundAsyncThunk(
+export const rejectSendTransaction = createBackgroundAsyncThunk(
   "transaction-construction/reject",
   async (_, { dispatch }) => {
-    await emitter.emit("signatureRejected")
+    await emitter.emit("sendTransactionRejected")
     dispatch(
       transactionSlice.actions.clearTransactionState(
         TransactionConstructionStatus.Idle

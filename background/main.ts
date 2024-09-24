@@ -83,7 +83,7 @@ import {
   emitter as transactionConstructionSliceEmitter,
   estimatedFeesPerGas,
   quaiTransactionResponse,
-  rejectTransactionSignature,
+  rejectSendTransaction,
   TransactionConstructionStatus,
   transactionRequest,
   transactionSigned,
@@ -109,8 +109,8 @@ import {
 import { MessageSigningRequest, SignTypedDataRequest } from "./utils/signing"
 import {
   AccountSigner,
+  SendTransactionResponse,
   SignatureResponse,
-  SignTransactionResponse,
 } from "./services/signing"
 import {
   migrateReduxState,
@@ -938,21 +938,21 @@ export default class Main extends BaseService<never> {
     )
 
     transactionConstructionSliceEmitter.on(
-      "requestSignature",
+      "requestSendTransaction",
       async ({ request, accountSigner }) => {
         try {
-          const signedTransaction =
+          const transactionResponse =
             await this.signingService.signAndSendQuaiTransaction(
               request,
               accountSigner
             )
 
-          this.store.dispatch(transactionSigned(signedTransaction))
+          this.store.dispatch(transactionSigned(transactionResponse))
 
           await this.analyticsService.sendAnalyticsEvent(
             AnalyticsEvent.TRANSACTION_SIGNED,
             {
-              chainId: signedTransaction.chainId,
+              chainId: transactionResponse.chainId,
             }
           )
         } catch (exception) {
@@ -1203,7 +1203,7 @@ export default class Main extends BaseService<never> {
 
   async connectInternalQuaiProviderService(): Promise<void> {
     this.internalQuaiProviderService.emitter.on(
-      "transactionSignatureRequest",
+      "transactionSendRequest",
       async ({ payload, resolver, rejecter }) => {
         this.store.dispatch(
           clearTransactionState(TransactionConstructionStatus.Pending)
@@ -1212,21 +1212,21 @@ export default class Main extends BaseService<never> {
 
         const clear = () => {
           this.signingService.emitter.off(
-            "signTransactionResponse",
+            "sendTransactionResponse",
             // Mutual dependency to handleAndClear.
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             handleAndClear
           )
 
           transactionConstructionSliceEmitter.off(
-            "signatureRejected",
+            "sendTransactionRejected",
             // Mutual dependency to rejectAndClear.
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             rejectAndClear
           )
         }
 
-        const handleAndClear = (response: SignTransactionResponse) => {
+        const handleAndClear = (response: SendTransactionResponse) => {
           clear()
           switch (response.type) {
             case "success-tx":
@@ -1244,12 +1244,12 @@ export default class Main extends BaseService<never> {
         }
 
         this.signingService.emitter.on(
-          "signTransactionResponse",
+          "sendTransactionResponse",
           handleAndClear
         )
 
         transactionConstructionSliceEmitter.on(
-          "signatureRejected",
+          "sendTransactionRejected",
           rejectAndClear
         )
       }
@@ -1863,7 +1863,7 @@ export default class Main extends BaseService<never> {
   }
 
   private onPopupDisconnected() {
-    this.store.dispatch(rejectTransactionSignature())
+    this.store.dispatch(rejectSendTransaction())
     this.store.dispatch(rejectDataSignature())
   }
 }

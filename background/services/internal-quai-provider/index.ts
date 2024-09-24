@@ -1,6 +1,5 @@
 import {
   TypedDataEncoder,
-  QuaiTransaction,
   hexlify,
   toUtf8Bytes,
   AddressLike,
@@ -19,7 +18,10 @@ import {
   EIP1193Error,
   RPCRequest,
 } from "@pelagus-provider/provider-bridge-shared"
-import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
+import {
+  QuaiTransactionRequest,
+  QuaiTransactionResponse,
+} from "quais/lib/commonjs/providers"
 import logger from "../../lib/logger"
 import BaseService from "../base"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -42,32 +44,6 @@ import { NetworksArray } from "../../constants/networks/networks"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
 import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
-
-// A type representing the transaction requests that come in over JSON-RPC
-// requests like eth_sendTransaction and eth_signTransaction. These are very
-// similar in structure to the Ethers internal TransactionRequest object, but
-// have some subtle-yet-critical differences. Chief among these is the presence
-// of `gas` instead of `gasLimit` and the _possibility_ of using `input` instead
-// of `data`.
-//
-// Note that `input` is the newer and more correct field to expect contract call
-// data in, but older clients may provide `data` instead. Ethers transmits `data`
-// rather than `input` when used as a JSON-RPC client, and expects it as the
-// `EthersTransactionRequest` field for that info.
-//
-// Additionally, internal provider requests can include an explicit
-// JSON-serialized annotation field provided by the wallet. The internal
-// provider disallows this field from non-internal sources.
-type JsonRpcTransactionRequest = Omit<QuaiTransactionRequest, "gasLimit"> & {
-  gas?: string
-  input?: string
-  annotation?: string
-}
-
-// https://eips.ethereum.org/EIPS/eip-3326
-export type SwitchEthereumChainParameter = {
-  chainId: string
-}
 
 // https://eips.ethereum.org/EIPS/eip-747
 type WatchAssetParameters = {
@@ -107,7 +83,11 @@ type Events = ServiceLifecycleEvents & {
       from: AddressLike
       network: NetworkInterface
     },
-    QuaiTransaction
+    QuaiTransactionResponse
+  >
+  transactionSendRequest: DAppRequestEvent<
+    QuaiTransactionRequestWithAnnotation,
+    QuaiTransactionResponse
   >
   signTypedDataRequest: DAppRequestEvent<SignTypedDataRequest, string>
   signDataRequest: DAppRequestEvent<MessageSigningRequest, string>
@@ -174,7 +154,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     origin: string
   ): Promise<unknown> {
     switch (method) {
-      // quais driven methods
+      // supported methods
       case "quai_signTypedData":
       case "quai_signTypedData_v1":
       case "quai_signTypedData_v3":
@@ -220,31 +200,16 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return [address]
       }
       case "quai_sendTransaction":
-        return this.signTransaction(
+        return this.sendTransaction(
           params[0] as QuaiTransactionRequestWithAnnotation,
           origin
-        ).then(async (tx) => {
-          return tx.hash
-        })
-      case "quai_signTransaction":
-        return this.signTransaction(
-          params[0] as QuaiTransactionRequestWithAnnotation,
-          origin
-        ).then(
-          (signedTransaction) =>
-            // TODO-MIGRATION: check how to sign a transaction in new SDK (which data and type return)
-            //  Previously was using unsigned tx + signature in "serialize" func
-            //  serialize(
-            //  ethersTransactionFromSignedTransaction(signedTransaction),
-            //  {
-            //  r: signedTransaction.r,
-            //  s: signedTransaction.s,
-            //  v: signedTransaction.v,
-            //  }
-            //  )
-            QuaiTransaction.from(signedTransaction)
-          // ----------------------------------------------
-        )
+        ).then((transactionResponse) => transactionResponse.hash)
+      // TODO
+      // case "quai_signTransaction":
+      // return this.signTransaction(
+      //   params[0] as QuaiTransactionRequestWithAnnotation,
+      //   origin
+      // ).then((signedTransaction) => signedTransaction) // TODO return string
       case "quai_sign":
         return this.signData(
           {
@@ -303,7 +268,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.chainService.jsonRpcProvider.getBalance(
           params[0] as AddressLike
         )
-
       case "quai_nodeLocation":
         return this.chainService.jsonRpcProvider.getRunningLocations()
       case "quai_getLogs":
@@ -358,9 +322,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "web3_sha3":
         return this.transactionsService.send(method, params)
 
-      // not supported methods
+      // unsupported methods
       case "wallet_requestPermissions":
-      case "estimateGas":
       case "net_peerCount":
       case "wallet_accountsChanged":
       case "wallet_registerOnboarding":
@@ -391,10 +354,10 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     await this.db.removeStoredPreferencesForChain(chainId)
   }
 
-  private async signTransaction(
+  private async sendTransaction(
     transactionRequest: QuaiTransactionRequestWithAnnotation,
     origin: string
-  ): Promise<QuaiTransaction> {
+  ): Promise<QuaiTransactionResponse> {
     const annotation =
       origin === PELAGUS_INTERNAL_ORIGIN &&
       "annotation" in transactionRequest &&
@@ -406,33 +369,28 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       throw new Error("Transactions must have a from address for signing.")
     }
 
-    const { store, chainService } = globalThis.main
-
-    const currentNetwork = store.getState().ui.selectedAccount.network
-
     const to = transactionRequest.to
-      ? getAddress(transactionRequest.to.toString())
+      ? getAddress(String(transactionRequest.to))
       : null
-    const from = getAddress(transactionRequest.from.toString())
-    const nonce = await chainService.jsonRpcProvider.getTransactionCount(from)
+    const from = getAddress(String(transactionRequest.from))
 
-    await globalThis.main.blockService.pollBlockPricesForNetwork({
-      network: currentNetwork,
-    })
-    await globalThis.main.blockService.pollLatestBlock(currentNetwork)
+    const { store, blockService } = globalThis.main
+    const { network } = store.getState().ui.selectedAccount
 
-    return new Promise<QuaiTransaction>((resolve, reject) => {
-      this.emitter.emit("transactionSignatureRequest", {
+    await blockService.pollBlockPricesForNetwork({ network })
+    await blockService.pollLatestBlock(network)
+
+    return new Promise<QuaiTransactionResponse>((resolve, reject) => {
+      this.emitter.emit("transactionSendRequest", {
         payload: {
           to,
-          data: transactionRequest.data,
           from,
           type: transactionRequest.type,
+          chainId: network.chainID,
+          data: transactionRequest.data,
           value: transactionRequest.value,
-          chainId: currentNetwork.chainID,
           gasLimit: transactionRequest.gasLimit,
-          network: currentNetwork,
-          nonce,
+          network,
           annotation,
         },
         resolver: resolve,

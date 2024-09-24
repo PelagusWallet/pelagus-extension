@@ -7,8 +7,8 @@ import {
   signTypedData,
 } from "@pelagus/pelagus-background/redux-slices/signing"
 import {
-  rejectTransactionSignature,
-  signTransaction,
+  rejectSendTransaction,
+  sendTransaction,
 } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import {
   MessageSigningRequest,
@@ -74,7 +74,7 @@ export function resolveTypedDataSignatureDetails({
   }
 }
 
-export function resolveTransactionSignatureDetails({
+export function resolveTransactionSendDetails({
   request,
   accountSigner,
 }: SignOperation<QuaiTransactionRequestWithAnnotation>): ResolvedSignatureDetails {
@@ -88,8 +88,8 @@ export function resolveTransactionSignatureDetails({
     renderedSigningData: (
       <TransactionSignatureDetails transactionRequest={request} />
     ),
-    signActionCreator: () => signTransaction({ request, accountSigner }),
-    rejectActionCreator: rejectTransactionSignature,
+    signActionCreator: () => sendTransaction({ request, accountSigner }),
+    rejectActionCreator: rejectSendTransaction,
   }
 }
 
@@ -105,7 +105,7 @@ export function resolveSignatureDetails<T extends SignOperationType>({
   if ("typedData" in request) {
     return resolveTypedDataSignatureDetails({ request, accountSigner })
   }
-  return resolveTransactionSignatureDetails({ request, accountSigner })
+  return resolveTransactionSendDetails({ request, accountSigner })
 }
 
 export function useResolvedSignatureDetails<T extends SignOperationType>(

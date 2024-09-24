@@ -144,7 +144,7 @@ export default class SigningService extends BaseService<Events> {
   async signAndSendQuaiTransaction(
     transactionRequest: QuaiTransactionRequest,
     accountSigner: AccountSigner
-  ): Promise<QuaiTransactionResponse> {
+  ): Promise<QuaiTransaction> {
     try {
       let transactionResponse: QuaiTransactionResponse | null
       switch (accountSigner.type) {
@@ -166,7 +166,13 @@ export default class SigningService extends BaseService<Events> {
         throw new Error("Transaction response is null.")
       }
 
-      return transactionResponse
+      const signedTransaction = QuaiTransaction.from(transactionResponse)
+      await this.emitter.emit("signTransactionResponse", {
+        type: "success-tx",
+        signedTx: signedTransaction,
+      })
+
+      return signedTransaction
     } catch (err) {
       await this.emitter.emit("signTransactionResponse", {
         type: "error",

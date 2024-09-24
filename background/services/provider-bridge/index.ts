@@ -292,6 +292,22 @@ export default class ProviderBridgeService extends BaseService<Events> {
       ).toJSON()
     }
 
+    // FIXME
+    if (event.request.method === "quai_estimateGas")
+      response.result = response?.result?.toString()
+
+    // FIXME
+    if (
+      event.request.method === "quai_getTransactionByHash" ||
+      event.request.method === "quai_getTransactionReceipt"
+    ) {
+      response.result = JSON.parse(
+        JSON.stringify(response?.result, (_, value) =>
+          typeof value === "bigint" ? value.toString() : value
+        )
+      )
+    }
+
     port.postMessage(response)
   }
 

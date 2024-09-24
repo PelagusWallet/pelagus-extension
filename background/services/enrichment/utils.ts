@@ -159,6 +159,12 @@ export function getRelevantTransactionAddresses(
         addressSet.add(address)
       }
     })
+  } else if (recipientAddress === "") {
+    trackedAccounts.forEach(({ address }) => {
+      if (sameQuaiAddress(senderAddress, address)) {
+        addressSet.add(address)
+      }
+    })
   } else {
     trackedAccounts.forEach(({ address }) => {
       if (

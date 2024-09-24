@@ -4,8 +4,15 @@ import {
   hexlify,
   toUtf8Bytes,
   AddressLike,
-  Zone,
   TransactionRequest,
+  quais,
+  Shard,
+  getAddress,
+  BlockTag,
+  Filter,
+  FilterByBlockHash,
+  BigNumberish,
+  Zone,
 } from "quais"
 import {
   EIP1193_ERROR_CODES,
@@ -30,15 +37,11 @@ import {
   InternalQuaiProviderDatabase,
 } from "./db"
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
-import { TransactionAnnotation } from "../enrichment"
-import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
-import { decodeJSON } from "../../lib/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { NetworksArray } from "../../constants/networks/networks"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
 import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
-import { NetworkFeeTypeChosen } from "../../redux-slices/transaction-construction"
 
 // A type representing the transaction requests that come in over JSON-RPC
 // requests like eth_sendTransaction and eth_signTransaction. These are very
@@ -171,6 +174,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     origin: string
   ): Promise<unknown> {
     switch (method) {
+      // quais driven methods
       case "quai_signTypedData":
       case "quai_signTypedData_v1":
       case "quai_signTypedData_v3":
@@ -191,46 +195,26 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
         )
       case "quai_blockNumber":
-      case "quai_call":
+        return this.chainService.jsonRpcProvider.getBlockNumber(
+          params[0] as Shard
+        )
       case "quai_estimateGas":
-      case "quai_feeHistory":
-      case "quai_gasPrice":
-      case "quai_getBalance":
-      case "quai_getBlockByHash":
-      case "quai_getBlockByNumber":
-      case "quai_getBlockTransactionCountByHash":
-      case "quai_getBlockTransactionCountByNumber":
-      case "quai_getCode":
-      case "quai_getFilterChanges":
-      case "quai_getFilterLogs":
-      case "quai_getLogs":
-      case "quai_getProof":
-      case "quai_getStorageAt":
-      case "quai_getTransactionByBlockHashAndIndex":
-      case "quai_getTransactionByBlockNumberAndIndex":
-      case "quai_getTransactionByHash":
-      case "quai_getTransactionCount":
+        return this.chainService.jsonRpcProvider.estimateGas(
+          params[0] as TransactionRequest
+        )
       case "quai_getTransactionReceipt":
-      case "quai_getUncleByBlockHashAndIndex":
-      case "quai_getUncleByBlockNumberAndIndex":
-      case "quai_getUncleCountByBlockHash":
-      case "quai_getUncleCountByBlockNumber":
-      case "quai_maxPriorityFeePerGas":
-      case "quai_newBlockFilter":
-      case "quai_newFilter":
-      case "quai_newPendingTransactionFilter":
-      case "quai_nodeLocation":
-      case "quai_protocolVersion":
-      case "quai_sendRawTransaction":
-      case "quai_subscribe":
-      case "quai_syncing":
-      case "quai_uninstallFilter":
-      case "quai_unsubscribe":
-      case "net_listening":
-      case "net_version":
-      case "web3_clientVersion":
-      case "web3_sha3":
-        return this.transactionsService.send(method, params)
+        return this.chainService.jsonRpcProvider.getTransactionReceipt(
+          params[0] as string
+        )
+      case "quai_getTransactionByHash":
+        return this.chainService.jsonRpcProvider.getTransaction(
+          params[0] as string
+        )
+      case "quai_getTransactionCount":
+        return this.chainService.jsonRpcProvider.getTransactionCount(
+          getAddress(params[0] as string),
+          params[1] as quais.BlockTag
+        )
       case "quai_accounts": {
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
@@ -239,9 +223,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.signTransaction(
           params[0] as QuaiTransactionRequestWithAnnotation,
           origin
-        ).then(async (signed) => {
-          await this.transactionsService.sendQuaiTransaction(signed)
-          return signed.hash
+        ).then(async (tx) => {
+          return tx.hash
         })
       case "quai_signTransaction":
         return this.signTransaction(
@@ -278,31 +261,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           },
           origin
         )
-      // will just switch to a chain if we already support it - but not add a new one
-      case "wallet_addEthereumChain": {
-        const chainInfo = params[0] as ValidatedAddEthereumChainParameter
-        const { chainId } = chainInfo
-        const supportedNetwork = NetworksArray.find(
-          (network) => network.chainID === chainId
-        )
-        if (supportedNetwork) {
-          await this.switchToSupportedNetwork(origin, supportedNetwork)
-          this.emitter.emit("selectedNetwork", supportedNetwork)
-          return null
-        }
-      }
-      case "wallet_switchEthereumChain": {
-        const newChainId = (params[0] as SwitchEthereumChainParameter).chainId
-        const supportedNetwork = NetworksArray.find(
-          (network) => network.chainID === newChainId
-        )
-        if (supportedNetwork) {
-          this.switchToSupportedNetwork(origin, supportedNetwork)
-          return null
-        }
-
-        throw new EIP1193Error(EIP1193_ERROR_CODES.chainDisconnected)
-      }
       case "wallet_watchAsset": {
         const { type, options } = params[0]
           ? (params[0] as WatchAssetParameters)
@@ -335,8 +293,74 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         })
         return true
       }
+      case "quai_getBlockByHash":
+      case "quai_getBlockByNumber":
+        return this.chainService.jsonRpcProvider.getBlock(
+          params[0] as Shard,
+          params[1] as BlockTag
+        )
+      case "quai_getBalance":
+        return this.chainService.jsonRpcProvider.getBalance(
+          params[0] as AddressLike
+        )
+
+      case "quai_nodeLocation":
+        return this.chainService.jsonRpcProvider.getRunningLocations()
+      case "quai_getLogs":
+      case "quai_getFilterLogs":
+        return this.chainService.jsonRpcProvider.getLogs(
+          params[0] as Filter | FilterByBlockHash
+        )
+      case "quai_call":
+        return this.chainService.jsonRpcProvider.call(
+          params[0] as QuaiTransactionRequest
+        )
+      case "quai_getCode":
+        return this.chainService.jsonRpcProvider.getCode(
+          params[0] as AddressLike
+        )
+      case "quai_getStorageAt":
+        return this.chainService.jsonRpcProvider.getStorage(
+          params[0] as AddressLike,
+          params[1] as BigNumberish
+        )
+      case "quai_sendRawTransaction":
+        return this.chainService.jsonRpcProvider.broadcastTransaction(
+          params[0] as Zone,
+          params[1] as string
+        )
+
+      // just "proxying" requests to quais
+      case "quai_gasPrice":
+      case "quai_feeHistory":
+      case "quai_getBlockTransactionCountByHash":
+      case "quai_getBlockTransactionCountByNumber":
+      case "quai_getFilterChanges":
+      case "quai_getProof":
+      case "quai_getTransactionByBlockHashAndIndex":
+      case "quai_getTransactionByBlockNumberAndIndex":
+      case "quai_getUncleByBlockHashAndIndex":
+      case "quai_getUncleByBlockNumberAndIndex":
+      case "quai_getUncleCountByBlockHash":
+      case "quai_getUncleCountByBlockNumber":
+      case "quai_maxPriorityFeePerGas":
+      case "quai_newBlockFilter":
+      case "quai_newFilter":
+      case "quai_newPendingTransactionFilter":
+      case "quai_protocolVersion":
+      case "quai_subscribe":
+      case "quai_syncing":
+      case "quai_uninstallFilter":
+      case "quai_unsubscribe":
+      case "net_listening":
+      case "net_version":
+      case "web3_clientVersion":
+      case "web3_sha3":
+        return this.transactionsService.send(method, params)
+
+      // not supported methods
       case "wallet_requestPermissions":
-      case "estimateGas": // --- eip1193-bridge only method --
+      case "estimateGas":
       case "net_peerCount":
       case "wallet_accountsChanged":
       case "wallet_registerOnboarding":
@@ -382,30 +406,31 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       throw new Error("Transactions must have a from address for signing.")
     }
 
-    const currentNetwork =
-      globalThis.main.store.getState().ui.selectedAccount.network
+    const { store, chainService } = globalThis.main
 
-    const nonce =
-      await globalThis.main.chainService.jsonRpcProvider.getTransactionCount(
-        transactionRequest.from
-      )
+    const currentNetwork = store.getState().ui.selectedAccount.network
+
+    const to = transactionRequest.to
+      ? getAddress(transactionRequest.to.toString())
+      : null
+    const from = getAddress(transactionRequest.from.toString())
+    const nonce = await chainService.jsonRpcProvider.getTransactionCount(from)
 
     await globalThis.main.blockService.pollBlockPricesForNetwork({
       network: currentNetwork,
     })
     await globalThis.main.blockService.pollLatestBlock(currentNetwork)
+
     return new Promise<QuaiTransaction>((resolve, reject) => {
       this.emitter.emit("transactionSignatureRequest", {
         payload: {
-          to: transactionRequest.to,
+          to,
           data: transactionRequest.data,
-          from: transactionRequest.from,
+          from,
           type: transactionRequest.type,
           value: transactionRequest.value,
           chainId: currentNetwork.chainID,
           gasLimit: transactionRequest.gasLimit,
-          maxFeePerGas: 10000000000n,
-          maxPriorityFeePerGas: 4000000000n,
           network: currentNetwork,
           nonce,
           annotation,

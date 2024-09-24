@@ -42,7 +42,6 @@ const EIP191Info: React.FC<{
           margin-bottom: 6px;
         }
         .light {
-          color: #ccd3d3;
           white-space: pre-wrap;
         }
         .label {

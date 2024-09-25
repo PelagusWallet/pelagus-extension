@@ -16,7 +16,7 @@ import {
 import { HOUR, MINUTE } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
-import { ChainDatabase, createDB } from "./db"
+import { ChainDatabase, initializeChainDatabase } from "./db"
 import BaseService from "../base"
 import { getExtendedZoneForAddress } from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
@@ -121,7 +121,7 @@ export default class ChainService extends BaseService<Events> {
     ]
   > = async (providerFactoryService, preferenceService, keyringService) => {
     return new this(
-      createDB(),
+      initializeChainDatabase(),
       await providerFactoryService,
       await preferenceService,
       await keyringService

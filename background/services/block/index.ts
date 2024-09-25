@@ -8,7 +8,7 @@ import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import BaseService from "../base"
 import { blockFromProviderBlock } from "./utils"
 import ChainService from "../chain"
-import { BlockDatabase, createDB } from "./db"
+import { BlockDatabase, initializeBlockDatabase } from "./db"
 import { getExtendedZoneForAddress } from "../chain/utils"
 
 const GAS_POLLS_PER_PERIOD = 1 // 1 time per 5 minutes
@@ -25,7 +25,11 @@ export default class BlockService extends BaseService<Events> {
     BlockService,
     [Promise<ChainService>, Promise<PreferenceService>]
   > = async (chainService, preferenceService) => {
-    return new this(createDB(), await chainService, await preferenceService)
+    return new this(
+      initializeBlockDatabase(),
+      await chainService,
+      await preferenceService
+    )
   }
 
   private constructor(

@@ -11,7 +11,7 @@ import {
   Preferences,
   TokenListPreferences,
 } from "./types"
-import { getOrCreateDB, PreferenceDatabase } from "./db"
+import { initializePreferenceDatabase, PreferenceDatabase } from "./db"
 import BaseService from "../base"
 import { sameNetwork } from "../../networks"
 import { HexString } from "../../types"
@@ -53,7 +53,7 @@ export default class PreferenceService extends BaseService<Events> {
    */
   static create: ServiceCreatorFunction<Events, PreferenceService, []> =
     async () => {
-      const db = await getOrCreateDB()
+      const db = await initializePreferenceDatabase()
       return new this(db)
     }
 

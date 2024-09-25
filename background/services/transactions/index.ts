@@ -17,7 +17,7 @@ import NotificationsManager from "../notifications"
 import { quaiTransactionFromResponse } from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
-import { createTransactionsDataBase, TransactionsDatabase } from "./db"
+import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
 
 const TRANSACTION_CONFIRMATIONS = 1
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
@@ -42,7 +42,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     [Promise<ChainService>, Promise<KeyringService>]
   > = async (chainService, keyringService) => {
     return new this(
-      createTransactionsDataBase(),
+      initializeTransactionsDatabase(),
       await chainService,
       await keyringService
     )

@@ -21,7 +21,7 @@ import BaseService from "../base"
 import InternalQuaiProviderService, {
   AddEthereumChainParameter,
 } from "../internal-quai-provider"
-import { getOrCreateDB, ProviderBridgeServiceDatabase } from "./db"
+import { initializeProviderBridgeDatabase, ProviderBridgeDatabase } from "./db"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import PreferenceService from "../preferences"
 import logger from "../../lib/logger"
@@ -88,14 +88,14 @@ export default class ProviderBridgeService extends BaseService<Events> {
     [Promise<InternalQuaiProviderService>, Promise<PreferenceService>]
   > = async (internalQuaiProviderService, preferenceService) => {
     return new this(
-      await getOrCreateDB(),
+      await initializeProviderBridgeDatabase(),
       await internalQuaiProviderService,
       await preferenceService
     )
   }
 
   private constructor(
-    private db: ProviderBridgeServiceDatabase,
+    private db: ProviderBridgeDatabase,
     private internalQuaiProviderService: InternalQuaiProviderService,
     private preferenceService: PreferenceService
   ) {

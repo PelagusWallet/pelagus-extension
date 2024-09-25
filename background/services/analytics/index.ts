@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import BaseService from "../base"
-import { AnalyticsDatabase, getOrCreateDB } from "./db"
+import { AnalyticsDatabase, initializeAnalyticsDatabase } from "./db"
 import {
   AnalyticsEvent,
   deletePerson,
@@ -33,7 +33,7 @@ export default class AnalyticsService extends BaseService<Events> {
     AnalyticsService,
     [Promise<PreferenceService>]
   > = async (preferenceService) => {
-    const db = await getOrCreateDB()
+    const db = await initializeAnalyticsDatabase()
     return new this(db, await preferenceService)
   }
 

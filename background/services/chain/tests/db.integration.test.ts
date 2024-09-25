@@ -4,7 +4,7 @@ import {
   createAccountBalance,
   createAddressOnNetwork,
 } from "../../../tests/factories"
-import { ChainDatabase, createDB } from "../db"
+import { ChainDatabase, initializeChainDatabase } from "../db"
 import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
 
 describe("Chain Database ", () => {
@@ -15,7 +15,7 @@ describe("Chain Database ", () => {
   beforeEach(() => {
     // Reset state of indexedDB
     indexedDB = new IDBFactory()
-    db = createDB({ indexedDB })
+    db = initializeChainDatabase({ indexedDB })
   })
 
   describe("addAccountToTrack", () => {

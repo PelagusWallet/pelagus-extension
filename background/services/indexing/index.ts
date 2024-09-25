@@ -1,3 +1,4 @@
+import { getAddress } from "quais"
 import logger from "../../lib/logger"
 import { HexString } from "../../types"
 import { sameNetwork } from "../../networks"
@@ -588,6 +589,9 @@ export default class IndexingService extends BaseService<Events> {
   }
 
   async importCustomToken(asset: SmartContractFungibleAsset): Promise<boolean> {
+    asset.contractAddress = getAddress(asset.contractAddress)
+    asset.decimals = Number(asset.decimals)
+
     const customAsset = {
       ...asset,
       metadata: {
@@ -659,6 +663,8 @@ export default class IndexingService extends BaseService<Events> {
         homeNetwork: network,
       }))
     if (!customAsset) return undefined
+
+    customAsset.decimals = Number(customAsset.decimals)
 
     const isRemoved = customAsset.metadata?.removed ?? false
     const { verified } = metadata

@@ -1,15 +1,6 @@
-import { Interface, EventFragment, FunctionFragment, InterfaceAbi } from "quais"
+import { EventFragment, FunctionFragment, Interface, InterfaceAbi } from "quais"
 
-const QRC20_EVENTS = {
-  Transfer: EventFragment.from(
-    "Transfer(address indexed from, address indexed to, uint amount)"
-  ),
-  Approval: EventFragment.from(
-    "Approval(address indexed owner, address indexed spender, uint amount)"
-  ),
-}
-
-const QRC20_FUNCTIONS = {
+export const ERC20_FUNCTIONS = {
   allowance: FunctionFragment.from(
     "allowance(address owner, address spender) view returns (uint256)"
   ),
@@ -24,18 +15,27 @@ const QRC20_FUNCTIONS = {
   symbol: FunctionFragment.from("symbol() view returns (string)"),
   totalSupply: FunctionFragment.from("totalSupply() view returns (uint256)"),
   transfer: FunctionFragment.from(
-    "transfer(address to, uint amount) returns (bool)"
+    "transfer(address to, uint256 amount) returns (bool)"
   ),
   transferFrom: FunctionFragment.from(
-    "transferFrom(address from, address to, uint amount) returns (bool)"
+    "transferFrom(address from, address to, uint256 amount) returns (bool)"
   ),
   crossChainTransfer: FunctionFragment.from(
     "crossChainTransfer(address to, uint256 amount, uint256 gasLimit, uint256 minerTip, uint256 baseFee)"
   ),
 }
 
-export const QRC20_ABI: InterfaceAbi = [
-  ...Object.values(QRC20_FUNCTIONS),
-  ...Object.values(QRC20_EVENTS),
+export const ERC20_EVENTS = {
+  Transfer: EventFragment.from(
+    "Transfer(address indexed from, address indexed to, uint256 amount)"
+  ),
+  Approval: EventFragment.from(
+    "Approval(address indexed owner, address indexed spender, uint256 amount)"
+  ),
+}
+
+export const ERC20_ABI: InterfaceAbi = [
+  ...Object.values(ERC20_FUNCTIONS),
+  ...Object.values(ERC20_EVENTS),
 ]
-export const QRC20_INTERFACE: Interface = new Interface(QRC20_ABI)
+export const ERC20_INTERFACE: Interface = new Interface(ERC20_ABI)

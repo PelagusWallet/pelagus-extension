@@ -167,7 +167,7 @@ export class IndexingDatabase extends Dexie {
     contractAddress: string
   ): Promise<CustomAsset | undefined> {
     return this.customAssets
-      .where("[contractAddress+homeNetwork.name]")
+      .where("[contractAddress+homeNetwork.baseAsset.name]")
       .equals([contractAddress, network.baseAsset.name])
       .first()
   }

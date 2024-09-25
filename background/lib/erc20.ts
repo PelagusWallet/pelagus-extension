@@ -1,10 +1,6 @@
 import {
   toBigInt,
-  Interface,
   TransactionDescription,
-  FunctionFragment,
-  Fragment,
-  EventFragment,
   Contract,
   ContractRunner,
   JsonRpcProvider,
@@ -24,46 +20,7 @@ import { AddressOnNetwork } from "../accounts"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { SmartContractAmount, SmartContractFungibleAsset } from "../assets"
 import { isQuaiHandle } from "../constants/networks/networkUtils"
-
-export const ERC20_FUNCTIONS = {
-  allowance: FunctionFragment.from(
-    "allowance(address owner, address spender) view returns (uint256)"
-  ),
-  approve: FunctionFragment.from(
-    "approve(address spender, uint256 value) returns (bool)"
-  ),
-  balanceOf: FunctionFragment.from(
-    "balanceOf(address owner) view returns (uint256)"
-  ),
-  decimals: FunctionFragment.from("decimals() view returns (uint8)"),
-  name: FunctionFragment.from("name() view returns (string)"),
-  symbol: FunctionFragment.from("symbol() view returns (string)"),
-  totalSupply: FunctionFragment.from("totalSupply() view returns (uint256)"),
-  transfer: FunctionFragment.from(
-    "transfer(address to, uint amount) returns (bool)"
-  ),
-  transferFrom: FunctionFragment.from(
-    "transferFrom(address from, address to, uint amount) returns (bool)"
-  ),
-  crossChainTransfer: FunctionFragment.from(
-    "crossChainTransfer(address to, uint256 amount, uint256 gasLimit, uint256 minerTip, uint256 baseFee)"
-  ),
-}
-
-const ERC20_EVENTS = {
-  Transfer: EventFragment.from(
-    "Transfer(address indexed from, address indexed to, uint amount)"
-  ),
-  Approval: EventFragment.from(
-    "Approval(address indexed owner, address indexed spender, uint amount)"
-  ),
-}
-
-export const ERC20_ABI = Object.values<Fragment>(ERC20_FUNCTIONS).concat(
-  Object.values(ERC20_EVENTS)
-)
-
-export const ERC20_INTERFACE = new Interface(ERC20_ABI)
+import { ERC20_ABI, ERC20_EVENTS, ERC20_INTERFACE } from "../contracts/erc-20"
 
 /*
  * Get an account's balance from an ERC20-compliant contract.
@@ -85,20 +42,18 @@ export async function getMetadata(
   provider: ContractRunner,
   tokenSmartContract: SmartContract
 ): Promise<SmartContractFungibleAsset> {
-  const token = new Contract(
-    tokenSmartContract.contractAddress,
-    ERC20_INTERFACE,
-    provider
-  )
-
   try {
-    const [symbol, name, decimals] = await Promise.all(
-      [
-        ERC20_FUNCTIONS.symbol,
-        ERC20_FUNCTIONS.name,
-        ERC20_FUNCTIONS.decimals,
-      ].map(({ name: functionName }) => token.functionName.staticCall())
+    const tokenContract = new Contract(
+      tokenSmartContract.contractAddress,
+      ERC20_INTERFACE,
+      provider
     )
+
+    const [name, symbol, decimals] = await Promise.all([
+      tokenContract.name(),
+      tokenContract.symbol(),
+      tokenContract.decimals(),
+    ])
 
     return {
       ...tokenSmartContract,

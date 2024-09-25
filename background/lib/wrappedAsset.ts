@@ -7,7 +7,7 @@ import {
   LogParams,
 } from "quais"
 import { HexString } from "../types"
-import { ERC20_FUNCTIONS } from "./erc20"
+import { ERC20_FUNCTIONS } from "../contracts/erc-20"
 
 export const WRAPPED_ASSET_FUNCTIONS = {
   ...ERC20_FUNCTIONS,

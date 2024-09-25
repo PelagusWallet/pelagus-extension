@@ -1,4 +1,5 @@
 import Dexie, { DexieOptions } from "dexie"
+
 import { UNIXTime } from "../../types"
 import { AccountBalance, AddressOnNetwork } from "../../accounts"
 import { NetworkBaseAsset } from "../../networks"
@@ -46,7 +47,7 @@ export class ChainDatabase extends Dexie {
   private baseAssets!: Dexie.Table<NetworkBaseAsset, string>
 
   constructor(options?: DexieOptions) {
-    super("tally/chain", options)
+    super("pelagus/chain", options)
     this.version(1).stores({
       migrations: null,
       accountsToTrack:
@@ -224,6 +225,6 @@ export class ChainDatabase extends Dexie {
   }
 }
 
-export function createDB(options?: DexieOptions): ChainDatabase {
+export function initializeChainDatabase(options?: DexieOptions): ChainDatabase {
   return new ChainDatabase(options)
 }

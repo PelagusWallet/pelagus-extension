@@ -20,7 +20,7 @@ import {
 import PreferenceService from "../preferences"
 import ChainService from "../chain"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
-import { CustomAsset, getOrCreateDb, IndexingDatabase } from "./db"
+import { CustomAsset, initializeIndexingDatabase, IndexingDatabase } from "./db"
 import BaseService from "../base"
 import { sameQuaiAddress } from "../../lib/utils"
 import { getExtendedZoneForAddress, getNetworkById } from "../chain/utils"
@@ -104,7 +104,7 @@ export default class IndexingService extends BaseService<Events> {
     dexieOptions
   ) => {
     return new this(
-      await getOrCreateDb(dexieOptions),
+      await initializeIndexingDatabase(dexieOptions),
       await preferenceService,
       await chainService,
       await transactionService,

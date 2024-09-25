@@ -1,4 +1,5 @@
 import Dexie from "dexie"
+
 import { OneTimeAnalyticsEvent } from "../../lib/posthog"
 
 export interface AnalyticsUUID {
@@ -7,32 +8,24 @@ export interface AnalyticsUUID {
 
 export class AnalyticsDatabase extends Dexie {
   private analyticsUUID!: Dexie.Table<AnalyticsUUID, number>
+
   private oneTimeEvent!: Dexie.Table<{ name: string }, number>
 
   constructor() {
-    super("tally/analytics")
-
-    this.version(1).stores({
-      // Let's use an incremental id. If we need to change the UUID
-      // for any reason the migration will be trivial.
-      // Note: we are using outbound primary index here, which means
-      // that the id property won't be included in the stored object.
-      // https://dexie.org/docs/inbound#example-of-outbound-primary-key
-      analyticsUUID: "++,uuid",
-    })
-
-    this.version(2).stores({
-      oneTimeEvent: "++,name",
-    })
-
-    this.version(3).upgrade(async (tx) => {
-      await tx.table("oneTimeEvent").add({
-        name: OneTimeAnalyticsEvent.ONBOARDING_STARTED,
+    super("pelagus/analytics")
+    this.version(1)
+      .stores({
+        analyticsUUID: "++,uuid",
+        oneTimeEvent: "++,name",
       })
-      await tx.table("oneTimeEvent").add({
-        name: OneTimeAnalyticsEvent.ONBOARDING_FINISHED,
+      .upgrade(async (tx) => {
+        await tx.table("oneTimeEvent").add({
+          name: OneTimeAnalyticsEvent.ONBOARDING_STARTED,
+        })
+        await tx.table("oneTimeEvent").add({
+          name: OneTimeAnalyticsEvent.ONBOARDING_FINISHED,
+        })
       })
-    })
   }
 
   async getAnalyticsUUID(): Promise<string | undefined> {
@@ -51,6 +44,6 @@ export class AnalyticsDatabase extends Dexie {
     await this.oneTimeEvent.add({ name })
   }
 }
-export async function getOrCreateDB(): Promise<AnalyticsDatabase> {
+export async function initializeAnalyticsDatabase(): Promise<AnalyticsDatabase> {
   return new AnalyticsDatabase()
 }

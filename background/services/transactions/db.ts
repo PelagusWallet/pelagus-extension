@@ -1,8 +1,8 @@
 import Dexie, { DexieOptions } from "dexie"
+import { HexString } from "quais/lib/commonjs/utils"
 
 import { UNIXTime } from "../../types"
 import { QuaiTransactionDB, QuaiTransactionStatus } from "./types"
-import { HexString } from "quais/lib/commonjs/utils"
 
 type AdditionalTransactionFieldsForDB = {
   dataSource: "local"
@@ -95,7 +95,7 @@ export class TransactionsDatabase extends Dexie {
   }
 }
 
-export function createTransactionsDataBase(
+export function initializeTransactionsDatabase(
   options?: DexieOptions
 ): TransactionsDatabase {
   return new TransactionsDatabase(options)

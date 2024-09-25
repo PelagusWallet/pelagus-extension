@@ -1,6 +1,6 @@
 import Dexie, { DexieOptions } from "dexie"
 import { TokenList } from "@uniswap/token-lists"
-import { AccountBalance } from "../../accounts"
+
 import {
   FungibleAsset,
   NetworkSpecificAssetMetadata,
@@ -8,6 +8,7 @@ import {
   SmartContractFungibleAsset,
   TokenListCitation,
 } from "../../assets"
+import { AccountBalance } from "../../accounts"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 /*
@@ -95,7 +96,7 @@ export class IndexingDatabase extends Dexie {
   private assetsToTrack!: Dexie.Table<SmartContractFungibleAsset, number>
 
   constructor(options?: DexieOptions) {
-    super("tally/indexing", options)
+    super("pelagus/indexing", options)
     this.version(1).stores({
       migrations: "++id,appliedAt",
       prices: "++id,time,[asset1ID+asset2ID]",
@@ -249,7 +250,7 @@ export class IndexingDatabase extends Dexie {
   }
 }
 
-export async function getOrCreateDb(
+export async function initializeIndexingDatabase(
   options?: DexieOptions
 ): Promise<IndexingDatabase> {
   return new IndexingDatabase(options)

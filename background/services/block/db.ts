@@ -50,6 +50,6 @@ export class BlockDatabase extends Dexie {
   }
 }
 
-export function createDB(options?: DexieOptions): BlockDatabase {
+export function initializeBlockDatabase(options?: DexieOptions): BlockDatabase {
   return new BlockDatabase(options)
 }

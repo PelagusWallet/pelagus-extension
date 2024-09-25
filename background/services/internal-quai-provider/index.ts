@@ -23,7 +23,10 @@ import {
   parseSigningData,
   SignTypedDataRequest,
 } from "../../utils/signing"
-import { getOrCreateDB, InternalQuaiProviderDatabase } from "./db"
+import {
+  initializeInternalQuaiDatabase,
+  InternalQuaiProviderDatabase,
+} from "./db"
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import { TransactionAnnotation } from "../enrichment"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
@@ -117,7 +120,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     ]
   > = async (chainService, transactionService, preferenceService) => {
     return new this(
-      await getOrCreateDB(),
+      await initializeInternalQuaiDatabase(),
       await chainService,
       await transactionService,
       await preferenceService

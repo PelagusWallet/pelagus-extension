@@ -1,4 +1,5 @@
 import Dexie from "dexie"
+
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { QuaiGoldenAgeTestnet } from "../../constants/networks/networks"
@@ -12,30 +13,8 @@ export class InternalQuaiProviderDatabase extends Dexie {
   private currentNetwork!: Dexie.Table<NetworkForOrigin, string>
 
   constructor() {
-    super("tally/internal-ethereum-provider")
-
+    super("pelagus/internal-quai-provider")
     this.version(1).stores({
-      activeNetwork: "&origin,chainId,network, address",
-    })
-
-    this.version(2)
-      .stores({
-        currentNetwork: "&origin,chainId,network, address",
-      })
-      .upgrade((tx) => {
-        return tx
-          .table("activeNetwork")
-          .toArray()
-          .then((networksForOrigins) =>
-            tx.table("currentNetwork").bulkAdd(networksForOrigins)
-          )
-      })
-
-    this.version(3).stores({
-      activeNetworks: null,
-    })
-
-    this.version(4).stores({
       currentNetwork: "&origin,network.chainID",
     })
 
@@ -65,6 +44,6 @@ export class InternalQuaiProviderDatabase extends Dexie {
   }
 }
 
-export async function getOrCreateDB(): Promise<InternalQuaiProviderDatabase> {
+export async function initializeInternalQuaiDatabase(): Promise<InternalQuaiProviderDatabase> {
   return new InternalQuaiProviderDatabase()
 }

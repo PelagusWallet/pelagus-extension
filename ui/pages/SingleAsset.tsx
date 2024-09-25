@@ -264,6 +264,11 @@ export default function SingleAsset(): ReactElement {
             align-items: center;
           }
           .balance {
+            width: 100%;
+            max-width: 177px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             color: var(--green-20);
             font-size: 36px;
             font-weight: 500;

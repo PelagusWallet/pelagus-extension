@@ -30,15 +30,12 @@ export default `
     align-items: center;
   }
   .asset_amount {
-    height: 17px;
     color: var(--green-20);
     font-size: 14px;
     font-weight: 400;
     letter-spacing: 0.42px;
     line-height: 16px;
     text-transform: uppercase;
-    margin-bottom: 8px;
-    margin-top: -1px;
     overflow-wrap: anywhere;
     word-break: break-all;
   }

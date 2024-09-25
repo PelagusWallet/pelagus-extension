@@ -1,9 +1,5 @@
 import { hexlify, MaxUint256, toUtf8Bytes } from "quais"
 import {
-  ERC20_FUNCTIONS,
-  ERC20_INTERFACE,
-} from "@pelagus/pelagus-background/lib/erc20"
-import {
   convertFixedPointNumber,
   fixedPointNumberToString,
   parseToFixedPointNumber,
@@ -16,6 +12,10 @@ import { useDispatch } from "react-redux"
 import classNames from "classnames"
 import { Trans, useTranslation } from "react-i18next"
 import { updateAdditionalSigningStatus } from "@pelagus/pelagus-background/redux-slices/signing"
+import {
+  ERC20_FUNCTIONS,
+  ERC20_INTERFACE,
+} from "@pelagus/pelagus-background/contracts/erc-20"
 import SharedAssetIcon from "../../../../Shared/SharedAssetIcon"
 import SharedButton from "../../../../Shared/SharedButton"
 import SharedInput from "../../../../Shared/SharedInput"

@@ -285,8 +285,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const transaction = await this.db.getQuaiTransactionByHash(receipt.hash)
     if (!transaction) return
 
-    const { status, blockHash, blockNumber, gasPrice, gasUsed, etxs, logs } =
-      receipt
+    const { status, blockHash, blockNumber, gasPrice, gasUsed } = receipt
 
     if (status === 1) {
       transaction.status = QuaiTransactionStatus.CONFIRMED
@@ -303,8 +302,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     transaction.blockNumber = blockNumber
     transaction.gasPrice = gasPrice
     transaction.gasUsed = gasUsed
-    transaction.etxs = [...etxs]
-    transaction.logs = [...logs]
+    transaction.etxs = [] // TODO
+    transaction.logs = [] // TODO
 
     await this.saveQuaiTransaction(transaction)
   }

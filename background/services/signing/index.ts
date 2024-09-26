@@ -189,47 +189,46 @@ export default class SigningService extends BaseService<Events> {
     }
   }
 
-  // TODO
-  // async signTransaction(
-  //   transactionRequest: QuaiTransactionRequest,
-  //   accountSigner: AccountSigner
-  // ): Promise<QuaiTransaction> {
-  //   try {
-  //     let signedTransactionString = ""
-  //     switch (accountSigner.type) {
-  //       case "private-key":
-  //       case "keyring": {
-  //         const from = transactionRequest.from.toString()
-  //         const signerWithType = await this.keyringService.getSigner(from)
-  //
-  //         signedTransactionString = await signerWithType.signer.signTransaction(
-  //           transactionRequest
-  //         )
-  //         break
-  //       }
-  //       case "read-only":
-  //         throw new Error("Read-only signers cannot sign.")
-  //       default:
-  //         return assertUnreachable(accountSigner)
-  //     }
-  //
-  //     const signedTransaction = QuaiTransaction.from(signedTransactionString)
-  //
-  //     await this.emitter.emit("signTransactionResponse", {
-  //       type: "success-tx",
-  //       signedTx: signedTransaction,
-  //     })
-  //
-  //     return signedTransaction
-  //   } catch (err) {
-  //     await this.emitter.emit("signTransactionResponse", {
-  //       type: "error",
-  //       reason: getSigningErrorReason(err),
-  //     })
-  //
-  //     throw err
-  //   }
-  // }
+  async signTransaction(
+    transactionRequest: QuaiTransactionRequest,
+    accountSigner: AccountSigner
+  ): Promise<QuaiTransaction> {
+    try {
+      let signedTransactionString = ""
+      switch (accountSigner.type) {
+        case "private-key":
+        case "keyring": {
+          const from = transactionRequest.from.toString()
+          const signerWithType = await this.keyringService.getSigner(from)
+
+          signedTransactionString = await signerWithType.signer.signTransaction(
+            transactionRequest
+          )
+          break
+        }
+        case "read-only":
+          throw new Error("Read-only signers cannot sign.")
+        default:
+          return assertUnreachable(accountSigner)
+      }
+
+      const signedTransaction = QuaiTransaction.from(signedTransactionString)
+
+      await this.emitter.emit("signTransactionResponse", {
+        type: "success-tx",
+        signedTx: signedTransaction,
+      })
+
+      return signedTransaction
+    } catch (err) {
+      await this.emitter.emit("signTransactionResponse", {
+        type: "error",
+        reason: getSigningErrorReason(err),
+      })
+
+      throw err
+    }
+  }
 
   async signTypedData(
     typedData: EIP712TypedData,

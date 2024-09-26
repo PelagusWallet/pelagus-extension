@@ -287,7 +287,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const transaction = await this.db.getQuaiTransactionByHash(receipt.hash)
     if (!transaction) return
 
-    const { status, blockHash, blockNumber, gasPrice, gasUsed } = receipt
+    const { status, blockHash, blockNumber, gasPrice, gasUsed, etxs } = receipt
 
     if (status === 1) {
       transaction.status = QuaiTransactionStatus.CONFIRMED
@@ -304,8 +304,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     transaction.blockNumber = blockNumber
     transaction.gasPrice = gasPrice
     transaction.gasUsed = gasUsed
-    transaction.etxs = [] // TODO
-    transaction.logs = [] // TODO
+
+    // TODO these fields are not very important now,
+    //  but in the future it is better to get these fields from the receipt.
+    //  quais returns an object with read-only fields, which complicates our work
+    transaction.etxs = []
+    transaction.logs = []
 
     await this.saveQuaiTransaction(transaction)
   }

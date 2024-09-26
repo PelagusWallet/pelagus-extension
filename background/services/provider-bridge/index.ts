@@ -292,11 +292,9 @@ export default class ProviderBridgeService extends BaseService<Events> {
       ).toJSON()
     }
 
-    // FIXME
-    if (event.request.method === "quai_estimateGas")
-      response.result = response?.result?.toString()
-
-    // FIXME
+    // TODO temporary solution, because port.postMessage can only send serialized data
+    //  but in some cases quais returns data of type bigint, and the port does not allow sending them to dApp,
+    //  so we mock it in such a way that at least some data is returned. Better to remove this in future
     if (
       event.request.method === "quai_getTransactionByHash" ||
       event.request.method === "quai_getTransactionReceipt"
@@ -536,7 +534,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
-        case "quai_signTransaction":
         case "quai_sendTransaction":
           // TODO check this checkPermissionSignTransaction function in future
           checkPermissionSignTransaction(

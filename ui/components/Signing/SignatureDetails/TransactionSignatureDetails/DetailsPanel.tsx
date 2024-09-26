@@ -49,32 +49,33 @@ export default function DetailPanel({
   }, [])
 
   useEffect(() => {
-    if (
-      transactionDetails &&
-      transactionDetails.from &&
-      transactionDetails.network
-    ) {
-      // FIXME temp fix
-      // const { maxFeePerGas, maxPriorityFeePerGas } = dispatch(
-      //   getMaxFeeAndMaxPriorityFeePerGas()
-      // ) as unknown as AsyncThunkFulfillmentType<
-      //   typeof getMaxFeeAndMaxPriorityFeePerGas
-      // >
+    const fetchGasPrices = async () => {
+      if (
+        transactionDetails &&
+        transactionDetails.from &&
+        transactionDetails.network
+      ) {
+        const { maxFeePerGas, maxPriorityFeePerGas } = (await dispatch(
+          getMaxFeeAndMaxPriorityFeePerGas()
+        )) as unknown as AsyncThunkFulfillmentType<
+          typeof getMaxFeeAndMaxPriorityFeePerGas
+        >
 
-      const maxFeePerGas = 6000000000n
-      const maxPriorityFeePerGas = 1000000000n
+        if (!estimatedFeesPerGas) return
 
-      if (!estimatedFeesPerGas) return
+        if (estimatedFeesPerGas.regular) {
+          estimatedFeesPerGas.regular.maxFeePerGas = maxFeePerGas
+          estimatedFeesPerGas.regular.maxPriorityFeePerGas =
+            maxPriorityFeePerGas
+        }
 
-      if (estimatedFeesPerGas.regular) {
-        estimatedFeesPerGas.regular.maxFeePerGas = maxFeePerGas
-        estimatedFeesPerGas.regular.maxPriorityFeePerGas = maxPriorityFeePerGas
+        estimatedFeesPerGas.maxFeePerGas = maxFeePerGas
+        estimatedFeesPerGas.maxPriorityFeePerGas = maxPriorityFeePerGas
       }
-
-      estimatedFeesPerGas.maxFeePerGas = maxFeePerGas
-      estimatedFeesPerGas.maxPriorityFeePerGas = maxPriorityFeePerGas
     }
-  }, [])
+
+    fetchGasPrices()
+  }, [transactionDetails, estimatedFeesPerGas, dispatch])
 
   if (transactionDetails === undefined) return <></>
 

@@ -234,7 +234,7 @@ const transactionSlice = createSlice({
     signed: (state, { payload }: { payload: string }) => ({
       ...state,
       status: TransactionConstructionStatus.Signed,
-      signedTransaction: JSON.parse(payload), // TODO-MIGRATION
+      signedTransaction: JSON.parse(payload),
     }),
     setQuaiTransactionResponse: (state, { payload }: { payload: string }) => ({
       ...state,
@@ -331,17 +331,8 @@ export const quaiTransactionResponse = createBackgroundAsyncThunk(
 
 export const transactionSigned = createBackgroundAsyncThunk(
   "transaction-construction/transaction-signed",
-  async (transaction: QuaiTransactionResponse, { dispatch, getState }) => {
+  async (transaction: QuaiTransactionResponse, { dispatch }) => {
     dispatch(signed(JSON.stringify(transaction)))
-
-    // TODO maybe remove
-    // const { transactionConstruction } = getState() as {
-    //   transactionConstruction: TransactionConstruction
-    // }
-
-    // if (transactionConstruction.broadcastOnSign ?? false) {
-    //   await emitter.emit("broadcastSignedTransaction", transaction)
-    // }
   }
 )
 

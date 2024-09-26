@@ -604,7 +604,7 @@ export default class ChainService extends BaseService<Events> {
     }
 
     return {
-      asset,
+      asset: { ...asset, decimals: Number(asset.decimals) },
       amount: balance.amount,
     }
   }

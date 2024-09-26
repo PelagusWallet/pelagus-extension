@@ -184,10 +184,7 @@ export const removeAssetData = createBackgroundAsyncThunk(
 
 export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
   "assets/getAccountGasPrice",
-  async (
-    _,
-    { dispatch }
-  ): Promise<{
+  async (): Promise<{
     maxFeePerGas: bigint
     maxPriorityFeePerGas: bigint
   }> => {
@@ -195,26 +192,20 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
 
     try {
       const feeData = await jsonRpcProvider.getFeeData()
-      if (
-        !feeData.gasPrice ||
-        !feeData.maxFeePerGas ||
-        !feeData.maxPriorityFeePerGas
-      ) {
+      const baseFeeSettings = {
+        maxFeePerGas: toBigInt(6000000000),
+        maxPriorityFeePerGas: toBigInt(2000000000),
       }
-      return {
-        maxFeePerGas: toBigInt(feeData.maxFeePerGas ?? 6000000000),
-        maxPriorityFeePerGas: toBigInt(
-          feeData.maxPriorityFeePerGas ?? 2000000000
-        ),
+      if (feeData?.maxFeePerGas) {
+        baseFeeSettings.maxFeePerGas = feeData.maxFeePerGas
       }
+      if (feeData?.maxPriorityFeePerGas) {
+        baseFeeSettings.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+      }
+
+      return baseFeeSettings
     } catch (e) {
       logger.error(e)
-
-      dispatch(
-        setSnackbarConfig({
-          message: "Failed to get gas price, please enter manually",
-        })
-      )
 
       return {
         maxFeePerGas: toBigInt(6000000000),

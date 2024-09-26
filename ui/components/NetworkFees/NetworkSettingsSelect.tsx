@@ -52,6 +52,7 @@ const gasOptionFromEstimate = (
     0: NetworkFeeTypeChosen.Custom,
   }
 
+  // IF AUTO FEE SETTINGS ARE SELECTED, WE CREATE A MOCK OBJECT - THE SDK WILL AUTOMATICALLY SET THE BEST FEE VALUES
   if (feeOptionData[confidence] === NetworkFeeTypeChosen.Auto) {
     return {
       confidence: `${confidence}`,
@@ -172,9 +173,8 @@ export default function NetworkSettingsSelect({
       if (typeof instant !== "undefined") {
         const autoFee = {
           confidence: 1,
-          maxFeePerGas: 1000000000n,
-          maxPriorityFeePerGas: 1000000000n,
-        }
+        } as BlockEstimate
+
         const baseFees = [autoFee, regular, express, instant, custom]
 
         const updatedGasOptions: GasOption[] = []

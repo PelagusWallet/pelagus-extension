@@ -346,12 +346,12 @@ export function bigIntToDecimal(
   if (bigIntValue == BigInt(0)) return "0.000"
 
   let bigIntStr = bigIntValue.toString()
-  while (bigIntStr.length < Number(decimalPlaces)) {
+  while (bigIntStr.length < decimalPlaces) {
     bigIntStr = `0${bigIntStr}`
   }
 
   // Calculate the index where we need to insert the decimal point
-  const decimalIndex = bigIntStr.length - Number(decimalPlaces)
+  const decimalIndex = bigIntStr.length - decimalPlaces
 
   // Insert the decimal point at the correct index
   const result = `${bigIntStr.slice(0, decimalIndex)}.${bigIntStr.slice(

@@ -36,16 +36,10 @@ export function convertFixedPoint(
   fixedPointDecimals: number,
   targetDecimals: number
 ): bigint {
-  if (Number(fixedPointDecimals) >= Number(targetDecimals))
-    return (
-      fixedPoint /
-      10n ** BigInt(Number(fixedPointDecimals) - Number(targetDecimals))
-    )
+  if (fixedPointDecimals >= targetDecimals)
+    return fixedPoint / 10n ** BigInt(fixedPointDecimals - targetDecimals)
 
-  return (
-    fixedPoint *
-    10n ** BigInt(Number(targetDecimals) - Number(fixedPointDecimals))
-  )
+  return fixedPoint * 10n ** BigInt(targetDecimals - fixedPointDecimals)
 }
 
 /**
@@ -231,11 +225,11 @@ export function fromFixedPoint(
 ): number {
   const fixedPointDesiredDecimalsAmount =
     fixedPoint /
-    10n ** BigInt(Math.max(1, Number(fixedPointDecimals) - desiredDecimals))
+    10n ** BigInt(Math.max(1, fixedPointDecimals - desiredDecimals))
 
   return (
     Number(fixedPointDesiredDecimalsAmount) /
-    10 ** Math.min(desiredDecimals, Number(fixedPointDecimals))
+    10 ** Math.min(desiredDecimals, fixedPointDecimals)
   )
 }
 

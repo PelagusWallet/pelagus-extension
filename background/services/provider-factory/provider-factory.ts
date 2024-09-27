@@ -1,4 +1,5 @@
 import { JsonRpcProvider, Shard, WebSocketProvider } from "quais"
+
 import BaseService from "../base"
 import { NetworkProviders } from "./types"
 import { ServiceCreatorFunction } from "../types"
@@ -8,6 +9,7 @@ import {
   QuaiLocalNodeNetwork,
 } from "../../constants/networks/networks"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
+import PreferenceService from "../preferences"
 
 // TODO temp solution instead of provider timeout
 const DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS = 7000
@@ -24,20 +26,27 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
   static create: ServiceCreatorFunction<
     ProviderFactoryEvents,
     ProviderFactory,
-    []
-  > = async () => {
-    return new this()
+    [Promise<PreferenceService>]
+  > = async (preferenceService) => {
+    return new this(await preferenceService)
   }
 
-  private constructor() {
+  private constructor(private preferenceService: PreferenceService) {
     super()
+  }
+
+  override async internalStartService(): Promise<void> {
+    await super.internalStartService()
     this.initializeProvidersForNetworks(NetworksArray)
   }
 
-  private initializeProvidersForNetworks(networks: NetworkInterface[]) {
+  private async initializeProvidersForNetworks(networks: NetworkInterface[]) {
+    const isTestNetworkEnabled =
+      await this.preferenceService.getShowTestNetworks()
+
     networks.forEach(
       ({ chainID, jsonRpcUrls, webSocketRpcUrls, isTestNetwork }) => {
-        if (isTestNetwork) return
+        if (isTestNetwork && !isTestNetworkEnabled) return
 
         const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls)
         const webSocketProvider = new WebSocketProvider(webSocketRpcUrls)

@@ -32,13 +32,20 @@ import TransactionService from "../services/transactions"
 const createRandom0xHash = () =>
   keccak256(Buffer.from(Math.random().toString()))
 
-export const createProviderFactoryService =
-  async (): Promise<ProviderFactory> => {
-    return ProviderFactory.create()
-  }
-
 export const createPreferenceService = async (): Promise<PreferenceService> => {
   return PreferenceService.create()
+}
+
+type CreateProviderFactoryServiceOverrides = {
+  preferenceService?: Promise<PreferenceService>
+}
+
+export const createProviderFactoryService = async (
+  overrides: CreateProviderFactoryServiceOverrides = {}
+): Promise<ProviderFactory> => {
+  return ProviderFactory.create(
+    overrides.preferenceService ?? createPreferenceService()
+  )
 }
 
 export const createKeyringService = async (): Promise<KeyringService> => {

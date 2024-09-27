@@ -1,4 +1,4 @@
-import { getZoneForAddress, JsonRpcProvider, Shard, Zone } from "quais"
+import { JsonRpcProvider, Shard, toZone } from "quais"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
 import { AnyEVMBlock, BlockPrices, toHexChainID } from "../../networks"
@@ -144,9 +144,9 @@ export default class BlockService extends BaseService<Events> {
   async getBlockPrices(
     network: NetworkInterface,
     provider: JsonRpcProvider,
-    shard: Shard,
-    zone: Zone
+    shard: Shard
   ): Promise<BlockPrices> {
+    const zone = toZone(shard)
     const [currentBlock, feeData] = await Promise.all([
       provider.getBlock(shard, "latest"),
       provider.getFeeData(zone),
@@ -232,16 +232,15 @@ export default class BlockService extends BaseService<Events> {
 
     const { address } = await this.preferenceService.getSelectedAccount()
     const shard = getExtendedZoneForAddress(address, false) as Shard
-    const zone = getZoneForAddress(address)
-    if (!zone) {
-      logger.warn(`Can't get zone for ${address}`)
+
+    if (!shard) {
+      logger.warn(`Can't get shard for ${address}`)
       return
     }
     const blockPrices = await this.getBlockPrices(
       subscription.network,
       subscription.provider,
-      shard,
-      zone
+      shard
     )
     await this.emitter.emit("blockPrices", {
       blockPrices,

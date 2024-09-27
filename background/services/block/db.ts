@@ -2,7 +2,6 @@ import Dexie, { DexieOptions } from "dexie"
 
 import { AnyEVMBlock } from "../../networks"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
-import { ChainDatabase } from "../chain/db"
 
 export class BlockDatabase extends Dexie {
   private blocks!: Dexie.Table<AnyEVMBlock, [string, string]>

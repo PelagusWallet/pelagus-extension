@@ -276,7 +276,7 @@ export default class Main extends BaseService<never> {
 
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
-    const providerFactoryService = ProviderFactory.create()
+    const providerFactoryService = ProviderFactory.create(preferenceService)
     const keyringService = KeyringService.create()
     const chainService = ChainService.create(
       providerFactoryService,

@@ -86,8 +86,6 @@ describe("Chain Service", () => {
 
       jest.advanceTimersByTime(100)
 
-      chainService.markNetworkActivity(QuaiGoldenAgeTestnet.chainID)
-
       expect(lastUserActivity).toBeLessThan(
         (chainService as unknown as ChainServiceExternalized)
           .lastUserActivityOnNetwork[QuaiGoldenAgeTestnet.chainID]
@@ -121,18 +119,6 @@ describe("Chain Service", () => {
 
     afterEach(async () => {
       await chainService.stopService()
-    })
-
-    it("should call markNetworkActivity with the correct network", async () => {
-      const stub = sandbox
-        .stub(chainService, "markNetworkActivity")
-        .callsFake(async () => {})
-
-      chainService.markAccountActivity(
-        createAddressOnNetwork({ network: QuaiGoldenAgeTestnet })
-      )
-
-      expect(stub.calledWith(QuaiGoldenAgeTestnet.chainID)).toEqual(true)
     })
 
     it("should call loadRecentAssetTransfers if the NETWORK_POLLING_TIMEOUT has been exceeded", async () => {

@@ -790,21 +790,12 @@ export default class ChainService extends BaseService<Events> {
   }: AddressOnNetwork): Promise<void> {
     const addressWasInactive = this.addressIsInactive(address)
     const networkWasInactive = this.networkIsInactive(network.chainID)
-    this.markNetworkActivity(network.chainID)
+    this.lastUserActivityOnNetwork[network.chainID] = Date.now()
     this.lastUserActivityOnAddress[address] = Date.now()
     if (addressWasInactive || networkWasInactive) {
       // Reactivating a potentially deactivated address
       this.loadRecentAssetTransfers({ address, network })
       this.getLatestBaseAccountBalance({ address, network })
-    }
-  }
-
-  async markNetworkActivity(chainID: string): Promise<void> {
-    const networkWasInactive = this.networkIsInactive(chainID)
-    this.lastUserActivityOnNetwork[chainID] = Date.now()
-    if (networkWasInactive) {
-      // TODO
-      // await this.blockService.pollBlockPricesForNetwork(chainID)
     }
   }
 

@@ -122,10 +122,13 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   ): Promise<void> {
     try {
       const { jsonRpcProvider } = this.chainService
-      const { to, from, serialized: signedTransaction } = quaiTransaction
+      const { to, serialized: signedTransaction } = quaiTransaction
 
-      const zoneTargetAddress = to || from || Zone.Cyprus1
-      const zone = getZoneForAddress(zoneTargetAddress)
+      if (!to) {
+        throw new Error("Transaction 'to' field is not specified.")
+      }
+
+      const zone = getZoneForAddress(to)
       if (!zone) {
         throw new Error(
           "Invalid address shard: Unable to determine the zone for the given 'to' address."

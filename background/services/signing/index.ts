@@ -1,4 +1,4 @@
-import { getBytes, QuaiTransaction } from "quais"
+import { getBytes } from "quais"
 import {
   QuaiTransactionRequest,
   QuaiTransactionResponse,
@@ -20,13 +20,6 @@ type ErrorResponse = {
   reason: SigningErrorReason
 }
 
-export type SignTransactionResponse =
-  | {
-      type: "success-tx"
-      signedTx: QuaiTransactionResponse
-    }
-  | ErrorResponse
-
 export type SendTransactionResponse =
   | {
       type: "success-tx"
@@ -43,7 +36,6 @@ export type SignatureResponse =
 
 type Events = ServiceLifecycleEvents & {
   sendTransactionResponse: SendTransactionResponse
-  signTransactionResponse: SignTransactionResponse
   signingDataResponse: SignatureResponse
   personalSigningResponse: SignatureResponse
 }
@@ -185,47 +177,6 @@ export default class SigningService extends BaseService<Events> {
         type: "error",
         reason: getSigningErrorReason(err),
       })
-      throw err
-    }
-  }
-
-  async signTransaction(
-    transactionRequest: QuaiTransactionRequest,
-    accountSigner: AccountSigner
-  ): Promise<QuaiTransaction> {
-    try {
-      let signedTransactionString = ""
-      switch (accountSigner.type) {
-        case "private-key":
-        case "keyring": {
-          const from = transactionRequest.from.toString()
-          const signerWithType = await this.keyringService.getSigner(from)
-
-          signedTransactionString = await signerWithType.signer.signTransaction(
-            transactionRequest
-          )
-          break
-        }
-        case "read-only":
-          throw new Error("Read-only signers cannot sign.")
-        default:
-          return assertUnreachable(accountSigner)
-      }
-
-      const signedTransaction = QuaiTransaction.from(signedTransactionString)
-
-      await this.emitter.emit("signTransactionResponse", {
-        type: "success-tx",
-        signedTx: signedTransaction,
-      })
-
-      return signedTransaction
-    } catch (err) {
-      await this.emitter.emit("signTransactionResponse", {
-        type: "error",
-        reason: getSigningErrorReason(err),
-      })
-
       throw err
     }
   }

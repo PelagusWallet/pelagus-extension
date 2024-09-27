@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
 import { QuaiTransactionLike } from "quais/lib/commonjs/transaction"
-import { QuaiTransaction } from "quais"
 import { QuaiTransactionResponse } from "quais/lib/commonjs/providers"
 import { EXPRESS, INSTANT, MAX_FEE_MULTIPLIER, REGULAR } from "../constants"
 import { BlockEstimate, BlockPrices } from "../networks"
@@ -78,7 +77,6 @@ export type Events = {
 
   requestSendTransaction: SignOperation<QuaiTransactionRequestWithAnnotation>
   sendTransactionRejected: never
-  broadcastSignedTransaction: QuaiTransaction
 }
 
 export type GasOption = {

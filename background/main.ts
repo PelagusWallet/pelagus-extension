@@ -5,12 +5,7 @@ import { configureStore, isPlain, Middleware } from "@reduxjs/toolkit"
 import { devToolsEnhancer } from "@redux-devtools/remote"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
-import {
-  formatUnits,
-  JsonRpcProvider,
-  QuaiTransaction,
-  WebSocketProvider,
-} from "quais"
+import { formatUnits, JsonRpcProvider, WebSocketProvider } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
 import {
@@ -927,13 +922,6 @@ export default class Main extends BaseService<never> {
             transactionLikelyFails: true,
           })
         )
-      }
-    )
-
-    transactionConstructionSliceEmitter.on(
-      "broadcastSignedTransaction",
-      async (transaction: QuaiTransaction) => {
-        await this.transactionService.sendQuaiTransaction(transaction)
       }
     )
 

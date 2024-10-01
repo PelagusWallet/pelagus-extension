@@ -7,6 +7,32 @@ import SharedAddress from "../../../Shared/SharedAddress"
 import SharedIcon from "../../../Shared/SharedIcon"
 import DataSignatureDetails from "."
 
+function WalletDisplay({
+  name,
+  wallets,
+}: {
+  name?: string
+  wallets?: string[]
+}): ReactElement {
+  return (
+    <div>
+      <div>Name: {name}</div>
+      <div>
+        Wallet: {wallets?.[0]?.slice(0, 5)}...{wallets?.[0]?.slice(-5)}
+      </div>
+      <style jsx>{`
+        div {
+          display: flex;
+          flex-direction: column;
+          column-gap: 5px;
+          align-items: flex-end;
+          color: var(--green-20);
+        }
+      `}</style>
+    </div>
+  )
+}
+
 function TypedDataFieldValue({ value }: { value: unknown }): ReactElement {
   const { t } = useTranslation("translation")
 
@@ -40,6 +66,38 @@ function TypedDataFieldValue({ value }: { value: unknown }): ReactElement {
           `}
         </style>
       </div>
+    )
+  }
+
+  // TODO: Temporary (next 2 conditions)
+  //  Need to upgrade. Handle more data structures for Sign Typed Data (DAPP)
+  if (
+    value &&
+    typeof value === "object" &&
+    Object.prototype.hasOwnProperty.call(value, "name") &&
+    Object.prototype.hasOwnProperty.call(value, "wallets")
+  ) {
+    const typedValue = value as { wallets?: string[]; name?: string }
+    return <WalletDisplay name={typedValue.name} wallets={typedValue.wallets} />
+  }
+
+  if (
+    value &&
+    Array.isArray(value) &&
+    Object.prototype.hasOwnProperty.call(value[0], "name") &&
+    Object.prototype.hasOwnProperty.call(value[0], "wallets")
+  ) {
+    const typedValue = value as { wallets?: string[]; name?: string }[]
+    return (
+      <>
+        {typedValue.map((item) => (
+          <WalletDisplay
+            key={item.name}
+            name={item.name}
+            wallets={item.wallets}
+          />
+        ))}
+      </>
     )
   }
 

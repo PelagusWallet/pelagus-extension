@@ -33,11 +33,6 @@ export type HexString = string
  */
 export type UNIXTime = number
 
-export enum KeyringTypes {
-  mnemonicBIP39S256 = "mnemonic#bip39:256",
-  singleSECP = "single#secp256k1",
-}
-
 export type EIP191Data = string
 
 export type EIP712TypedData<T = Record<string, unknown>> = {

@@ -3,7 +3,7 @@ import {
   InternalSignerPrivateKey,
   InternalSignerWithType,
   SignerSourceTypes,
-} from "./types"
+} from "../types"
 
 export const isSignerPrivateKeyType = (
   signer: InternalSignerWithType

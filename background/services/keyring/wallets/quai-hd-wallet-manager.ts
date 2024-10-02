@@ -1,8 +1,8 @@
 import { AddressLike, Mnemonic, QuaiHDWallet, Zone } from "quais"
-import { IVaultManager } from "./vault-manager"
-import { sameQuaiAddress } from "../../lib/utils"
-import { AddressWithQuaiHDWallet } from "./types"
-import { applicationError } from "../../constants/errorsCause"
+import { IVaultManager } from "../vault-manager"
+import { sameQuaiAddress } from "../../../lib/utils"
+import { AddressWithQuaiHDWallet } from "../types"
+import { applicationError } from "../../../constants/errorsCause"
 
 export interface IQuaiHDWalletManager {
   add(mnemonic: string): Promise<AddressWithQuaiHDWallet>

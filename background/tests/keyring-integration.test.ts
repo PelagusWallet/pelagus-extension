@@ -1,11 +1,11 @@
 import { webcrypto } from "crypto"
 import browser from "webextension-polyfill"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
-import { KeyringTypes } from "../types"
 import logger from "../lib/logger"
 import { KeyringService } from "../services"
 import {
   Keyring,
+  KeyringTypes,
   SignerImportSource,
   SignerSourceTypes,
 } from "../services/keyring/types"

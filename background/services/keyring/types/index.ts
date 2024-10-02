@@ -1,7 +1,11 @@
-import { QuaiHDWallet, Wallet, Zone } from "quais"
-import { SerializedHDWallet } from "quais/lib/commonjs/wallet/hdwallet"
-import { HexString, KeyringTypes } from "../../types"
-import { ServiceLifecycleEvents } from "../types"
+import { QiHDWallet, QuaiHDWallet, Wallet, Zone } from "quais"
+import { HexString } from "../../../types"
+
+export enum KeyringTypes {
+  mnemonicBIP47 = "mnemonic#bip47",
+  mnemonicBIP39S256 = "mnemonic#bip39:256",
+  singleSECP = "single#secp256k1",
+}
 
 export type KeyringMetadata = {
   [keyringId: string]: { source: SignerImportSource }
@@ -11,6 +15,7 @@ export type HiddenAccounts = { [address: HexString]: boolean }
 
 export type PublicWalletsData = {
   wallets: PrivateKey[]
+  qiHDWallets: Keyring[]
   quaiHDWallets: Keyring[]
   keyringMetadata: {
     [keyringId: string]: { source: SignerImportSource }
@@ -19,6 +24,7 @@ export type PublicWalletsData = {
 
 export type DeleteProps = {
   walletId?: string
+  qiHDWalletId?: string
   hdWalletId?: string
   metadataKey?: string
   hiddenAccount?: string
@@ -26,9 +32,15 @@ export type DeleteProps = {
 
 export interface AddOptions {
   overwriteWallets?: boolean
+  overwriteQiHDWallets?: boolean
   overwriteQuaiHDWallets?: boolean
   overwriteMetadata?: boolean
   overwriteHiddenAccounts?: boolean
+}
+
+export type AddressWithQiHDWallet = {
+  address: string
+  qiHDWallet: QiHDWallet
 }
 
 export type AddressWithQuaiHDWallet = {
@@ -70,22 +82,10 @@ export type SerializedPrivateKey = {
 
 export interface SerializedVaultData {
   wallets: SerializedPrivateKey[]
+  qiHDWallets: SerializedQiHDWallet[] // FIXME import from quais
   quaiHDWallets: SerializedHDWallet[]
   metadata: { [keyringId: string]: { source: SignerImportSource } }
   hiddenAccounts: { [address: HexString]: boolean }
-}
-
-export interface Events extends ServiceLifecycleEvents {
-  locked: boolean
-  keyrings: {
-    privateKeys: PrivateKey[]
-    keyrings: Keyring[]
-    keyringMetadata: {
-      [keyringId: string]: { source: SignerImportSource }
-    }
-  }
-  address: string
-  signedData: string
 }
 
 export enum SignerSourceTypes {
@@ -125,3 +125,54 @@ export type InternalSignerPrivateKey = {
 export type InternalSignerWithType =
   | InternalSignerPrivateKey
   | InternalSignerHDKeyring
+
+// ------------------------ temp solution for qi ----------------------------
+// FIXME after quais fix we need to use SerializedQiHDWallet type from sdk
+export type Outpoint = {
+  txhash: string
+  index: number
+  denomination: number
+}
+
+interface OutpointInfo {
+  outpoint: Outpoint
+  address: string
+  zone: Zone
+  account?: number
+}
+
+export interface NeuteredAddressInfo {
+  pubKey: string
+  address: string
+  account: number
+  index: number
+  change: boolean
+  zone: Zone
+}
+
+export type AllowedCoinType = 969 | 994
+
+export interface SerializedHDWallet {
+  version: number
+  phrase: string
+  coinType: AllowedCoinType
+  addresses: Array<NeuteredAddressInfo>
+}
+
+interface PaymentCodeInfo {
+  address: string
+  index: number
+  isUsed: boolean
+  zone: Zone
+  account: number
+}
+
+export interface SerializedQiHDWallet extends SerializedHDWallet {
+  outpoints: OutpointInfo[]
+  changeAddresses: NeuteredAddressInfo[]
+  gapAddresses: NeuteredAddressInfo[]
+  gapChangeAddresses: NeuteredAddressInfo[]
+  receiverPaymentCodeInfo: { [key: string]: PaymentCodeInfo[] }
+  senderPaymentCodeInfo: { [key: string]: PaymentCodeInfo[] }
+}
+// ------------------------------------------------------------------

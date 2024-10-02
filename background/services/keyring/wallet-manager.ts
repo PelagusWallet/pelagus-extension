@@ -1,10 +1,19 @@
-import { AddressLike, getAddress, Mnemonic, QuaiHDWallet, Wallet } from "quais"
+import {
+  AddressLike,
+  getAddress,
+  Mnemonic,
+  QiHDWallet,
+  QuaiHDWallet,
+  Wallet,
+} from "quais"
+
 import {
   HiddenAccounts,
   InternalSignerWithType,
   Keyring,
   KeyringAccountSigner,
   KeyringMetadata,
+  KeyringTypes,
   PrivateKey,
   PublicWalletsData,
   SignerImportMetadata,
@@ -12,18 +21,20 @@ import {
   SignerSourceTypes,
 } from "./types"
 import { IVaultManager } from "./vault-manager"
-import { KeyringTypes } from "../../types"
-import PrivateKeyManager from "./private-key-manager"
-import QuaiHDWalletManager from "./quai-hd-wallet-manager"
+import PrivateKeyManager from "./wallets/private-key-manager"
+import QuaiHDWalletManager from "./wallets/quai-hd-wallet-manager"
 import { isGoldenAgeQuaiAddress } from "../../utils/addresses"
 import logger from "../../lib/logger"
 import { SignerType } from "../signing"
 import { generateRandomBytes } from "./utils"
 import { sameQuaiAddress } from "../../lib/utils"
 import { applicationError } from "../../constants/errorsCause"
+import QiHDWalletManager from "./wallets/qi-hd-wallet-manager"
 
 export default class WalletManager {
   public privateKeys: PrivateKey[] = []
+
+  public qiHDWallets: Keyring[] = []
 
   public quaiHDWallets: Keyring[] = []
 
@@ -33,16 +44,19 @@ export default class WalletManager {
 
   private privateKeyManager: PrivateKeyManager
 
+  private qiHDWalletManager: QiHDWalletManager
+
   private quaiHDWalletManager: QuaiHDWalletManager
 
   // -------------------------- public methods --------------------------
   constructor(public vault: IVaultManager) {
     this.privateKeyManager = new PrivateKeyManager(vault)
+    this.qiHDWalletManager = new QiHDWalletManager(vault)
     this.quaiHDWalletManager = new QuaiHDWalletManager(vault)
   }
 
   public async initializeState(): Promise<void> {
-    const { wallets, quaiHDWallets, metadata, hiddenAccounts } =
+    const { wallets, qiHDWallets, quaiHDWallets, metadata, hiddenAccounts } =
       await this.vault.get()
 
     this.privateKeys = wallets.map((serializedWallet) => {
@@ -56,12 +70,31 @@ export default class WalletManager {
       }
     })
 
-    const deserializedHDWallets = await Promise.all(
+    const deserializedQiHDWallets = await Promise.all(
+      qiHDWallets.map((qiHDWallet) => QiHDWallet.deserialize(qiHDWallet))
+    )
+    this.qiHDWallets = deserializedQiHDWallets.map((qiHDWallet) => {
+      return {
+        type: KeyringTypes.mnemonicBIP47,
+        addresses: [
+          ...qiHDWallet
+            .getAddressesForAccount(
+              this.qiHDWalletManager.qiHDWalletAccountIndex
+            )
+            .filter(({ address }) => !this.hiddenAccounts[address])
+            .map(({ address }) => address),
+        ],
+        id: qiHDWallet.xPub,
+        path: null,
+      }
+    })
+
+    const deserializedQuaiHDWallets = await Promise.all(
       quaiHDWallets.map((quaiHDWallet) =>
         QuaiHDWallet.deserialize(quaiHDWallet)
       )
     )
-    this.quaiHDWallets = deserializedHDWallets.map((quaiHDWallet) => {
+    this.quaiHDWallets = deserializedQuaiHDWallets.map((quaiHDWallet) => {
       return {
         type: KeyringTypes.mnemonicBIP39S256,
         addresses: [
@@ -83,6 +116,7 @@ export default class WalletManager {
 
   public clearState(): void {
     this.privateKeys = []
+    this.qiHDWallets = []
     this.quaiHDWallets = []
     this.hiddenAccounts = {}
     this.keyringMetadata = {}
@@ -92,6 +126,7 @@ export default class WalletManager {
   public getState(): PublicWalletsData {
     return {
       wallets: this.privateKeys,
+      qiHDWallets: this.qiHDWallets,
       quaiHDWallets: this.quaiHDWallets,
       keyringMetadata: this.keyringMetadata,
     }
@@ -156,9 +191,11 @@ export default class WalletManager {
   public async getSignerSource(
     address: string
   ): Promise<SignerImportSource | null> {
-    const foundedKeyring = [...this.quaiHDWallets, ...this.privateKeys].find(
-      (keyring) => keyring.addresses.includes(address)
-    )
+    const foundedKeyring = [
+      ...this.qiHDWallets,
+      ...this.quaiHDWallets,
+      ...this.privateKeys,
+    ].find((keyring) => keyring.addresses.includes(address))
     if (!foundedKeyring) {
       logger.error("Associated signer with provided address is not found.")
       return null
@@ -246,7 +283,44 @@ export default class WalletManager {
       {}
     )
 
+    // FIXME better to import qi wallet from ui
+    //  or create it for user like we do with quai wallet
+    //  for now we just creating qi wallet on import of others wallets
+    this.importQiHDWallet(SignerImportSource.internal)
+
     return address
+  }
+
+  private async importQiHDWallet(source: SignerImportSource): Promise<void> {
+    // FIXME looking if qi wallet already exists
+    const { qiHDWallets } = await this.vault.get()
+    if (qiHDWallets.length > 0) return
+
+    // if there is no qi wallets we are creating one as default qi wallet when user onboards
+    const { phrase } = Mnemonic.fromEntropy(generateRandomBytes(24))
+    const { address, qiHDWallet } = await this.qiHDWalletManager.create(phrase)
+
+    this.qiHDWallets = [
+      ...this.qiHDWallets,
+      {
+        type: KeyringTypes.mnemonicBIP47,
+        addresses: [address],
+        id: qiHDWallet.xPub,
+        path: null,
+      },
+    ]
+    this.keyringMetadata[qiHDWallet.xPub] = {
+      source,
+    }
+
+    const serializedQiHDWallet = qiHDWallet.serialize()
+    await this.vault.add(
+      {
+        qiHDWallets: [serializedQiHDWallet],
+        metadata: { [qiHDWallet.xPub]: { source } },
+      },
+      {}
+    )
   }
 
   private async importQuaiHDWallet(
@@ -286,6 +360,11 @@ export default class WalletManager {
       {}
     )
 
+    // FIXME better to import qi wallet from ui
+    //  or create it for user like we do with quai wallet
+    //  for now we just creating qi wallet on import of others wallets
+    this.importQiHDWallet(SignerImportSource.internal)
+
     return address
   }
 
@@ -316,6 +395,28 @@ export default class WalletManager {
       { wallets: walletsWithoutTargetWallet },
       { overwriteWallets: true }
     )
+  }
+
+  private async deleteQiHDWallet(address: string): Promise<void> {
+    const foundedQiHDWallet = await this.qiHDWalletManager.getByAddress(address)
+    if (!foundedQiHDWallet) {
+      logger.error("QiHDWallet associated with an address is not found")
+      return
+    }
+
+    foundedQiHDWallet
+      .getAddressesForAccount(this.qiHDWalletManager.qiHDWalletAccountIndex)
+      .forEach(({ address: walletAddress }) => {
+        delete this.hiddenAccounts[walletAddress]
+      })
+
+    this.qiHDWallets = this.qiHDWallets.filter(
+      (HDWallet) => HDWallet.id !== foundedQiHDWallet.xPub
+    )
+
+    await this.vault.delete({
+      qiHDWalletId: foundedQiHDWallet.serialize().phrase,
+    })
   }
 
   private async deleteQuaiHDWallet(address: string): Promise<void> {

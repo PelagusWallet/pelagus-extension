@@ -155,6 +155,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       await this.emitter.emit("locked", true)
       await this.emitter.emit("keyrings", {
         privateKeys: [],
+        qiHDWallets: [],
         keyrings: [],
         keyringMetadata: {},
       })
@@ -162,12 +163,13 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       return
     }
 
-    const { wallets, quaiHDWallets, keyringMetadata } =
+    const { wallets, qiHDWallets, quaiHDWallets, keyringMetadata } =
       this.walletManager.getState()
 
     await this.emitter.emit("locked", false)
     await this.emitter.emit("keyrings", {
       privateKeys: wallets,
+      qiHDWallets,
       keyrings: quaiHDWallets,
       keyringMetadata: { ...keyringMetadata },
     })

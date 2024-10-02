@@ -1,21 +1,21 @@
 import logger from "../../lib/logger"
 import { ServiceCreatorFunction } from "../types"
+import { getEncryptedVaults } from "./utils/storage"
+import BaseService from "../base"
+import { IVaultManager, VaultManager } from "./vault-manager"
+import { UNIXTime } from "../../types"
+import { MINUTE } from "../../constants"
+import { SignerType } from "../signing"
+import WalletManager from "./wallet-manager"
+import { applicationError } from "../../constants/errorsCause"
+import { KeyringServiceEvents } from "./events"
 import {
-  Events,
   InternalSignerWithType,
   KeyringAccountSigner,
   SignerImportMetadata,
   SignerImportSource,
 } from "./types"
-import { getEncryptedVaults } from "./storage"
-import BaseService from "../base"
-import { IVaultManager, VaultManager } from "./vault-manager"
-import { UNIXTime } from "../../types"
-import { MINUTE } from "../../constants"
 import { isSignerPrivateKeyType } from "./utils"
-import { SignerType } from "../signing"
-import WalletManager from "./wallet-manager"
-import { applicationError } from "../../constants/errorsCause"
 
 export const MAX_KEYRING_IDLE_TIME = 10 * MINUTE
 export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
@@ -33,7 +33,7 @@ export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
  * service unlocked. No keyring activity for 10 minutes causes the service to
  * lock, while no outside activity for 10 minutes has the same effect.
  */
-export default class KeyringService extends BaseService<Events> {
+export default class KeyringService extends BaseService<KeyringServiceEvents> {
   private walletManager: WalletManager
 
   private readonly vaultManager: IVaultManager
@@ -42,8 +42,11 @@ export default class KeyringService extends BaseService<Events> {
 
   public lastExternalWalletActivity: UNIXTime | null
 
-  static create: ServiceCreatorFunction<Events, KeyringService, []> =
-    async () => new this()
+  static create: ServiceCreatorFunction<
+    KeyringServiceEvents,
+    KeyringService,
+    []
+  > = async () => new this()
 
   private constructor() {
     super({

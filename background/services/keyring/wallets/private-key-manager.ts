@@ -1,7 +1,7 @@
 import { AddressLike, SigningKey, Wallet } from "quais"
-import { AddressWithPublicKey } from "./types"
-import { IVaultManager } from "./vault-manager"
-import { sameQuaiAddress } from "../../lib/utils"
+import { AddressWithPublicKey } from "../types"
+import { IVaultManager } from "../vault-manager"
+import { sameQuaiAddress } from "../../../lib/utils"
 
 export interface IPrivateKeyManager {
   add(privateKey: string): Promise<AddressWithPublicKey>

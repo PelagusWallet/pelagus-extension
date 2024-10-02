@@ -3,7 +3,7 @@ import {
   encryptVault,
   decryptVault,
   deriveSymmetricKeyFromPassword,
-} from "../services/keyring/encryption"
+} from "../services/keyring/utils/encryption"
 
 const originalCrypto = global.crypto
 beforeEach(() => {

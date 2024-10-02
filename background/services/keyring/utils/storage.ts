@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill"
 import { EncryptedVault } from "./encryption"
-import { UNIXTime } from "../../types"
+import { UNIXTime } from "../../../types"
 
 type SerializedEncryptedVault = {
   timeSaved: UNIXTime

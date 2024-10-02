@@ -7,6 +7,7 @@ import { createBackgroundAsyncThunk } from "./utils"
 import {
   Keyring,
   PrivateKey,
+  QiWallet,
   SignerImportMetadata,
   SignerImportSource,
 } from "../services/keyring/types"
@@ -103,10 +104,11 @@ const keyringsSlice = createSlice({
     updateKeyrings: (
       state,
       {
-        payload: { privateKeys, keyrings, keyringMetadata },
+        payload: { privateKeys, qiHDWallets, keyrings, keyringMetadata },
       }: {
         payload: {
           privateKeys: PrivateKey[]
+          qiHDWallets: QiWallet[]
           keyrings: Keyring[]
           keyringMetadata: {
             [keyringId: string]: { source: SignerImportSource }
@@ -122,6 +124,7 @@ const keyringsSlice = createSlice({
 
       return {
         ...state,
+        qiHDWallets,
         keyrings,
         privateKeys,
         keyringMetadata,

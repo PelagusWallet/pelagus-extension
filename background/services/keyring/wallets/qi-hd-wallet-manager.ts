@@ -4,9 +4,10 @@ import { IVaultManager } from "../vault-manager"
 import { AddressWithQiHDWallet } from "../types"
 import { sameQuaiAddress } from "../../../lib/utils"
 import { applicationError } from "../../../constants/errorsCause"
+import { generateRandomBytes } from "../utils"
 
 export interface IQiHDWalletManager {
-  create(mnemonic: string): Promise<AddressWithQiHDWallet>
+  create(): Promise<AddressWithQiHDWallet>
   getByAddress(address: AddressLike): Promise<QiHDWallet | undefined>
   deriveAddress(xPub: string, zone: Zone): Promise<AddressWithQiHDWallet>
 }
@@ -17,7 +18,8 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
   constructor(private vaultManager: IVaultManager) {}
 
   // -------------------------- public methods --------------------------
-  public async create(phrase: string): Promise<AddressWithQiHDWallet> {
+  public async create(): Promise<AddressWithQiHDWallet> {
+    const { phrase } = Mnemonic.fromEntropy(generateRandomBytes(24))
     const mnemonic = Mnemonic.fromPhrase(phrase)
     const qiHDWallet = QiHDWallet.fromMnemonic(mnemonic)
 

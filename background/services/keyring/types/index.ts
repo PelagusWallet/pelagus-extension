@@ -15,7 +15,7 @@ export type HiddenAccounts = { [address: HexString]: boolean }
 
 export type PublicWalletsData = {
   wallets: PrivateKey[]
-  qiHDWallets: Keyring[]
+  qiHDWallets: QiWallet[]
   quaiHDWallets: Keyring[]
   keyringMetadata: {
     [keyringId: string]: { source: SignerImportSource }
@@ -55,6 +55,10 @@ export type Keyring = {
   id: string
   path: string | null
   addresses: string[]
+}
+
+export type QiWallet = Keyring & {
+  paymentCode: string
 }
 
 export type PrivateKey = Keyring & {

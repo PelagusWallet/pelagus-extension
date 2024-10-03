@@ -57,8 +57,6 @@ export default class WalletManager {
   }
 
   public async initializeState(): Promise<void> {
-    await this.initializeQiHDWallet(SignerImportSource.internal)
-
     const { wallets, qiHDWallet, quaiHDWallets, metadata, hiddenAccounts } =
       await this.vault.get()
 
@@ -74,6 +72,7 @@ export default class WalletManager {
 
     if (qiHDWallet) {
       const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
+      this.qiHDWalletManager.syncQiWalletPaymentCodes(deserializedQiHDWallet)
       const paymentCode = await deserializedQiHDWallet.getPaymentCode(
         this.qiHDWalletManager.qiHDWalletAccountIndex
       )
@@ -299,21 +298,19 @@ export default class WalletManager {
     return address
   }
 
-  private async initializeQiHDWallet(
-    source: SignerImportSource
-  ): Promise<void> {
+  private async initializeQiHDWallet(mnemonic: string): Promise<void> {
     const { qiHDWallet } = await this.vault.get()
     if (qiHDWallet) return
 
-    const { qiHDWallet: wallet } = await this.qiHDWalletManager.create()
+    const { qiHDWallet: wallet } = await this.qiHDWalletManager.create(mnemonic)
 
     this.keyringMetadata[wallet.xPub] = {
-      source,
+      source: SignerImportSource.internal,
     }
     await this.vault.add(
       {
         qiHDWallet: wallet.serialize(),
-        metadata: { [wallet.xPub]: { source } },
+        metadata: { [wallet.xPub]: { source: SignerImportSource.internal } },
       },
       {}
     )
@@ -355,6 +352,8 @@ export default class WalletManager {
       },
       {}
     )
+
+    this.initializeQiHDWallet(mnemonic)
 
     return address
   }

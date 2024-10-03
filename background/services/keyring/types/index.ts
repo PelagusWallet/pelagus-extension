@@ -31,7 +31,6 @@ export type DeleteProps = {
 
 export interface AddOptions {
   overwriteWallets?: boolean
-  overwriteQiHDWallet?: boolean
   overwriteQuaiHDWallets?: boolean
   overwriteMetadata?: boolean
   overwriteHiddenAccounts?: boolean

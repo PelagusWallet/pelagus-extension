@@ -96,7 +96,6 @@ export default class WalletManager {
         }
       })
     )
-    console.log("qiHDWallets", this.qiHDWallets)
 
     const deserializedQuaiHDWallets = await Promise.all(
       quaiHDWallets.map((quaiHDWallet) =>
@@ -195,6 +194,10 @@ export default class WalletManager {
     }
 
     return null
+  }
+
+  public async getQiWallet(paymentCode: string): Promise<QiHDWallet | null> {
+    return this.qiHDWalletManager.getByPaymentCode(paymentCode)
   }
 
   public async getSignerSource(

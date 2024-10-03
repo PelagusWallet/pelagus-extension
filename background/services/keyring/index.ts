@@ -1,3 +1,4 @@
+import { QiHDWallet } from "quais"
 import logger from "../../lib/logger"
 import { ServiceCreatorFunction } from "../types"
 import { getEncryptedVaults } from "./utils/storage"
@@ -228,6 +229,17 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     }
 
     return signerWithType
+  }
+
+  public async getQiWalletByPaymentCode(
+    paymentCode: string
+  ): Promise<QiHDWallet> {
+    const qiWallet = await this.walletManager.getQiWallet(paymentCode)
+    if (!qiWallet) {
+      throw new Error(`QiWallet for payment code ${paymentCode} was not found.`)
+    }
+
+    return qiWallet
   }
 
   public async getKeyringSourceForAddress(

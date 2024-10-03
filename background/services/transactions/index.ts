@@ -3,6 +3,7 @@ import {
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
 import {
+  Contract,
   getZoneForAddress,
   QuaiTransaction,
   TransactionReceipt,
@@ -23,6 +24,11 @@ import { quaiTransactionFromResponse } from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
+import {
+  MAILBOX_EVENTS,
+  MAILBOX_INTERFACE,
+} from "../../contracts/payment-channel-mailbox"
+import { InternalSignerPrivateKey } from "../keyring/types"
 
 const TRANSACTION_CONFIRMATIONS = 1
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
@@ -41,6 +47,9 @@ const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
  *    This ensures transactions are resubscribed to if the extension process is killed before transaction confirmation.
  */
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
+  public readonly MAILBOX_CONTRACT_ADDRESS =
+    process.env.MAILBOX_CONTRACT_ADDRESS || ""
+
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
     TransactionService,
@@ -69,6 +78,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await super.internalStartService()
     await this.initializeQuaiTransactions()
     this.checkPendingQuaiTransactions()
+    this.subscribeToMailboxContractEvents()
   }
 
   // ------------------------------------ public methods ------------------------------------
@@ -176,6 +186,38 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
   public async send(method: string, params: unknown[]): Promise<unknown> {
     return this.chainService.jsonRpcProvider.send(method, params)
+  }
+
+  // TODO
+  public async sendQiTransaction(
+    amount: bigint,
+    quaiFrom: string,
+    senderPaymentCode: string,
+    receiverPaymentCode: string
+  ): Promise<void> {
+    const { signer: quaiSigner } = (await this.keyringService.getSigner(
+      quaiFrom
+    )) as InternalSignerPrivateKey
+    const qiWallet = await this.keyringService.getQiWalletByPaymentCode(
+      senderPaymentCode
+    )
+
+    const mailboxContract = new Contract(
+      this.MAILBOX_CONTRACT_ADDRESS,
+      MAILBOX_INTERFACE,
+      quaiSigner
+    )
+    await mailboxContract.notify(senderPaymentCode, receiverPaymentCode)
+
+    qiWallet.connect(this.chainService.jsonRpcProvider)
+
+    const tx = await qiWallet.sendTransaction(
+      receiverPaymentCode,
+      amount,
+      Zone.Cyprus1,
+      Zone.Cyprus1
+    )
+    // const txReceipt = await tx.wait()
   }
 
   // ------------------------------------ private methods ------------------------------------
@@ -328,5 +370,24 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       transaction.status = QuaiTransactionStatus.FAILED
       await this.saveQuaiTransaction(transaction)
     }
+  }
+
+  // TODO
+  private subscribeToMailboxContractEvents(): void {
+    const provider = this.chainService.jsonRpcProvider
+    const mailboxContract = new Contract(
+      this.MAILBOX_CONTRACT_ADDRESS,
+      MAILBOX_INTERFACE,
+      provider
+    )
+
+    mailboxContract.on(
+      MAILBOX_EVENTS.NotificationSent.name,
+      (senderPaymentCode: string, receiverPaymentCode: string) => {
+        console.log("Notification Sent Event Detected!")
+        console.log("Sender Payment Code:", senderPaymentCode)
+        console.log("Receiver Payment Code:", receiverPaymentCode)
+      }
+    )
   }
 }

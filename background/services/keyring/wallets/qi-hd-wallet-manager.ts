@@ -9,6 +9,7 @@ import { generateRandomBytes } from "../utils"
 export interface IQiHDWalletManager {
   create(): Promise<AddressWithQiHDWallet>
   getByAddress(address: AddressLike): Promise<QiHDWallet | undefined>
+  getByPaymentCode(paymentCode: string): Promise<QiHDWallet | null>
   deriveAddress(xPub: string, zone: Zone): Promise<AddressWithQiHDWallet>
 }
 
@@ -53,6 +54,25 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
           sameQuaiAddress(HDWalletAddress.address, address as string)
       )
     )
+  }
+
+  public async getByPaymentCode(
+    paymentCode: string
+  ): Promise<QiHDWallet | null> {
+    const { qiHDWallets } = await this.vaultManager.get()
+
+    const deserializedHDWallets: QiHDWallet[] = await Promise.all(
+      qiHDWallets.map((qiHDWallet) => QiHDWallet.deserialize(qiHDWallet))
+    )
+
+    const matchingWallet = await Promise.all(
+      deserializedHDWallets.map(async (HDWallet) => {
+        const walletPaymentCode = await HDWallet.getPaymentCode()
+        return paymentCode === walletPaymentCode ? HDWallet : null
+      })
+    )
+
+    return matchingWallet.find((wallet) => wallet !== null) || null
   }
 
   public async deriveAddress(

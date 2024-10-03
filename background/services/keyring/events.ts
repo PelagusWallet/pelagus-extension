@@ -5,7 +5,7 @@ export interface KeyringServiceEvents extends ServiceLifecycleEvents {
   locked: boolean
   keyrings: {
     privateKeys: PrivateKey[]
-    qiHDWallets: QiWallet[]
+    qiHDWallet: QiWallet | null
     keyrings: Keyring[]
     keyringMetadata: {
       [keyringId: string]: { source: SignerImportSource }

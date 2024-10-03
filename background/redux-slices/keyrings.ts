@@ -19,6 +19,7 @@ type KeyringToVerify = {
 
 export type KeyringsState = {
   keyrings: Keyring[]
+  qiHDWallet: QiWallet | null
   privateKeys: PrivateKey[]
   keyringMetadata: {
     [keyringId: string]: { source: SignerImportSource }
@@ -31,6 +32,7 @@ export type KeyringsState = {
 
 export const initialState: KeyringsState = {
   keyrings: [],
+  qiHDWallet: null,
   privateKeys: [],
   keyringMetadata: {},
   status: "uninitialized",
@@ -104,11 +106,11 @@ const keyringsSlice = createSlice({
     updateKeyrings: (
       state,
       {
-        payload: { privateKeys, qiHDWallets, keyrings, keyringMetadata },
+        payload: { privateKeys, qiHDWallet, keyrings, keyringMetadata },
       }: {
         payload: {
           privateKeys: PrivateKey[]
-          qiHDWallets: QiWallet[]
+          qiHDWallet: QiWallet | null
           keyrings: Keyring[]
           keyringMetadata: {
             [keyringId: string]: { source: SignerImportSource }
@@ -124,7 +126,7 @@ const keyringsSlice = createSlice({
 
       return {
         ...state,
-        qiHDWallets,
+        qiHDWallet,
         keyrings,
         privateKeys,
         keyringMetadata,

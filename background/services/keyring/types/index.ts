@@ -15,7 +15,7 @@ export type HiddenAccounts = { [address: HexString]: boolean }
 
 export type PublicWalletsData = {
   wallets: PrivateKey[]
-  qiHDWallets: QiWallet[]
+  qiHDWallet: QiWallet | null
   quaiHDWallets: Keyring[]
   keyringMetadata: {
     [keyringId: string]: { source: SignerImportSource }
@@ -24,7 +24,6 @@ export type PublicWalletsData = {
 
 export type DeleteProps = {
   walletId?: string
-  qiHDWalletId?: string
   hdWalletId?: string
   metadataKey?: string
   hiddenAccount?: string
@@ -32,7 +31,7 @@ export type DeleteProps = {
 
 export interface AddOptions {
   overwriteWallets?: boolean
-  overwriteQiHDWallets?: boolean
+  overwriteQiHDWallet?: boolean
   overwriteQuaiHDWallets?: boolean
   overwriteMetadata?: boolean
   overwriteHiddenAccounts?: boolean
@@ -86,7 +85,7 @@ export type SerializedPrivateKey = {
 
 export interface SerializedVaultData {
   wallets: SerializedPrivateKey[]
-  qiHDWallets: SerializedQiHDWallet[] // FIXME import from quais
+  qiHDWallet: SerializedQiHDWallet | null // FIXME import from quais
   quaiHDWallets: SerializedHDWallet[]
   metadata: { [keyringId: string]: { source: SignerImportSource } }
   hiddenAccounts: { [address: HexString]: boolean }
@@ -116,7 +115,7 @@ export type SignerImportMetadata =
   | ImportMetadataPrivateKey
   | ImportMetadataHDKeyring
 
-type InternalSignerHDKeyring = {
+export type InternalSignerHDKeyring = {
   signer: QuaiHDWallet
   address: string
   type: SignerSourceTypes.keyring

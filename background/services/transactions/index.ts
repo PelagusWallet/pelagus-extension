@@ -4,12 +4,17 @@ import {
 } from "quais/lib/commonjs/providers"
 import {
   Contract,
+  ContractRunner,
   getZoneForAddress,
   QuaiTransaction,
   TransactionReceipt,
   Zone,
 } from "quais"
 
+import {
+  MAILBOX_EVENTS,
+  MAILBOX_INTERFACE,
+} from "../../contracts/payment-channel-mailbox"
 import BaseService from "../base"
 import ChainService from "../chain"
 import logger from "../../lib/logger"
@@ -24,11 +29,6 @@ import { quaiTransactionFromResponse } from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
-import {
-  MAILBOX_EVENTS,
-  MAILBOX_INTERFACE,
-} from "../../contracts/payment-channel-mailbox"
-import { InternalSignerPrivateKey } from "../keyring/types"
 
 const TRANSACTION_CONFIRMATIONS = 1
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
@@ -195,21 +195,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     senderPaymentCode: string,
     receiverPaymentCode: string
   ): Promise<void> {
-    const { signer: quaiSigner } = (await this.keyringService.getSigner(
-      quaiFrom
-    )) as InternalSignerPrivateKey
-    const qiWallet = await this.keyringService.getQiWalletByPaymentCode(
-      senderPaymentCode
-    )
-
+    const { signer } = await this.keyringService.getSigner(quaiFrom)
     const mailboxContract = new Contract(
       this.MAILBOX_CONTRACT_ADDRESS,
       MAILBOX_INTERFACE,
-      quaiSigner
+      signer as ContractRunner
     )
     await mailboxContract.notify(senderPaymentCode, receiverPaymentCode)
 
-    qiWallet.connect(this.chainService.jsonRpcProvider)
+    const { jsonRpcProvider } = this.chainService
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
 
     const tx = await qiWallet.sendTransaction(
       receiverPaymentCode,
@@ -217,7 +213,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       Zone.Cyprus1,
       Zone.Cyprus1
     )
-    // const txReceipt = await tx.wait()
+    // await tx.wait()
   }
 
   // ------------------------------------ private methods ------------------------------------

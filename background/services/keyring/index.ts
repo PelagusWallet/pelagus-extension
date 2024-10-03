@@ -156,7 +156,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       await this.emitter.emit("locked", true)
       await this.emitter.emit("keyrings", {
         privateKeys: [],
-        qiHDWallets: [],
+        qiHDWallet: null,
         keyrings: [],
         keyringMetadata: {},
       })
@@ -164,13 +164,13 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       return
     }
 
-    const { wallets, qiHDWallets, quaiHDWallets, keyringMetadata } =
+    const { wallets, qiHDWallet, quaiHDWallets, keyringMetadata } =
       this.walletManager.getState()
 
     await this.emitter.emit("locked", false)
     await this.emitter.emit("keyrings", {
       privateKeys: wallets,
-      qiHDWallets,
+      qiHDWallet,
       keyrings: quaiHDWallets,
       keyringMetadata: { ...keyringMetadata },
     })
@@ -231,23 +231,16 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     return signerWithType
   }
 
-  public async getQiWalletByPaymentCode(
-    paymentCode: string
-  ): Promise<QiHDWallet> {
-    const qiWallet = await this.walletManager.getQiWallet(paymentCode)
-    if (!qiWallet) {
-      throw new Error(`QiWallet for payment code ${paymentCode} was not found.`)
-    }
-
-    return qiWallet
-  }
-
   public async getKeyringSourceForAddress(
     address: string
   ): Promise<SignerImportSource | null> {
     this.verifyKeyringIsUnlocked()
 
     return this.walletManager.getSignerSource(address)
+  }
+
+  public async getQiHDWallet(): Promise<QiHDWallet> {
+    return this.walletManager.getQiHDWallet()
   }
 
   public async deriveKeyringAddress(

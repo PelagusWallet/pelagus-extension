@@ -1,16 +1,12 @@
-import { AddressLike, Mnemonic, QiHDWallet, Zone } from "quais"
-
+import { Mnemonic, QiHDWallet, Zone } from "quais"
+import { generateRandomBytes } from "../utils"
 import { IVaultManager } from "../vault-manager"
 import { AddressWithQiHDWallet } from "../types"
-import { sameQuaiAddress } from "../../../lib/utils"
-import { applicationError } from "../../../constants/errorsCause"
-import { generateRandomBytes } from "../utils"
 
 export interface IQiHDWalletManager {
+  get(): Promise<QiHDWallet | null>
   create(): Promise<AddressWithQiHDWallet>
-  getByAddress(address: AddressLike): Promise<QiHDWallet | undefined>
-  getByPaymentCode(paymentCode: string): Promise<QiHDWallet | null>
-  deriveAddress(xPub: string, zone: Zone): Promise<AddressWithQiHDWallet>
+  deriveAddress(zone: Zone): Promise<AddressWithQiHDWallet>
 }
 
 export default class QiHDWalletManager implements IQiHDWalletManager {
@@ -24,11 +20,9 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     const mnemonic = Mnemonic.fromPhrase(phrase)
     const qiHDWallet = QiHDWallet.fromMnemonic(mnemonic)
 
-    const existingQiHDWallet = await this.getByXPub(qiHDWallet.xPub)
+    const existingQiHDWallet = await this.get()
     if (existingQiHDWallet) {
-      throw new Error("Qi HD Wallet already in use", {
-        cause: applicationError,
-      })
+      throw new Error("Qi HD Wallet already in use")
     }
 
     const { address } = await qiHDWallet.getNextAddress(
@@ -39,49 +33,17 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     return { address, qiHDWallet }
   }
 
-  public async getByAddress(
-    address: AddressLike
-  ): Promise<QiHDWallet | undefined> {
-    const { qiHDWallets } = await this.vaultManager.get()
+  public async get(): Promise<QiHDWallet | null> {
+    const { qiHDWallet } = await this.vaultManager.get()
+    if (!qiHDWallet) return null
 
-    const deserializedHDWallets: QiHDWallet[] = await Promise.all(
-      qiHDWallets.map((qiHDWallet) => QiHDWallet.deserialize(qiHDWallet))
-    )
-
-    return deserializedHDWallets.find((HDWallet) =>
-      HDWallet.getAddressesForAccount(this.qiHDWalletAccountIndex).find(
-        (HDWalletAddress) =>
-          sameQuaiAddress(HDWalletAddress.address, address as string)
-      )
-    )
+    return QiHDWallet.deserialize(qiHDWallet)
   }
 
-  public async getByPaymentCode(
-    paymentCode: string
-  ): Promise<QiHDWallet | null> {
-    const { qiHDWallets } = await this.vaultManager.get()
-
-    const deserializedHDWallets: QiHDWallet[] = await Promise.all(
-      qiHDWallets.map((qiHDWallet) => QiHDWallet.deserialize(qiHDWallet))
-    )
-
-    const matchingWallet = await Promise.all(
-      deserializedHDWallets.map(async (HDWallet) => {
-        const walletPaymentCode = await HDWallet.getPaymentCode()
-        return paymentCode === walletPaymentCode ? HDWallet : null
-      })
-    )
-
-    return matchingWallet.find((wallet) => wallet !== null) || null
-  }
-
-  public async deriveAddress(
-    xPub: string,
-    zone: Zone
-  ): Promise<AddressWithQiHDWallet> {
-    const qiHDWallet = await this.getByXPub(xPub)
+  public async deriveAddress(zone: Zone): Promise<AddressWithQiHDWallet> {
+    const qiHDWallet = await this.get()
     if (!qiHDWallet) {
-      throw new Error("QiHDWallet not found.")
+      throw new Error("QiHDWallet was not found.")
     }
 
     const { address } = await qiHDWallet.getNextAddress(
@@ -90,17 +52,5 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     )
 
     return { address, qiHDWallet }
-  }
-
-  // -------------------------- private methods --------------------------
-  private async getByXPub(xPub: string): Promise<QiHDWallet | undefined> {
-    const { qiHDWallets } = await this.vaultManager.get()
-    const deserializedHDWallets: QiHDWallet[] = await Promise.all(
-      qiHDWallets.map((HDWallet) => QiHDWallet.deserialize(HDWallet))
-    )
-
-    return deserializedHDWallets.find(
-      (HDWallet: QiHDWallet) => HDWallet.xPub === xPub
-    )
   }
 }

@@ -58,9 +58,7 @@ export class VaultManager implements IVaultManager {
         ? data.wallets ?? []
         : [...wallets, ...(data.wallets ?? [])],
 
-      qiHDWallet: options.overwriteQiHDWallet
-        ? data.qiHDWallet ?? qiHDWallet
-        : qiHDWallet,
+      qiHDWallet: data.qiHDWallet ? data.qiHDWallet : qiHDWallet,
 
       quaiHDWallets: options.overwriteQuaiHDWallets
         ? data.quaiHDWallets ?? []

@@ -4,17 +4,13 @@ import {
 } from "quais/lib/commonjs/providers"
 import {
   Contract,
-  ContractRunner,
   getZoneForAddress,
   QuaiTransaction,
   TransactionReceipt,
-  Zone,
+  Wallet,
 } from "quais"
 
-import {
-  MAILBOX_EVENTS,
-  MAILBOX_INTERFACE,
-} from "../../contracts/payment-channel-mailbox"
+import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
 import BaseService from "../base"
 import ChainService from "../chain"
 import logger from "../../lib/logger"
@@ -76,9 +72,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    */
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-    await this.initializeQuaiTransactions()
     this.checkPendingQuaiTransactions()
-    this.subscribeToMailboxContractEvents()
+    await this.initializeQuaiTransactions()
   }
 
   // ------------------------------------ public methods ------------------------------------
@@ -156,6 +151,27 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
   }
 
+  public async sendQiTransaction(
+    amount: bigint,
+    quaiAddress: string,
+    senderPaymentCode: string,
+    receiverPaymentCode: string
+  ): Promise<void> {
+    this.notifyQiRecipient(quaiAddress, senderPaymentCode, receiverPaymentCode)
+
+    // const { jsonRpcProvider } = this.chainService
+    // const qiWallet = await this.keyringService.getQiHDWallet()
+    // qiWallet.connect(jsonRpcProvider)
+    //
+    // const tx = await qiWallet.sendTransaction(
+    //   receiverPaymentCode,
+    //   amount,
+    //   Zone.Cyprus1,
+    //   Zone.Cyprus1
+    // )
+    // await tx.wait()
+  }
+
   /**
    * Removes all Quai transaction activities associated with a specific address.
    *
@@ -186,34 +202,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
   public async send(method: string, params: unknown[]): Promise<unknown> {
     return this.chainService.jsonRpcProvider.send(method, params)
-  }
-
-  // TODO
-  public async sendQiTransaction(
-    amount: bigint,
-    quaiFrom: string,
-    senderPaymentCode: string,
-    receiverPaymentCode: string
-  ): Promise<void> {
-    const { signer } = await this.keyringService.getSigner(quaiFrom)
-    const mailboxContract = new Contract(
-      this.MAILBOX_CONTRACT_ADDRESS,
-      MAILBOX_INTERFACE,
-      signer as ContractRunner
-    )
-    await mailboxContract.notify(senderPaymentCode, receiverPaymentCode)
-
-    const { jsonRpcProvider } = this.chainService
-    const qiWallet = await this.keyringService.getQiHDWallet()
-    qiWallet.connect(jsonRpcProvider)
-
-    const tx = await qiWallet.sendTransaction(
-      receiverPaymentCode,
-      amount,
-      Zone.Cyprus1,
-      Zone.Cyprus1
-    )
-    // await tx.wait()
   }
 
   // ------------------------------------ private methods ------------------------------------
@@ -368,22 +356,35 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
   }
 
-  // TODO
-  private subscribeToMailboxContractEvents(): void {
-    const provider = this.chainService.jsonRpcProvider
-    const mailboxContract = new Contract(
-      this.MAILBOX_CONTRACT_ADDRESS,
-      MAILBOX_INTERFACE,
-      provider
-    )
+  private async notifyQiRecipient(
+    quaiAddress: string,
+    senderPaymentCode: string,
+    receiverPaymentCode: string
+  ): Promise<void> {
+    try {
+      const { jsonRpcProvider } = this.chainService
 
-    mailboxContract.on(
-      MAILBOX_EVENTS.NotificationSent.name,
-      (senderPaymentCode: string, receiverPaymentCode: string) => {
-        console.log("Notification Sent Event Detected!")
-        console.log("Sender Payment Code:", senderPaymentCode)
-        console.log("Receiver Payment Code:", receiverPaymentCode)
-      }
-    )
+      // // signer is not working
+      // const { signer } = await this.keyringService.getSigner(quaiAddress)
+      // signer.connect(jsonRpcProvider)
+
+      const wallet = new Wallet(
+        "0x30f3e74aecfddeb31475636b0a820efa60e30239629c253a5074872c6dccbdcb",
+        jsonRpcProvider
+      )
+
+      const mailboxContract = new Contract(
+        this.MAILBOX_CONTRACT_ADDRESS,
+        MAILBOX_INTERFACE,
+        wallet
+      )
+      const tx = await mailboxContract.notify(
+        senderPaymentCode,
+        receiverPaymentCode
+      )
+      await tx.wait()
+    } catch (error) {
+      logger.error("Error occurs while notifying Qi recipient", error)
+    }
   }
 }

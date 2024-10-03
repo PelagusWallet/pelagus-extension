@@ -7,7 +7,6 @@ export const MAILBOX_EVENTS = {
 }
 
 const MAILBOX_FUNCTIONS = {
-  register: FunctionFragment.from("register(string paymentCode)"),
   notify: FunctionFragment.from(
     "notify(string senderPaymentCode, string receiverPaymentCode)"
   ),

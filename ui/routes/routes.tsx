@@ -15,6 +15,8 @@ import SettingsConnectedWebsites from "../pages/Settings/SettingsConnectedWebsit
 import HiddenDevPanel from "../components/HiddenDevPanel/HiddenDevPanel"
 import FeatureFlagsPanel from "../components/HiddenDevPanel/FeatureFlagsPanel"
 import SettingsAddCustomAsset from "../pages/Settings/SettingsAddCustomAsset"
+import SendPage from "../pages/_NewDesign/SendPage"
+import ConfirmTransactionPage from "../pages/_NewDesign/ConfirmTransactionPage"
 
 type PageList = {
   path: string
@@ -79,6 +81,16 @@ const pageList: PageList[] = [
   {
     path: "/settings",
     Component: Menu,
+    hasTopBar: false,
+  },
+  {
+    path: "/send/qi/confirmation",
+    Component: ConfirmTransactionPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/send/qi",
+    Component: SendPage,
     hasTopBar: false,
   },
   {

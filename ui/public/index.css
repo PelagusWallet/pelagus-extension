@@ -38,6 +38,38 @@
 
   --shadow: 0px 16px 16px rgba(0, 33, 30, 0.14),
     0px 6px 8px rgba(0, 33, 30, 0.24), 0px 2px 4px rgba(0, 33, 30, 0.34);
+
+
+
+  //////// NEW WHITE THEME ////////
+
+  --primary-bg: #ffffff;
+  --secondary-bg: #EFEFEF;
+
+  --tertiary-bg: #CBCBCD;
+
+  --accent-color: #1775E4;
+  --contrast-text: #ffffff;
+
+  --primary-text: #19191A;
+  --secondary-text: #7C7C83;
+
+  --error-color: #CA4242;
+  --success-color: #1CAF4E;
+}
+
+:root[data-theme="dark"] {
+
+  --primary-bg: #1B1B1D;
+  --secondary-bg: #262628;
+
+  --tertiary-bg: #3E3E41;
+
+  --accent-color: #1775E4;
+  --contrast-text: #F2F2F2;
+
+  --error-color: #CA4242;
+  --success-color: #1CAF4E;
 }
 
 ::-webkit-scrollbar {

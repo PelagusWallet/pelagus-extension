@@ -80,14 +80,7 @@ export default class WalletManager {
         id: deserializedQiHDWallet.xPub,
         path: null,
         type: KeyringTypes.mnemonicBIP47,
-        // FIXME might be an overkill for current UI flow
-        addresses: [
-          ...deserializedQiHDWallet
-            .getAddressesForAccount(
-              this.qiHDWalletManager.qiHDWalletAccountIndex
-            )
-            .map(({ address }) => address),
-        ],
+        addresses: [],
         paymentCode,
       }
     } else {
@@ -303,9 +296,20 @@ export default class WalletManager {
     if (qiHDWallet) return
 
     const { qiHDWallet: wallet } = await this.qiHDWalletManager.create(mnemonic)
+    this.qiHDWalletManager.syncQiWalletPaymentCodes(wallet, true)
 
     this.keyringMetadata[wallet.xPub] = {
       source: SignerImportSource.internal,
+    }
+    const paymentCode = await wallet.getPaymentCode(
+      this.qiHDWalletManager.qiHDWalletAccountIndex
+    )
+    this.qiHDWallet = {
+      id: wallet.xPub,
+      path: null,
+      type: KeyringTypes.mnemonicBIP47,
+      addresses: [],
+      paymentCode,
     }
     await this.vault.add(
       {
@@ -353,8 +357,7 @@ export default class WalletManager {
       {}
     )
 
-    this.initializeQiHDWallet(mnemonic)
-
+    await this.initializeQiHDWallet(mnemonic)
     return address
   }
 

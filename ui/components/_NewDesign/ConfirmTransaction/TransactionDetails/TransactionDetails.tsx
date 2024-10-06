@@ -1,18 +1,27 @@
 import React from "react"
 import ArrowRightIcon from "../../../../public/images/_newDesign/ArrowRightIcon"
+import { useBackgroundSelector } from "../../../../hooks"
 
 const TransactionDetails = () => {
+  const { receiverPaymentCode, senderQiAccount, amount } =
+    useBackgroundSelector((state) => state.qiSend)
+
+  const { paymentCode = "" } = senderQiAccount ?? {}
+
   return (
     <>
       <div>
         <h3 className="amount-title">Sending</h3>
-        <h1 className="amount">20.012 QI</h1>
+        <h1 className="amount">{amount} QI</h1>
 
         <div className="wallets">
           <div className="wallet">
             <p className="wallet-to-from">From</p>
             <p className="wallet-zone">Wallet 2</p>
-            <p className="wallet-payment-code">(0x9238...2344)</p>
+            <p className="wallet-payment-code">{`(${paymentCode.slice(
+              0,
+              6
+            )}...${paymentCode.slice(-4)})`}</p>
           </div>
           <div className="arrow">
             <ArrowRightIcon />
@@ -20,7 +29,10 @@ const TransactionDetails = () => {
           <div className="wallet">
             <p className="wallet-to-from">To</p>
             <p className="wallet-zone">Wallet 1</p>
-            <p className="wallet-payment-code">(0x9238...2344)</p>
+            <p className="wallet-payment-code">{`(${receiverPaymentCode.slice(
+              0,
+              6
+            )}...${receiverPaymentCode.slice(-4)})`}</p>
           </div>
         </div>
       </div>

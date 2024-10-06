@@ -9,6 +9,7 @@ import transactionConstructionReducer from "./transaction-construction"
 import uiReducer from "./ui"
 import dappReducer from "./dapp"
 import signingReducer from "./signing"
+import qiSendReducer from "./qiSend"
 
 const mainReducer = combineReducers({
   account: accountsReducer,
@@ -20,6 +21,7 @@ const mainReducer = combineReducers({
   ui: uiReducer,
   dapp: dappReducer,
   signing: signingReducer,
+  qiSend: qiSendReducer,
 })
 
 export default mainReducer

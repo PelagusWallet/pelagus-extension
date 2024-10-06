@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react"
+import React, { ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   selectShowingAccountsModal,
@@ -8,23 +8,33 @@ import {
 import AccountsNotificationPanelAccounts from "./AccountsNotificationPanelAccounts"
 import SharedDrawer from "../Shared/SharedDrawer"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
+import SelectAccountCategoryTabs from "./SelectAccountCategoryTabs"
+import { AccountCategoriesEnum } from "../../utils/enum/accountsEnum"
+import QiAccountsList from "../_NewDesign/QiAccountsList/QiAccountsList"
 
 type Props = {
   onCurrentAddressChange: (address: string) => void
   setSelectedAccountSigner: (address: string) => void
   selectedAccountSigner: string
+  isNeedToChangeAccount?: boolean
 }
 
 export default function AccountsNotificationPanel({
   onCurrentAddressChange,
   setSelectedAccountSigner,
   selectedAccountSigner,
+  isNeedToChangeAccount = true,
 }: Props): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "topMenu" })
   const dispatch = useBackgroundDispatch()
   const isShowingAccountsModal = useBackgroundSelector(
     selectShowingAccountsModal
   )
+
+  const [accountCategory, setAccountCategory] = useState<AccountCategoriesEnum>(
+    AccountCategoriesEnum.quai
+  )
+
   return (
     <>
       <SharedDrawer
@@ -35,22 +45,35 @@ export default function AccountsNotificationPanel({
         customStyles={{ padding: "24px 0" }}
         titleWithoutSidePaddings
         footer={
-          <div className="footer_wrap">
-            <button
-              type="button"
-              onClick={() => dispatch(setShowingAddAccountModal(true))}
-              className="confirmation-btn"
-            >
-              &#43; {t("addQuaiaccount")}
-            </button>
-          </div>
+          accountCategory === AccountCategoriesEnum.quai && (
+            <div className="footer_wrap">
+              <button
+                type="button"
+                onClick={() => dispatch(setShowingAddAccountModal(true))}
+                className="confirmation-btn"
+              >
+                &#43; {t("addQuaiaccount")}
+              </button>
+            </div>
+          )
         }
       >
-        <AccountsNotificationPanelAccounts
-          onCurrentAddressChange={onCurrentAddressChange}
-          setSelectedAccountSigner={setSelectedAccountSigner}
-          selectedAccountSigner={selectedAccountSigner}
-        />
+        {isNeedToChangeAccount && (
+          <SelectAccountCategoryTabs
+            accountCategory={accountCategory}
+            setAccountCategory={setAccountCategory}
+          />
+        )}
+        {accountCategory === AccountCategoriesEnum.quai ? (
+          <AccountsNotificationPanelAccounts
+            onCurrentAddressChange={onCurrentAddressChange}
+            setSelectedAccountSigner={setSelectedAccountSigner}
+            selectedAccountSigner={selectedAccountSigner}
+            isNeedToChangeAccount={isNeedToChangeAccount}
+          />
+        ) : (
+          isNeedToChangeAccount && <QiAccountsList />
+        )}
       </SharedDrawer>
       <style jsx>
         {`

@@ -1,7 +1,22 @@
-import React from "react"
+import React, { useState } from "react"
+import { setQiSendReceiverPaymentCode } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import QrCodeScannerIcon from "../../../../public/images/_newDesign/QrCodeScannerIcon"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 
 const SendTo = () => {
+  const dispatch = useBackgroundDispatch()
+
+  const sendTo = useBackgroundSelector(
+    (state) => state.qiSend.receiverPaymentCode
+  )
+
+  const [inputValue, setInputValue] = useState(sendTo)
+
+  const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target
+    setInputValue(value)
+    await dispatch(setQiSendReceiverPaymentCode(value))
+  }
   return (
     <>
       <section className="to-wallet">
@@ -11,7 +26,9 @@ const SendTo = () => {
           <input
             type="text"
             className="to-input"
-            placeholder="Enter public address (Ox...)"
+            placeholder="Enter payment code (TL9C...)"
+            value={inputValue}
+            onChange={handleChange}
           />
           <QrCodeScannerIcon
             style={{

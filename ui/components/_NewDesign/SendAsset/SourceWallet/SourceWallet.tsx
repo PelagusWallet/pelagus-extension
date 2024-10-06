@@ -1,16 +1,36 @@
-import React from "react"
-import GoForwardMenuIcon from "../../../../public/images/_newDesign/GoForwardMenuIcon"
+import React, { useEffect } from "react"
+import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
+import { setQiSendAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 
 const SourceWallet = () => {
+  const dispatch = useBackgroundDispatch()
+  const qiHdWallet = useBackgroundSelector((state) => state.keyrings.qiHDWallet)
+
+  const qiSendAccount = useBackgroundSelector(
+    (state) => state.qiSend.senderQiAccount
+  )
+
+  useEffect(() => {
+    if (qiSendAccount) return
+    dispatch(setQiSendAcc(qiHdWallet))
+  }, [])
+
+  if (!qiSendAccount) return <></>
+
+  const { addresses, paymentCode } = qiSendAccount
+
+  const zone = getExtendedZoneForAddress(addresses[0], true, true)
+
   return (
     <>
       <section className="source-wallet">
         <h3 className="source-label">Source Wallet</h3>
         <SharedAccountTab
           account={{
-            title: "Cyprus 1 - QI Wallet",
-            subtitle: "0x9238...2344",
+            title: `${zone} - QI Wallet`,
+            subtitle: `${paymentCode.slice(0, 10)}...${paymentCode.slice(-10)}`,
           }}
         />
       </section>

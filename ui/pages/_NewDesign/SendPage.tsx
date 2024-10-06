@@ -10,6 +10,7 @@ const SendPage = () => {
 
   const [isOpenPaymentChanelModal, setIsOpenPaymentChanelModal] =
     useState(false)
+
   return (
     <>
       <main className="sendAsset-wrapper">

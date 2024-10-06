@@ -84,12 +84,12 @@ const pageList: PageList[] = [
     hasTopBar: false,
   },
   {
-    path: "/send/qi/confirmation",
+    path: "/send-qi/confirmation",
     Component: ConfirmTransactionPage,
     hasTopBar: false,
   },
   {
-    path: "/send/qi",
+    path: "/send-qi",
     Component: SendPage,
     hasTopBar: false,
   },

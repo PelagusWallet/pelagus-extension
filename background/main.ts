@@ -1133,6 +1133,7 @@ export default class Main extends BaseService<never> {
 
   async connectKeyringService(): Promise<void> {
     this.keyringService.emitter.on("keyrings", (keyrings) => {
+      console.log("connectKeyringService", keyrings)
       this.store.dispatch(updateKeyrings(keyrings))
     })
 

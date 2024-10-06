@@ -1,18 +1,25 @@
 import React, { useState } from "react"
+import { setQiSendAmount } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 
 const Amount = () => {
-  const [inputValue, setInputValue] = useState("")
+  const dispatch = useBackgroundDispatch()
 
-  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const amount = useBackgroundSelector((state) => state.qiSend.amount)
+
+  const [inputValue, setInputValue] = useState(amount)
+
+  const handleInput = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
     const regex = /^[0-9]*\.?[0-9]*$/
     if (value === "" || regex.test(value)) {
       setInputValue(value)
+      await dispatch(setQiSendAmount(value))
     }
   }
 
   const onMaxAmount = () => {
-    setInputValue("20.01244")
+    // setInputValue("20.01244")
   }
 
   return (
@@ -31,7 +38,7 @@ const Amount = () => {
             Max
           </button>
         </div>
-        <p className="amount-available">Available 20.01244 QI</p>
+        <p className="amount-available">Available - QI</p>
       </section>
       <style jsx>{`
         .amount-wallet {

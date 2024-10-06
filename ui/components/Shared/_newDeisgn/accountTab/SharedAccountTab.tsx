@@ -1,5 +1,5 @@
 import React from "react"
-import GoForwardMenuIcon from "../../../../public/images/_newDesign/GoForwardMenuIcon"
+import GoForwardMenuIcon from "../iconComponents/GoForwardMenuIcon"
 
 const SharedAccountTab = ({
   account = { title: "", subtitle: "" },

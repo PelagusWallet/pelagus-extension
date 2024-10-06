@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { setQiSendReceiverPaymentCode } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import QrCodeScannerIcon from "../../../../public/images/_newDesign/QrCodeScannerIcon"
+import QrCodeScannerIcon from "../../../Shared/_newDeisgn/iconComponents/QrCodeScannerIcon"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 
 const SendTo = () => {

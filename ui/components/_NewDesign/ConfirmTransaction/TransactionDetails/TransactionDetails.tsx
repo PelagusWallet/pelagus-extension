@@ -1,5 +1,5 @@
 import React from "react"
-import ArrowRightIcon from "../../../../public/images/_newDesign/ArrowRightIcon"
+import ArrowRightIcon from "../../../Shared/_newDeisgn/iconComponents/ArrowRightIcon"
 import { useBackgroundSelector } from "../../../../hooks"
 
 const TransactionDetails = () => {

@@ -1,5 +1,5 @@
 import React from "react"
-import GoBackIcon from "../../../../public/images/_newDesign/GoBackIcon"
+import GoBackIcon from "../iconComponents/GoBackIcon"
 
 const SharedGoBackPageHeader = ({
   title,

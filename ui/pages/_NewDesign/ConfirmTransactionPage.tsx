@@ -1,6 +1,7 @@
 import React from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
+import { sendQiTransaction } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import { useBackgroundDispatch } from "../../hooks"
 import AccountsNotificationPanel from "../../components/AccountsNotificationPanel/AccountsNotificationPanel"
@@ -11,6 +12,10 @@ const ConfirmTransactionPage = () => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
 
+  const onSendQiTransaction = async () => {
+    await dispatch(sendQiTransaction())
+  }
+
   return (
     <>
       <main className="confirm-transaction-wrapper">
@@ -19,7 +24,7 @@ const ConfirmTransactionPage = () => {
         <SharedActionButtons
           title={{ confirmTitle: "Send", cancelTitle: "Back" }}
           onClick={{
-            onConfirm: () => {},
+            onConfirm: onSendQiTransaction,
             onCancel: () => history.push("-1"),
           }}
         />
@@ -28,7 +33,8 @@ const ConfirmTransactionPage = () => {
       <AccountsNotificationPanel
         onCurrentAddressChange={() => dispatch(setShowingAccountsModal(false))}
         setSelectedAccountSigner={() => {}}
-        selectedAccountSigner=""
+        selectedAccountSigner={""}
+        isNeedToChangeAccount={false}
       />
       <style jsx>{`
         .confirm-transaction-wrapper {

@@ -1,21 +1,27 @@
 import React, { useState } from "react"
+import { setQiSendTips } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { useBackgroundDispatch } from "../../../../hooks"
 
 const FeeSettings = () => {
+  const dispatch = useBackgroundDispatch()
+
   const [isShowAdvancedSettings, setIsShowAdvancedSettings] = useState(false)
 
   const [tipValue, setTipValue] = useState("")
   const [tipPlaceholder, setTipPlaceholder] = useState("Enter WEI")
 
-  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInput = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
     const regex = /^[0-9]*\.?[0-9]*$/
     if (value === "" || regex.test(value)) {
       setTipValue(value)
+      await dispatch(setQiSendTips(value))
     }
   }
 
-  const onAutoTips = () => {
+  const onAutoTips = async () => {
     setTipValue("")
+    await dispatch(setQiSendTips(""))
     setTipPlaceholder("Auto-calculated tip will be applied")
   }
   return (
@@ -24,11 +30,11 @@ const FeeSettings = () => {
         <div className="fees">
           <div className="fee-row">
             <p className="fee-row-key">Payment Channel Gas Fee</p>
-            <p className="fee-row-value">0.0123 QUAI</p>
+            <p className="fee-row-value">- QUAI</p>
           </div>
           <div className="fee-row">
             <p className="fee-row-key">Estimated Fee</p>
-            <p className="fee-row-value">0.0123 QI</p>
+            <p className="fee-row-value">- QI</p>
           </div>
         </div>
 

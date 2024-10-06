@@ -6,6 +6,7 @@ import React, { ReactElement, useEffect, useRef, useState } from "react"
 import {
   selectShowingAddAccountModal,
   setNewSelectedAccount,
+  setShowingAccountsModal,
   setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import {
@@ -22,6 +23,7 @@ import {
   AccountType,
 } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { deriveAddress } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { setQiSendQuaiAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import {
   isAccountWithSecrets,
   searchAccountsHandle,
@@ -65,12 +67,14 @@ type AccountsNotificationPanelAccountsProps = {
   onCurrentAddressChange: (newAddress: string) => void
   setSelectedAccountSigner: (signerId: string) => void
   selectedAccountSigner: string
+  isNeedToChangeAccount?: boolean
 }
 
 export default function AccountsNotificationPanelAccounts({
   onCurrentAddressChange,
   setSelectedAccountSigner,
   selectedAccountSigner,
+  isNeedToChangeAccount = true,
 }: AccountsNotificationPanelAccountsProps): ReactElement {
   const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
@@ -173,7 +177,15 @@ export default function AccountsNotificationPanelAccounts({
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
 
+  const qiSendQuaiAddress =
+    useBackgroundSelector((state) => state.qiSend.senderQuaiAccount?.address) ??
+    ""
+
   const updateCurrentAccount = (address: string, signerId: string) => {
+    if (!isNeedToChangeAccount) {
+      dispatch(setShowingAccountsModal(false))
+      return
+    }
     setPendingSelectedAddress(address)
     setSelectedAccountSigner(signerId)
     dispatch(
@@ -360,8 +372,8 @@ export default function AccountsNotificationPanelAccounts({
                           throw new Error("zone is empty")
                         } else if (!VALID_ZONES.includes(zone.current)) {
                           dispatch(
-                                  setSnackbarConfig({ message: "Invalid zone" })
-                                )
+                            setSnackbarConfig({ message: "Invalid zone" })
+                          )
                           throw new Error("zone is invalid")
                         }
 
@@ -387,10 +399,15 @@ export default function AccountsNotificationPanelAccounts({
                     />
                     <ul>
                       {accountTotalsBySignerId.map((accountTotal, idx) => {
-                        const isSelected = sameQuaiAddress(
-                          accountTotal.address,
-                          selectedAccountAddress
-                        )
+                        const isSelected = isNeedToChangeAccount
+                          ? sameQuaiAddress(
+                              accountTotal.address,
+                              selectedAccountAddress
+                            )
+                          : sameQuaiAddress(
+                              accountTotal.address,
+                              qiSendQuaiAddress
+                            )
 
                         return (
                           <li
@@ -421,6 +438,7 @@ export default function AccountsNotificationPanelAccounts({
                                     accountTotal.address,
                                     accountTotal.signerId ?? ""
                                   )
+                                  dispatch(setQiSendQuaiAcc(accountTotal))
                                 }
                               }}
                               onClick={() => {
@@ -428,6 +446,7 @@ export default function AccountsNotificationPanelAccounts({
                                   accountTotal.address,
                                   accountTotal.signerId ?? ""
                                 )
+                                dispatch(setQiSendQuaiAcc(accountTotal))
                               }}
                             >
                               <SelectAccountListItem

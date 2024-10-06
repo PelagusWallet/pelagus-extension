@@ -29,7 +29,6 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
 
     const mnemonicFromPhrase = Mnemonic.fromPhrase(mnemonic)
     const qiHDWallet = QiHDWallet.fromMnemonic(mnemonicFromPhrase)
-
     const { address } = await qiHDWallet.getNextAddress(
       this.qiHDWalletAccountIndex,
       Zone.Cyprus1

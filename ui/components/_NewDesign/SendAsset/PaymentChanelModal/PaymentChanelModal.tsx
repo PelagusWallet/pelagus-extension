@@ -16,7 +16,7 @@ const PaymentChannelModal = ({
   }
 
   const handleConfirm = () => {
-    history.push("/send/qi/confirmation")
+    history.push("/send-qi/confirmation")
   }
 
   const handleOverlayClick = (

@@ -1,10 +1,38 @@
-import React from "react"
-import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
+import React, { useEffect } from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
-import { useBackgroundDispatch } from "../../../../hooks"
+import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
+import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
+import { ACCOUNT_TYPES } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { selectCurrentNetworkAccountTotalsByCategory } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { setQiSendQuaiAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
 
 const QuaiAccount = () => {
   const dispatch = useBackgroundDispatch()
+
+  const accountTotals = useBackgroundSelector(
+    selectCurrentNetworkAccountTotalsByCategory
+  )
+
+  const quiAccount = useBackgroundSelector(
+    (state) => state.qiSend.senderQuaiAccount
+  )
+
+  useEffect(() => {
+    ACCOUNT_TYPES.forEach((accountType) => {
+      const accountTypeTotals = accountTotals[accountType]
+      if (accountTypeTotals && accountTypeTotals.length && !quiAccount) {
+        dispatch(setQiSendQuaiAcc(accountTypeTotals[0]))
+      }
+    })
+  }, [])
+
+  if (!quiAccount) return <></>
+
+  const { shortenedAddress, shortName, balance, address, avatarURL } =
+    quiAccount
+
+  const zone = getExtendedZoneForAddress(address, true, true)
 
   return (
     <>
@@ -13,10 +41,11 @@ const QuaiAccount = () => {
           <p className="quai-wallet-title">Quai Wallet</p>
           <SharedAccountTab
             account={{
-              title: "Account 1",
-              subtitle: "Cyprus-1 (0x0243...2434)",
+              title: shortName,
+              subtitle: `${zone} (${shortenedAddress})`,
             }}
-            balance={{ native: "2,231.13 QUAI" }}
+            balance={{ native: `${balance}` }}
+            avatarSrc={avatarURL}
             onClick={() => dispatch(setShowingAccountsModal(true))}
           />
         </div>

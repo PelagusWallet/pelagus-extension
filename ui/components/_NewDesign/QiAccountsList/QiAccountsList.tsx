@@ -1,10 +1,9 @@
 import React, { useState } from "react"
-import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 import classNames from "classnames"
+import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import SharedIconGA from "../../Shared/SharedIconGA"
 import AccountsSearchBar from "../../AccountItem/AccountsSearchBar"
-import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import SigningButton from "../../AccountsNotificationPanel/SigningButton"
 
 const QiAccountsList = () => {
@@ -14,7 +13,7 @@ const QiAccountsList = () => {
 
   if (!qiHd) return <></>
 
-  const { addresses, paymentCode } = qiHd
+  const { paymentCode } = qiHd
 
   return (
     <>
@@ -35,25 +34,21 @@ const QiAccountsList = () => {
       </div>
 
       <ul>
-        {addresses.map((address) => (
-          <li>
-            <div className={classNames("connected-account-item")}>
-              <div className="left-side">
-                <SharedIconGA iconUrl="./images/avatars/compass@2x.png" />
-                <div className="account-info">
-                  <div className="name">
-                    {getExtendedZoneForAddress(address, true, true)}
-                  </div>
-                  <div className="details">
-                    {paymentCode.slice(0, 10)}...{paymentCode.slice(-10)}
-                  </div>
+        <li>
+          <div className={classNames("connected-account-item")}>
+            <div className="left-side">
+              <SharedIconGA iconUrl="./images/avatars/compass@2x.png" />
+              <div className="account-info">
+                <div className="name">Cyprus 1</div>
+                <div className="details">
+                  {paymentCode.slice(0, 10)}...{paymentCode.slice(-10)}
                 </div>
               </div>
-
-              <div className="balance">0.0000 QI</div>
             </div>
-          </li>
-        ))}
+
+            <div className="balance">0.0000 QI</div>
+          </div>
+        </li>
       </ul>
       <style jsx>{`
         .actions-header {
@@ -61,6 +56,7 @@ const QiAccountsList = () => {
           flex-direction: column;
           gap: 16px;
         }
+
         .search-bar {
           position: sticky;
           top: 0;
@@ -69,10 +65,12 @@ const QiAccountsList = () => {
           padding: 0 16px;
           background: var(--hunter-green);
         }
+
         .lock-signing {
           display: flex;
           justify-content: center;
         }
+
         .ul {
           display: flex;
           flex-direction: column;

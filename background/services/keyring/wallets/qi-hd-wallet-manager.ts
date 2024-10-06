@@ -18,26 +18,13 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
 
   constructor(private vaultManager: IVaultManager) {}
 
-  // -------------------------- public methods --------------------------
-  public async create(mnemonic: string): Promise<AddressWithQiHDWallet> {
-    const { jsonRpcProvider } = globalThis.main.chainService
-
-    const existingQiHDWallet = await this.get()
-    if (existingQiHDWallet) {
-      throw new Error("Qi HD Wallet already in use")
-    }
-
-    const mnemonicFromPhrase = Mnemonic.fromPhrase(mnemonic)
-    const qiHDWallet = QiHDWallet.fromMnemonic(mnemonicFromPhrase)
+  public async create(phrase: string): Promise<AddressWithQiHDWallet> {
+    const mnemonic = Mnemonic.fromPhrase(phrase)
+    const qiHDWallet = QiHDWallet.fromMnemonic(mnemonic)
     const { address } = await qiHDWallet.getNextAddress(
       this.qiHDWalletAccountIndex,
       Zone.Cyprus1
     )
-
-    qiHDWallet.connect(jsonRpcProvider)
-    await qiHDWallet.scan(Zone.Cyprus1, 0)
-
-    this.syncQiWalletPaymentCodes(qiHDWallet)
 
     return { address, qiHDWallet }
   }
@@ -63,7 +50,10 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     return { address, qiHDWallet }
   }
 
-  public async syncQiWalletPaymentCodes(qiWallet: QiHDWallet): Promise<void> {
+  public async syncQiWalletPaymentCodes(
+    qiWallet: QiHDWallet,
+    isRestored = false
+  ): Promise<void> {
     const { webSocketProvider } = globalThis.main.chainService
     const thisQiWalletPaymentCode = await qiWallet.getPaymentCode()
 
@@ -80,14 +70,19 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     notifications.forEach((paymentCode) => {
       qiWallet.openChannel(paymentCode, "sender")
     })
-    await qiWallet.sync(Zone.Cyprus1, 0)
+
+    if (isRestored) {
+      await qiWallet.scan(Zone.Cyprus1, 0)
+    } else {
+      await qiWallet.sync(Zone.Cyprus1, 0)
+    }
 
     mailboxContract.on(
       MAILBOX_EVENTS.NotificationSent.name,
       async (senderPaymentCode: string, receiverPaymentCode: string) => {
         if (thisQiWalletPaymentCode === receiverPaymentCode) {
           qiWallet.openChannel(senderPaymentCode, "sender")
-          qiWallet.sync(Zone.Cyprus1, 0)
+          await qiWallet.sync(Zone.Cyprus1, 0)
         }
       }
     )

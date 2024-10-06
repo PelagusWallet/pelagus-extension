@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
-import CrossIcon from "../../../../public/images/_newDesign/CrossIcon"
+import CrossIcon from "../../../Shared/_newDeisgn/iconComponents/CrossIcon"
 
 const PaymentChannelModal = ({
   setIsOpenPaymentChanelModal,

@@ -9,6 +9,7 @@ import {
   QuaiTransaction,
   TransactionReceipt,
   Wallet,
+  Zone,
 } from "quais"
 
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
@@ -159,24 +160,24 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     receiverPaymentCode: string,
     maxPriorityFeePerGas: bigint | null
   ): Promise<void> {
+    const { jsonRpcProvider } = this.chainService
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+
+    const transactionResponse = await qiWallet.sendTransaction(
+      receiverPaymentCode,
+      amount,
+      Zone.Cyprus1,
+      Zone.Cyprus1
+    )
+    console.log("Transaction response", transactionResponse)
+
     this.notifyQiRecipient(
       quaiAddress,
       senderPaymentCode,
       receiverPaymentCode,
       maxPriorityFeePerGas
     )
-
-    // const { jsonRpcProvider } = this.chainService
-    // const qiWallet = await this.keyringService.getQiHDWallet()
-    // qiWallet.connect(jsonRpcProvider)
-    //
-    // const tx = await qiWallet.sendTransaction(
-    //   receiverPaymentCode,
-    //   amount,
-    //   Zone.Cyprus1,
-    //   Zone.Cyprus1
-    // )
-    // await tx.wait()
   }
 
   /**

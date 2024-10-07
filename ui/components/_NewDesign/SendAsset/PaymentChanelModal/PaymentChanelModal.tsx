@@ -48,9 +48,7 @@ const PaymentChannelModal = ({
             }}
             onClick={handleClose}
           />
-          <h3 className="modal-title">
-            Would you like to open a payment channel?
-          </h3>
+          <h3 className="modal-title">You are opening a Payment channel.</h3>
           <p className="modal-description">
             This will act as a secondary backup method. You will need to provide
             a Quai Account to fund the EVM transaction to enable this function.{" "}
@@ -66,15 +64,12 @@ const PaymentChannelModal = ({
               Don’t show this message again
             </label>
             <div className="button-group">
-              <button type="button" className="no-button" onClick={handleClose}>
-                No
-              </button>
               <button
                 type="button"
                 className="yes-button"
                 onClick={handleConfirm}
               >
-                Yes
+                Confirm
               </button>
             </div>
           </div>
@@ -165,25 +160,19 @@ const PaymentChannelModal = ({
         .button-group {
           display: flex;
           justify-content: flex-end;
-          gap: 8px;
-        }
-
-        .no-button {
-          color: var(--primary-text);
-          padding: 6px 50px;
-          border-radius: 4px;
-          border: 1px solid var(--secondary-text);
         }
 
         .yes-button {
+          font-weight: 500;
+          font-size: 14px;
+          line-height: 20px;
           background: var(--accent-color);
-          color: #fff;
+          color: var(--contrast-text);
           padding: 6px 50px;
           border-radius: 4px;
           border: 1px solid var(--accent-color);
         }
 
-        .no-button:hover,
         .yes-button:hover {
           opacity: 0.9;
         }

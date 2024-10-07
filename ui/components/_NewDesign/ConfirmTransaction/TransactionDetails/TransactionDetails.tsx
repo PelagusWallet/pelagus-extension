@@ -12,7 +12,12 @@ const TransactionDetails = () => {
     <>
       <div>
         <h3 className="amount-title">Sending</h3>
-        <h1 className="amount">{amount} QI</h1>
+        <h1 className="amount">
+          {amount.length >= 12
+            ? `${amount.slice(0, 7)}...${amount.slice(-5)}`
+            : amount}{" "}
+          QI
+        </h1>
 
         <div className="wallets">
           <div className="wallet">

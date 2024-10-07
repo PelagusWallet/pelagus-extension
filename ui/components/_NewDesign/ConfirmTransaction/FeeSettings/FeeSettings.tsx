@@ -123,7 +123,7 @@ const FeeSettings = () => {
         .tip-input {
           width: 100%;
           box-sizing: border-box;
-          padding: 12px 16px;
+          padding: 12px 75px 12px 16px;
           border: 2px solid var(--tertiary-bg);
           border-radius: 8px;
           font-size: 14px;

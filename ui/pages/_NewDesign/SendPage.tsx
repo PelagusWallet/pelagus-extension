@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useHistory } from "react-router-dom"
 import { selectShowPaymentChannelModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import SendAsset from "../../components/_NewDesign/SendAsset/SendAsset"
@@ -16,6 +16,25 @@ const SendPage = () => {
   const [isOpenPaymentChanelModal, setIsOpenPaymentChanelModal] =
     useState(false)
 
+  const { amount, receiverPaymentCode } = useBackgroundSelector(
+    (state) => state.qiSend
+  )
+  const [isConfirmDisabled, setIsConfirmDisabled] = useState(true)
+
+  useEffect(() => {
+    if (
+      amount &&
+      Number(amount) &&
+      receiverPaymentCode &&
+      receiverPaymentCode.length === 116
+    ) {
+      setIsConfirmDisabled(false)
+      return
+    }
+
+    setIsConfirmDisabled(true)
+  }, [amount, receiverPaymentCode])
+
   const handleConfirm = () => {
     if (!showPaymentChannelModal) {
       history.push("/send-qi/confirmation")
@@ -27,10 +46,11 @@ const SendPage = () => {
   return (
     <>
       <main className="sendAsset-wrapper">
-        <SharedGoBackPageHeader title="SendPage Assets" linkTo="/" />
+        <SharedGoBackPageHeader title="Send Assets" linkTo="/" />
         <SendAsset />
         <SharedActionButtons
           title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
+          isConfirmDisabled={isConfirmDisabled}
           onClick={{
             onConfirm: () => handleConfirm(),
             onCancel: () => history.push("/"),

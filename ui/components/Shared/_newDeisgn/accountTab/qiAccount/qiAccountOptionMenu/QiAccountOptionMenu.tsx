@@ -37,7 +37,7 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
         )}
         options={[
           {
-            key: "copy",
+            key: "send",
             icon: "icons/s/arrow-up.svg",
             label: "Send asset",
             onClick: async () => {

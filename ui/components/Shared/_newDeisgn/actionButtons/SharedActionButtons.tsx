@@ -5,9 +5,11 @@ import SharedConfirmButton from "./SharedConfirmButton"
 const SharedActionButtons = ({
   title = { confirmTitle: "", cancelTitle: "" },
   onClick = { onConfirm: () => {}, onCancel: () => {} },
+  isConfirmDisabled = false,
 }: {
   title?: { confirmTitle: string; cancelTitle: string }
   onClick?: { onConfirm: () => void; onCancel: () => void }
+  isConfirmDisabled?: boolean
 }) => {
   return (
     <>
@@ -17,6 +19,7 @@ const SharedActionButtons = ({
           onClick={onClick.onCancel}
         />
         <SharedConfirmButton
+          isConfirmDisabled={isConfirmDisabled}
           title={title.confirmTitle}
           onClick={onClick.onConfirm}
         />

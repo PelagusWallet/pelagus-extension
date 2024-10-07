@@ -1,4 +1,11 @@
-import { QiHDWallet, QuaiHDWallet, Wallet, Zone } from "quais"
+import {
+  QiHDWallet,
+  QuaiHDWallet,
+  SerializedHDWallet,
+  SerializedQiHDWallet,
+  Wallet,
+  Zone,
+} from "quais"
 import { HexString } from "../../../types"
 
 export enum KeyringTypes {
@@ -84,7 +91,7 @@ export type SerializedPrivateKey = {
 
 export interface SerializedVaultData {
   wallets: SerializedPrivateKey[]
-  qiHDWallet: SerializedQiHDWallet | null // FIXME import from quais
+  qiHDWallet: SerializedQiHDWallet | null
   quaiHDWallets: SerializedHDWallet[]
   metadata: { [keyringId: string]: { source: SignerImportSource } }
   hiddenAccounts: { [address: HexString]: boolean }
@@ -127,54 +134,3 @@ export type InternalSignerPrivateKey = {
 export type InternalSignerWithType =
   | InternalSignerPrivateKey
   | InternalSignerHDKeyring
-
-// ------------------------ temp solution for qi ----------------------------
-// FIXME after quais fix we need to use SerializedQiHDWallet type from sdk
-export type Outpoint = {
-  txhash: string
-  index: number
-  denomination: number
-}
-
-interface OutpointInfo {
-  outpoint: Outpoint
-  address: string
-  zone: Zone
-  account?: number
-}
-
-export interface NeuteredAddressInfo {
-  pubKey: string
-  address: string
-  account: number
-  index: number
-  change: boolean
-  zone: Zone
-}
-
-export type AllowedCoinType = 969 | 994
-
-export interface SerializedHDWallet {
-  version: number
-  phrase: string
-  coinType: AllowedCoinType
-  addresses: Array<NeuteredAddressInfo>
-}
-
-interface PaymentCodeInfo {
-  address: string
-  index: number
-  isUsed: boolean
-  zone: Zone
-  account: number
-}
-
-export interface SerializedQiHDWallet extends SerializedHDWallet {
-  outpoints: OutpointInfo[]
-  changeAddresses: NeuteredAddressInfo[]
-  gapAddresses: NeuteredAddressInfo[]
-  gapChangeAddresses: NeuteredAddressInfo[]
-  receiverPaymentCodeInfo: { [key: string]: PaymentCodeInfo[] }
-  senderPaymentCodeInfo: { [key: string]: PaymentCodeInfo[] }
-}
-// ------------------------------------------------------------------

@@ -1,15 +1,27 @@
 import React from "react"
+import classNames from "classnames"
 
 const SharedConfirmButton = ({
   title = "",
   onClick = () => {},
+  isConfirmDisabled = false,
 }: {
   title?: string
   onClick?: () => void
+  isConfirmDisabled?: boolean
 }) => {
   return (
     <>
-      <button type="button" className="button" onClick={onClick}>
+      <button
+        type="button"
+        className={classNames("button", {
+          disabled: isConfirmDisabled,
+        })}
+        onClick={() => {
+          if (isConfirmDisabled) return
+          onClick()
+        }}
+      >
         {title}
       </button>
 
@@ -29,6 +41,17 @@ const SharedConfirmButton = ({
           background: var(--accent-color);
           color: var(--contrast-text);
           text-align: center;
+        }
+
+        .disabled {
+          background: var(--secondary-bg);
+          color: var(--secondary-text);
+          border: 1px solid var(--secondary-bg);
+          cursor: not-allowed;
+        }
+
+        .disabled:hover {
+          opacity: 1;
         }
       `}</style>
     </>

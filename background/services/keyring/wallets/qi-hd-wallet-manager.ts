@@ -81,6 +81,8 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     )
 
     const { webSocketProvider } = globalThis.main.chainService
+    deserializedQiHDWallet.connect(webSocketProvider)
+
     const mailboxContract = new Contract(
       process.env.MAILBOX_CONTRACT_ADDRESS || "",
       MAILBOX_INTERFACE,

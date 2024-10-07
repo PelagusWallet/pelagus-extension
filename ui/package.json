@@ -46,7 +46,7 @@
     "redux": "^4.1.0",
     "webextension-polyfill": "^0.8.0",
     "zxcvbn": "^4.4.2",
-    "quais": "^1.0.0-alpha.12"
+    "quais": "^1.0.0-alpha.13"
   },
   "devDependencies": {
     "@types/react-transition-group": "^4.4.4",

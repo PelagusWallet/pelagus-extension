@@ -1,15 +1,28 @@
 import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
+import { selectShowPaymentChannelModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import SendAsset from "../../components/_NewDesign/SendAsset/SendAsset"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import PaymentChanelModal from "../../components/_NewDesign/SendAsset/PaymentChanelModal/PaymentChanelModal"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
+import { useBackgroundSelector } from "../../hooks"
 
 const SendPage = () => {
   const history = useHistory()
 
+  const showPaymentChannelModal = useBackgroundSelector(
+    selectShowPaymentChannelModal
+  )
   const [isOpenPaymentChanelModal, setIsOpenPaymentChanelModal] =
     useState(false)
+
+  const handleConfirm = () => {
+    if (!showPaymentChannelModal) {
+      history.push("/send-qi/confirmation")
+    } else {
+      setIsOpenPaymentChanelModal(true)
+    }
+  }
 
   return (
     <>
@@ -19,7 +32,7 @@ const SendPage = () => {
         <SharedActionButtons
           title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
           onClick={{
-            onConfirm: () => setIsOpenPaymentChanelModal(true),
+            onConfirm: () => handleConfirm(),
             onCancel: () => history.push("/"),
           }}
         />

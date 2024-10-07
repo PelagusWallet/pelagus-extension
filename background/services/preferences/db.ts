@@ -44,6 +44,7 @@ export interface Preferences {
   showAlphaWalletBanner: boolean
   showTestNetworks: boolean
   showPelagusNotifications: boolean
+  showPaymentChannelModal: boolean
 }
 
 export class PreferenceDatabase extends Dexie {
@@ -94,6 +95,14 @@ export class PreferenceDatabase extends Dexie {
             Object.assign(storedPreferences, update)
           })
       })
+    this.version(2).upgrade((tx) => {
+      return tx
+        .table("preferences")
+        .toCollection()
+        .modify((preferences: Preferences) => {
+          preferences.showPaymentChannelModal = true
+        })
+    })
 
     this.on("populate", (tx: Transaction) => {
       tx.table("preferences").add(DEFAULT_PREFERENCES)
@@ -136,6 +145,18 @@ export class PreferenceDatabase extends Dexie {
       .modify((storedPreferences: Preferences) => {
         const update: Partial<Preferences> = {
           showTestNetworks: newValue,
+        }
+
+        Object.assign(storedPreferences, update)
+      })
+  }
+
+  async setShowPaymentChannelModal(newValue: boolean): Promise<void> {
+    await this.preferences
+      .toCollection()
+      .modify((storedPreferences: Preferences) => {
+        const update: Partial<Preferences> = {
+          showPaymentChannelModal: newValue,
         }
 
         Object.assign(storedPreferences, update)

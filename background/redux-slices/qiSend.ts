@@ -70,6 +70,26 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
   "qiSend/sendQiTransaction",
   async (_, { getState }) => {
     const { qiSend } = getState() as RootState
-    console.log(qiSend)
+
+    const {
+      amount,
+      senderQuaiAccount,
+      senderQiAccount,
+      receiverPaymentCode,
+      tips,
+    } = qiSend
+    const { address: quaiAddress } = senderQuaiAccount as AccountTotal
+    const { paymentCode: senderPaymentCode } = senderQiAccount as QiWallet
+
+    const parsedAmount = BigInt(amount) // FIXME parseQi(amount)
+    const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null
+
+    await main.transactionService.sendQiTransaction(
+      parsedAmount,
+      quaiAddress,
+      senderPaymentCode,
+      receiverPaymentCode,
+      maxPriorityFeePerGas
+    )
   }
 )

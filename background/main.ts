@@ -426,7 +426,7 @@ export default class Main extends BaseService<never> {
 
     public blockService: BlockService,
 
-    private transactionService: TransactionService
+    public transactionService: TransactionService
   ) {
     super({
       initialLoadWaitExpired: {

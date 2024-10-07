@@ -156,9 +156,15 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     amount: bigint,
     quaiAddress: string,
     senderPaymentCode: string,
-    receiverPaymentCode: string
+    receiverPaymentCode: string,
+    maxPriorityFeePerGas: bigint | null
   ): Promise<void> {
-    this.notifyQiRecipient(quaiAddress, senderPaymentCode, receiverPaymentCode)
+    this.notifyQiRecipient(
+      quaiAddress,
+      senderPaymentCode,
+      receiverPaymentCode,
+      maxPriorityFeePerGas
+    )
 
     // const { jsonRpcProvider } = this.chainService
     // const qiWallet = await this.keyringService.getQiHDWallet()
@@ -360,7 +366,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async notifyQiRecipient(
     quaiAddress: string,
     senderPaymentCode: string,
-    receiverPaymentCode: string
+    receiverPaymentCode: string,
+    maxPriorityFeePerGas: bigint | null
   ): Promise<void> {
     try {
       const { jsonRpcProvider } = this.chainService
@@ -375,9 +382,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         MAILBOX_INTERFACE,
         wallet
       )
+      const gasOptions = maxPriorityFeePerGas ? { maxPriorityFeePerGas } : {}
       const tx = await mailboxContract.notify(
         senderPaymentCode,
-        receiverPaymentCode
+        receiverPaymentCode,
+        gasOptions
       )
       await tx.wait()
     } catch (error) {

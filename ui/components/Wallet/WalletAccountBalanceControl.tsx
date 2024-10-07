@@ -3,8 +3,7 @@ import { useTranslation } from "react-i18next"
 import { selectCurrentAccountSigner } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useHistory } from "react-router-dom"
-import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
+import { useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -23,7 +22,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
   })
   const { onReceive } = props
   const history = useHistory()
-  const dispatch = useBackgroundDispatch()
 
   return (
     <div className="action_buttons_wrap">
@@ -35,18 +33,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         iconHeight="18"
       >
         {t("send")}
-      </SharedCircleButton>
-      <SharedCircleButton
-        icon="icons/s/send.svg"
-        ariaLabel="Send QI"
-        onClick={async () => {
-          await dispatch(resetQiSendSlice())
-          history.push("/send-qi")
-        }}
-        iconWidth="20"
-        iconHeight="18"
-      >
-        Send QI
       </SharedCircleButton>
       <SharedCircleButton
         icon="icons/s/receive.svg"

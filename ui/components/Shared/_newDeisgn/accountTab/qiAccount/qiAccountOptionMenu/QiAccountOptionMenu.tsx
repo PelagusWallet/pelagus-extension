@@ -1,10 +1,16 @@
 import React from "react"
-import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
+import {
+  setShowingAccountsModal,
+  setSnackbarConfig,
+} from "@pelagus/pelagus-background/redux-slices/ui"
+import { useHistory } from "react-router-dom"
+import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedDropdown from "../../../../SharedDropDown"
 import { useBackgroundDispatch } from "../../../../../../hooks"
 
 const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
   const dispatch = useBackgroundDispatch()
+  const history = useHistory()
 
   const onCopyData = async ({
     data = "",
@@ -30,6 +36,16 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
           />
         )}
         options={[
+          {
+            key: "copy",
+            icon: "icons/s/arrow-up.svg",
+            label: "Send asset",
+            onClick: async () => {
+              await dispatch(resetQiSendSlice())
+              history.push("/send-qi")
+              await dispatch(setShowingAccountsModal(false))
+            },
+          },
           {
             key: "copy",
             icon: "icons/s/copy.svg",

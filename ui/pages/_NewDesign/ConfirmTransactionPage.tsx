@@ -33,7 +33,7 @@ const ConfirmTransactionPage = () => {
       <AccountsNotificationPanel
         onCurrentAddressChange={() => dispatch(setShowingAccountsModal(false))}
         setSelectedAccountSigner={() => {}}
-        selectedAccountSigner={""}
+        selectedAccountSigner=""
         isNeedToChangeAccount={false}
       />
       <style jsx>{`

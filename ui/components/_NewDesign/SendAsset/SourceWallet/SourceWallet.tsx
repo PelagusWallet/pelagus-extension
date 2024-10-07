@@ -1,5 +1,4 @@
 import React, { useEffect } from "react"
-import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 import { setQiSendAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
@@ -19,9 +18,7 @@ const SourceWallet = () => {
 
   if (!qiSendAccount) return <></>
 
-  const { addresses, paymentCode } = qiSendAccount
-
-  const zone = getExtendedZoneForAddress(addresses[0], true, true)
+  const { paymentCode } = qiSendAccount
 
   return (
     <>
@@ -29,7 +26,7 @@ const SourceWallet = () => {
         <h3 className="source-label">Source Wallet</h3>
         <SharedAccountTab
           account={{
-            title: `${zone} - QI Wallet`,
+            title: `Cyprus 1 - QI Wallet`,
             subtitle: `${paymentCode.slice(0, 10)}...${paymentCode.slice(-10)}`,
           }}
         />

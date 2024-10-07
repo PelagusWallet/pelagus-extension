@@ -16,14 +16,14 @@ const PaymentChannelModal = ({
 
   const handleDoNotShowAgain = () => {
     setDontShowAgain(!dontShowAgain)
-    dispatch(updateShowPaymentChannelModal(false))
   }
 
   const handleClose = () => {
     setIsOpenPaymentChanelModal(false)
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (dontShowAgain) await dispatch(updateShowPaymentChannelModal(false))
     history.push("/send-qi/confirmation")
   }
 

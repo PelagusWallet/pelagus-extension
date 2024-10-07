@@ -118,12 +118,6 @@ const keyringsSlice = createSlice({
         }
       }
     ) => {
-      console.log("REDUX updateKeyrings", {
-        privateKeys,
-        qiHDWallet,
-        keyrings,
-        keyringMetadata,
-      })
       // When the keyrings are locked, we receive updateKeyrings with an empty
       // list as the keyring service clears the in-memory keyrings. For UI
       // purposes, however, we want to continue tracking the keyring metadata,

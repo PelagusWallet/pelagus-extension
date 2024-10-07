@@ -5,6 +5,7 @@ import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import SharedIconGA from "../../Shared/SharedIconGA"
 import AccountsSearchBar from "../../AccountItem/AccountsSearchBar"
 import SigningButton from "../../AccountsNotificationPanel/SigningButton"
+import QiAccountOptionMenu from "../../Shared/_newDeisgn/accountTab/qiAccount/qiAccountOptionMenu/QiAccountOptionMenu"
 
 const QiAccountsList = () => {
   const [searchAccountsValue, setSearchAccountsValue] = useState("")
@@ -45,8 +46,8 @@ const QiAccountsList = () => {
                 </div>
               </div>
             </div>
-
             <div className="balance">0.0000 QI</div>
+            <QiAccountOptionMenu paymentCode={paymentCode} />
           </div>
         </li>
       </ul>

@@ -19,6 +19,7 @@ export interface Preferences {
   showDefaultWalletBanner: boolean
   showTestNetworks: boolean
   showPelagusNotifications: boolean
+  showPaymentChannelModal: boolean
 }
 
 export type AnalyticsPreferences = Preferences["analytics"]

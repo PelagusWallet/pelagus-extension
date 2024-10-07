@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
+import { updateShowPaymentChannelModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import CrossIcon from "../../../Shared/_newDeisgn/iconComponents/CrossIcon"
+import { useBackgroundDispatch } from "../../../../hooks"
 
 const PaymentChannelModal = ({
   setIsOpenPaymentChanelModal,
@@ -8,8 +10,14 @@ const PaymentChannelModal = ({
   setIsOpenPaymentChanelModal: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
   const history = useHistory()
+  const dispatch = useBackgroundDispatch()
 
   const [dontShowAgain, setDontShowAgain] = useState(false)
+
+  const handleDoNotShowAgain = () => {
+    setDontShowAgain(!dontShowAgain)
+    dispatch(updateShowPaymentChannelModal(false))
+  }
 
   const handleClose = () => {
     setIsOpenPaymentChanelModal(false)
@@ -53,7 +61,7 @@ const PaymentChannelModal = ({
               <input
                 type="checkbox"
                 checked={dontShowAgain}
-                onChange={() => setDontShowAgain(!dontShowAgain)}
+                onChange={() => handleDoNotShowAgain()}
               />
               Don’t show this message again
             </label>

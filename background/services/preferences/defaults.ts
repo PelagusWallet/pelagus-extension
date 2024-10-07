@@ -21,6 +21,7 @@ const defaultPreferences: Preferences = {
   showDefaultWalletBanner: true,
   showTestNetworks: false,
   showPelagusNotifications: true,
+  showPaymentChannelModal: true,
 }
 
 export default defaultPreferences

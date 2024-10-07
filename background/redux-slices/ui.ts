@@ -19,6 +19,7 @@ export const defaultSettings = {
   defaultWallet: false,
   networkConnectError: [],
   showTestNetworks: false,
+  showPaymentChannelModal: true,
   collectAnalytics: false,
   showAnalyticsNotification: false,
   showUnverifiedAssets: false,
@@ -43,6 +44,7 @@ export type UIState = {
     showPelagusNotifications: boolean
     networkConnectError: ChainIdWithError[]
     showTestNetworks: boolean
+    showPaymentChannelModal: boolean
     collectAnalytics: boolean
     showAnalyticsNotification: boolean
     showUnverifiedAssets: boolean
@@ -81,6 +83,7 @@ export type Events = {
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
   showTestNetworks: boolean
+  showPaymentChannelModal: boolean
 }
 
 export const emitter = new Emittery<Events>()
@@ -120,6 +123,12 @@ const uiSlice = createSlice({
       { payload: showTestNetworks }: { payload: boolean }
     ): void => {
       immerState.settings.showTestNetworks = showTestNetworks
+    },
+    setShowPaymentChannelModal: (
+      immerState,
+      { payload: isShowPaymentChannelModal }: { payload: boolean }
+    ): void => {
+      immerState.settings.showPaymentChannelModal = isShowPaymentChannelModal
     },
     toggleShowUnverifiedAssets: (
       immerState,
@@ -285,6 +294,7 @@ export const {
   initializationLoadingTimeHitLimit,
   toggleHideDust,
   toggleTestNetworks,
+  setShowPaymentChannelModal,
   toggleShowUnverifiedAssets,
   toggleCollectAnalytics,
   setShowAnalyticsNotification,
@@ -472,6 +482,13 @@ export const updateShowTestNetworks = createBackgroundAsyncThunk(
   }
 )
 
+export const updateShowPaymentChannelModal = createBackgroundAsyncThunk(
+  "ui/showPaymentChannelModal",
+  async (isShowPaymentChannelModal: boolean) => {
+    await emitter.emit("showPaymentChannelModal", isShowPaymentChannelModal)
+  }
+)
+
 export const selectUI = createSelector(
   (state: { ui: UIState }): UIState => state.ui,
   (uiState) => uiState
@@ -528,6 +545,11 @@ export const selectShowingAddAccountModal = createSelector(
 export const selectShowTestNetworks = createSelector(
   selectSettings,
   (settings) => settings?.showTestNetworks
+)
+
+export const selectShowPaymentChannelModal = createSelector(
+  selectSettings,
+  (settings) => settings?.showPaymentChannelModal
 )
 
 export const selectShowUnverifiedAssets = createSelector(

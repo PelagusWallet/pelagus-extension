@@ -38,6 +38,7 @@ interface Events extends ServiceLifecycleEvents {
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
   showTestNetworks: boolean
+  showPaymentChannelModal: boolean
 }
 
 /*
@@ -73,6 +74,10 @@ export default class PreferenceService extends BaseService<Events> {
       await this.getAnalyticsPreferences()
     )
     this.emitter.emit("showTestNetworks", await this.getShowTestNetworks())
+    this.emitter.emit(
+      "showPaymentChannelModal",
+      await this.getShowPaymentChannelModal()
+    )
   }
 
   protected override async internalStopService(): Promise<void> {
@@ -205,5 +210,16 @@ export default class PreferenceService extends BaseService<Events> {
   async setShowTestNetworks(isShowTestNetworks: boolean): Promise<void> {
     await this.db.setShowTestNetworks(isShowTestNetworks)
     await this.emitter.emit("showTestNetworks", isShowTestNetworks)
+  }
+
+  async getShowPaymentChannelModal(): Promise<boolean> {
+    return (await this.db.getPreferences())?.showPaymentChannelModal
+  }
+
+  async setShowPaymentChannelModal(
+    showPaymentChannelModal: boolean
+  ): Promise<void> {
+    await this.db.setShowPaymentChannelModal(showPaymentChannelModal)
+    await this.emitter.emit("showPaymentChannelModal", showPaymentChannelModal)
   }
 }

@@ -9,7 +9,6 @@ import {
 export interface IQiHDWalletManager {
   get(): Promise<QiHDWallet | null>
   create(mnemonic: string): Promise<AddressWithQiHDWallet>
-  deriveAddress(zone: Zone): Promise<AddressWithQiHDWallet>
   syncQiWalletPaymentCodes(qiWallet: QiHDWallet): Promise<void>
 }
 
@@ -36,37 +35,23 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     return QiHDWallet.deserialize(qiHDWallet)
   }
 
-  public async deriveAddress(zone: Zone): Promise<AddressWithQiHDWallet> {
-    const qiHDWallet = await this.get()
-    if (!qiHDWallet) {
-      throw new Error("QiHDWallet was not found.")
-    }
-
-    const { address } = await qiHDWallet.getNextAddress(
-      this.qiHDWalletAccountIndex,
-      zone
-    )
-
-    return { address, qiHDWallet }
-  }
-
   public async syncQiWalletPaymentCodes(
     qiWallet: QiHDWallet,
     isRestored = false
   ): Promise<void> {
-    const { webSocketProvider } = globalThis.main.chainService
+    const { jsonRpcProvider } = globalThis.main.chainService
     const thisQiWalletPaymentCode = await qiWallet.getPaymentCode()
 
     const mailboxContract = new Contract(
       process.env.MAILBOX_CONTRACT_ADDRESS || "",
       MAILBOX_INTERFACE,
-      webSocketProvider
+      jsonRpcProvider
     )
     const notifications: string[] = await mailboxContract.getNotifications(
       thisQiWalletPaymentCode
     )
 
-    qiWallet.connect(webSocketProvider)
+    qiWallet.connect(jsonRpcProvider)
     notifications.forEach((paymentCode) => {
       qiWallet.openChannel(paymentCode, "sender")
     })
@@ -77,12 +62,42 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
       await qiWallet.sync(Zone.Cyprus1, 0)
     }
 
+    await this.vaultManager.add(
+      {
+        qiHDWallet: qiWallet.serialize(),
+      },
+      {}
+    )
+    this.subscribeToContractEvents()
+  }
+
+  private async subscribeToContractEvents(): Promise<void> {
+    const { qiHDWallet } = await this.vaultManager.get()
+    if (!qiHDWallet) return
+
+    const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
+    const thisQiWalletPaymentCode = await deserializedQiHDWallet.getPaymentCode(
+      this.qiHDWalletAccountIndex
+    )
+
+    const { webSocketProvider } = globalThis.main.chainService
+    const mailboxContract = new Contract(
+      process.env.MAILBOX_CONTRACT_ADDRESS || "",
+      MAILBOX_INTERFACE,
+      webSocketProvider
+    )
     mailboxContract.on(
       MAILBOX_EVENTS.NotificationSent.name,
       async (senderPaymentCode: string, receiverPaymentCode: string) => {
         if (thisQiWalletPaymentCode === receiverPaymentCode) {
-          qiWallet.openChannel(senderPaymentCode, "sender")
-          await qiWallet.sync(Zone.Cyprus1, 0)
+          deserializedQiHDWallet.openChannel(senderPaymentCode, "sender")
+          await deserializedQiHDWallet.sync(Zone.Cyprus1, 0)
+          await this.vaultManager.add(
+            {
+              qiHDWallet: deserializedQiHDWallet.serialize(),
+            },
+            {}
+          )
         }
       }
     )

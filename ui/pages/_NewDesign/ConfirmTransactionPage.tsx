@@ -20,12 +20,12 @@ const ConfirmTransactionPage = () => {
   useEffect(() => {
     const serializedBalance = Number(quaiBalance.split(" ")[0])
 
-    if (!serializedBalance) {
+    if (senderQuaiAccount && !serializedBalance) {
       setInsufficientQuai(true)
       return
     }
     setInsufficientQuai(false)
-  }, [quaiBalance])
+  }, [quaiBalance, senderQuaiAccount])
 
   const onSendQiTransaction = async () => {
     if (isInsufficientQuai) return
@@ -39,7 +39,7 @@ const ConfirmTransactionPage = () => {
         <ConfirmTransaction isInsufficientQuai={isInsufficientQuai} />
         <SharedActionButtons
           title={{ confirmTitle: "Send", cancelTitle: "Back" }}
-          isConfirmDisabled={isInsufficientQuai}
+          isConfirmDisabled={!senderQuaiAccount || isInsufficientQuai}
           onClick={{
             onConfirm: onSendQiTransaction,
             onCancel: () => history.push("-1"),

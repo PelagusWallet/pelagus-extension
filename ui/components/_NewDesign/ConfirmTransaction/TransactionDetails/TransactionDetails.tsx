@@ -1,6 +1,7 @@
 import React from "react"
 import ArrowRightIcon from "../../../Shared/_newDeisgn/iconComponents/ArrowRightIcon"
 import { useBackgroundSelector } from "../../../../hooks"
+import { trimWithEllipsis } from "../../../../utils/textUtils"
 
 const TransactionDetails = () => {
   const { receiverPaymentCode, senderQiAccount, amount } =
@@ -12,12 +13,7 @@ const TransactionDetails = () => {
     <>
       <div>
         <h3 className="amount-title">Sending</h3>
-        <h1 className="amount">
-          {amount.length >= 12
-            ? `${amount.slice(0, 7)}...${amount.slice(-5)}`
-            : amount}{" "}
-          QI
-        </h1>
+        <h1 className="amount">{trimWithEllipsis(amount, 12)} QI</h1>
 
         <div className="wallets">
           <div className="wallet">

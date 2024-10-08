@@ -1,11 +1,12 @@
 import React, { useEffect } from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
-import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
-import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import { ACCOUNT_TYPES } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { selectCurrentNetworkAccountTotalsByCategory } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { setQiSendQuaiAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
+import SharedSkeletonLoader from "../../../Shared/SharedSkeletonLoader"
 
 const QuaiAccount = () => {
   const dispatch = useBackgroundDispatch()
@@ -27,7 +28,13 @@ const QuaiAccount = () => {
     })
   }, [])
 
-  if (!quiAccount) return <></>
+  if (!quiAccount)
+    return (
+      <div className="quai-wallet">
+        <p className="quai-wallet-title">Quai Wallet</p>
+        <SharedSkeletonLoader height={66} />
+      </div>
+    )
 
   const { shortenedAddress, shortName, balance, address, avatarURL } =
     quiAccount

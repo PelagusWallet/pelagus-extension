@@ -2,6 +2,7 @@ import React, { useEffect } from "react"
 import { setQiSendAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
+import SharedSkeletonLoader from "../../../Shared/SharedSkeletonLoader"
 
 const SourceWallet = () => {
   const dispatch = useBackgroundDispatch()
@@ -16,7 +17,13 @@ const SourceWallet = () => {
     dispatch(setQiSendAcc(qiHdWallet))
   }, [])
 
-  if (!qiSendAccount) return <></>
+  if (!qiSendAccount)
+    return (
+      <section className="source-wallet">
+        <h3 className="source-label">Source Wallet</h3>
+        <SharedSkeletonLoader height={66} />
+      </section>
+    )
 
   const { paymentCode } = qiSendAccount
 

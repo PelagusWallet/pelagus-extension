@@ -1,7 +1,13 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 /* eslint-disable import/no-cycle */
-import { JsonRpcProvider, Shard, toBigInt, WebSocketProvider } from "quais"
+import {
+  JsonRpcProvider,
+  Shard,
+  toBigInt,
+  WebSocketProvider,
+  Zone,
+} from "quais"
 import { NetworksArray } from "../../constants/networks/networks"
 import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
@@ -13,7 +19,7 @@ import {
   AssetTransfer,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MINUTE } from "../../constants"
+import { HOUR, MINUTE, QI } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, initializeChainDatabase } from "./db"
@@ -260,6 +266,41 @@ export default class ChainService extends BaseService<Events> {
 
   async removeAccountToTrack(address: string): Promise<void> {
     await this.db.removeAccountToTrack(address)
+  }
+
+  async getLatestQiWalletBalance(): Promise<void> {
+    try {
+      const qiWallet = await this.keyringService.getQiHDWallet()
+      qiWallet.connect(this.jsonRpcProvider)
+      await qiWallet.scan(Zone.Cyprus1)
+
+      const balance = qiWallet.getBalanceForZone(Zone.Cyprus1)
+
+      const paymentCode = await qiWallet.getPaymentCode(0)
+
+      const accountBalance: AccountBalance = {
+        address: paymentCode, // FIXME
+        network: NetworksArray[0], // FIXME
+        assetAmount: {
+          asset: QI,
+          amount: balance,
+        },
+        dataSource: "local",
+        retrievedAt: Date.now(),
+      }
+      console.log("Account balance: ", accountBalance)
+
+      this.emitter.emit("accountsWithBalances", {
+        balances: [accountBalance],
+        addressOnNetwork: {
+          address: paymentCode, // FIXME
+          network: NetworksArray[0], // FIXME
+        },
+      })
+      await this.db.addBalance(accountBalance)
+    } catch (error) {
+      logger.error("Error getting qi wallet balance for address", error)
+    }
   }
 
   async getLatestBaseAccountBalance({

@@ -2,9 +2,10 @@
 // data but is important, it SHOULD NOT be imported from an external package.
 
 export const COIN_TYPES_BY_ASSET_SYMBOL = {
+  QI: 1, // FIXME
   QUAI: 994,
 } as const
 
 // All coin types known to the extension
 export type Slip44CoinType =
-  typeof COIN_TYPES_BY_ASSET_SYMBOL[keyof typeof COIN_TYPES_BY_ASSET_SYMBOL]
+  (typeof COIN_TYPES_BY_ASSET_SYMBOL)[keyof typeof COIN_TYPES_BY_ASSET_SYMBOL]

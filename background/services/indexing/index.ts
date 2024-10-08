@@ -767,8 +767,9 @@ export default class IndexingService extends BaseService<Events> {
   }
 
   private async handleBalanceAlarm(): Promise<void> {
-    await this.fetchAndCacheTokenLists().then(() =>
+    await this.fetchAndCacheTokenLists().then(() => {
       this.loadAccountBalances(true)
-    )
+      this.chainService.getLatestQiWalletBalance()
+    })
   }
 }

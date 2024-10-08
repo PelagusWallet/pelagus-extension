@@ -2,20 +2,28 @@ import React, { useEffect, useState } from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import { sendQiTransaction } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { useTranslation } from "react-i18next"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import AccountsNotificationPanel from "../../components/AccountsNotificationPanel/AccountsNotificationPanel"
 import ConfirmTransaction from "../../components/_NewDesign/ConfirmTransaction/ConfirmTransaction"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
+import SharedConfirmationModal from "../../components/Shared/SharedConfirmationModal"
 
 const ConfirmTransactionPage = () => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
 
+  const { t: confirmationLocales } = useTranslation("translation", {
+    keyPrefix: "drawers.transactionConfirmation",
+  })
+
   const { senderQuaiAccount } = useBackgroundSelector((state) => state.qiSend)
   const { balance: quaiBalance = "" } = senderQuaiAccount ?? {}
 
   const [isInsufficientQuai, setInsufficientQuai] = useState(false)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(false)
+  const [isTransactionError, setIsTransactionError] = useState(false)
 
   useEffect(() => {
     const serializedBalance = Number(quaiBalance.split(" ")[0])
@@ -29,8 +37,39 @@ const ConfirmTransactionPage = () => {
 
   const onSendQiTransaction = async () => {
     if (isInsufficientQuai) return
-    await dispatch(sendQiTransaction())
+
+    try {
+      const result = ((await dispatch(sendQiTransaction())) as any).unwrap()
+    } catch (error) {
+      setIsTransactionError(true)
+    } finally {
+      setIsOpenConfirmationModal(true)
+    }
   }
+
+  const confirmationModalProps = isTransactionError
+    ? {
+        headerTitle: confirmationLocales("send.errorHeadline"),
+        subtitle: confirmationLocales("send.errorSubtitle"),
+        title: `${confirmationLocales("send.errorTitle")}!`,
+        icon: {
+          src: "icons/s/notif-wrong.svg",
+          height: "43",
+          width: "43",
+          color: "var(--error-color)",
+          padding: "32px",
+        },
+        isOpen: isOpenConfirmationModal,
+        onClose: () => history.push("/"),
+      }
+    : {
+        headerTitle: confirmationLocales("send.headerTitle", {
+          network: "",
+        }),
+        title: confirmationLocales("send.title"),
+        isOpen: isOpenConfirmationModal,
+        onClose: () => history.push("/"),
+      }
 
   return (
     <>
@@ -52,6 +91,14 @@ const ConfirmTransactionPage = () => {
         setSelectedAccountSigner={() => {}}
         selectedAccountSigner=""
         isNeedToChangeAccount={false}
+      />
+      <SharedConfirmationModal
+        headerTitle={confirmationModalProps.headerTitle}
+        title={confirmationModalProps.title}
+        subtitle={confirmationModalProps.subtitle}
+        isOpen={confirmationModalProps.isOpen}
+        onClose={confirmationModalProps.onClose}
+        icon={confirmationModalProps.icon}
       />
       <style jsx>{`
         .confirm-transaction-wrapper {

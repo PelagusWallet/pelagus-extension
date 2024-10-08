@@ -3,6 +3,7 @@ import { AccountTotal } from "./selectors"
 import { QiWallet } from "../services/keyring/types"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
+import logger from "../lib/logger"
 
 export type QiSendState = {
   senderQiAccount: QiWallet | null
@@ -68,7 +69,7 @@ export default qiSendSlice.reducer
 
 export const sendQiTransaction = createBackgroundAsyncThunk(
   "qiSend/sendQiTransaction",
-  async (_, { getState }) => {
+  async (_, { getState, rejectWithValue }) => {
     const { qiSend } = getState() as RootState
 
     const {
@@ -78,18 +79,24 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
       receiverPaymentCode,
       tips,
     } = qiSend
-    const { address: quaiAddress } = senderQuaiAccount as AccountTotal
-    const { paymentCode: senderPaymentCode } = senderQiAccount as QiWallet
 
-    const parsedAmount = BigInt(amount) // FIXME parseQi(amount)
-    const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null
+    try {
+      const { address: quaiAddress } = senderQuaiAccount as AccountTotal
+      const { paymentCode: senderPaymentCode } = senderQiAccount as QiWallet
 
-    await main.transactionService.sendQiTransaction(
-      parsedAmount,
-      quaiAddress,
-      senderPaymentCode,
-      receiverPaymentCode,
-      maxPriorityFeePerGas
-    )
+      const parsedAmount = BigInt(amount) // FIXME parseQi(amount)
+      const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null
+
+      await main.transactionService.sendQiTransaction(
+        parsedAmount,
+        quaiAddress,
+        senderPaymentCode,
+        receiverPaymentCode,
+        maxPriorityFeePerGas
+      )
+    } catch (error) {
+      logger.error(error)
+      return rejectWithValue(error)
+    }
   }
 )

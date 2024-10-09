@@ -1,7 +1,11 @@
 import Dexie, { DexieOptions } from "dexie"
 
 import { UNIXTime } from "../../types"
-import { AccountBalance, AddressOnNetwork } from "../../accounts"
+import {
+  AccountBalance,
+  AddressOnNetwork,
+  QiWalletBalance,
+} from "../../accounts"
 import { NetworkBaseAsset } from "../../networks"
 import { FungibleAsset } from "../../assets"
 import { BASE_ASSETS } from "../../constants"
@@ -42,6 +46,8 @@ export class ChainDatabase extends Dexie {
    */
   private balances!: Dexie.Table<AccountBalance, number>
 
+  private qiLedgerBalance!: Dexie.Table<QiWalletBalance, number>
+
   private networks!: Dexie.Table<NetworkInterface, string>
 
   private baseAssets!: Dexie.Table<NetworkBaseAsset, string>
@@ -59,6 +65,11 @@ export class ChainDatabase extends Dexie {
         "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
       networks: "&chainID,baseAsset.name,family",
       baseAssets: "&chainID,symbol,name",
+    })
+
+    this.version(2).stores({
+      qiLedgerBalance:
+        "[paymentCode+assetAmount.asset.symbol+network.chainID],paymentCode,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
     })
   }
 
@@ -153,6 +164,19 @@ export class ChainDatabase extends Dexie {
     return balanceCandidates.length > 0 ? balanceCandidates[0] : null
   }
 
+  async getLatestQiLedgerBalance(
+    network: NetworkInterface
+  ): Promise<QiWalletBalance | null> {
+    const { chainID } = network
+
+    return this.qiLedgerBalance
+      .where("network.chainID")
+      .equals(chainID)
+      .reverse()
+      .sortBy("retrievedAt")
+      .then((sortedBalances) => sortedBalances[0] || null)
+  }
+
   async addAccountToTrack(addressNetwork: AddressOnNetwork): Promise<void> {
     await this.accountsToTrack.put(addressNetwork)
   }
@@ -195,6 +219,10 @@ export class ChainDatabase extends Dexie {
 
   async addBalance(accountBalance: AccountBalance): Promise<void> {
     await this.balances.put(accountBalance)
+  }
+
+  async addQiLedgerBalance(qiWalletBalance: QiWalletBalance): Promise<void> {
+    await this.qiLedgerBalance.put(qiWalletBalance)
   }
 
   async getAccountsToTrack(): Promise<AddressOnNetwork[]> {

@@ -39,6 +39,7 @@ import {
   loadUtxoAccount,
   updateAccountBalance,
   updateAccountName,
+  updateUtxoAccountBalance,
 } from "./redux-slices/accounts"
 import {
   assetsLoaded,
@@ -904,6 +905,13 @@ export default class Main extends BaseService<never> {
       (accountWithBalance) => {
         // The first account balance update will transition the account to loading.
         this.store.dispatch(updateAccountBalance(accountWithBalance))
+      }
+    )
+
+    this.chainService.emitter.on(
+      "updatedQiLedgerBalance",
+      (accountWithBalance) => {
+        this.store.dispatch(updateUtxoAccountBalance(accountWithBalance))
       }
     )
 

@@ -13,7 +13,12 @@ import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
 import { HexString, UNIXTime } from "../../types"
-import { AccountBalance, AddressOnNetwork } from "../../accounts"
+import {
+  AccountBalance,
+  AddressOnNetwork,
+  QiWalletBalance,
+  QiWalletOnNetwork,
+} from "../../accounts"
 import {
   AnyAssetAmount,
   AssetTransfer,
@@ -62,6 +67,10 @@ interface Events extends ServiceLifecycleEvents {
      * The respective address and network for this balance update
      */
     addressOnNetwork: AddressOnNetwork
+  }
+  updatedQiLedgerBalance: {
+    balances: QiWalletBalance[]
+    addressOnNetwork: QiWalletOnNetwork
   }
   networkSubscribed: NetworkInterface
   assetTransfers: {
@@ -275,11 +284,10 @@ export default class ChainService extends BaseService<Events> {
       await qiWallet.scan(Zone.Cyprus1)
 
       const balance = qiWallet.getBalanceForZone(Zone.Cyprus1)
-
       const paymentCode = await qiWallet.getPaymentCode(0)
 
-      const accountBalance: AccountBalance = {
-        address: paymentCode, // FIXME
+      const qiWalletBalance: QiWalletBalance = {
+        paymentCode,
         network: NetworksArray[0], // FIXME
         assetAmount: {
           asset: QI,
@@ -288,16 +296,15 @@ export default class ChainService extends BaseService<Events> {
         dataSource: "local",
         retrievedAt: Date.now(),
       }
-      console.log("Account balance: ", accountBalance)
 
-      this.emitter.emit("accountsWithBalances", {
-        balances: [accountBalance],
+      this.emitter.emit("updatedQiLedgerBalance", {
+        balances: [qiWalletBalance],
         addressOnNetwork: {
-          address: paymentCode, // FIXME
+          paymentCode,
           network: NetworksArray[0], // FIXME
         },
       })
-      await this.db.addBalance(accountBalance)
+      await this.db.addQiLedgerBalance(qiWalletBalance)
     } catch (error) {
       logger.error("Error getting qi wallet balance for address", error)
     }

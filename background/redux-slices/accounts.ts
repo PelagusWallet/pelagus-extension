@@ -1,6 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { Zone } from "quais"
 import { createBackgroundAsyncThunk } from "./utils"
-import { AccountBalance, AddressOnNetwork, NameOnNetwork } from "../accounts"
+import {
+  AccountBalance,
+  AddressOnNetwork,
+  NameOnNetwork,
+  QiWalletBalance,
+} from "../accounts"
 import {
   AnyAsset,
   AnyAssetAmount,
@@ -20,6 +26,7 @@ import { AccountSigner } from "../services/signing"
 import { TEST_NETWORK_BY_CHAIN_ID } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { NetworkInterface } from "../constants/networks/networkTypes"
+import { QiWallet } from "../services/keyring/types"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to
@@ -59,7 +66,7 @@ export type ListAccount = {
   shard: string
 }
 
-export type AccountData = {
+export type EvmAccountData = {
   address: HexString
   network: NetworkInterface
   balances: {
@@ -72,10 +79,28 @@ export type AccountData = {
   defaultAvatar: string
 }
 
-type AccountsByChainID = {
+type EvmAccountsByChainID = {
   [chainID: string]: {
-    [address: string]: AccountData | "loading"
+    [address: string]: EvmAccountData | "loading"
   }
+}
+
+type UtxoAccountsByChainID = {
+  [chainID: string]: {
+    [paymentCode: string]: UtxoAccountData | null
+  }
+}
+
+export type UtxoAccountData = {
+  paymentCode: HexString
+  id: string
+  addresses: string[]
+  network: NetworkInterface
+  balances: {
+    [zone: string]: QiWalletBalance
+  }
+  defaultName: string
+  defaultAvatar: string
 }
 
 export type AccountState = {
@@ -83,7 +108,8 @@ export type AccountState = {
   accountLoading?: string
   hasAccountError?: boolean
   accountsData: {
-    evm: AccountsByChainID
+    evm: EvmAccountsByChainID
+    utxo: UtxoAccountsByChainID
   }
   combinedData: CombinedAccountData
 }
@@ -107,7 +133,7 @@ export type CompleteAssetAmount<T extends AnyAsset = AnyAsset> =
   InternalCompleteAssetAmount<T, AnyAssetAmount<T>>
 
 export const initialState: AccountState = {
-  accountsData: { evm: {} },
+  accountsData: { evm: {}, utxo: {} },
   combinedData: {
     totalMainCurrencyValue: "",
     assets: [],
@@ -118,7 +144,7 @@ function newAccountData(
   address: HexString,
   network: NetworkInterface,
   accountsState: AccountState
-): AccountData {
+): EvmAccountData {
   const existingAccountsCount = Object.keys(
     accountsState.accountsData.evm[network.chainID]
   ).filter((key) => key !== address).length
@@ -128,7 +154,7 @@ function newAccountData(
   )
     .flatMap((chain) => Object.values(chain))
     .find(
-      (accountData): accountData is AccountData =>
+      (accountData): accountData is EvmAccountData =>
         accountData !== "loading" && accountData.address === address
     )
   const defaultNameIndex =
@@ -170,7 +196,7 @@ function updateCombinedData(immerState: AccountState) {
   // each other.
   const filteredEvm = Object.keys(immerState.accountsData.evm)
     .filter((key) => !TEST_NETWORK_BY_CHAIN_ID.has(key))
-    .reduce<AccountsByChainID>((evm, key) => {
+    .reduce<EvmAccountsByChainID>((evm, key) => {
       return {
         ...evm,
         [key]: immerState.accountsData.evm[key],
@@ -222,7 +248,7 @@ function getOrCreateAccountData(
   accountState: AccountState,
   account: HexString,
   network: NetworkInterface
-): AccountData {
+): EvmAccountData {
   const accountData = accountState.accountsData.evm[network.chainID][account]
 
   if (accountData === "loading" || !accountData)
@@ -248,6 +274,31 @@ const accountSlice = createSlice({
       immerState.accountsData.evm[network.chainID] = {
         ...immerState.accountsData.evm[network.chainID],
         [address]: "loading",
+      }
+    },
+    loadUtxoAccount: (
+      immerState,
+      {
+        payload: { qiWallet, network },
+      }: { payload: { qiWallet: QiWallet | null; network: NetworkInterface } }
+    ) => {
+      if (!qiWallet) return
+
+      const { paymentCode, id, addresses } = qiWallet
+
+      if (immerState.accountsData.utxo[network.chainID]?.[paymentCode]) return
+
+      immerState.accountsData.utxo[network.chainID] = {
+        ...immerState.accountsData.utxo[network.chainID],
+        [paymentCode]: {
+          paymentCode,
+          network,
+          balances: {},
+          defaultName: Zone.Cyprus1,
+          defaultAvatar: "./images/avatars/compass@2x.png",
+          id,
+          addresses,
+        },
       }
     },
     deleteAccount: (
@@ -404,6 +455,7 @@ const accountSlice = createSlice({
 export const {
   deleteAccount,
   loadAccount,
+  loadUtxoAccount,
   updateAccountBalance,
   updateAccountName,
   updateAssetReferences,

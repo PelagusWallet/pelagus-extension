@@ -12,7 +12,7 @@ import {
 } from "../assets"
 import { COIN_TYPES_BY_ASSET_SYMBOL, QUAI, USD } from "../constants"
 import { AnyEVMBlock, BlockPrices, NetworkBaseAsset } from "../networks"
-import { AccountData, CompleteAssetAmount } from "../redux-slices/accounts"
+import { EvmAccountData, CompleteAssetAmount } from "../redux-slices/accounts"
 import {
   AnalyticsService,
   ChainService,
@@ -236,8 +236,8 @@ export const createBlockPrices = (
 })
 
 export const createAccountData = (
-  overrides: Partial<AccountData> = {}
-): AccountData => {
+  overrides: Partial<EvmAccountData> = {}
+): EvmAccountData => {
   return {
     address: createAddressOnNetwork().address,
     network: QuaiGoldenAgeTestnet,

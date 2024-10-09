@@ -36,6 +36,7 @@ import {
   AccountType,
   deleteAccount,
   loadAccount,
+  loadUtxoAccount,
   updateAccountBalance,
   updateAccountName,
 } from "./redux-slices/accounts"
@@ -1153,6 +1154,17 @@ export default class Main extends BaseService<never> {
       })
 
       this.signingService.addTrackedAddress(address, "keyring")
+    })
+
+    this.keyringService.emitter.on("loadQiWallet", (qiWallet) => {
+      NetworksArray.forEach((network) => {
+        this.store.dispatch(
+          loadUtxoAccount({
+            qiWallet,
+            network,
+          })
+        )
+      })
     })
 
     this.keyringService.emitter.on("locked", async (isLocked) => {

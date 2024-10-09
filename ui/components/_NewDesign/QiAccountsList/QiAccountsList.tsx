@@ -3,11 +3,13 @@ import classNames from "classnames"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { Zone } from "quais"
+import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import SharedIconGA from "../../Shared/SharedIconGA"
 import AccountsSearchBar from "../../AccountItem/AccountsSearchBar"
 import SigningButton from "../../AccountsNotificationPanel/SigningButton"
 import QiAccountOptionMenu from "../../Shared/_newDeisgn/accountTab/qiAccount/qiAccountOptionMenu/QiAccountOptionMenu"
+import SharedLoadingSpinner from "../../Shared/SharedLoadingSpinner"
 
 const QiAccountsList = () => {
   const [searchAccountsValue, setSearchAccountsValue] = useState("")
@@ -21,6 +23,17 @@ const QiAccountsList = () => {
 
   if (!utxoAccountArr.length) return <></>
 
+  const balanceHandle = (utxoAccount: UtxoAccountData) => {
+    if (!utxoAccount?.balances[Zone.Cyprus1]) {
+      return <SharedLoadingSpinner size="small" />
+    }
+
+    return `${Number(
+      utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+    )?.toFixed(4)} ${utxoAccount?.balances[
+      Zone.Cyprus1
+    ]?.assetAmount?.asset?.symbol?.toUpperCase()}`
+  }
   return (
     <>
       <div className="actions-header">
@@ -43,7 +56,7 @@ const QiAccountsList = () => {
         {utxoAccountArr.map((utxoAccount) => {
           if (!utxoAccount) return null
           return (
-            <li>
+            <li key={utxoAccount.id}>
               <div className={classNames("connected-account-item")}>
                 <div className="left-side">
                   <SharedIconGA iconUrl={utxoAccount.defaultAvatar} />
@@ -55,12 +68,7 @@ const QiAccountsList = () => {
                     </div>
                   </div>
                 </div>
-                <div className="balance">
-                  {utxoAccount?.balances[
-                    Zone.Cyprus1
-                  ].assetAmount.amount.toString()}
-                  {utxoAccount?.balances[Zone.Cyprus1].assetAmount.asset.symbol}
-                </div>
+                <div className="balance">{balanceHandle(utxoAccount)}</div>
                 <QiAccountOptionMenu paymentCode={utxoAccount.paymentCode} />
               </div>
             </li>

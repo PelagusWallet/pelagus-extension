@@ -96,7 +96,7 @@ export type UtxoAccountData = {
   id: string
   addresses: string[]
   network: NetworkInterface
-  balances: QiWalletBalance[]
+  balances: { [zone: string]: QiWalletBalance }
   defaultName: string
   defaultAvatar: string
 }
@@ -291,7 +291,7 @@ const accountSlice = createSlice({
         [paymentCode]: {
           paymentCode,
           network,
-          balances: [],
+          balances: {},
           defaultName: "Cyprus 1",
           defaultAvatar: "./images/avatars/compass@2x.png",
           id,
@@ -338,7 +338,7 @@ const accountSlice = createSlice({
           immerState.accountsData.utxo[network.chainID]?.[paymentCode]
         if (!account) return
 
-        account.balances = [...account.balances, balance]
+        account.balances[Zone.Cyprus1] = balance
       })
     },
     updateAccountBalance: (

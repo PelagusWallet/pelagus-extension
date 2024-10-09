@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import classNames from "classnames"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { Zone } from "quais"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import SharedIconGA from "../../Shared/SharedIconGA"
 import AccountsSearchBar from "../../AccountItem/AccountsSearchBar"
@@ -55,8 +56,10 @@ const QiAccountsList = () => {
                   </div>
                 </div>
                 <div className="balance">
-                  {utxoAccount?.balances[0].assetAmount.amount.toString()}
-                  {utxoAccount?.balances[0].assetAmount.asset.symbol}
+                  {utxoAccount?.balances[
+                    Zone.Cyprus1
+                  ].assetAmount.amount.toString()}
+                  {utxoAccount?.balances[Zone.Cyprus1].assetAmount.asset.symbol}
                 </div>
                 <QiAccountOptionMenu paymentCode={utxoAccount.paymentCode} />
               </div>

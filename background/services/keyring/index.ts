@@ -174,6 +174,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       keyrings: quaiHDWallets,
       keyringMetadata: { ...keyringMetadata },
     })
+    await this.emitter.emit("loadQiWallet", qiHDWallet)
   }
 
   // -------------------------- public methods --------------------------

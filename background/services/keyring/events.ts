@@ -12,5 +12,6 @@ export interface KeyringServiceEvents extends ServiceLifecycleEvents {
     }
   }
   address: string
+  loadQiWallet: QiWallet | null
   signedData: string
 }

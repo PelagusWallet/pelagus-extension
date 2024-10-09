@@ -10,7 +10,7 @@ import {
   createSmartContractAsset,
 } from "../../tests/factories"
 import reducer, {
-  AccountData,
+  EvmAccountData,
   AccountState,
   updateAccountBalance,
   updateAssetReferences,
@@ -47,7 +47,7 @@ describe("Accounts redux slice", () => {
 
     beforeEach(() => {
       state = {
-        accountsData: { evm: {} },
+        accountsData: { evm: {}, utxo: {} },
         combinedData: {
           totalMainCurrencyValue: "",
           assets: [],
@@ -76,7 +76,7 @@ describe("Accounts redux slice", () => {
 
       expect(updatedAccountData).not.toEqual("loading")
 
-      const updatedBalance = (updatedAccountData as AccountData)?.balances
+      const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
       expect(updated.combinedData.totalMainCurrencyValue).toBe("")
     })
@@ -98,7 +98,7 @@ describe("Accounts redux slice", () => {
       )
       const updatedAccountData =
         updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
-      const updatedBalance = (updatedAccountData as AccountData)?.balances
+      const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
 
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
       expect(updated.combinedData.totalMainCurrencyValue).toBe("")
@@ -133,7 +133,7 @@ describe("Accounts redux slice", () => {
 
       expect(updatedAccountData).not.toEqual("loading")
 
-      const updatedBalance = (updatedAccountData as AccountData)?.balances
+      const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(0n)
     })
 
@@ -162,7 +162,7 @@ describe("Accounts redux slice", () => {
       )
       const updatedAccountData =
         updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
-      const updatedBalance = (updatedAccountData as AccountData)?.balances
+      const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
 
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(0n)
     })
@@ -203,7 +203,7 @@ describe("Accounts redux slice", () => {
 
       const updatedAccountData =
         updated.accountsData.evm[QuaiGoldenAgeTestnet.chainID][ADDRESS_MOCK]
-      const updatedBalance = (updatedAccountData as AccountData)?.balances
+      const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
 
       expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
       expect(updatedBalance?.[ASSET_MOCK.symbol].assetAmount.amount).toBe(10n)
@@ -256,11 +256,11 @@ describe("Accounts redux slice", () => {
 
       const firstAccountData = secondAccountUpdate.accountsData.evm[
         QuaiGoldenAgeTestnet.chainID
-      ][ADDRESS_MOCK] as AccountData
+      ][ADDRESS_MOCK] as EvmAccountData
 
       const secondAccountData = secondAccountUpdate.accountsData.evm[
         QuaiGoldenAgeTestnet.chainID
-      ][otherAccount.address] as AccountData
+      ][otherAccount.address] as EvmAccountData
 
       expect(
         firstAccountData.balances[asset.symbol].assetAmount.asset.metadata
@@ -282,11 +282,11 @@ describe("Accounts redux slice", () => {
 
       const updatedFirstAccountData = newState.accountsData.evm[
         QuaiGoldenAgeTestnet.chainID
-      ][ADDRESS_MOCK] as AccountData
+      ][ADDRESS_MOCK] as EvmAccountData
 
       const updatedSecondAccountData = newState.accountsData.evm[
         QuaiGoldenAgeTestnet.chainID
-      ][otherAccount.address] as AccountData
+      ][otherAccount.address] as EvmAccountData
 
       expect(
         updatedFirstAccountData.balances[asset.symbol].assetAmount.asset

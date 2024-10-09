@@ -36,6 +36,15 @@ export type AccountBalance = {
   dataSource: "local"
 }
 
+export type QiWalletBalance = {
+  paymentCode: HexString
+  assetAmount: AnyAssetAmount
+  network: NetworkInterface
+  blockHeight?: bigint
+  retrievedAt: number
+  dataSource: "local"
+}
+
 /**
  * An address on a particular network. That's it. That's the comment.
  */

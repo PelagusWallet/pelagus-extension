@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { getAllAccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
-  AccountData,
+  EvmAccountData,
   ListAccount,
 } from "@pelagus/pelagus-background/redux-slices/accounts"
 import SharedDrawer from "../Shared/SharedDrawer"
@@ -46,7 +46,7 @@ export default function DAppConnectionDrawer({
             account !== "loading" &&
             account.address === accountAddress &&
             account.network.chainID === chainID
-        ) as AccountData
+        ) as EvmAccountData
 
         if (filteredAccount)
           acc.push({

@@ -160,30 +160,26 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     receiverPaymentCode: string,
     maxPriorityFeePerGas: bigint | null
   ): Promise<void> {
-    try {
-      const { jsonRpcProvider } = this.chainService
+    const { jsonRpcProvider } = this.chainService
 
-      const qiWallet = await this.keyringService.getQiHDWallet()
-      qiWallet.connect(jsonRpcProvider)
-      await qiWallet.scan(Zone.Cyprus1)
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+    await qiWallet.scan(Zone.Cyprus1)
 
-      const transactionResponse = await qiWallet.sendTransaction(
-        receiverPaymentCode,
-        amount,
-        Zone.Cyprus1,
-        Zone.Cyprus1
-      )
-      console.log("Transaction response", transactionResponse)
+    const transactionResponse = await qiWallet.sendTransaction(
+      receiverPaymentCode,
+      amount,
+      Zone.Cyprus1,
+      Zone.Cyprus1
+    )
+    console.log("Transaction response", transactionResponse)
 
-      // this.notifyQiRecipient(
-      //   quaiAddress,
-      //   senderPaymentCode,
-      //   receiverPaymentCode,
-      //   maxPriorityFeePerGas
-      // )
-    } catch (error) {
-      console.log("ERROR:", error)
-    }
+    // this.notifyQiRecipient(
+    //   quaiAddress,
+    //   senderPaymentCode,
+    //   receiverPaymentCode,
+    //   maxPriorityFeePerGas
+    // )
   }
 
   /**

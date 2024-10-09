@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import classNames from "classnames"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import SharedIconGA from "../../Shared/SharedIconGA"
 import AccountsSearchBar from "../../AccountItem/AccountsSearchBar"
@@ -10,11 +11,14 @@ import QiAccountOptionMenu from "../../Shared/_newDeisgn/accountTab/qiAccount/qi
 const QiAccountsList = () => {
   const [searchAccountsValue, setSearchAccountsValue] = useState("")
   const dispatch = useBackgroundDispatch()
-  const qiHd = useBackgroundSelector((state) => state.keyrings.qiHDWallet)
+  const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
+  const utxoAccountsByPaymentCode = useBackgroundSelector(
+    (state) => state.account.accountsData.utxo[currentNetwork.chainID]
+  )
 
-  if (!qiHd) return <></>
+  const utxoAccountArr = Object.values(utxoAccountsByPaymentCode)
 
-  const { paymentCode } = qiHd
+  if (!utxoAccountArr.length) return <></>
 
   return (
     <>
@@ -35,21 +39,30 @@ const QiAccountsList = () => {
       </div>
 
       <ul>
-        <li>
-          <div className={classNames("connected-account-item")}>
-            <div className="left-side">
-              <SharedIconGA iconUrl="./images/avatars/compass@2x.png" />
-              <div className="account-info">
-                <div className="name">Cyprus 1</div>
-                <div className="details">
-                  {paymentCode.slice(0, 10)}...{paymentCode.slice(-10)}
+        {utxoAccountArr.map((utxoAccount) => {
+          if (!utxoAccount) return null
+          return (
+            <li>
+              <div className={classNames("connected-account-item")}>
+                <div className="left-side">
+                  <SharedIconGA iconUrl={utxoAccount.defaultAvatar} />
+                  <div className="account-info">
+                    <div className="name">{utxoAccount.defaultName}</div>
+                    <div className="details">
+                      {utxoAccount.paymentCode.slice(0, 10)}...
+                      {utxoAccount.paymentCode.slice(-10)}
+                    </div>
+                  </div>
                 </div>
+                <div className="balance">
+                  {utxoAccount?.balances[0].assetAmount.amount.toString()}
+                  {utxoAccount?.balances[0].assetAmount.asset.symbol}
+                </div>
+                <QiAccountOptionMenu paymentCode={utxoAccount.paymentCode} />
               </div>
-            </div>
-            <div className="balance">0.0000 QI</div>
-            <QiAccountOptionMenu paymentCode={paymentCode} />
-          </div>
-        </li>
+            </li>
+          )
+        })}
       </ul>
       <style jsx>{`
         .actions-header {

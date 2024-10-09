@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { Zone } from "quais"
 import { createBackgroundAsyncThunk } from "./utils"
 import {
   AccountBalance,
@@ -27,6 +26,7 @@ import { TEST_NETWORK_BY_CHAIN_ID } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QiWallet } from "../services/keyring/types"
+import { Zone } from "quais"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to
@@ -96,9 +96,7 @@ export type UtxoAccountData = {
   id: string
   addresses: string[]
   network: NetworkInterface
-  balances: {
-    [zone: string]: QiWalletBalance
-  }
+  balances: QiWalletBalance[]
   defaultName: string
   defaultAvatar: string
 }
@@ -293,8 +291,8 @@ const accountSlice = createSlice({
         [paymentCode]: {
           paymentCode,
           network,
-          balances: {},
-          defaultName: Zone.Cyprus1,
+          balances: [],
+          defaultName: "Cyprus 1",
           defaultAvatar: "./images/avatars/compass@2x.png",
           id,
           addresses,
@@ -323,6 +321,25 @@ const accountSlice = createSlice({
       })
 
       updateCombinedData(immerState)
+    },
+    updateUtxoAccountBalance: (
+      immerState,
+      {
+        payload: { balances },
+      }: {
+        payload: {
+          balances: QiWalletBalance[]
+        }
+      }
+    ) => {
+      balances.forEach((balance) => {
+        const { paymentCode, network } = balance
+        const account =
+          immerState.accountsData.utxo[network.chainID]?.[paymentCode]
+        if (!account) return
+
+        account.balances = [...account.balances, balance]
+      })
     },
     updateAccountBalance: (
       immerState,
@@ -456,6 +473,7 @@ export const {
   deleteAccount,
   loadAccount,
   loadUtxoAccount,
+  updateUtxoAccountBalance,
   updateAccountBalance,
   updateAccountName,
   updateAssetReferences,

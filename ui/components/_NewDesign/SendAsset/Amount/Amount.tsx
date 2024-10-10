@@ -1,6 +1,10 @@
 import React, { useState } from "react"
 import { setQiSendAmount } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { Zone } from "quais"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
+import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
 
 const Amount = () => {
   const dispatch = useBackgroundDispatch()
@@ -8,6 +12,13 @@ const Amount = () => {
   const amount = useBackgroundSelector((state) => state.qiSend.amount)
 
   const [inputValue, setInputValue] = useState(amount)
+
+  const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
+  const utxoAccountsByPaymentCode = useBackgroundSelector(
+    (state) => state.account.accountsData.utxo[currentNetwork.chainID]
+  )
+
+  const utxoAccountArr = Object.values(utxoAccountsByPaymentCode)
 
   const handleInput = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
@@ -18,8 +29,29 @@ const Amount = () => {
     }
   }
 
-  const onMaxAmount = () => {
-    // setInputValue("20.01244")
+  const onMaxAmount = (utxoAccount: UtxoAccountData | null) => {
+    if (!utxoAccount?.balances[Zone.Cyprus1]) {
+      setInputValue("0")
+      return
+    }
+
+    setInputValue(
+      `${Number(
+        utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+      )?.toFixed(4)}`
+    )
+  }
+
+  const balanceHandle = (utxoAccount: UtxoAccountData | null) => {
+    if (!utxoAccount?.balances[Zone.Cyprus1]) {
+      return <SharedLoadingSpinner size="small" />
+    }
+
+    return `${Number(
+      utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+    )?.toFixed(4)} ${utxoAccount?.balances[
+      Zone.Cyprus1
+    ]?.assetAmount?.asset?.symbol?.toUpperCase()}`
   }
 
   return (
@@ -34,11 +66,17 @@ const Amount = () => {
             value={inputValue}
             onChange={handleInput}
           />
-          <button type="button" className="amount-button" onClick={onMaxAmount}>
+          <button
+            type="button"
+            className="amount-button"
+            onClick={() => onMaxAmount(utxoAccountArr[0])}
+          >
             Max
           </button>
         </div>
-        <p className="amount-available">Available - QI</p>
+        <div className="amount-available">
+          Available - {balanceHandle(utxoAccountArr[0])}
+        </div>
       </section>
       <style jsx>{`
         .amount-wallet {
@@ -100,6 +138,11 @@ const Amount = () => {
         }
 
         .amount-available {
+          display: flex;
+          align-content: center;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 4px;
           font-weight: 500;
           font-size: 14px;
           line-height: 20px;

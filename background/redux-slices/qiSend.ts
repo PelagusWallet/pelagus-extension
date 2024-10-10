@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { AccountTotal } from "./selectors"
-import { QiWallet } from "../services/keyring/types"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
 import logger from "../lib/logger"
+import { UtxoAccountData } from "./accounts"
 
 export type QiSendState = {
-  senderQiAccount: QiWallet | null
+  senderQiAccount: UtxoAccountData | null
   senderQuaiAccount: AccountTotal | null
   receiverPaymentCode: string
   amount: string
@@ -43,7 +43,10 @@ const qiSendSlice = createSlice({
     ) => {
       immerState.senderQuaiAccount = payload
     },
-    setQiSendAcc: (immerState, { payload }: { payload: QiWallet | null }) => {
+    setQiSendAcc: (
+      immerState,
+      { payload }: { payload: UtxoAccountData | null }
+    ) => {
       immerState.senderQiAccount = payload
     },
     resetQiSendSlice: (immerState) => {
@@ -82,7 +85,8 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
 
     try {
       const { address: quaiAddress } = senderQuaiAccount as AccountTotal
-      const { paymentCode: senderPaymentCode } = senderQiAccount as QiWallet
+      const { paymentCode: senderPaymentCode } =
+        senderQiAccount as UtxoAccountData
 
       const parsedAmount = BigInt(amount) // FIXME parseQi(amount)
       const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null

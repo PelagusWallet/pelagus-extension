@@ -91,4 +91,52 @@ export default abstract class NotificationsManager {
       )
     }
   }
+
+  public static createSendQiTxNotification(): void {
+    if (!this.isNotificationsEnabled()) return
+
+    const options = {
+      ...DEFAULT_NOTIFICATION_OPTIONS,
+      title: "Qi transaction",
+      message: `Qi transaction is sent. Monitor your balance!`,
+    }
+
+    if (!walletOpen) {
+      this.createChromeNotification(options)
+    } else {
+      const { store } = globalThis.main
+      store.dispatch(
+        setSnackbarConfig({
+          message: `Qi transaction is sent`,
+          withSound: true,
+          type: SnackBarType.transactionSettled,
+          duration: DURATION_MS,
+        })
+      )
+    }
+  }
+
+  public static createFailedQiTxNotification(): void {
+    if (!this.isNotificationsEnabled()) return
+
+    const options = {
+      ...DEFAULT_NOTIFICATION_OPTIONS,
+      title: "Qi transaction",
+      message: `Failed to sent qi transaction!`,
+    }
+
+    if (!walletOpen) {
+      this.createChromeNotification(options)
+    } else {
+      const { store } = globalThis.main
+      store.dispatch(
+        setSnackbarConfig({
+          message: `Qi transaction failed to send`,
+          withSound: true,
+          type: SnackBarType.transactionSettled,
+          duration: DURATION_MS,
+        })
+      )
+    }
+  }
 }

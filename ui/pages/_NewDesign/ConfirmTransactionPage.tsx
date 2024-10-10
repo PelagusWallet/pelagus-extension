@@ -38,13 +38,8 @@ const ConfirmTransactionPage = () => {
   const onSendQiTransaction = async () => {
     if (isInsufficientQuai) return
 
-    try {
-      const result = ((await dispatch(sendQiTransaction())) as any).unwrap()
-    } catch (error) {
-      setIsTransactionError(true)
-    } finally {
-      setIsOpenConfirmationModal(true)
-    }
+    dispatch(sendQiTransaction())
+    setIsOpenConfirmationModal(true)
   }
 
   const confirmationModalProps = isTransactionError

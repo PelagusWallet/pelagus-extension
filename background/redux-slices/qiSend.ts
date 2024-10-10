@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
-import logger from "../lib/logger"
 import { UtxoAccountData } from "./accounts"
 
 export type QiSendState = {
@@ -72,7 +71,7 @@ export default qiSendSlice.reducer
 
 export const sendQiTransaction = createBackgroundAsyncThunk(
   "qiSend/sendQiTransaction",
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { getState }) => {
     const { qiSend } = getState() as RootState
 
     const {
@@ -83,24 +82,19 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
       tips,
     } = qiSend
 
-    try {
-      const { address: quaiAddress } = senderQuaiAccount as AccountTotal
-      const { paymentCode: senderPaymentCode } =
-        senderQiAccount as UtxoAccountData
+    const { address: quaiAddress } = senderQuaiAccount as AccountTotal
+    const { paymentCode: senderPaymentCode } =
+      senderQiAccount as UtxoAccountData
 
-      const parsedAmount = BigInt(amount) // FIXME parseQi(amount)
-      const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null
+    const parsedAmount = BigInt(Number(amount) * 1000) // FIXME parseQi(amount)
+    const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null
 
-      await main.transactionService.sendQiTransaction(
-        parsedAmount,
-        quaiAddress,
-        senderPaymentCode,
-        receiverPaymentCode,
-        maxPriorityFeePerGas
-      )
-    } catch (error) {
-      logger.error(error)
-      return rejectWithValue(error)
-    }
+    main.transactionService.sendQiTransaction(
+      parsedAmount,
+      quaiAddress,
+      senderPaymentCode,
+      receiverPaymentCode,
+      maxPriorityFeePerGas
+    )
   }
 )

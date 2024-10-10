@@ -1,21 +1,27 @@
 import React, { useEffect } from "react"
 import { setQiSendAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSkeletonLoader from "../../../Shared/SharedSkeletonLoader"
 
 const SourceWallet = () => {
   const dispatch = useBackgroundDispatch()
-  const qiHdWallet = useBackgroundSelector((state) => state.keyrings.qiHDWallet)
-
+  const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
+  const utxoAccountsByPaymentCode = useBackgroundSelector(
+    (state) => state.account.accountsData.utxo[currentNetwork.chainID]
+  )
   const qiSendAccount = useBackgroundSelector(
     (state) => state.qiSend.senderQiAccount
   )
 
   useEffect(() => {
     if (qiSendAccount) return
-    dispatch(setQiSendAcc(qiHdWallet))
-  }, [])
+
+    const utxoAccountArr = Object.values(utxoAccountsByPaymentCode) ?? []
+
+    dispatch(setQiSendAcc(utxoAccountArr[0]))
+  }, [dispatch, qiSendAccount])
 
   if (!qiSendAccount)
     return (

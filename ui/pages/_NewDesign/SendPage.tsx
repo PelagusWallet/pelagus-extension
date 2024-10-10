@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { useHistory } from "react-router-dom"
 import { selectShowPaymentChannelModal } from "@pelagus/pelagus-background/redux-slices/ui"
+import { Zone } from "quais"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SendAsset from "../../components/_NewDesign/SendAsset/SendAsset"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import PaymentChanelModal from "../../components/_NewDesign/SendAsset/PaymentChanelModal/PaymentChanelModal"
@@ -9,6 +11,13 @@ import { useBackgroundSelector } from "../../hooks"
 
 const SendPage = () => {
   const history = useHistory()
+
+  const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
+  const utxoAccountsByPaymentCode = useBackgroundSelector(
+    (state) => state.account.accountsData.utxo[currentNetwork.chainID]
+  )
+
+  const utxoAccountArr = Object.values(utxoAccountsByPaymentCode)
 
   const showPaymentChannelModal = useBackgroundSelector(
     selectShowPaymentChannelModal
@@ -26,14 +35,17 @@ const SendPage = () => {
       amount &&
       Number(amount) &&
       receiverPaymentCode &&
-      receiverPaymentCode.length === 116
+      receiverPaymentCode.length === 116 &&
+      utxoAccountArr[0]?.balances[Zone.Cyprus1]?.assetAmount?.amount &&
+      Number(utxoAccountArr[0]?.balances[Zone.Cyprus1]?.assetAmount?.amount) >=
+        Number(amount)
     ) {
       setIsConfirmDisabled(false)
       return
     }
 
     setIsConfirmDisabled(true)
-  }, [amount, receiverPaymentCode])
+  }, [amount, receiverPaymentCode, utxoAccountArr])
 
   const handleConfirm = () => {
     if (!showPaymentChannelModal) {

@@ -5,6 +5,7 @@ import {
   setShowingAccountsModal,
   setShowingAddAccountModal,
 } from "@pelagus/pelagus-background/redux-slices/ui"
+import { selectIsUtxoSelected } from "@pelagus/pelagus-background/redux-slices/selectors"
 import AccountsNotificationPanelAccounts from "./AccountsNotificationPanelAccounts"
 import SharedDrawer from "../Shared/SharedDrawer"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
@@ -31,8 +32,10 @@ export default function AccountsNotificationPanel({
     selectShowingAccountsModal
   )
 
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+
   const [accountCategory, setAccountCategory] = useState<AccountCategoriesEnum>(
-    AccountCategoriesEnum.quai
+    isUtxoSelected ? AccountCategoriesEnum.qi : AccountCategoriesEnum.quai
   )
 
   return (

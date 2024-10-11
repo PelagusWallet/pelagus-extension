@@ -1,7 +1,15 @@
 import React, { useState } from "react"
 import classNames from "classnames"
-import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
-import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  setIsUtxoSelected,
+  setSelectedUtxoAccount,
+  setShowingAccountsModal,
+} from "@pelagus/pelagus-background/redux-slices/ui"
+import {
+  selectCurrentNetwork,
+  selectCurrentUtxoAccount,
+  selectIsUtxoSelected,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { Zone } from "quais"
 import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
@@ -18,6 +26,9 @@ const QiAccountsList = () => {
   const utxoAccountsByPaymentCode = useBackgroundSelector(
     (state) => state.account.accountsData.utxo[currentNetwork.chainID]
   )
+  const { id: selectedUtxoAccId } =
+    useBackgroundSelector(selectCurrentUtxoAccount) ?? {}
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
 
   const utxoAccountArr = Object.values(utxoAccountsByPaymentCode)
 
@@ -34,6 +45,13 @@ const QiAccountsList = () => {
       Zone.Cyprus1
     ]?.assetAmount?.asset?.symbol?.toUpperCase()}`
   }
+
+  const selectAccHandle = async (account: UtxoAccountData) => {
+    await dispatch(setSelectedUtxoAccount(account))
+    await dispatch(setIsUtxoSelected(true))
+    await dispatch(setShowingAccountsModal(false))
+  }
+
   return (
     <>
       <div className="actions-header">
@@ -57,7 +75,14 @@ const QiAccountsList = () => {
           if (!utxoAccount) return null
           return (
             <li key={utxoAccount.id}>
-              <div className={classNames("connected-account-item")}>
+              <div
+                role="button"
+                className={classNames("connected-account-item", {
+                  select:
+                    isUtxoSelected && selectedUtxoAccId === utxoAccount.id,
+                })}
+                onClick={() => selectAccHandle(utxoAccount)}
+              >
                 <div className="left-side">
                   <SharedIconGA iconUrl={utxoAccount.defaultAvatar} />
                   <div className="account-info">

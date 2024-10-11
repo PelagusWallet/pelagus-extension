@@ -1,5 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
+import { Zone } from "quais"
 import { AnalyticsEvent, OneTimeAnalyticsEvent } from "../lib/posthog"
 import { ChainIdWithError } from "../networks"
 import { AnalyticsPreferences } from "../services/preferences/types"
@@ -7,8 +8,9 @@ import {
   AccountSignerSettings,
   AccountSignerWithId,
   AddressOnNetwork,
+  QiWalletBalance,
 } from "../accounts"
-import { AccountState, addAddressNetwork } from "./accounts"
+import { AccountState, addAddressNetwork, UtxoAccountData } from "./accounts"
 import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { NetworkInterface } from "../constants/networks/networkTypes"
@@ -32,6 +34,8 @@ export const defaultSettings = {
 const defaultSnackbarDuration = 2500
 
 export type UIState = {
+  isUtxoSelected: boolean
+  selectedUtxoAccount: UtxoAccountData | null
   selectedAccount: AddressOnNetwork
   showingActivityDetailID: string | null
   showingAccountsModal: boolean
@@ -96,6 +100,8 @@ export const initialState: UIState = {
     address: "",
     network: QuaiGoldenAgeTestnet,
   },
+  selectedUtxoAccount: null,
+  isUtxoSelected: false,
   initializationLoadingTimeExpired: false,
   settings: defaultSettings,
   snackbarConfig: {
@@ -196,6 +202,28 @@ const uiSlice = createSlice({
       globalThis.main.SetShard(shard)
       // TODO: Potentially call getLatestBaseAccountBalance here
       immerState.selectedAccount = addressNetwork
+    },
+
+    setSelectedUtxoAccount: (
+      immerState,
+      { payload }: { payload: UtxoAccountData | null }
+    ) => {
+      immerState.selectedUtxoAccount = payload
+    },
+    updateSelectedUtxoAccountBalance: (
+      immerState,
+      {
+        payload,
+      }: {
+        payload: QiWalletBalance
+      }
+    ) => {
+      const account = immerState?.selectedUtxoAccount
+      if (!account) return
+      account.balances[Zone.Cyprus1] = payload
+    },
+    setIsUtxoSelected: (immerState, { payload }: { payload: boolean }) => {
+      immerState.isUtxoSelected = payload
     },
     initializationLoadingTimeHitLimit: (state) => ({
       ...state,
@@ -309,6 +337,9 @@ export const {
   setAccountsSignerSettings,
   setShowDefaultWalletBanner,
   setShowAlphaWalletBanner,
+  setSelectedUtxoAccount,
+  setIsUtxoSelected,
+  updateSelectedUtxoAccountBalance,
 } = uiSlice.actions
 
 export default uiSlice.reducer
@@ -444,6 +475,19 @@ export const setSelectedNetwork = createBackgroundAsyncThunk(
       }
     )
     dispatch(setNewSelectedAccount({ ...ui.selectedAccount, network }))
+
+    if (!ui.isUtxoSelected && !ui.selectedUtxoAccount) return
+
+    const utxoAccountOnSelectedNetwork =
+      account.accountsData.utxo[network.chainID]?.[
+        ui.selectedUtxoAccount?.paymentCode ?? ""
+      ]
+
+    if (!utxoAccountOnSelectedNetwork) {
+      dispatch(setSelectedUtxoAccount(null))
+      dispatch(setIsUtxoSelected(false))
+    }
+    dispatch(setSelectedUtxoAccount(utxoAccountOnSelectedNetwork))
   }
 )
 

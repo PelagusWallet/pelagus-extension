@@ -1,4 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit"
+import { Zone } from "quais"
 import type { RootState } from ".."
 import {
   hardcodedMainCurrencySign,
@@ -55,4 +56,23 @@ export const selectMainCurrency = createSelector(
   (state: RootState) => selectMainCurrencySymbol(state),
   (_, assets, mainCurrencySymbol) =>
     assets.find((asset) => asset.symbol === mainCurrencySymbol)
+)
+
+export const selectIsUtxoSelected = createSelector(
+  (state: RootState) => state.ui.isUtxoSelected,
+  (isUtxo) => isUtxo
+)
+
+export const selectCurrentUtxoAccount = createSelector(
+  (state: RootState) => state.ui.selectedUtxoAccount,
+  (utxoAcc) => utxoAcc
+)
+
+export const selectQiBalanceForCurrentUtxoAccountCyprus1 = createSelector(
+  (state: RootState) => state.ui.selectedUtxoAccount,
+  (utxoAcc) =>
+    utxoAcc &&
+    !isNaN(Number(utxoAcc.balances?.[Zone.Cyprus1]?.assetAmount?.amount))
+      ? Number(utxoAcc.balances?.[Zone.Cyprus1]?.assetAmount?.amount).toFixed(4)
+      : null
 )

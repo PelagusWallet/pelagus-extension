@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { Zone } from "quais"
 import { createBackgroundAsyncThunk } from "./utils"
 import {
   AccountBalance,
@@ -26,7 +27,8 @@ import { TEST_NETWORK_BY_CHAIN_ID } from "../constants"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QiWallet } from "../services/keyring/types"
-import { Zone } from "quais"
+import { RootState } from "./index"
+import { updateSelectedUtxoAccountBalance } from "./ui"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to
@@ -539,5 +541,27 @@ export const removeAccount = createBackgroundAsyncThunk(
       signer,
       lastAddressInAccount
     )
+  }
+)
+
+export const updateUtxoAccountsBalances = createBackgroundAsyncThunk(
+  "account/updateUtxoAccountsBalances",
+  async (
+    payload: {
+      balances: QiWalletBalance[]
+    },
+    { dispatch, getState }
+  ) => {
+    dispatch(updateUtxoAccountBalance(payload))
+
+    const state = getState() as RootState
+    const selectedUtxoAcc = state.ui.selectedUtxoAccount
+    if (!selectedUtxoAcc) return
+    const balanceForSelectedUtxoAcc = payload.balances.find(
+      (balance) => balance.paymentCode === selectedUtxoAcc.paymentCode
+    )
+    if (!balanceForSelectedUtxoAcc) return
+
+    dispatch(updateSelectedUtxoAccountBalance(balanceForSelectedUtxoAcc))
   }
 )

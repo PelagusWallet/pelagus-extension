@@ -1,7 +1,11 @@
 import React, { ReactElement } from "react"
 import { useDispatch } from "react-redux"
 import { useTranslation } from "react-i18next"
-import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  selectCurrentAccount,
+  selectCurrentUtxoAccount,
+  selectIsUtxoSelected,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import QRCode from "react-qr-code"
 import { useBackgroundSelector } from "../hooks"
@@ -13,7 +17,14 @@ export default function Receive(): ReactElement {
 
   const currentAccount: { address: string } =
     useBackgroundSelector(selectCurrentAccount)
-  if (!currentAccount) return <></>
+
+  const { paymentCode = "" } =
+    useBackgroundSelector(selectCurrentUtxoAccount) ?? {}
+
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+
+  if (!isUtxoSelected && !currentAccount) return <></>
+  if (isUtxoSelected && !paymentCode) return <></>
 
   return (
     <section>
@@ -22,7 +33,10 @@ export default function Receive(): ReactElement {
         {t("wallet.receiveAddress")}
       </h1>
       <div className="qr_code">
-        <QRCode value={currentAccount.address} size={128} />
+        <QRCode
+          value={isUtxoSelected ? paymentCode : currentAccount.address}
+          size={128}
+        />
       </div>
       <div className="copy_wrap">
         <SharedButton
@@ -30,14 +44,21 @@ export default function Receive(): ReactElement {
           size="medium"
           type="primary"
           onClick={() => {
-            navigator.clipboard.writeText(currentAccount.address)
+            navigator.clipboard.writeText(
+              isUtxoSelected ? paymentCode : currentAccount.address
+            )
             dispatch(setSnackbarConfig({ message: "Copied!" }))
           }}
         >
-          {`${currentAccount.address.slice(
-            0,
-            7
-          )}...${currentAccount.address.slice(-6)}`}
+          {`${
+            isUtxoSelected
+              ? paymentCode.slice(0, 7)
+              : currentAccount.address.slice(0, 7)
+          }...${
+            isUtxoSelected
+              ? paymentCode.slice(-6)
+              : currentAccount.address.slice(-6)
+          }`}
         </SharedButton>
       </div>
       <style jsx>

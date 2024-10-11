@@ -3,6 +3,7 @@ import {
   selectCurrentAccountActivities,
   selectCurrentAccountBalances,
   selectCurrentNetwork,
+  selectIsUtxoSelected,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 import classNames from "classnames"
@@ -44,7 +45,7 @@ export default function Wallet(): ReactElement {
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showUnverifiedAssets = useBackgroundSelector(selectShowUnverifiedAssets)
-
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
   const { assetAmounts, unverifiedAssetAmounts } = accountData ?? {
     assetAmounts: [],
     unverifiedAssetAmounts: [],
@@ -54,6 +55,14 @@ export default function Wallet(): ReactElement {
   const currentAccountActivities = useBackgroundSelector(
     selectCurrentAccountActivities
   )
+
+  useEffect(() => {
+    if (isUtxoSelected) {
+      setPanelNumber(1)
+      return
+    }
+    setPanelNumber(0)
+  }, [isUtxoSelected])
 
   useEffect(() => {
     const locationState = history.location.state
@@ -82,7 +91,7 @@ export default function Wallet(): ReactElement {
     [showUnverifiedAssets, unverifiedAssetAmounts.length]
   )
 
-  const panelNames = [t("wallet.pages.assets")]
+  const panelNames = isUtxoSelected ? [""] : [t("wallet.pages.assets")]
 
   panelNames.push(t("wallet.pages.activity"))
 
@@ -123,7 +132,7 @@ export default function Wallet(): ReactElement {
             panelNames={panelNames}
           />
           <div className={classNames("panel standard_width")}>
-            {panelNumber === 0 && (
+            {panelNumber === 0 && !isUtxoSelected && (
               <>
                 <WalletAssetList
                   assetAmounts={

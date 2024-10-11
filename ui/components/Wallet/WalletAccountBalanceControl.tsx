@@ -1,6 +1,10 @@
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { selectCurrentAccountSigner } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  selectCurrentAccountSigner,
+  selectIsUtxoSelected,
+  selectQiBalanceForCurrentUtxoAccountCyprus1,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useHistory } from "react-router-dom"
 import { useBackgroundSelector } from "../../hooks"
@@ -23,12 +27,16 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
   const { onReceive } = props
   const history = useHistory()
 
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+
   return (
     <div className="action_buttons_wrap">
       <SharedCircleButton
         icon="icons/s/send.svg"
         ariaLabel={t("send")}
-        onClick={() => history.push("/send")}
+        onClick={() =>
+          isUtxoSelected ? history.push("/send-qi") : history.push("/send")
+        }
         iconWidth="20"
         iconHeight="18"
       >
@@ -125,8 +133,27 @@ export default function WalletAccountBalanceControl(
     setOpenReceiveMenu((currentlyOpen) => !currentlyOpen)
   }, [])
 
-  const shouldIndicateLoading =
-    !initializationLoadingTimeExpired && typeof mainAssetBalance === "undefined"
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+
+  const utxoBalance = useBackgroundSelector(
+    selectQiBalanceForCurrentUtxoAccountCyprus1
+  )
+
+  const shouldIndicateLoadingHandle = ({
+    isActionsSkeleton,
+  }: {
+    isActionsSkeleton: boolean
+  }) => {
+    if (!isUtxoSelected)
+      return (
+        !initializationLoadingTimeExpired &&
+        typeof mainAssetBalance === "undefined"
+      )
+
+    return (
+      !initializationLoadingTimeExpired && !utxoBalance && !isActionsSkeleton
+    )
+  }
 
   return (
     <>
@@ -135,25 +162,25 @@ export default function WalletAccountBalanceControl(
       </SharedSlideUpMenu>
       <div className="wrap">
         <SharedSkeletonLoader
-          height={48}
+          height={78}
           width={250}
           borderRadius={14}
-          customStyles="margin: 12px 0"
-          isLoaded={!shouldIndicateLoading}
+          customStyles={isUtxoSelected ? "" : "margin: 12px 0"}
+          isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: false })}
         >
           <div className="balance_label">{t("totalAccountBalance")}</div>
           <span className="balance_area">
             <span className="balance" data-testid="wallet_balance">
-              {mainAssetBalance ?? 0}
-              <span className="dollar_sign">Q</span>
+              {isUtxoSelected ? utxoBalance : mainAssetBalance ?? 0}
+              <span className="dollar_sign">{isUtxoSelected ? "QI" : "Q"}</span>
             </span>
           </span>
         </SharedSkeletonLoader>
 
         <SharedSkeletonLoader
-          isLoaded={!shouldIndicateLoading}
-          height={24}
-          width={180}
+          isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: true })}
+          height={70}
+          width={200}
           customStyles="margin-bottom: 10px;"
         >
           <ReadOnlyNotice />

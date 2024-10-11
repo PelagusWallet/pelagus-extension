@@ -1,4 +1,8 @@
-import { selectCurrentAccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  selectCurrentAccountTotal,
+  selectCurrentUtxoAccount,
+  selectIsUtxoSelected,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
@@ -18,6 +22,14 @@ export default function TopMenuProfileButtonGA(props: {
     shortName = "",
   } = useBackgroundSelector(selectCurrentAccountTotal) ?? {}
 
+  const {
+    defaultAvatar = "",
+    defaultName = "",
+    paymentCode = "",
+  } = useBackgroundSelector(selectCurrentUtxoAccount) ?? {}
+
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+
   const { onClick } = props
 
   const handleClick = () => {
@@ -25,9 +37,15 @@ export default function TopMenuProfileButtonGA(props: {
   }
 
   const copyAddress = () => {
-    if (!address) return
-    navigator.clipboard.writeText(address)
-    dispatch(setSnackbarConfig({ message: t("topMenu.addressCopiedMsg") }))
+    if (!isUtxoSelected) {
+      if (!address) return
+      navigator.clipboard.writeText(address)
+      dispatch(setSnackbarConfig({ message: t("topMenu.addressCopiedMsg") }))
+      return
+    }
+    if (!paymentCode) return
+    navigator.clipboard.writeText(paymentCode)
+    dispatch(setSnackbarConfig({ message: "Payment code copied to clipboard" }))
   }
 
   if (!address) {
@@ -38,7 +56,9 @@ export default function TopMenuProfileButtonGA(props: {
     <div className="profile_wrapper" data-testid="top_menu_profile_button">
       <button className="profile_button" type="button" onClick={handleClick}>
         <div className="avatar" />
-        <span className="account_info_label ellipsis">{shortName || name}</span>
+        <span className="account_info_label ellipsis">
+          {isUtxoSelected ? defaultName : shortName || name}
+        </span>
         <span className="icon_chevron_down" />
       </button>
       <button
@@ -47,7 +67,11 @@ export default function TopMenuProfileButtonGA(props: {
         onClick={copyAddress}
         className="address_wrapper"
       >
-        <span className="address">{truncateAddress(address)}</span>
+        <span className="address">
+          {isUtxoSelected
+            ? truncateAddress(paymentCode)
+            : truncateAddress(address)}
+        </span>
         <span className="tooltip_icon" />
       </button>
       <style jsx>
@@ -78,7 +102,9 @@ export default function TopMenuProfileButtonGA(props: {
             width: 14px;
             height: 14px;
             background: var(--green-95)
-              url("${avatarURL ?? "./images/portrait.png"}");
+              url("${isUtxoSelected
+                ? defaultAvatar
+                : avatarURL ?? "./images/portrait.png"}");
             background-size: cover;
             flex-shrink: 0;
           }

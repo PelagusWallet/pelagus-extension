@@ -3,18 +3,19 @@ import { setShowingActivityDetail } from "@pelagus/pelagus-background/redux-slic
 import {
   selectCurrentAccount,
   selectCurrentNetwork,
+  selectIsUtxoSelected,
   selectShowingActivityDetail,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
 import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
+import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import WalletActivityDetails from "./WalletActivityDetails"
 import WalletActivityListItem from "./WalletActivityListItem"
 import { blockExplorer } from "../../utils/constants"
 import SharedButton from "../Shared/SharedButton"
-import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 
 type Props = {
   activities: Activity[]
@@ -72,6 +73,28 @@ export default function WalletActivityList({
   const handleClose = useCallback(() => {
     dispatch(setShowingActivityDetail(null))
   }, [dispatch])
+
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+
+  if (isUtxoSelected)
+    return (
+      <span>
+        Qi transaction history will be available soon. Stay tuned for updates!
+        <style jsx>{`
+          span {
+            width: 316px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--green-40);
+            font-size: 16px;
+            text-align: center;
+            line-height: 22px;
+            margin: 15px auto 0 auto;
+          }
+        `}</style>
+      </span>
+    )
 
   if (!activities || activities.length === 0)
     return (

@@ -5,6 +5,7 @@ import React, { ReactElement, useEffect, useRef, useState } from "react"
 
 import {
   selectShowingAddAccountModal,
+  setIsUtxoSelected,
   setNewSelectedAccount,
   setShowingAccountsModal,
   setSnackbarConfig,
@@ -14,7 +15,7 @@ import {
   selectCurrentNetworkAccountTotalsByCategory,
   selectCurrentAccount,
   selectCurrentNetwork,
-  CategorizedAccountTotals,
+  selectIsUtxoSelected,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { VALID_ZONES } from "@pelagus/pelagus-background/constants"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
@@ -91,6 +92,8 @@ export default function AccountsNotificationPanelAccounts({
   }>({})
 
   const [searchAccountsValue, setSearchAccountsValue] = useState("")
+
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
 
   useEffect(() => {
     const savedUseOrder = localStorage.getItem("useCustomOrder")
@@ -194,6 +197,7 @@ export default function AccountsNotificationPanelAccounts({
         network: selectedNetwork,
       })
     )
+    dispatch(setIsUtxoSelected(false))
   }
 
   useEffect(() => {
@@ -399,15 +403,20 @@ export default function AccountsNotificationPanelAccounts({
                     />
                     <ul>
                       {accountTotalsBySignerId.map((accountTotal, idx) => {
-                        const isSelected = isNeedToChangeAccount
-                          ? sameQuaiAddress(
-                              accountTotal.address,
-                              selectedAccountAddress
-                            )
-                          : sameQuaiAddress(
-                              accountTotal.address,
-                              qiSendQuaiAddress
-                            )
+                        const isSelectedHandle = () => {
+                          if (isUtxoSelected && isNeedToChangeAccount)
+                            return false
+
+                          return isNeedToChangeAccount
+                            ? sameQuaiAddress(
+                                accountTotal.address,
+                                selectedAccountAddress
+                              )
+                            : sameQuaiAddress(
+                                accountTotal.address,
+                                qiSendQuaiAddress
+                              )
+                        }
 
                         return (
                           <li
@@ -452,7 +461,7 @@ export default function AccountsNotificationPanelAccounts({
                               <SelectAccountListItem
                                 key={accountTotal.address}
                                 account={accountTotal}
-                                isSelected={isSelected}
+                                isSelected={isSelectedHandle()}
                               >
                                 <AccountItemOptionsMenu
                                   accountTotal={accountTotal}

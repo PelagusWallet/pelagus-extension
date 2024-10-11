@@ -35,7 +35,9 @@ export default function AccountsNotificationPanel({
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
 
   const [accountCategory, setAccountCategory] = useState<AccountCategoriesEnum>(
-    isUtxoSelected ? AccountCategoriesEnum.qi : AccountCategoriesEnum.quai
+    isUtxoSelected && isNeedToChangeAccount
+      ? AccountCategoriesEnum.qi
+      : AccountCategoriesEnum.quai
   )
 
   return (

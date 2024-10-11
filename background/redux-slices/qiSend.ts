@@ -71,7 +71,7 @@ export default qiSendSlice.reducer
 
 export const sendQiTransaction = createBackgroundAsyncThunk(
   "qiSend/sendQiTransaction",
-  async (_, { getState }) => {
+  async (_, { getState, dispatch }) => {
     const { qiSend } = getState() as RootState
 
     const {
@@ -89,12 +89,14 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
     const parsedAmount = BigInt(Number(amount) * 1000) // FIXME parseQi(amount)
     const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null
 
-    main.transactionService.sendQiTransaction(
+    await main.transactionService.sendQiTransaction(
       parsedAmount,
       quaiAddress,
       senderPaymentCode,
       receiverPaymentCode,
       maxPriorityFeePerGas
     )
+
+    dispatch(resetQiSendSlice())
   }
 )

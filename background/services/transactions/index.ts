@@ -5,7 +5,6 @@ import {
 import {
   Contract,
   getZoneForAddress,
-  QuaiHDWallet,
   QuaiTransaction,
   TransactionReceipt,
   Wallet,
@@ -380,9 +379,13 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     try {
       const { jsonRpcProvider } = this.chainService
 
-      const { signer } = await this.keyringService.getSigner(quaiAddress)
-      const quaiHDWallet = signer as QuaiHDWallet
-      const privateKey = quaiHDWallet.getPrivateKey(quaiAddress)
+      let privateKey: string
+      const signerWithType = await this.keyringService.getSigner(quaiAddress)
+      if (isSignerPrivateKeyType(signerWithType)) {
+        privateKey = signerWithType.signer.privateKey
+      } else {
+        privateKey = signerWithType.signer.getPrivateKey(quaiAddress)
+      }
       const wallet = new Wallet(privateKey, jsonRpcProvider)
 
       const mailboxContract = new Contract(

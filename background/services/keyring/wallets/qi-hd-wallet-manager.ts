@@ -25,8 +25,6 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
       Zone.Cyprus1
     )
 
-    console.log("=== address", address)
-
     return { address, qiHDWallet }
   }
 

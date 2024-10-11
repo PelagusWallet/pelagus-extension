@@ -37,7 +37,7 @@ export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
 export default class KeyringService extends BaseService<KeyringServiceEvents> {
   private walletManager: WalletManager
 
-  private readonly vaultManager: IVaultManager
+  public readonly vaultManager: IVaultManager
 
   public lastInternalWalletActivity: UNIXTime | null
 

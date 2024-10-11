@@ -187,6 +187,12 @@ export default class ChainService extends BaseService<Events> {
           this.handleRecentAssetTransferAlarm(true)
         },
       },
+      qiWalletSync: {
+        schedule: {
+          periodInMinutes: 1,
+        },
+        handler: () => this.syncQiWallet(),
+      },
     })
 
     this.subscribedAccounts = []
@@ -281,7 +287,7 @@ export default class ChainService extends BaseService<Events> {
     await this.db.removeAccountToTrack(address)
   }
 
-  async getLatestQiWalletBalance(): Promise<void> {
+  async syncQiWallet(): Promise<void> {
     try {
       const network = this.selectedNetwork
       const qiWallet = await this.keyringService.getQiHDWallet()
@@ -290,6 +296,13 @@ export default class ChainService extends BaseService<Events> {
 
       const balance = qiWallet.getBalanceForZone(Zone.Cyprus1) / 1000n
       const paymentCode = await qiWallet.getPaymentCode(0)
+
+      await this.keyringService.vaultManager.add(
+        {
+          qiHDWallet: qiWallet.serialize(),
+        },
+        {}
+      )
 
       const qiWalletBalance: QiWalletBalance = {
         paymentCode,

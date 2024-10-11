@@ -15,6 +15,8 @@ import SettingsConnectedWebsites from "../pages/Settings/SettingsConnectedWebsit
 import HiddenDevPanel from "../components/HiddenDevPanel/HiddenDevPanel"
 import FeatureFlagsPanel from "../components/HiddenDevPanel/FeatureFlagsPanel"
 import SettingsAddCustomAsset from "../pages/Settings/SettingsAddCustomAsset"
+import SettingsQiCoinbaseAddress from "../pages/Settings/SettingsQiCoinbaseAddress"
+import SettingsAddQiCoinbaseAddress from "../pages/Settings/SettingsAddQiCoinbaseAddress"
 
 type PageList = {
   path: string
@@ -64,6 +66,16 @@ const pageList: PageList[] = [
   {
     path: "/settings/connected-websites",
     Component: SettingsConnectedWebsites,
+    hasTopBar: false,
+  },
+  {
+    path: "/settings/qiCoinbaseAddress",
+    Component: SettingsQiCoinbaseAddress,
+    hasTopBar: false,
+  },
+  {
+    path: "/settings/addQiCoinbaseAddress",
+    Component: SettingsAddQiCoinbaseAddress,
     hasTopBar: false,
   },
   {

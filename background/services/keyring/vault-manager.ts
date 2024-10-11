@@ -50,7 +50,7 @@ export class VaultManager implements IVaultManager {
     data: Partial<SerializedVaultData>,
     options: AddOptions = {}
   ): Promise<void> {
-    const { wallets, quaiHDWallets, metadata, hiddenAccounts } =
+    const { wallets, quaiHDWallets, qiHDWallets, metadata, hiddenAccounts } =
       await this.get()
 
     const mergedVaultData: SerializedVaultData = {
@@ -61,6 +61,10 @@ export class VaultManager implements IVaultManager {
       quaiHDWallets: options.overwriteQuaiHDWallets
         ? data.quaiHDWallets ?? []
         : [...quaiHDWallets, ...(data.quaiHDWallets ?? [])],
+
+      qiHDWallets: options.overwriteQiHDWallets
+        ? data.qiHDWallets ?? []
+        : [...qiHDWallets, ...(data.qiHDWallets ?? [])],
 
       metadata: options.overwriteMetadata
         ? data.metadata ?? {}
@@ -81,7 +85,7 @@ export class VaultManager implements IVaultManager {
   }
 
   public async delete(options: DeleteProps): Promise<void> {
-    const { wallets, quaiHDWallets, metadata, hiddenAccounts } =
+    const { wallets, quaiHDWallets, qiHDWallets, metadata, hiddenAccounts } =
       await this.get()
 
     const filteredWallets = options.walletId
@@ -94,6 +98,10 @@ export class VaultManager implements IVaultManager {
         )
       : quaiHDWallets
 
+    const filteredQiHDWallets = options.hdWalletId
+      ? qiHDWallets.filter((hdWallet) => hdWallet.phrase !== options.hdWalletId)
+      : qiHDWallets
+
     const updatedMetadata = { ...metadata }
     if (options.metadataKey) delete updatedMetadata[options.metadataKey]
 
@@ -104,6 +112,7 @@ export class VaultManager implements IVaultManager {
     const mergedVaultData = {
       wallets: filteredWallets,
       quaiHDWallets: filteredHDWallets,
+      qiHDWallets: filteredQiHDWallets,
       metadata: updatedMetadata,
       hiddenAccounts: updatedHiddenAccounts,
     }
@@ -111,7 +120,7 @@ export class VaultManager implements IVaultManager {
   }
 
   public async update(data: Partial<SerializedVaultData>): Promise<void> {
-    const { wallets, quaiHDWallets, metadata, hiddenAccounts } =
+    const { wallets, quaiHDWallets, qiHDWallets, metadata, hiddenAccounts } =
       await this.get()
 
     const updatedWallets = data.wallets
@@ -130,6 +139,15 @@ export class VaultManager implements IVaultManager {
             ) || hdWallet
         )
       : [...quaiHDWallets]
+
+    const updatedQiHDWallets = data.qiHDWallets
+      ? qiHDWallets.map(
+          (hdWallet) =>
+            data.qiHDWallets?.find(
+              (newHdWallet) => newHdWallet.phrase === hdWallet.phrase
+            ) || hdWallet
+        )
+      : [...qiHDWallets]
 
     const updatedMetadata = data.metadata
       ? {
@@ -160,6 +178,7 @@ export class VaultManager implements IVaultManager {
     const mergedVaultData = {
       wallets: updatedWallets,
       quaiHDWallets: updatedQuaiHDWallets,
+      qiHDWallets: updatedQiHDWallets,
       metadata: updatedMetadata,
       hiddenAccounts: updatedHiddenAccounts,
     }
@@ -185,6 +204,7 @@ export class VaultManager implements IVaultManager {
     const serializedVaultData: SerializedVaultData = {
       wallets: [],
       quaiHDWallets: [],
+      qiHDWallets: [],
       metadata: {},
       hiddenAccounts: {},
     }

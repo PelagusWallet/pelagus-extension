@@ -1,4 +1,4 @@
-import { QuaiHDWallet, Wallet, Zone } from "quais"
+import { QiHDWallet, QuaiHDWallet, Wallet, Zone } from "quais"
 import { SerializedHDWallet } from "quais/lib/commonjs/wallet/hdwallet"
 import { HexString, KeyringTypes } from "../../types"
 import { ServiceLifecycleEvents } from "../types"
@@ -27,6 +27,7 @@ export type DeleteProps = {
 export interface AddOptions {
   overwriteWallets?: boolean
   overwriteQuaiHDWallets?: boolean
+  overwriteQiHDWallets?: boolean
   overwriteMetadata?: boolean
   overwriteHiddenAccounts?: boolean
 }
@@ -34,6 +35,11 @@ export interface AddOptions {
 export type AddressWithQuaiHDWallet = {
   address: string
   quaiHDWallet: QuaiHDWallet
+}
+
+export type AddressWithQiHDWallet = {
+  address: string
+  qiHDWallet: QiHDWallet
 }
 
 export type AddressWithPublicKey = { address: string; publicKey: string }
@@ -71,6 +77,7 @@ export type SerializedPrivateKey = {
 export interface SerializedVaultData {
   wallets: SerializedPrivateKey[]
   quaiHDWallets: SerializedHDWallet[]
+  qiHDWallets: SerializedQiHDWallet[]
   metadata: { [keyringId: string]: { source: SignerImportSource } }
   hiddenAccounts: { [address: HexString]: boolean }
 }

@@ -7,7 +7,8 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useHistory } from "react-router-dom"
-import { useBackgroundSelector } from "../../hooks"
+import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -28,15 +29,22 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
   const history = useHistory()
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+  const dispatch = useBackgroundDispatch()
 
   return (
     <div className="action_buttons_wrap">
       <SharedCircleButton
         icon="icons/s/send.svg"
         ariaLabel={t("send")}
-        onClick={() =>
-          isUtxoSelected ? history.push("/send-qi") : history.push("/send")
-        }
+        onClick={async () => {
+          if (!isUtxoSelected) {
+            history.push("/send")
+            return
+          }
+
+          await dispatch(resetQiSendSlice())
+          history.push("/send-qi")
+        }}
         iconWidth="20"
         iconHeight="18"
       >
@@ -171,7 +179,7 @@ export default function WalletAccountBalanceControl(
           <div className="balance_label">{t("totalAccountBalance")}</div>
           <span className="balance_area">
             <span className="balance" data-testid="wallet_balance">
-              {isUtxoSelected ? utxoBalance : mainAssetBalance ?? 0}
+              {isUtxoSelected ? utxoBalance ?? 0 : mainAssetBalance ?? 0}
               <span className="dollar_sign">{isUtxoSelected ? "QI" : "Q"}</span>
             </span>
           </span>

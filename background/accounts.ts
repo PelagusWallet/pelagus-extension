@@ -53,7 +53,6 @@ export type AddressOnNetwork = {
   network: NetworkInterface
 }
 
-// FIXME
 export type QiWalletOnNetwork = {
   paymentCode: HexString
   network: NetworkInterface

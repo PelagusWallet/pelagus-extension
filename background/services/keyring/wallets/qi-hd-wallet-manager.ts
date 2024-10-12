@@ -53,13 +53,14 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
 
     qiWallet.connect(jsonRpcProvider)
     notifications.forEach((paymentCode) => {
-      qiWallet.openChannel(paymentCode, "sender")
+      qiWallet.openChannel(paymentCode, "receiver")
     })
 
     if (isRestored) {
       await qiWallet.scan(Zone.Cyprus1, 0)
     } else {
-      await qiWallet.sync(Zone.Cyprus1, 0)
+      // await qiWallet.sync(Zone.Cyprus1, 0)
+      await qiWallet.scan(Zone.Cyprus1, 0)
     }
 
     await this.vaultManager.add(
@@ -74,7 +75,6 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
   private async subscribeToContractEvents(): Promise<void> {
     const { qiHDWallet } = await this.vaultManager.get()
     if (!qiHDWallet) return
-
     const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
     const thisQiWalletPaymentCode = await deserializedQiHDWallet.getPaymentCode(
       this.qiHDWalletAccountIndex
@@ -92,8 +92,9 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
       MAILBOX_EVENTS.NotificationSent.name,
       async (senderPaymentCode: string, receiverPaymentCode: string) => {
         if (thisQiWalletPaymentCode === receiverPaymentCode) {
-          deserializedQiHDWallet.openChannel(senderPaymentCode, "sender")
-          await deserializedQiHDWallet.sync(Zone.Cyprus1, 0)
+          deserializedQiHDWallet.openChannel(senderPaymentCode, "receiver")
+          // await deserializedQiHDWallet.sync(Zone.Cyprus1, 0)
+          await deserializedQiHDWallet.scan(Zone.Cyprus1, 0)
           await this.vaultManager.add(
             {
               qiHDWallet: deserializedQiHDWallet.serialize(),

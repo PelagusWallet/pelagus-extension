@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { EIP1559Block, AnyEVMBlock } from "../networks"
+import { Block, AnyEVMBlock } from "../networks"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import { LocalNodeNetworkStatusEventTypes } from "../services/provider-factory/events"
 
@@ -35,7 +35,7 @@ const networksSlice = createSlice({
       immerState,
       { payload: blockPayload }: { payload: AnyEVMBlock }
     ) => {
-      const block = blockPayload as EIP1559Block
+      const block = blockPayload as Block
 
       if (!(block.network.chainID in immerState.blockInfo)) {
         immerState.blockInfo[block.network.chainID] = {

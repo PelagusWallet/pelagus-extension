@@ -182,25 +182,25 @@ export const removeAssetData = createBackgroundAsyncThunk(
   }
 )
 
-export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
+export const getMaxFeeAndMinerTip = createBackgroundAsyncThunk(
   "assets/getAccountGasPrice",
   async (): Promise<{
-    maxFeePerGas: bigint
-    maxPriorityFeePerGas: bigint
+    gasPrice: bigint
+    minerTip: bigint
   }> => {
     const { jsonRpcProvider } = globalThis.main.chainService
 
     try {
       const feeData = await jsonRpcProvider.getFeeData()
       const baseFeeSettings = {
-        maxFeePerGas: toBigInt(6000000000),
-        maxPriorityFeePerGas: toBigInt(2000000000),
+        gasPrice: toBigInt(6000000000),
+        minerTip: toBigInt(2000000000),
       }
-      if (feeData?.maxFeePerGas) {
-        baseFeeSettings.maxFeePerGas = feeData.maxFeePerGas
+      if (feeData?.gasPrice) {
+        baseFeeSettings.gasPrice = feeData.gasPrice
       }
-      if (feeData?.maxPriorityFeePerGas) {
-        baseFeeSettings.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+      if (feeData?.minerTip) {
+        baseFeeSettings.minerTip = feeData.minerTip
       }
 
       return baseFeeSettings
@@ -208,8 +208,8 @@ export const getMaxFeeAndMaxPriorityFeePerGas = createBackgroundAsyncThunk(
       logger.error(e)
 
       return {
-        maxFeePerGas: toBigInt(6000000000),
-        maxPriorityFeePerGas: toBigInt(2000000000),
+        gasPrice: toBigInt(6000000000),
+        minerTip: toBigInt(2000000000),
       }
     }
   }
@@ -230,8 +230,8 @@ export const sendAsset = createBackgroundAsyncThunk(
       toAddressNetwork: AddressOnNetwork
       assetAmount: AnyAssetAmount
       gasLimit?: bigint
-      maxPriorityFeePerGas?: bigint & BigInt
-      maxFeePerGas?: bigint & BigInt
+      minerTip?: bigint
+      gasPrice?: bigint
       accountSigner: AccountSigner
     },
     { extra: { main } }
@@ -241,8 +241,8 @@ export const sendAsset = createBackgroundAsyncThunk(
       toAddressNetwork: { address: toAddress, network: toNetwork },
       assetAmount,
       gasLimit,
-      maxPriorityFeePerGas,
-      maxFeePerGas,
+      minerTip,
+      gasPrice,
     } = transferDetails
 
     try {
@@ -283,8 +283,8 @@ export const sendAsset = createBackgroundAsyncThunk(
         from: fromAddress,
         chainId: toBigInt(fromNetwork?.chainID),
         gasLimit,
-        maxPriorityFeePerGas,
-        maxFeePerGas,
+        minerTip,
+        gasPrice,
         data: transactionData,
         value: transactionValue,
       }

@@ -124,8 +124,8 @@
       "invalidLimit": "Gas Limit must be a number",
       "lowGas": "Low"
     },
-    "miner": "Miner:",
-    "maxBase": "Max Base:",
+    "miner": "Miner Tip:",
+    "maxBase": "Gas Price:",
     "speeds": {
       "0": "-",
       "70": "~5 min",

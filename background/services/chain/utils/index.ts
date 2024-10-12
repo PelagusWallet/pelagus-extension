@@ -10,10 +10,11 @@ export function blockFromProviderBlock(
   network: NetworkInterface,
   block: Block
 ): AnyEVMBlock {
-  const { difficulty, time } = block.woHeader
-  const { number, hash, parentHash, baseFeePerGas } = block.header
+  const { hash } = block
+  const { difficulty, timestamp } = block.woHeader
+  const { number, parentHash, gasPrice: baseFeePerGas } = block.header
 
-  const blockNumber: string = Array.isArray(number)
+  const blockNumber: number | null = Array.isArray(number)
     ? number[number.length - 1]
     : number
 
@@ -22,7 +23,7 @@ export function blockFromProviderBlock(
     blockHeight: Number(blockNumber),
     parentHash: parentHash[parentHash.length - 1] || "",
     difficulty: BigInt(difficulty),
-    timestamp: parseHexTimestamp(time),
+    timestamp: parseHexTimestamp(timestamp),
     baseFeePerGas: baseFeePerGas ? BigInt(baseFeePerGas) : 0n,
     network,
   }

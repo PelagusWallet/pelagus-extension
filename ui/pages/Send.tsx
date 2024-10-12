@@ -22,7 +22,7 @@ import {
   parseToFixedPointNumber,
 } from "@pelagus/pelagus-background/lib/fixed-point"
 import {
-  getMaxFeeAndMaxPriorityFeePerGas,
+  getMaxFeeAndMinerTip,
   selectAssetPricePoint,
   sendAsset,
 } from "@pelagus/pelagus-background/redux-slices/assets"
@@ -74,10 +74,8 @@ export default function Send(): ReactElement {
 
   const [assetType, setAssetType] = useState<"token">("token")
 
-  const [maxFeePerGas, setMaxFeePerGas] = useState(toBigInt(6000000000))
-  const [maxPriorityFeePerGas, setMaxPriorityFeePerGas] = useState(
-    toBigInt(2000000000)
-  )
+  const [gasPrice, setGasPrice] = useState(toBigInt(6000000000))
+  const [minerTip, setMinerTip] = useState(toBigInt(2000000000))
   const [gasLimit, setGasLimit] = useState<number>(100000)
 
   const [advancedVisible, setAdvancedVisible] = useState(false)
@@ -90,16 +88,16 @@ export default function Send(): ReactElement {
   useEffect(() => {
     const fetchFees = async () => {
       const response = (await dispatch(
-        getMaxFeeAndMaxPriorityFeePerGas()
-      )) as AsyncThunkFulfillmentType<typeof getMaxFeeAndMaxPriorityFeePerGas>
+        getMaxFeeAndMinerTip()
+      )) as AsyncThunkFulfillmentType<typeof getMaxFeeAndMinerTip>
 
       const {
-        maxFeePerGas: maxFeePerGasFromRedux,
-        maxPriorityFeePerGas: maxPriorityFeePerGasFromRedux,
+        gasPrice: gasPriceFromRedux,
+        minerTip: minerTipFromRedux,
       } = response
 
-      setMaxFeePerGas(maxFeePerGasFromRedux.valueOf())
-      setMaxPriorityFeePerGas(maxPriorityFeePerGasFromRedux.valueOf())
+      setGasPrice(gasPriceFromRedux.valueOf())
+      setMinerTip(minerTipFromRedux.valueOf())
     }
 
     fetchFees()
@@ -191,8 +189,8 @@ export default function Send(): ReactElement {
         assetAmount,
         accountSigner: currentAccountSigner,
         gasLimit: BigInt(gasLimit),
-        maxFeePerGas,
-        maxPriorityFeePerGas,
+        gasPrice,
+        minerTip,
       }
       const { success } = (await dispatch(
         sendAsset(transferDetails)
@@ -204,7 +202,7 @@ export default function Send(): ReactElement {
       setIsSendingTransactionRequest(false)
       setIsOpenConfirmationModal(true)
     }
-  }, [assetAmount, currentAccount, destinationAddress, dispatch, history])
+  }, [assetAmount, currentAccount, destinationAddress, dispatch, history, gasLimit, gasPrice, minerTip])
 
   const copyAddress = useCallback(() => {
     if (destinationAddress === undefined) {
@@ -351,36 +349,29 @@ export default function Send(): ReactElement {
                     resolved_address: resolvedNameToAddress,
                   })}
                 />
-                <label style={{ paddingTop: "5px" }} htmlFor="maxFeePerGas">
-                  Max Fee Per Gas
+                <label style={{ paddingTop: "5px" }} htmlFor="gasPrice">
+                  Gas Price
                 </label>
                 <input
                   id="send_address_alt"
                   type="number"
-                  placeholder={maxFeePerGas.toString()}
+                  placeholder={gasPrice.toString()}
                   spellCheck={false}
-                  onChange={(event) =>
-                    setMaxFeePerGas(toBigInt(event.target.value))
-                  }
+                  onChange={(event) => setGasPrice(toBigInt(event.target.value))}
                   className={classNames({
                     error: addressErrorMessage !== undefined,
                     resolved_address: resolvedNameToAddress,
                   })}
                 />
-                <label
-                  style={{ paddingTop: "5px" }}
-                  htmlFor="maxPriorityFeePerGas"
-                >
-                  Max Priority Fee Per Gas
+                <label style={{ paddingTop: "5px" }} htmlFor="minerTip">
+                  Miner Tip
                 </label>
                 <input
                   id="send_address_alt"
                   type="number"
-                  placeholder={maxPriorityFeePerGas.toString()}
+                  placeholder={minerTip.toString()}
                   spellCheck={false}
-                  onChange={(event) =>
-                    setMaxPriorityFeePerGas(toBigInt(event.target.value))
-                  }
+                  onChange={(event) => setMinerTip(toBigInt(event.target.value))}
                   className={classNames({
                     error: addressErrorMessage !== undefined,
                     resolved_address: resolvedNameToAddress,

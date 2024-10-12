@@ -118,7 +118,7 @@ export function NetworkSettingsSelectOptionButton({
             <span className="r_label">{t("miner")}</span>
             {`${
               option.type !== NetworkFeeTypeChosen.Auto
-                ? Number(option.maxPriorityGwei).toFixed(2)
+                ? Number(option.minerTipGwei).toFixed(2)
                 : "Auto"
             }`}
           </span>
@@ -127,7 +127,7 @@ export function NetworkSettingsSelectOptionButton({
         <div className="price">
           {`${
             option.type !== NetworkFeeTypeChosen.Auto
-              ? Number(option.baseMaxGwei).toFixed(2)
+              ? Number(option.minerTipGwei).toFixed(2)
               : "Auto"
           }`}
         </div>
@@ -154,8 +154,8 @@ export function NetworkSettingsSelectOptionButtonCustom({
   handleSelectGasOption: () => void
   isActive: boolean
   updateCustomGas: (
-    customMaxBaseFee: bigint,
-    customMaxPriorityFeePerGas: bigint
+    customMinerTip: bigint,
+    customGasPrice: bigint
   ) => void
 }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "networkFees" })
@@ -186,13 +186,13 @@ export function NetworkSettingsSelectOptionButtonCustom({
           <span className="subtext_large r_label">{t("miner")}</span>
           <div className="input_wrap">
             <SharedInput
-              value={`${option.maxPriorityGwei}`}
+              value={`${option.minerTip}`}
               isSmall
               type="number"
               onChange={(value: string) => {
                 updateCustomGas(
-                  option.baseMaxFeePerGas,
-                  gweiToWei(parseFloat(value))
+                  gweiToWei(parseFloat(value)),
+                  BigInt(option.gasPrice ?? 0n)
                 )
               }}
               maxLength={4}
@@ -203,14 +203,14 @@ export function NetworkSettingsSelectOptionButtonCustom({
         <span className="subtext_large r_label">{t("maxBase")}</span>
         <div className="input_wrap">
           <SharedInput
-            value={`${option.baseMaxGwei}`}
+            value={`${option.gasPrice}`}
             isSmall
             type="number"
             onChange={(value: string) => {
               updateCustomGas(
-                gweiToWei(parseFloat(value)), // @TODO Replace
-                option.maxPriorityFeePerGas
-              )
+                BigInt(option.minerTip ?? 0n),
+                gweiToWei(parseFloat(value))
+              ) 
               if (baseGasFee && gweiToWei(parseFloat(value)) < baseGasFee) {
                 setWarningMessage(t("errors.lowGas"))
               } else {

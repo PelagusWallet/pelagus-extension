@@ -13,8 +13,8 @@ export const quaiTransactionFromResponse = (
     hash: transactionResponse.hash,
     data: transactionResponse.data,
     gasLimit: transactionResponse.gasLimit,
-    maxFeePerGas: transactionResponse.maxFeePerGas,
-    maxPriorityFeePerGas: transactionResponse.maxPriorityFeePerGas,
+    gasPrice: transactionResponse.gasPrice,
+    minerTip: transactionResponse.minerTip,
     nonce: transactionResponse.nonce,
     status,
     type: transactionResponse.type,
@@ -22,9 +22,8 @@ export const quaiTransactionFromResponse = (
     index: transactionResponse.index,
     blockHash: null,
     blockNumber: null,
-    gasPrice: null,
     gasUsed: null,
-    etxs: [],
+    outboundEtxs: [],
     logs: [],
   }
 }

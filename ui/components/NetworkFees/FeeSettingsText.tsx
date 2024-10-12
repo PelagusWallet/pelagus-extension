@@ -72,7 +72,7 @@ const estimateGweiAmount = (options: {
 }): string => {
   const { networkSettings, baseFeePerGas } = options
   const estimatedSpendPerGas =
-    baseFeePerGas + networkSettings.values.maxPriorityFeePerGas
+    baseFeePerGas + networkSettings.values.minerTip
 
   const desiredDecimals = 0
 
@@ -114,8 +114,8 @@ export default function FeeSettingsText({
 
   const gasLimit = networkSettings.gasLimit ?? networkSettings.suggestedGasLimit
   const estimatedSpendPerGas =
-    networkSettings.values.gasPrice ||
-    baseFeePerGas + networkSettings.values.maxPriorityFeePerGas
+    (networkSettings.values.gasPrice ?? 1n) +
+    (networkSettings.values.minerTip ?? 0n)
 
   if (typeof estimatedFeesPerGas === "undefined")
     return <div>{t("networkFees.unknownFee")}</div>

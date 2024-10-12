@@ -157,7 +157,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     quaiAddress: string,
     senderPaymentCode: string,
     receiverPaymentCode: string,
-    maxPriorityFeePerGas: bigint | null
+    minerTip: bigint | null
   ): Promise<void> {
     try {
       const { jsonRpcProvider } = this.chainService
@@ -166,18 +166,20 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       qiWallet.connect(jsonRpcProvider)
       await qiWallet.scan(Zone.Cyprus1)
 
-      await qiWallet.sendTransaction(
+      const tx = await qiWallet.sendTransaction(
         receiverPaymentCode,
         amount,
         Zone.Cyprus1,
         Zone.Cyprus1
       )
 
-      this.notifyQiRecipient(
+      console.log("tx", tx)
+
+      await this.notifyQiRecipient(
         quaiAddress,
         senderPaymentCode,
         receiverPaymentCode,
-        maxPriorityFeePerGas
+        minerTip
       )
       NotificationsManager.createSendQiTxNotification()
     } catch (error) {
@@ -330,7 +332,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const transaction = await this.db.getQuaiTransactionByHash(receipt.hash)
     if (!transaction) return
 
-    const { status, blockHash, blockNumber, gasPrice, gasUsed, etxs } = receipt
+    const { status, blockHash, blockNumber, gasPrice, gasUsed, outboundEtxs } =
+      receipt
 
     if (status === 1) {
       transaction.status = QuaiTransactionStatus.CONFIRMED
@@ -351,7 +354,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     // TODO these fields are not very important now,
     //  but in the future it is better to get these fields from the receipt.
     //  quais returns an object with read-only fields, which complicates our work
-    transaction.etxs = []
+    transaction.outboundEtxs = []
     transaction.logs = []
 
     await this.saveQuaiTransaction(transaction)
@@ -374,7 +377,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     quaiAddress: string,
     senderPaymentCode: string,
     receiverPaymentCode: string,
-    maxPriorityFeePerGas: bigint | null
+    minerTip: bigint | null
   ): Promise<void> {
     try {
       const { jsonRpcProvider } = this.chainService
@@ -393,13 +396,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         MAILBOX_INTERFACE,
         wallet
       )
-      const gasOptions = maxPriorityFeePerGas ? { maxPriorityFeePerGas } : {}
+      const gasOptions = minerTip ? { minerTip } : {}
+      console.log("senderPaymentCode", senderPaymentCode)
+      console.log("receiverPaymentCode", receiverPaymentCode)
       const tx = await mailboxContract.notify(
         senderPaymentCode,
         receiverPaymentCode,
         gasOptions
       )
-      await tx.wait()
+      console.log("notified tx", tx)
+      const receipt = await tx.wait()
+      console.log("notified receipt", receipt)
     } catch (error) {
       logger.error("Error occurs while notifying Qi recipient", error)
     }

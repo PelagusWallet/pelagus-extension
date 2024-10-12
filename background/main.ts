@@ -816,7 +816,7 @@ export default class Main extends BaseService<never> {
   async enrichETXActivity(txHash: HexString): Promise<void> {
     const accountsToTrack = await this.chainService.getAccountsToTrack()
     const transaction = await this.transactionService.getQuaiTransaction(txHash)
-    if (transaction?.blockHash && !transaction?.etxs?.length) {
+    if (transaction?.blockHash && !transaction?.outboundEtxs?.length) {
       logger.warn("No ETXs emitted for tx: ", transaction?.hash)
       return
     }

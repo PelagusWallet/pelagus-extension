@@ -98,7 +98,7 @@ export default abstract class NotificationsManager {
     const options = {
       ...DEFAULT_NOTIFICATION_OPTIONS,
       title: "Qi transaction",
-      message: `Qi transaction is sent. Monitor your balance!`,
+      message: `Qi transaction has been sent.`,
     }
 
     if (!walletOpen) {
@@ -107,7 +107,7 @@ export default abstract class NotificationsManager {
       const { store } = globalThis.main
       store.dispatch(
         setSnackbarConfig({
-          message: `Qi transaction is sent`,
+          message: `Qi transaction sent.`,
           withSound: true,
           type: SnackBarType.transactionSettled,
           duration: DURATION_MS,
@@ -122,7 +122,7 @@ export default abstract class NotificationsManager {
     const options = {
       ...DEFAULT_NOTIFICATION_OPTIONS,
       title: "Qi transaction",
-      message: `Failed to sent qi transaction!`,
+      message: `Failed to send Qi transaction.`,
     }
 
     if (!walletOpen) {
@@ -131,7 +131,7 @@ export default abstract class NotificationsManager {
       const { store } = globalThis.main
       store.dispatch(
         setSnackbarConfig({
-          message: `Qi transaction failed to send`,
+          message: `Qi transaction failed.`,
           withSound: true,
           type: SnackBarType.transactionSettled,
           duration: DURATION_MS,

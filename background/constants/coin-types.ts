@@ -2,7 +2,7 @@
 // data but is important, it SHOULD NOT be imported from an external package.
 
 export const COIN_TYPES_BY_ASSET_SYMBOL = {
-  QI: 1, // FIXME
+  QI: 969,
   QUAI: 994,
 } as const
 

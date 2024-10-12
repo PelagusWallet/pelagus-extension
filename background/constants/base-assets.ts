@@ -5,7 +5,7 @@ export const QI: NetworkBaseAsset = {
   chainID: "9000",
   name: "Quai Network",
   symbol: "Qi",
-  decimals: 18,
+  decimals: 3,
   coinType: COIN_TYPES_BY_ASSET_SYMBOL.QI,
   metadata: {
     tokenLists: [],

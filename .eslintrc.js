@@ -94,6 +94,12 @@ module.exports = {
     ],
     "@typescript-eslint/no-unused-vars": "error",
     "no-unused-vars": "off",
+    "react/no-unknown-property": [
+      2,
+      {
+        ignore: ["jsx"],
+      },
+    ],
   },
   ignorePatterns: [
     "dist/",

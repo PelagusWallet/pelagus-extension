@@ -208,6 +208,18 @@ export default function Settings(): ReactElement {
     ),
   }
 
+  const qiCoinbaseAddress = {
+    title: "",
+    component: () => (
+      <SettingButton
+        link="/settings/qiCoinbaseAddress"
+        label={t("settings.qiCoinbaseAddresses")}
+        ariaLabel={t("settings.qiCoinbaseAddressSettings.ariaLabel")}
+        icon="continue"
+      />
+    ),
+  }
+
   const addCustomAsset = {
     title: "",
     component: () => (
@@ -239,6 +251,7 @@ export default function Settings(): ReactElement {
           setAsDefault
         ),
         dAppsSettings,
+        qiCoinbaseAddress,
         pelagusNotifications,
         ...wrapIfEnabled(FeatureFlags.SUPPORT_MULTIPLE_LANGUAGES, languages),
         ...wrapIfEnabled(

@@ -73,7 +73,7 @@ export type ChainIdWithError = {
  */
 export type AnyNetwork = NetworkInterface
 
-export type EIP1559Block = {
+export type Block = {
   hash: string
   parentHash: string
   difficulty: bigint
@@ -84,7 +84,7 @@ export type EIP1559Block = {
 }
 
 // TODO-MIGRATION replace with quai block
-export type AnyEVMBlock = EIP1559Block
+export type AnyEVMBlock = Block
 
 /**
  * The estimated gas prices for including a transaction in the next block.
@@ -114,20 +114,13 @@ export type BlockPrices = {
 export type BlockEstimate = {
   confidence: number
   /**
-   * For legacy (pre-EIP1559) transactions, the gas price that results in the
-   * above likelihood of inclusion.
+   * The gas price that results in the above likelihood of inclusion.
    */
-  price?: bigint
+  gasPrice?: bigint
   /**
-   * For EIP1559 transactions, the max priority fee per gas that results in the
-   * above likelihood of inclusion.
+   * The miner tip that results in the above likelihood of inclusion.
    */
-  maxPriorityFeePerGas: bigint
-  /**
-   * For EIP1559 transactions, the max fee per gas that results in the above
-   * likelihood of inclusion.
-   */
-  maxFeePerGas: bigint
+  minerTip?: bigint
 }
 
 /**
@@ -153,10 +146,3 @@ export function toHexChainID(chainID: string | number): string {
 
   return `0x${BigInt(chainID).toString(16)}`
 }
-
-// There is probably some clever way to combine the following type guards into one function
-export const isEIP1559TransactionRequest = (
-  transactionRequest: QuaiTransactionRequest | QuaiTransactionDB
-) =>
-  !!transactionRequest?.maxFeePerGas ||
-  !!transactionRequest?.maxPriorityFeePerGas

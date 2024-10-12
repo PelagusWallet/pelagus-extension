@@ -9,7 +9,7 @@ export type QiSendState = {
   senderQuaiAccount: AccountTotal | null
   receiverPaymentCode: string
   amount: string
-  tips: string
+  minerTip: string
 }
 
 const initialState: QiSendState = {
@@ -17,7 +17,7 @@ const initialState: QiSendState = {
   receiverPaymentCode: "",
   amount: "",
   senderQuaiAccount: null,
-  tips: "",
+  minerTip: "",
 }
 
 const qiSendSlice = createSlice({
@@ -27,8 +27,8 @@ const qiSendSlice = createSlice({
     setQiSendAmount: (immerState, { payload }: { payload: string }) => {
       immerState.amount = payload
     },
-    setQiSendTips: (immerState, { payload }: { payload: string }) => {
-      immerState.tips = payload
+    setQiSendMinerTip: (immerState, { payload }: { payload: string }) => {
+      immerState.minerTip = payload
     },
     setQiSendReceiverPaymentCode: (
       immerState,
@@ -53,7 +53,7 @@ const qiSendSlice = createSlice({
       immerState.senderQuaiAccount = null
       immerState.amount = ""
       immerState.receiverPaymentCode = ""
-      immerState.tips = ""
+      immerState.minerTip = ""
     },
   },
 })
@@ -63,7 +63,7 @@ export const {
   setQiSendAcc,
   setQiSendAmount,
   setQiSendReceiverPaymentCode,
-  setQiSendTips,
+  setQiSendMinerTip,
   resetQiSendSlice,
 } = qiSendSlice.actions
 
@@ -79,7 +79,7 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
       senderQuaiAccount,
       senderQiAccount,
       receiverPaymentCode,
-      tips,
+      minerTip,
     } = qiSend
 
     const { address: quaiAddress } = senderQuaiAccount as AccountTotal
@@ -87,14 +87,14 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
       senderQiAccount as UtxoAccountData
 
     const parsedAmount = BigInt(Number(amount) * 1000) // FIXME parseQi(amount)
-    const maxPriorityFeePerGas = tips !== "" ? BigInt(tips) : null
+    const minerTipBigInt = minerTip !== "" ? BigInt(minerTip) : null
 
     await main.transactionService.sendQiTransaction(
       parsedAmount,
       quaiAddress,
       senderPaymentCode,
       receiverPaymentCode,
-      maxPriorityFeePerGas
+      minerTipBigInt
     )
 
     dispatch(resetQiSendSlice())

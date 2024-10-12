@@ -1,5 +1,5 @@
 import { LogParams, Shard, toBigInt } from "quais"
-import { AnyEVMBlock, isEIP1559TransactionRequest } from "../../networks"
+import { AnyEVMBlock } from "../../networks"
 import {
   AnyAsset,
   isSmartContractFungibleAsset,
@@ -256,14 +256,11 @@ export default async function resolveTransactionAnnotation(
     network,
   })
 
-  const { gasLimit, blockHash } = transaction
+  const { gasLimit, minerTip, gasPrice, blockHash } = transaction
 
-  const additionalL1Gas = 0n
-  const gasFee: bigint = isEIP1559TransactionRequest(transaction)
-    ? toBigInt(transaction?.maxFeePerGas ?? 0n) * toBigInt(gasLimit ?? 0n) +
-      additionalL1Gas
-    : toBigInt(transaction?.gasPrice ?? 0n) * toBigInt(gasLimit ?? 0n) +
-      additionalL1Gas
+  const gasFee: bigint =
+    (toBigInt(gasPrice ?? 0n) + toBigInt(minerTip ?? 0n)) *
+    toBigInt(gasLimit ?? 0n)
 
   txAnnotation.warnings ??= []
 

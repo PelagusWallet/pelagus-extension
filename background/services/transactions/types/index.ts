@@ -21,17 +21,16 @@ export type QuaiTransactionDB = {
   status: QuaiTransactionStatus
 
   gasUsed?: bigint | null
-  gasPrice: BigNumberish | null
   gasLimit: BigNumberish | null
-  maxFeePerGas: BigNumberish | null
-  maxPriorityFeePerGas: BigNumberish | null
+  gasPrice: BigNumberish | null
+  minerTip: BigNumberish | null
 
   index: bigint
   value: BigNumberish | null
   blockHash: string | null
   blockNumber: number | null
 
-  etxs: EtxParams[]
+  outboundEtxs: EtxParams[]
   logs: LogParams[]
 }
 

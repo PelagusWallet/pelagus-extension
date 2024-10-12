@@ -195,10 +195,6 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
 
 export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_LOCAL]
 
-export const EIP_1559_COMPLIANT_CHAIN_IDS = new Set(
-  [QUAI_NETWORK, QUAI_NETWORK_LOCAL].map((network) => network.chainID)
-)
-
 export const NETWORK_BY_CHAIN_ID = {
   [QUAI_NETWORK.chainID]: QUAI_NETWORK,
   [QUAI_NETWORK_LOCAL.chainID]: QUAI_NETWORK_LOCAL,

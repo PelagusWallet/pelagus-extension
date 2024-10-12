@@ -21,10 +21,9 @@ export type NetworkFeeSettings = {
   gasLimit: bigint | undefined
   suggestedGasLimit: bigint | undefined
   values: {
-    maxFeePerGas: bigint
-    maxPriorityFeePerGas: bigint
+    minerTip: bigint
+    gasPrice: bigint
     baseFeePerGas?: bigint
-    gasPrice?: bigint
   }
 }
 
@@ -49,8 +48,8 @@ export type TransactionConstruction = {
 
 export type EstimatedFeesPerGas = {
   baseFeePerGas?: bigint
-  maxPriorityFeePerGas?: bigint
-  maxFeePerGas?: bigint
+  gasPrice?: bigint
+  minerTip?: bigint
   auto?: BlockEstimate
   instant?: BlockEstimate
   express?: BlockEstimate
@@ -59,8 +58,8 @@ export type EstimatedFeesPerGas = {
 }
 
 const defaultCustomGas = {
-  maxFeePerGas: 0n,
-  maxPriorityFeePerGas: 0n,
+  gasPrice: 0n,
+  minerTip: 0n,
   confidence: 0,
 }
 
@@ -84,15 +83,12 @@ export type GasOption = {
   estimatedSpeed: string
   type: NetworkFeeTypeChosen
   estimatedGwei: string
-  maxPriorityGwei: string
-  maxGwei: string
+  minerTipGwei: string
+  gasPriceGwei: string
   dollarValue: string
   gasPrice?: string
+  minerTip?: string
   estimatedFeePerGas: bigint // wei
-  baseMaxFeePerGas: bigint // wei
-  baseMaxGwei: string
-  maxFeePerGas: bigint // wei
-  maxPriorityFeePerGas: bigint // wei
 }
 
 export const emitter = new Emittery<Events>()
@@ -101,27 +97,24 @@ const makeBlockEstimate = (
   type: number,
   estimatedFeesPerGas: BlockPrices
 ): BlockEstimate => {
-  let maxFeePerGas = estimatedFeesPerGas.estimatedPrices.find(
+  let gasPrice = estimatedFeesPerGas.estimatedPrices.find(
     (el) => el.confidence === type
-  )?.maxFeePerGas
+  )?.gasPrice
 
-  if (typeof maxFeePerGas === "undefined") {
+  if (typeof gasPrice === "undefined") {
     // Fallback
-    maxFeePerGas = estimatedFeesPerGas.baseFeePerGas
+    gasPrice = estimatedFeesPerGas.baseFeePerGas
   }
 
   // Exaggerate differences between options
-  maxFeePerGas = (maxFeePerGas * MAX_FEE_MULTIPLIER[type]) / 10n
+  const minerTip =
+    estimatedFeesPerGas.estimatedPrices.find((el) => el.confidence === type)
+      ?.minerTip ?? 0n
 
   return {
-    maxFeePerGas,
+    gasPrice,
+    minerTip,
     confidence: type,
-    maxPriorityFeePerGas:
-      estimatedFeesPerGas.estimatedPrices.find((el) => el.confidence === type)
-        ?.maxPriorityFeePerGas ?? 0n,
-    price:
-      estimatedFeesPerGas.estimatedPrices.find((el) => el.confidence === type)
-        ?.price ?? 0n,
   }
 }
 
@@ -161,11 +154,12 @@ export const sendTransaction = createBackgroundAsyncThunk(
       to,
       from,
       gasLimit,
-      maxPriorityFeePerGas: selectedFeesPerGas?.maxPriorityFeePerGas,
-      maxFeePerGas: selectedFeesPerGas?.maxFeePerGas,
+      minerTip: selectedFeesPerGas?.minerTip,
+      gasPrice: selectedFeesPerGas?.gasPrice,
       data,
       value,
       chainId,
+      network: transactionConstruction.transactionRequest.network,
     } as QuaiTransactionRequestWithAnnotation
 
     const autoFeeRequest = {
@@ -271,17 +265,17 @@ const transactionSlice = createSlice({
     setCustomGas: (
       immerState,
       {
-        payload: { maxPriorityFeePerGas, maxFeePerGas },
+        payload: { minerTip, gasPrice },
       }: {
         payload: {
-          maxPriorityFeePerGas: bigint
-          maxFeePerGas: bigint
+          minerTip: bigint
+          gasPrice: bigint
         }
       }
     ) => {
       immerState.customFeesPerGas = {
-        maxPriorityFeePerGas,
-        maxFeePerGas,
+        minerTip,
+        gasPrice,
         confidence: 0,
       }
     },

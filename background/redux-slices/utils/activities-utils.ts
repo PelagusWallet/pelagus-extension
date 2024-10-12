@@ -262,7 +262,7 @@ export async function getActivityDetails(
           .filter(isDefined)
 
   const {
-    maxFeePerGas = null,
+    minerTip = null,
     gasPrice = null,
     nonce = null,
     hash,
@@ -275,7 +275,7 @@ export async function getActivityDetails(
       value: blockNumber ? blockNumber.toString() : "(Unknown)",
     },
     { label: "Amount", value: getAmount(tx) ?? "" },
-    { label: "Max Fee/Gas", value: getGweiPrice(maxFeePerGas) },
+    { label: "Miner Tip", value: getGweiPrice(minerTip) },
     { label: "Gas Price", value: getGweiPrice(gasPrice) },
     { label: "Gas", value: gasUsed ? gasUsed.toString() : "(Unknown)" },
     { label: "Nonce", value: String(nonce) },

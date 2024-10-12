@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { setQiSendTips } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { setQiSendMinerTip } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import { useBackgroundDispatch } from "../../../../hooks"
 
 const FeeSettings = () => {
@@ -15,13 +15,13 @@ const FeeSettings = () => {
     const regex = /^[0-9]*\.?[0-9]*$/
     if (value === "" || regex.test(value)) {
       setTipValue(value)
-      await dispatch(setQiSendTips(value))
+      await dispatch(setQiSendMinerTip(value))
     }
   }
 
   const onAutoTips = async () => {
     setTipValue("")
-    await dispatch(setQiSendTips(""))
+    await dispatch(setQiSendMinerTip(""))
     setTipPlaceholder("Auto-calculated tip will be applied")
   }
   return (
@@ -50,7 +50,7 @@ const FeeSettings = () => {
 
         {isShowAdvancedSettings && (
           <>
-            <h3 className="tip-label">Miner Tips</h3>
+            <h3 className="tip-label">Miner Tip</h3>
             <div className="tip-wrapper">
               <input
                 type="text"

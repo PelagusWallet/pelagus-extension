@@ -40,7 +40,7 @@ const gasOptionFromEstimate = (
   mainCurrencyPricePoint: PricePoint | undefined,
   baseFeePerGas: bigint,
   gasLimit: bigint | undefined,
-  { confidence, maxFeePerGas, maxPriorityFeePerGas, price }: BlockEstimate
+  { confidence, gasPrice, minerTip }: BlockEstimate
 ): GasOption => {
   const feeOptionData: {
     [confidence: number]: NetworkFeeTypeChosen
@@ -59,14 +59,10 @@ const gasOptionFromEstimate = (
       estimatedSpeed: "",
       type: feeOptionData[confidence],
       estimatedGwei: "",
-      maxPriorityGwei: "",
-      maxGwei: "",
+      minerTipGwei: "",
+      gasPriceGwei: "",
       dollarValue: "-",
       estimatedFeePerGas: 0n,
-      baseMaxFeePerGas: 0n,
-      baseMaxGwei: "",
-      maxFeePerGas: 0n,
-      maxPriorityFeePerGas: 0n,
       gasPrice: "",
     }
   }
@@ -81,16 +77,12 @@ const gasOptionFromEstimate = (
     estimatedGwei: weiToGwei(
       (baseFeePerGas * ESTIMATED_FEE_MULTIPLIERS[confidence]) / 10n
     ).split(".")[0],
-    maxPriorityGwei: weiToGwei(maxPriorityFeePerGas),
-    maxGwei: weiToGwei(maxFeePerGas).split(".")[0],
+    minerTipGwei: minerTip ? weiToGwei(minerTip) : "",
+    gasPriceGwei: gasPrice ? weiToGwei(gasPrice).split(".")[0] : "",
     dollarValue: "-",
     estimatedFeePerGas:
       (baseFeePerGas * ESTIMATED_FEE_MULTIPLIERS[confidence]) / 10n,
-    baseMaxFeePerGas: BigInt(maxFeePerGas) - BigInt(maxPriorityFeePerGas),
-    baseMaxGwei: weiToGwei(BigInt(maxFeePerGas) - BigInt(maxPriorityFeePerGas)),
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    gasPrice: price?.toString(),
+    gasPrice: gasPrice?.toString(),
   }
 }
 
@@ -135,8 +127,8 @@ export default function NetworkSettingsSelect({
       onNetworkSettingsChange({
         feeType: gasOptions[activeFeeIndex].type,
         values: {
-          maxFeePerGas: gasOptions[activeFeeIndex].maxFeePerGas,
-          maxPriorityFeePerGas: gasOptions[activeFeeIndex].maxPriorityFeePerGas,
+          minerTip: BigInt(gasOptions[activeFeeIndex].minerTip ?? 0n),
+          gasPrice: BigInt(gasOptions[activeFeeIndex].gasPrice ?? 0n),
         },
         gasLimit: networkSettings.gasLimit,
         suggestedGasLimit: networkSettings.suggestedGasLimit,
@@ -156,8 +148,8 @@ export default function NetworkSettingsSelect({
     onNetworkSettingsChange({
       feeType: gasOptions[index].type,
       values: {
-        maxFeePerGas: gasOptions[index].maxFeePerGas,
-        maxPriorityFeePerGas: gasOptions[index].maxPriorityFeePerGas,
+        minerTip: BigInt(gasOptions[index].minerTip ?? 0n),
+        gasPrice: BigInt(gasOptions[index].gasPrice ?? 0n),
       },
       gasLimit: networkSettings.gasLimit,
       suggestedGasLimit: networkSettings.suggestedGasLimit,
@@ -238,14 +230,13 @@ export default function NetworkSettingsSelect({
   }
 
   function updateCustomGas(
-    customMaxBaseFee: bigint,
-    customMaxPriorityFeePerGas: bigint
+    customMinerTip: bigint,
+    customGasPrice: bigint
   ) {
     dispatch(
       setCustomGas({
-        maxPriorityFeePerGas: customMaxPriorityFeePerGas,
-        maxFeePerGas:
-          BigInt(customMaxBaseFee) + BigInt(customMaxPriorityFeePerGas),
+        gasPrice: customGasPrice,
+        minerTip: customMinerTip,
       })
     )
   }
@@ -265,11 +256,9 @@ export default function NetworkSettingsSelect({
                 isActive={i === activeFeeIndex}
                 handleSelectGasOption={() => handleSelectGasOption(i)}
                 updateCustomGas={(
-                  customMaxBaseFee: bigint,
-                  customMaxPriorityFeePerGas: bigint
-                ) =>
-                  updateCustomGas(customMaxBaseFee, customMaxPriorityFeePerGas)
-                }
+                  customMinerTip: bigint,
+                  customGasPrice: bigint
+                ) => updateCustomGas(customMinerTip, customGasPrice)}
               />
             ) : (
               <NetworkSettingsSelectOptionButton
@@ -328,7 +317,7 @@ export default function NetworkSettingsSelect({
           <div className="max_fee">
             <span className="max_label">{t("networkFees.totalMax")}</span>
             <div className="price ellipsis">
-              {gasOptions?.[activeFeeIndex]?.maxGwei} {t("shared.gwei")}
+              {gasOptions?.[activeFeeIndex]?.gasPriceGwei} {t("shared.gwei")}
             </div>
           </div>
         </div>

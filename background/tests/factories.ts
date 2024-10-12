@@ -226,9 +226,8 @@ export const createBlockPrices = (
   estimatedPrices: [
     {
       confidence: 99,
-      maxFeePerGas: 0n,
-      maxPriorityFeePerGas: 0n,
-      price: 1001550n,
+      minerTip: 0n,
+      gasPrice: 1001550n,
     },
   ],
   network: QuaiGoldenAgeTestnet,

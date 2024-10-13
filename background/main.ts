@@ -1795,7 +1795,38 @@ export default class Main extends BaseService<never> {
 
   async addQiCoinbaseAddress(zone: Zone): Promise<QiCoinbaseAddress> {
     const qiWallet = await this.keyringService.getQiHDWallet()
-    const { address, account, index } = await qiWallet.getNextAddress(0, zone)
+    const existingQiCoinbaseAddresses =
+      await this.indexingService.getQiCoinbaseAddresses()
+    const maxAttempts = 200
+    let attempts = 0
+    let address: HexString = ""
+    let account: number = 0
+    let index: number = 0
+
+    // In the event serialized wallet is corrupted or reverted to unpopulated state
+    // we will try to generate an address that has not already been generated
+    while (attempts < maxAttempts) {
+      const {
+        address: newAddress,
+        account: newAccount,
+        index: newIndex,
+      } = await qiWallet.getNextAddress(0, zone)
+      if (
+        !existingQiCoinbaseAddresses.some(
+          (addr: QiCoinbaseAddress) => addr.address === newAddress
+        )
+      ) {
+        address = newAddress
+        account = newAccount
+        index = newIndex
+        break
+      }
+      attempts++
+    }
+
+    if (attempts === maxAttempts) {
+      throw new Error("Failed to generate a new Qi Coinbase address")
+    }
 
     const serializedQiHDWallet = qiWallet.serialize()
     await this.keyringService.vaultManager.add(

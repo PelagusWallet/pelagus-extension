@@ -1,5 +1,7 @@
 import React from "react"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import SettingsQiCoinbaseAddressListItem from "./SettingsQiCoinbaseAddressListItem"
+import { useBackgroundDispatch } from "../../hooks"
 
 type QiCoinbaseAddress = {
   address: string
@@ -12,7 +14,11 @@ type SettingsQiCoinbaseAddressListProps = {
 export default function SettingsQiCoinbaseAddressList({
   qiCoinbaseAddressListData,
 }: SettingsQiCoinbaseAddressListProps): React.ReactElement {
-  const handleCopyClick = () => {}
+  const dispatch = useBackgroundDispatch()
+  function copyAddress(address: string) {
+    navigator.clipboard.writeText(address)
+    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
+  }
   return (
     <div className="container">
       <ul>
@@ -23,7 +29,7 @@ export default function SettingsQiCoinbaseAddressList({
                 address: addressItem.address,
                 shard: addressItem.shard,
               }}
-              onCopyClick={() => handleCopyClick()}
+              onCopyClick={(address: string) => copyAddress(address)}
             />
           </li>
         ))}

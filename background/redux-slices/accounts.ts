@@ -30,7 +30,6 @@ import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QiWallet } from "../services/keyring/types"
 import { RootState } from "./index"
 import { updateSelectedUtxoAccountBalance } from "./ui"
-import { createAsyncThunk, PayloadAction } from "@reduxjs/toolkit"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to

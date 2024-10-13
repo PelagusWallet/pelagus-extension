@@ -156,6 +156,7 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
+import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -1803,24 +1804,30 @@ export default class Main extends BaseService<never> {
     let account: number = 0
     let index: number = 0
 
-    // In the event serialized wallet is corrupted or reverted to unpopulated state
-    // we will try to generate an address that has not already been generated
+    // Create a Set for faster lookup
+    const existingAddressesSet = new Set(
+      existingQiCoinbaseAddresses.map((addr) => addr.address)
+    )
+
+    const gapAddresses = [...qiWallet.getGapAddressesForZone(zone)]
+    let newAddress: NeuteredAddressInfo
     while (attempts < maxAttempts) {
-      const {
-        address: newAddress,
-        account: newAccount,
-        index: newIndex,
-      } = await qiWallet.getNextAddress(0, zone)
-      if (
-        !existingQiCoinbaseAddresses.some(
-          (addr: QiCoinbaseAddress) => addr.address === newAddress
-        )
-      ) {
-        address = newAddress
-        account = newAccount
-        index = newIndex
+      // If there are gap addresses, we should use the first one
+      if (gapAddresses.length > 0) {
+        newAddress = gapAddresses.shift()!
+      } else {
+        // Otherwise, we generate a new address
+        newAddress = await qiWallet.getNextAddress(account, zone)
+      }
+
+      // If the address is not in the existing addresses set, we use it
+      if (!existingAddressesSet.has(newAddress.address)) {
+        address = newAddress.address
+        account = newAddress.account
+        index = newAddress.index
         break
       }
+
       attempts++
     }
 
@@ -1833,6 +1840,15 @@ export default class Main extends BaseService<never> {
       { qiHDWallet: serializedQiHDWallet },
       {}
     )
+
+    // Add the new address to the indexing service
+    await this.indexingService.persistQiCoinbaseAddress({
+      address,
+      account,
+      index,
+      zone,
+    })
+
     return { address, account, index, zone }
   }
 

@@ -2,11 +2,8 @@ import React from "react"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import SettingsQiCoinbaseAddressListItem from "./SettingsQiCoinbaseAddressListItem"
 import { useBackgroundDispatch } from "../../hooks"
+import { QiCoinbaseAddress } from "../../../background/accounts"
 
-type QiCoinbaseAddress = {
-  address: string
-  shard: string
-}
 type SettingsQiCoinbaseAddressListProps = {
   qiCoinbaseAddressListData: QiCoinbaseAddress[]
 }
@@ -27,7 +24,9 @@ export default function SettingsQiCoinbaseAddressList({
             <SettingsQiCoinbaseAddressListItem
               qiCoinbaseAddress={{
                 address: addressItem.address,
-                shard: addressItem.shard,
+                account: addressItem.account,
+                index: addressItem.index,
+                zone: addressItem.zone,
               }}
               onCopyClick={(address: string) => copyAddress(address)}
             />

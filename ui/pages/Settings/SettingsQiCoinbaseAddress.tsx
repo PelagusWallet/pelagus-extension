@@ -1,42 +1,15 @@
-import React, { ReactElement, useEffect, useState } from "react"
+import React, { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import SharedPageHeader from "../../components/Shared/SharedPageHeader"
 import SettingsQiCoinbaseListEmpty from "./SettingsQiCoinbaseListEmpty"
 import SharedButton from "../../components/Shared/SharedButton"
 import SettingsQiCoinbaseAddressList from "./SettingsQiCoinbaseAddressList"
-
-type QiCoinbaseAddress = {
-  address: string
-  shard: string
-}
+import { selectQiCoinbaseAddresses } from "@pelagus/pelagus-background/redux-slices/selectors/accountsSelectors"
+import { useBackgroundSelector } from "../../hooks"
 
 export default function SettingsQiCoinbaseAddress(): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "settings" })
-  const [coinbaseAddressList, setCoinbaseAddressList] = useState<
-    QiCoinbaseAddress[]
-  >([])
-
-  const generateMockAddresses = () => {
-    const addr1: QiCoinbaseAddress = {
-      address: "0x000800dCfb49F82e367933D0461bBd537397Db71",
-      shard: "Cyprus 1(1)",
-    }
-    const addr2: QiCoinbaseAddress = {
-      address: "0x000800dCfb49F82e367933D0461bBd537397Db72",
-      shard: "Cyprus 1(2)",
-    }
-    const addr3: QiCoinbaseAddress = {
-      address: "0x000800dCfb49F82e367933D0461bBd537397Db72",
-      shard: "Cyprus 1(3)",
-    }
-    const mockAddresses: QiCoinbaseAddress[] = []
-    mockAddresses.push(addr1, addr2, addr3)
-    setCoinbaseAddressList(mockAddresses)
-  }
-
-  useEffect(() => {
-    generateMockAddresses()
-  }, [])
+  const coinbaseAddressList = useBackgroundSelector(selectQiCoinbaseAddresses)
 
   return (
     <div className="standard_width_padded wrapper">

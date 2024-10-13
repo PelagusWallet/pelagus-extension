@@ -5,6 +5,7 @@ import {
   AccountBalance,
   AddressOnNetwork,
   NameOnNetwork,
+  QiCoinbaseAddress,
   QiWalletBalance,
 } from "../accounts"
 import {
@@ -29,6 +30,7 @@ import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QiWallet } from "../services/keyring/types"
 import { RootState } from "./index"
 import { updateSelectedUtxoAccountBalance } from "./ui"
+import { createAsyncThunk, PayloadAction } from "@reduxjs/toolkit"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to
@@ -112,6 +114,7 @@ export type AccountState = {
     utxo: UtxoAccountsByChainID
   }
   combinedData: CombinedAccountData
+  qiCoinbaseAddresses: QiCoinbaseAddress[]
 }
 
 export type CombinedAccountData = {
@@ -132,12 +135,13 @@ type InternalCompleteAssetAmount<
 export type CompleteAssetAmount<T extends AnyAsset = AnyAsset> =
   InternalCompleteAssetAmount<T, AnyAssetAmount<T>>
 
-export const initialState: AccountState = {
+const initialState: AccountState = {
   accountsData: { evm: {}, utxo: {} },
   combinedData: {
     totalMainCurrencyValue: "",
     assets: [],
   },
+  qiCoinbaseAddresses: [],
 }
 
 function newAccountData(
@@ -468,6 +472,15 @@ const accountSlice = createSlice({
     ) => {
       delete immerState.accountsData.evm[chainID]
     },
+    updateQiCoinbaseAddress: (
+      immerState,
+      { payload: address }: { payload: QiCoinbaseAddress }
+    ) => {
+      immerState.qiCoinbaseAddresses = [
+        ...immerState.qiCoinbaseAddresses,
+        address,
+      ]
+    },
   },
 })
 
@@ -481,6 +494,7 @@ export const {
   updateAssetReferences,
   removeAssetReferences,
   removeChainBalances,
+  updateQiCoinbaseAddress,
 } = accountSlice.actions
 
 export default accountSlice.reducer
@@ -563,5 +577,27 @@ export const updateUtxoAccountsBalances = createBackgroundAsyncThunk(
     if (!balanceForSelectedUtxoAcc) return
 
     dispatch(updateSelectedUtxoAccountBalance(balanceForSelectedUtxoAcc))
+  }
+)
+
+export const addQiCoinbaseAddress = createBackgroundAsyncThunk(
+  "account/addQiCoinbaseAddress",
+  async (
+    payload: {
+      zone: Zone
+    },
+    { dispatch, extra: { main } }
+  ) => {
+    const { address, account, index, zone } = await main.addQiCoinbaseAddress(
+      payload.zone
+    )
+    dispatch(
+      updateQiCoinbaseAddress({
+        address,
+        account,
+        index,
+        zone,
+      })
+    )
   }
 )

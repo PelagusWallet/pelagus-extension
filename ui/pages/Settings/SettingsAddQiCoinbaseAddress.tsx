@@ -9,9 +9,12 @@ import SharedPageHeader from "../../components/Shared/SharedPageHeader"
 import SharedSelect from "../../components/Shared/SharedSelect"
 import SharedButton from "../../components/Shared/SharedButton"
 import SettingsQiCoinbaseGettingAddress from "./SettingsQiCoinbaseGettingAddress"
+import { useBackgroundDispatch } from "../../hooks"
+import { addQiCoinbaseAddress } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 export default function SettingsAddQiCoinbaseAddress(): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "settings" })
+  const dispatch = useBackgroundDispatch()
   const [selectedZone, setSelectedZone] = useState<Zone | undefined>(undefined)
   const [gettingNewAddress, setGettingNewAddress] = useState<boolean>(false)
   const [addAddressComplete, setAddAddressComplete] = useState<boolean>(false)
@@ -32,25 +35,31 @@ export default function SettingsAddQiCoinbaseAddress(): ReactElement {
     setNewAddress(address)
     setNewAddressZone(zone)
     setAddAddressComplete(true)
-    setTimeout(function cb1() {
+    setTimeout(() => {
       setAddAddressComplete(false)
-    }, 5000)
-    setTimeout(function cb2() {
       setGettingNewAddress(false)
     }, 5000)
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setAddAddressComplete(false)
     if (selectedZone === undefined) {
       setSelectedZone(zoneOptions[0].value)
     }
     setGettingNewAddress(true)
-    // call the request address method from wallet manager, when done display the complete status message
-    // mock UI test
-    setTimeout(function cb() {
-      handleAddAddressComplete(zoneOptions[0].value, "test address")
-    }, 5000)
+
+    try {
+      await dispatch(
+        addQiCoinbaseAddress({ zone: selectedZone || zoneOptions[0].value })
+      )
+      handleAddAddressComplete(
+        selectedZone || zoneOptions[0].value,
+        newAddress || ""
+      )
+    } catch (error) {
+      console.error("Error adding Qi coinbase address:", error)
+      setGettingNewAddress(false)
+    }
   }
 
   return (

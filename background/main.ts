@@ -5,7 +5,7 @@ import { configureStore, isPlain, Middleware } from "@reduxjs/toolkit"
 import { devToolsEnhancer } from "@redux-devtools/remote"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
-import { formatUnits, JsonRpcProvider, WebSocketProvider } from "quais"
+import { formatUnits, JsonRpcProvider, WebSocketProvider, Zone } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
 import {
@@ -30,6 +30,7 @@ import {
   AccountSignerWithId,
   AddressOnNetwork,
   NameOnNetwork,
+  QiCoinbaseAddress,
 } from "./accounts"
 import rootReducer from "./redux-slices"
 import {
@@ -1790,6 +1791,18 @@ export default class Main extends BaseService<never> {
 
   async hideAsset(asset: SmartContractFungibleAsset): Promise<void> {
     await this.indexingService.hideAsset(asset)
+  }
+
+  async addQiCoinbaseAddress(zone: Zone): Promise<QiCoinbaseAddress> {
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    const { address, account, index } = await qiWallet.getNextAddress(0, zone)
+
+    const serializedQiHDWallet = qiWallet.serialize()
+    await this.keyringService.vaultManager.add(
+      { qiHDWallet: serializedQiHDWallet },
+      {}
+    )
+    return { address, account, index, zone }
   }
 
   getAddNetworkRequestDetails(requestId: string): AddChainRequestData {

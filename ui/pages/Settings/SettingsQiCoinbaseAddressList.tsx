@@ -32,22 +32,11 @@ export default function SettingsQiCoinbaseAddressList({
         {`
           .container {
             display: flex;
+            width: 100%;
             flex-direction: column;
-            align-items: center;
+            align-items: normal;
             margin-top: 16px;
             height: 100%;
-          }
-          .bowl_image {
-            width: 90px;
-            margin-bottom: 10px;
-          }
-          p {
-            width: 250px;
-            text-align: center;
-            line-height: 24px;
-            font-weight: 500;
-            color: var(--green-40);
-            font-size: 16px;
           }
         `}
       </style>

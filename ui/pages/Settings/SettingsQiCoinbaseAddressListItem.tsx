@@ -20,7 +20,7 @@ export default function SettingsQiCoinbaseAddressListItem({
           <div className="zoneName">
             {qiCoinbaseAddress.displayZone} ({qiCoinbaseAddress.displayIndex})
           </div>
-          <div className="details">{qiCoinbaseAddress.address}</div>
+          <div className="details">{qiCoinbaseAddress.displayAddress}</div>
         </div>
       </div>
       <div className="right-side">
@@ -55,7 +55,7 @@ export default function SettingsQiCoinbaseAddressListItem({
             display: flex;
             flex-direction: row;
             align-items: left;
-            margin: 11px 16px;
+            margin-top: 11px;
             width: 100%;
           }
           .left-side {
@@ -92,14 +92,15 @@ export default function SettingsQiCoinbaseAddressListItem({
             justify-content: center;
           }
           .zoneName {
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 16px;
+            font-weight: 600;
             line-height: 20px;
           }
           .details {
-            font-size: 10px;
+            font-size: 14px;
             font-weight: 400;
             line-height: 18px;
+            letter-spacing: 0.05em;
           }
           .account-action-btn {
             font-size: 12px;

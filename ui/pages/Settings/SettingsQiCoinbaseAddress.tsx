@@ -12,6 +12,7 @@ import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/
 export type DisplayedQiCoinbaseAddress = QiCoinbaseAddress & {
   displayZone: string
   displayIndex: number
+  displayAddress: string
 }
 
 const capitalizeFirstLetter = (text: string): string =>
@@ -60,6 +61,7 @@ export default function SettingsQiCoinbaseAddress(): ReactElement {
           getExtendedZoneForAddress(address.address)
         ),
         displayIndex: displayZoneIndex,
+        displayAddress: address.address.slice(0, 16) + "..." + address.address.slice(-14),
       }
     })
   }

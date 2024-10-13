@@ -9,7 +9,7 @@ export function blockFromProviderBlock(
 ): AnyEVMBlock {
   const hash = block.hash
   const { difficulty, timestamp } = block.woHeader
-  const { number, parentHash, gasPrice: baseFeePerGas } = block.header
+  const { number, parentHash, baseFeePerGas } = block.header
 
   const blockNumber: number | null = Array.isArray(number)
     ? number[number.length - 1]

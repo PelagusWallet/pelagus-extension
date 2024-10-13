@@ -40,7 +40,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     isRestored = false
   ): Promise<void> {
     const { jsonRpcProvider } = globalThis.main.chainService
-    const thisQiWalletPaymentCode = await qiWallet.getPaymentCode()
+    const thisQiWalletPaymentCode = qiWallet.getPaymentCode()
 
     const mailboxContract = new Contract(
       process.env.MAILBOX_CONTRACT_ADDRESS || "",
@@ -76,7 +76,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     const { qiHDWallet } = await this.vaultManager.get()
     if (!qiHDWallet) return
     const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
-    const thisQiWalletPaymentCode = await deserializedQiHDWallet.getPaymentCode(
+    const thisQiWalletPaymentCode = deserializedQiHDWallet.getPaymentCode(
       this.qiHDWalletAccountIndex
     )
 

@@ -2,6 +2,7 @@ import { AnyAssetAmount } from "./assets"
 import { HexString } from "./types"
 import { NetworkInterface } from "./constants/networks/networkTypes"
 import type { AccountSigner, ReadOnlyAccountSigner } from "./services/signing"
+import { Zone } from "quais"
 
 /**
  * An account balance at a particular time and block height, on a particular
@@ -74,4 +75,11 @@ export type AccountSignerWithId = Exclude<
 export type AccountSignerSettings = {
   signer: AccountSignerWithId
   title?: string
+}
+
+export type QiCoinbaseAddress = {
+  address: HexString
+  account: number
+  index: number
+  zone: Zone
 }

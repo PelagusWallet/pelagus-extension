@@ -52,6 +52,7 @@ describe("Accounts redux slice", () => {
           totalMainCurrencyValue: "",
           assets: [],
         },
+        qiCoinbaseAddresses: [],
       }
     })
 

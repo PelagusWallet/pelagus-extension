@@ -2,6 +2,7 @@ import { createSelector } from "@reduxjs/toolkit"
 import { selectHideDust, selectShowUnverifiedAssets } from "../ui"
 import { RootState } from ".."
 import { AccountType, CompleteAssetAmount } from "../accounts"
+import { QiCoinbaseAddress } from "../../accounts"
 import { AssetsState, selectAssetPricePoint } from "../assets"
 import {
   enrichAssetAmountWithDecimalValues,
@@ -515,3 +516,10 @@ export const getAllAccounts = createSelector(getAccountState, (account) => {
       ]
     : []
 })
+
+export const selectQiCoinbaseAddresses = createSelector(
+  getAccountState,
+  (account) => {
+    return account?.qiCoinbaseAddresses ?? []
+  }
+)

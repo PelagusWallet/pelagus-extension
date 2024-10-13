@@ -5,7 +5,7 @@ import { configureStore, isPlain, Middleware } from "@reduxjs/toolkit"
 import { devToolsEnhancer } from "@redux-devtools/remote"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
-import { formatUnits, JsonRpcProvider, WebSocketProvider } from "quais"
+import { formatUnits, JsonRpcProvider, WebSocketProvider, Zone } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
 import {
@@ -30,6 +30,7 @@ import {
   AccountSignerWithId,
   AddressOnNetwork,
   NameOnNetwork,
+  QiCoinbaseAddress,
 } from "./accounts"
 import rootReducer from "./redux-slices"
 import {
@@ -155,6 +156,7 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
+import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -1790,6 +1792,64 @@ export default class Main extends BaseService<never> {
 
   async hideAsset(asset: SmartContractFungibleAsset): Promise<void> {
     await this.indexingService.hideAsset(asset)
+  }
+
+  async addQiCoinbaseAddress(zone: Zone): Promise<QiCoinbaseAddress> {
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    const existingQiCoinbaseAddresses =
+      await this.indexingService.getQiCoinbaseAddresses()
+    const maxAttempts = 200
+    let attempts = 0
+    let address: HexString = ""
+    let account: number = 0
+    let index: number = 0
+
+    // Create a Set for faster lookup
+    const existingAddressesSet = new Set(
+      existingQiCoinbaseAddresses.map((addr) => addr.address)
+    )
+
+    const gapAddresses = [...qiWallet.getGapAddressesForZone(zone)]
+    let newAddress: NeuteredAddressInfo
+    while (attempts < maxAttempts) {
+      // If there are gap addresses, we should use the first one
+      if (gapAddresses.length > 0) {
+        newAddress = gapAddresses.shift()!
+      } else {
+        // Otherwise, we generate a new address
+        newAddress = await qiWallet.getNextAddress(account, zone)
+      }
+
+      // If the address is not in the existing addresses set, we use it
+      if (!existingAddressesSet.has(newAddress.address)) {
+        address = newAddress.address
+        account = newAddress.account
+        index = newAddress.index
+        break
+      }
+
+      attempts++
+    }
+
+    if (attempts === maxAttempts) {
+      throw new Error("Failed to generate a new Qi Coinbase address")
+    }
+
+    const serializedQiHDWallet = qiWallet.serialize()
+    await this.keyringService.vaultManager.add(
+      { qiHDWallet: serializedQiHDWallet },
+      {}
+    )
+
+    // Add the new address to the indexing service
+    await this.indexingService.persistQiCoinbaseAddress({
+      address,
+      account,
+      index,
+      zone,
+    })
+
+    return { address, account, index, zone }
   }
 
   getAddNetworkRequestDetails(requestId: string): AddChainRequestData {

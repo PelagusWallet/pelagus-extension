@@ -31,6 +31,7 @@ import { NetworksArray } from "../../constants/networks/networks"
 import BlockService from "../block"
 import TransactionService from "../transactions"
 import { EnrichedQuaiTransaction } from "../transactions/types"
+import { QiCoinbaseAddress } from "../../accounts"
 
 // Transactions seen within this many blocks of the chain tip will schedule a
 // token refresh sooner than the standard rate.
@@ -56,6 +57,7 @@ interface Events extends ServiceLifecycleEvents {
   assets: AnyAsset[]
   refreshAsset: SmartContractFungibleAsset
   removeAssetData: SmartContractFungibleAsset
+  qiCoinbaseAddresses: QiCoinbaseAddress[]
 }
 
 /**
@@ -770,5 +772,13 @@ export default class IndexingService extends BaseService<Events> {
     await this.fetchAndCacheTokenLists().then(() =>
       this.loadAccountBalances(true)
     )
+  }
+
+  async persistQiCoinbaseAddress(address: QiCoinbaseAddress): Promise<void> {
+    await this.db.addQiCoinbaseAddress(address)
+  }
+
+  async getQiCoinbaseAddresses(): Promise<QiCoinbaseAddress[]> {
+    return this.db.getQiCoinbaseAddresses()
   }
 }

@@ -8,7 +8,7 @@ import {
   SmartContractFungibleAsset,
   TokenListCitation,
 } from "../../assets"
-import { AccountBalance } from "../../accounts"
+import { AccountBalance, QiCoinbaseAddress } from "../../accounts"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 /*
@@ -95,9 +95,11 @@ export class IndexingDatabase extends Dexie {
    */
   private assetsToTrack!: Dexie.Table<SmartContractFungibleAsset, number>
 
+  private qiCoinbaseAddresses!: Dexie.Table<QiCoinbaseAddress, number>
+
   constructor(options?: DexieOptions) {
     super("pelagus/indexing", options)
-    this.version(1).stores({
+    this.version(2).stores({
       migrations: "++id,appliedAt",
       prices: "++id,time,[asset1ID+asset2ID]",
       // TODO: Keep on eye: possible problem if on one chain we have two tokens with the same symbols
@@ -108,6 +110,7 @@ export class IndexingDatabase extends Dexie {
         "&[contractAddress+homeNetwork.baseAsset.name],contractAddress,symbol,homeNetwork.chainID,homeNetwork.baseAsset.name",
       assetsToTrack:
         "&[contractAddress+homeNetwork.baseAsset.name],symbol,contractAddress,homeNetwork.family,homeNetwork.chainID,homeNetwork.baseAsset.name",
+      qiCoinbaseAddresses: "++id,address,account,index,zone",
     })
   }
 
@@ -247,6 +250,14 @@ export class IndexingDatabase extends Dexie {
       url: k,
       tokenList: v as TokenList,
     }))
+  }
+
+  async addQiCoinbaseAddress(addressInfo: QiCoinbaseAddress): Promise<void> {
+    await this.qiCoinbaseAddresses.add(addressInfo)
+  }
+
+  async getQiCoinbaseAddresses(): Promise<QiCoinbaseAddress[]> {
+    return this.qiCoinbaseAddresses.toArray()
   }
 }
 

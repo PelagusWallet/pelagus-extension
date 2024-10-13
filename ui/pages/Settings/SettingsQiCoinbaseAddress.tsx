@@ -61,7 +61,7 @@ export default function SettingsQiCoinbaseAddress(): ReactElement {
           getExtendedZoneForAddress(address.address)
         ),
         displayIndex: displayZoneIndex,
-        displayAddress: address.address.slice(0, 16) + "..." + address.address.slice(-14),
+        displayAddress: address.address.slice(0, 14) + "..." + address.address.slice(-12),
       }
     })
   }

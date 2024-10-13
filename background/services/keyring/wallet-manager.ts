@@ -73,7 +73,7 @@ export default class WalletManager {
     if (qiHDWallet) {
       const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
       this.qiHDWalletManager.syncQiWalletPaymentCodes(deserializedQiHDWallet)
-      const paymentCode = await deserializedQiHDWallet.getPaymentCode(
+      const paymentCode = deserializedQiHDWallet.getPaymentCode(
         this.qiHDWalletManager.qiHDWalletAccountIndex
       )
       this.qiHDWallet = {
@@ -301,7 +301,7 @@ export default class WalletManager {
     this.keyringMetadata[wallet.xPub] = {
       source: SignerImportSource.internal,
     }
-    const paymentCode = await wallet.getPaymentCode(
+    const paymentCode = wallet.getPaymentCode(
       this.qiHDWalletManager.qiHDWalletAccountIndex
     )
     this.qiHDWallet = {

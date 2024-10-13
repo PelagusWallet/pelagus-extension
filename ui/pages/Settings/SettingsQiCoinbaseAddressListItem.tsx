@@ -1,16 +1,11 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
 import { HexString } from "@pelagus/pelagus-background/types"
-import { QiCoinbaseAddress } from "../../../background/accounts"
 import SharedCircleButton from "../../components/Shared/SharedCircleButton"
-import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
-
-const capitalizeFirstLetter = (text: string): string =>
-  text.charAt(0).toUpperCase() + text.slice(1)
-
+import { DisplayedQiCoinbaseAddress } from "./SettingsQiCoinbaseAddress"
 
 type SettingsQiCoinbaseAddressListItemProps = {
-  qiCoinbaseAddress: QiCoinbaseAddress
+  qiCoinbaseAddress: DisplayedQiCoinbaseAddress
   onCopyClick: (address: HexString) => void
 }
 
@@ -23,8 +18,7 @@ export default function SettingsQiCoinbaseAddressListItem({
       <div className="left-side">
         <div className="address-info">
           <div className="zoneName">
-            {" "}
-            {capitalizeFirstLetter(getExtendedZoneForAddress(qiCoinbaseAddress.address))} •{" "}
+            {qiCoinbaseAddress.displayZone} ({qiCoinbaseAddress.displayIndex})
           </div>
           <div className="details">{qiCoinbaseAddress.address}</div>
         </div>

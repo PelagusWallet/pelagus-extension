@@ -18,10 +18,6 @@ export default function SettingsQiCoinbaseGettingAddress(): React.ReactElement {
             margin-top: 16px;
             height: 100%;
           }
-          .bowl_image {
-            width: 90px;
-            margin-bottom: 10px;
-          }
           p {
             width: 250px;
             text-align: center;
@@ -29,6 +25,7 @@ export default function SettingsQiCoinbaseGettingAddress(): React.ReactElement {
             font-weight: 500;
             color: var(--green-40);
             font-size: 16px;
+            margin-top: 16px;
           }
         `}
       </style>

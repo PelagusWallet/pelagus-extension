@@ -2,10 +2,10 @@ import React from "react"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import SettingsQiCoinbaseAddressListItem from "./SettingsQiCoinbaseAddressListItem"
 import { useBackgroundDispatch } from "../../hooks"
-import { QiCoinbaseAddress } from "../../../background/accounts"
+import { DisplayedQiCoinbaseAddress } from "./SettingsQiCoinbaseAddress"
 
 type SettingsQiCoinbaseAddressListProps = {
-  qiCoinbaseAddressListData: QiCoinbaseAddress[]
+  qiCoinbaseAddressListData: DisplayedQiCoinbaseAddress[]
 }
 
 export default function SettingsQiCoinbaseAddressList({
@@ -22,12 +22,7 @@ export default function SettingsQiCoinbaseAddressList({
         {qiCoinbaseAddressListData.map((addressItem) => (
           <li key={addressItem.address}>
             <SettingsQiCoinbaseAddressListItem
-              qiCoinbaseAddress={{
-                address: addressItem.address,
-                account: addressItem.account,
-                index: addressItem.index,
-                zone: addressItem.zone,
-              }}
+              qiCoinbaseAddress={addressItem}
               onCopyClick={(address: string) => copyAddress(address)}
             />
           </li>

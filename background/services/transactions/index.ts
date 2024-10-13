@@ -17,7 +17,7 @@ import ChainService from "../chain"
 import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
-import { MINUTE } from "../../constants"
+import { MAILBOX_CONTRACT_ADDRESS, MINUTE } from "../../constants"
 import { QuaiTransactionDB, QuaiTransactionStatus } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
@@ -44,8 +44,7 @@ const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
  *    This ensures transactions are resubscribed to if the extension process is killed before transaction confirmation.
  */
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
-  public readonly MAILBOX_CONTRACT_ADDRESS =
-    process.env.MAILBOX_CONTRACT_ADDRESS || ""
+  public readonly MAILBOX_CONTRACT_ADDRESS = MAILBOX_CONTRACT_ADDRESS || ""
 
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
@@ -172,8 +171,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         Zone.Cyprus1,
         Zone.Cyprus1
       )
-
-      console.log("tx", tx)
 
       await this.notifyQiRecipient(
         quaiAddress,

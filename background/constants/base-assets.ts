@@ -23,6 +23,19 @@ export const QUAI: NetworkBaseAsset = {
     websiteURL: "https://qu.ai/",
   },
 }
+
+export const QUAI_ORCHARD: NetworkBaseAsset = {
+  chainID: "15000",
+  name: "Quai Network Orchard",
+  symbol: "QUAI",
+  decimals: 18,
+  coinType: COIN_TYPES_BY_ASSET_SYMBOL.QUAI,
+  metadata: {
+    tokenLists: [],
+    websiteURL: "https://qu.ai/",
+  },
+}
+
 export const QUAI_LOCAL: NetworkBaseAsset = {
   chainID: "17000",
   name: "Quai Network Local",
@@ -38,6 +51,7 @@ export const QUAI_LOCAL: NetworkBaseAsset = {
 export const BASE_ASSETS_BY_CUSTOM_NAME = {
   QI,
   QUAI,
+  QUAI_ORCHARD,
   QUAI_LOCAL,
 }
 export const BASE_ASSETS = Object.values(BASE_ASSETS_BY_CUSTOM_NAME)

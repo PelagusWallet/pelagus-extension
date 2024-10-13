@@ -5,6 +5,7 @@ import {
   MAILBOX_EVENTS,
   MAILBOX_INTERFACE,
 } from "../../../contracts/payment-channel-mailbox"
+import { MAILBOX_CONTRACT_ADDRESS } from "../../../constants"
 
 export interface IQiHDWalletManager {
   get(): Promise<QiHDWallet | null>
@@ -43,7 +44,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     const thisQiWalletPaymentCode = qiWallet.getPaymentCode()
 
     const mailboxContract = new Contract(
-      process.env.MAILBOX_CONTRACT_ADDRESS || "",
+      MAILBOX_CONTRACT_ADDRESS || "",
       MAILBOX_INTERFACE,
       jsonRpcProvider
     )
@@ -84,7 +85,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     deserializedQiHDWallet.connect(webSocketProvider)
 
     const mailboxContract = new Contract(
-      process.env.MAILBOX_CONTRACT_ADDRESS || "",
+      MAILBOX_CONTRACT_ADDRESS || "",
       MAILBOX_INTERFACE,
       webSocketProvider
     )

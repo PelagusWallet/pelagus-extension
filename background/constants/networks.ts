@@ -9,20 +9,27 @@ import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { NetworkInterface } from "./networks/networkTypes"
 
 export const QUAI_SCAN_URL = "https://quaiscan.io"
-export const HTTP_RPC_URL = "http://rpc.sandbox.quai.network"
-export const WS_RPC_URL = "ws://rpc.sandbox.quai.network"
+export const ORCHARD_QUAI_SCAN_URL = "https://sandbox.quaiscan.io"
+
+export const HTTPS_RPC_URL = "https://rpc.quai.network"
+export const WSS_RPC_URL = "wss://rpc.quai.network"
+export const ORCHARD_HTTPS_RPC_URL = "https://rpc.orchard.quai.network"
+export const ORCHARD_WSS_RPC_URL = "wss://rpc.orchard.quai.network"
+
+export const MAILBOX_CONTRACT_ADDRESS =
+  "0x007Fa51C8cA4DD7a8b521435dB9FdE154D43cDc4"
 
 export const VALID_ZONES: Array<Zone> = [
   Zone.Cyprus1,
   // TODO-MIGRATION temporary
-  Zone.Cyprus2,
-  Zone.Cyprus3,
-  Zone.Paxos1,
-  Zone.Paxos2,
-  Zone.Paxos3,
-  Zone.Hydra1,
-  Zone.Hydra2,
-  Zone.Hydra3,
+  // Zone.Cyprus2,
+  // Zone.Cyprus3,
+  // Zone.Paxos1,
+  // Zone.Paxos2,
+  // Zone.Paxos3,
+  // Zone.Hydra1,
+  // Zone.Hydra2,
+  // Zone.Hydra3,
 ]
 
 export const VALID_ZONES_NAMES: Array<string> = [
@@ -47,56 +54,23 @@ export const DEFAULT_QUAI_TESTNET = {
     {
       name: "Cyprus One",
       shard: "cyprus-1",
-      rpc: HTTP_RPC_URL,
+      rpc: HTTPS_RPC_URL,
       blockExplorerUrl: QUAI_SCAN_URL,
     },
+  ],
+} as Network
+
+export const DEFAULT_QUAI_ORCHARD = {
+  name: "Orchard",
+  chainCode: 994,
+  chainID: 15000,
+  isCustom: false,
+  chains: [
     {
-      name: "Cyprus Two",
-      shard: "cyprus-2",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
-    },
-    {
-      name: "Cyprus Three",
-      shard: "cyprus-3",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
-    },
-    {
-      name: "Paxos One",
-      shard: "paxos-1",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
-    },
-    {
-      name: "Paxos Two",
-      shard: "paxos-2",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
-    },
-    {
-      name: "Paxos Three",
-      shard: "paxos-3",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
-    },
-    {
-      name: "Hydra One",
-      shard: "hydra-1",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
-    },
-    {
-      name: "Hydra Two",
-      shard: "hydra-2",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
-    },
-    {
-      name: "Hydra Three",
-      shard: "hydra-3",
-      rpc: HTTP_RPC_URL,
-      blockExplorerUrl: QUAI_SCAN_URL,
+      name: "Cyprus One",
+      shard: "cyprus-1",
+      rpc: ORCHARD_HTTPS_RPC_URL,
+      blockExplorerUrl: ORCHARD_QUAI_SCAN_URL,
     },
   ],
 } as Network
@@ -183,6 +157,16 @@ export const QUAI_NETWORK: EVMNetwork = {
   isQuai: true,
 }
 
+export const QUAI_NETWORK_ORCHARD: EVMNetwork = {
+  name: "Quai Network Orchard",
+  baseAsset: QUAI,
+  chainID: "15000",
+  family: "EVM",
+  chains: DEFAULT_QUAI_ORCHARD.chains,
+  derivationPath: "m/44'/1'/0'/0",
+  isQuai: true,
+}
+
 export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   name: "Quai Network Local",
   baseAsset: QUAI_LOCAL,
@@ -193,10 +177,11 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   isQuai: true,
 }
 
-export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_LOCAL]
+export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_ORCHARD, QUAI_NETWORK_LOCAL]
 
 export const NETWORK_BY_CHAIN_ID = {
   [QUAI_NETWORK.chainID]: QUAI_NETWORK,
+  [QUAI_NETWORK_ORCHARD.chainID]: QUAI_NETWORK_ORCHARD,
   [QUAI_NETWORK_LOCAL.chainID]: QUAI_NETWORK_LOCAL,
 }
 export const TEST_NETWORK_BY_CHAIN_ID = new Set(

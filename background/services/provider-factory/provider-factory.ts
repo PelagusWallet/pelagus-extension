@@ -44,12 +44,30 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
     const isTestNetworkEnabled =
       await this.preferenceService.getShowTestNetworks()
 
+    const shouldUsePathingJsonRpc = (rpcUrls: string | string[]) => {
+      if (typeof rpcUrls === "string") {
+        return rpcUrls.includes("https") || rpcUrls.includes("wss")
+      }
+      return rpcUrls.some((url) => url.includes("https") || url.includes("wss"))
+    }
+
     networks.forEach(
       ({ chainID, jsonRpcUrls, webSocketRpcUrls, isTestNetwork }) => {
         if (isTestNetwork && !isTestNetworkEnabled) return
 
-        const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls)
-        const webSocketProvider = new WebSocketProvider(webSocketRpcUrls)
+        const usePathingJsonRpc = shouldUsePathingJsonRpc(jsonRpcUrls)
+        const usePathingWebSocketRpc = shouldUsePathingJsonRpc(webSocketRpcUrls)
+
+        const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, undefined, {
+          usePathing: usePathingJsonRpc,
+        })
+        const webSocketProvider = new WebSocketProvider(
+          webSocketRpcUrls,
+          undefined,
+          {
+            usePathing: usePathingWebSocketRpc,
+          }
+        )
 
         const networkProviders: NetworkProviders = {
           jsonRpcProvider,

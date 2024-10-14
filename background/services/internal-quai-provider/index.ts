@@ -187,6 +187,10 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.chainService.jsonRpcProvider
           .estimateGas(params[0] as TransactionRequest)
           .then((estimatedGas) => estimatedGas.toString())
+      case "quai_createAccessList":
+        return this.chainService.jsonRpcProvider.createAccessList(
+          params[0] as TransactionRequest
+        )
       case "quai_getTransactionReceipt":
         return this.chainService.jsonRpcProvider.getTransactionReceipt(
           params[0] as string

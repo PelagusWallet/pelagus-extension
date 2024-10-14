@@ -30,7 +30,7 @@ const QiAccountsList = () => {
     useBackgroundSelector(selectCurrentUtxoAccount) ?? {}
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
 
-  const utxoAccountArr = Object.values(utxoAccountsByPaymentCode)
+  const utxoAccountArr = Object.values(utxoAccountsByPaymentCode ?? {})
 
   if (!utxoAccountArr.length) return <></>
 

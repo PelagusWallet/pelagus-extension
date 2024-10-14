@@ -6,11 +6,16 @@ import { HexString } from "@pelagus/pelagus-background/types"
 import { AddressOnNetwork } from "@pelagus/pelagus-background/accounts"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
-import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
+import {
+  useAreKeyringsUnlocked,
+  useBackgroundDispatch,
+  useBackgroundSelector,
+} from "../../../hooks"
 import SharedButton from "../../../components/Shared/SharedButton"
 import SharedAddressInput from "../../../components/Shared/SharedAddressInput"
 import OnboardingTip from "./OnboardingTip"
 import OnboardingRoutes from "./Routes"
+import { keyringNextPage } from "@pelagus/pelagus-background/redux-slices/keyrings"
 
 export default function ViewOnlyWallet(): ReactElement {
   const dispatch = useBackgroundDispatch()
@@ -18,6 +23,8 @@ export default function ViewOnlyWallet(): ReactElement {
   const [addressOnNetwork, setAddressOnNetwork] = useState<
     AddressOnNetwork | undefined
   >(undefined)
+
+  const areInternalSignersUnlocked = useAreKeyringsUnlocked(false)
 
   const { t } = useTranslation("translation", {
     keyPrefix: "onboarding.tabbed.addWallet.viewOnly",
@@ -52,6 +59,19 @@ export default function ViewOnlyWallet(): ReactElement {
   // Redirect to the final onboarding tab once an account is set
   if (redirect) {
     return <Redirect to={OnboardingRoutes.ONBOARDING_COMPLETE} />
+  }
+
+  if (!areInternalSignersUnlocked) {
+    dispatch(keyringNextPage(OnboardingRoutes.VIEW_ONLY_WALLET))
+
+    return (
+      <Redirect
+        to={{
+          pathname: OnboardingRoutes.SET_PASSWORD,
+          state: { nextPage: OnboardingRoutes.VIEW_ONLY_WALLET },
+        }}
+      />
+    )
   }
 
   // TODO remove the "embedded" variable and restyle

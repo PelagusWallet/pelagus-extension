@@ -498,7 +498,7 @@ export default function AccountsNotificationPanelAccounts({
             cursor: pointer;
           }
           .switcher_wrap {
-            height: 432px;
+            height: 371px;
             overflow-y: scroll;
           }
           .category_wrap {

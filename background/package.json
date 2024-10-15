@@ -1,6 +1,6 @@
 {
   "name": "@pelagus/pelagus-background",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Pelagus, the community owned and operated Web3 wallet for Quai Network: api implementation.",
   "main": "index.ts",
   "repository": "git@github.com:PelagusWallet/pelagus-extension.git",
@@ -24,8 +24,8 @@
     "watch": "webpack --mode=development --watch"
   },
   "dependencies": {
-    "@pelagus-provider/provider-bridge-shared": "1.0.8",
-    "@pelagus-provider/window-provider": "1.0.8",
+    "@pelagus-provider/provider-bridge-shared": "1.0.9",
+    "@pelagus-provider/window-provider": "1.0.9",
     "@redux-devtools/remote": "^0.7.4",
     "@uniswap/token-lists": "^1.0.0-beta.30",
     "dayjs": "^1.10.7",

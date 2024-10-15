@@ -6,7 +6,7 @@
   "author": "https://pelaguswallet.io",
   "manifest_version": 3,
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:* http://localhost:* ws://rpc.sandbox.quai.network:* http://rpc.sandbox.quai.network:* https://rpc.dev.quai.network:* https://rpc.quai.network:* https://rpc.orchard.quai.network:*; img-src 'self' data: https://*; frame-ancestors 'none'; base-uri 'none'; form-action 'none';",
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:* http://localhost:* ws://rpc.sandbox.quai.network:* http://rpc.sandbox.quai.network:* https://rpc.dev.quai.network:* https://rpc.quai.network:* wss://rpc.quai.network:* https://rpc.orchard.quai.network:* wss://rpc.orchard.quai.network:*; img-src 'self' data: https://*; frame-ancestors 'none'; base-uri 'none'; form-action 'none';",
     "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'none'; default-src 'none'; connect-src *;"
   },
   "web_accessible_resources": [

@@ -17,6 +17,7 @@ import {
   EnrichedQuaiTransaction,
   QuaiTransactionDB,
 } from "../services/transactions/types"
+import { UtxoActivity } from "./utils/utxo-activities-utils"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
 export type Activities = {
@@ -25,12 +26,20 @@ export type Activities = {
   }
 }
 
+export type UtxoActivities = {
+  [paymentCode: string]: {
+    [chainID: string]: UtxoActivity[]
+  }
+}
+
 type ActivitiesState = {
   activities: Activities
+  utxoActivities: UtxoActivities
 }
 
 const initialState: ActivitiesState = {
   activities: {},
+  utxoActivities: {},
 }
 
 const ACTIVITIES_MAX_COUNT = 25
@@ -144,9 +153,9 @@ const activitiesSlice = createSlice({
           accounts: AddressOnNetwork[]
         }
       }
-    ) => ({
-      activities: initializeActivitiesFromTransactions(payload),
-    }),
+    ) => {
+      immerState.activities = initializeActivitiesFromTransactions(payload)
+    },
     initializeActivitiesForAccount: (
       immerState,
       {
@@ -197,6 +206,50 @@ const activitiesSlice = createSlice({
           immerState.activities[address]?.[chainId.toString()]
         )
       })
+    },
+    initializeUtxoActivities: (
+      immerState,
+      { payload }: { payload: UtxoActivities }
+    ) => {
+      immerState.utxoActivities = payload
+    },
+    addUtxoActivity: (immerState, { payload }: { payload: UtxoActivity }) => {
+      const { from, to, chainID } = payload
+
+      const fromActivities = immerState.utxoActivities[from][chainID]
+      const toActivities = immerState.utxoActivities[to][chainID]
+
+      const addHandle = (activities: UtxoActivity[]) => {
+        if (!activities) return
+        activities.unshift(payload)
+      }
+
+      addHandle(fromActivities)
+      addHandle(toActivities)
+    },
+    updateUtxoActivity: (
+      immerState,
+      { payload }: { payload: UtxoActivity }
+    ) => {
+      const { from, to, chainID, id } = payload
+
+      const updateHandle = (activities: UtxoActivity[]) => {
+        if (!activities || !activities?.length) return
+
+        const activityIndex = activities.findIndex(
+          (activity) => activity.id === id
+        )
+
+        if (activityIndex === -1) return
+
+        activities.splice(activityIndex, 1, payload)
+      }
+
+      const fromActivities = immerState.utxoActivities[from][chainID]
+      const toActivities = immerState.utxoActivities[to][chainID]
+
+      updateHandle(fromActivities)
+      updateHandle(toActivities)
     },
   },
 })

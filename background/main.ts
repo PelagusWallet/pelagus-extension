@@ -1832,7 +1832,7 @@ export default class Main extends BaseService<never> {
     }
 
     if (attempts === maxAttempts) {
-      throw new Error("Failed to generate a new Qi Coinbase address")
+      throw new Error("Failed to generate a new Qi mining address")
     }
 
     const serializedQiHDWallet = qiWallet.serialize()

@@ -277,7 +277,7 @@
     "language": "Language",
     "bugReport": "Bug report",
     "connectedWebsites": "Connected websites",
-    "qiCoinbaseAddresses": "Qi coinbase addresses",
+    "qiCoinbaseAddresses": "Qi mining addresses",
     "addCustomAsset": "Custom QUAI assets",
     "needHelp": "Need help?",
     "showBanners": "Show achievement banners",
@@ -327,15 +327,15 @@
       "emptyList": "Not connected to any websites"
     },
     "qiCoinbaseAddressSettings": {
-      "title": "Qi coinbase addresses",
+      "title": "Qi mining addresses",
       "disconnected": "Website disconnected",
-      "ariaLabel": "Qi counbase addresses",
-      "emptyList": "you don't have any Qi coinbase addresses",
+      "ariaLabel": "Qi mining addresses",
+      "emptyList": "you don't have any Qi mining addresses",
       "descriptionText": "These addresses are generated specifically for miners, these are not recommended to be used with transactions.",
-      "addQiCoinbaseAddressTitle": "Add Qi coinbase address",
+      "addQiCoinbaseAddressTitle": "Add Qi mining address",
       "addAddressButtonTitle": "add address",
       "confirmButtonTitle": "confirm",
-      "gettingAddress": "generating new Qi Coinbase Address"
+      "gettingAddress": "generating new Qi Mining Address"
     },
     "addCustomAssetSettings": {
       "title": "Add custom asset",

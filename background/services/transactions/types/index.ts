@@ -34,6 +34,20 @@ export type QuaiTransactionDB = {
   logs: LogParams[]
 }
 
+export type QiTransactionDB = {
+  to: string
+  from: string
+  hash: string
+  chainId: number
+  nonce: number | null
+  value: BigNumberish | null
+  status: QuaiTransactionStatus
+  gasLimit: BigNumberish | null
+  gasPrice: BigNumberish | null
+  blockHash: string | null
+  blockNumber: number | null
+}
+
 export type EnrichedQuaiTransaction = QuaiTransactionDB & {
   annotation?: TransactionAnnotation
   network: NetworkInterface

@@ -4,6 +4,7 @@ export interface NetworkInterface {
   family: string
   isDisabled: boolean
   isTestNetwork: boolean
+  isLocalNode: boolean
   derivationPath?: string
   jsonRpcUrls: string[] | string
   webSocketRpcUrls: string[] | string

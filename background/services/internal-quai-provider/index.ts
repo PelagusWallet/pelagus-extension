@@ -40,7 +40,7 @@ import {
 } from "./db"
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
-import { NetworksArray } from "../../constants/networks/networks"
+import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
 import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
@@ -239,7 +239,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         }
 
         if (options.chainId) {
-          const supportedNetwork = NetworksArray.find(
+          const supportedNetwork = PELAGUS_NETWORKS.find(
             (network) => network.chainID === String(options.chainId)
           )
           if (!supportedNetwork) {
@@ -300,7 +300,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "wallet_addEthereumChain": {
         const chainInfo = params[0] as ValidatedAddEthereumChainParameter
         const { chainId } = chainInfo
-        const supportedNetwork = NetworksArray.find(
+        const supportedNetwork = PELAGUS_NETWORKS.find(
           (network) => network.chainID === chainId
         )
         if (supportedNetwork) {
@@ -312,7 +312,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       }
       case "wallet_switchEthereumChain": {
         const newChainId = (params[0] as SwitchEthereumChainParameter).chainId
-        const supportedNetwork = NetworksArray.find(
+        const supportedNetwork = PELAGUS_NETWORKS.find(
           (network) => network.chainID === newChainId
         )
         if (supportedNetwork) {

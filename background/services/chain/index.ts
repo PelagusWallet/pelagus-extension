@@ -8,7 +8,7 @@ import {
   WebSocketProvider,
   Zone,
 } from "quais"
-import { NetworksArray } from "../../constants/networks/networks"
+import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
@@ -108,7 +108,7 @@ export default class ChainService extends BaseService<Events> {
 
   public selectedNetwork: NetworkInterface
 
-  public supportedNetworks = NetworksArray
+  public supportedNetworks = PELAGUS_NETWORKS
 
   subscribedAccounts: {
     account: string
@@ -122,7 +122,9 @@ export default class ChainService extends BaseService<Events> {
 
   private lastUserActivityOnNetwork: {
     [chainID: string]: UNIXTime
-  } = Object.fromEntries(NetworksArray.map((network) => [network.chainID, 0]))
+  } = Object.fromEntries(
+    PELAGUS_NETWORKS.map((network) => [network.chainID, 0])
+  )
 
   private lastUserActivityOnAddress: {
     [address: HexString]: UNIXTime
@@ -221,7 +223,7 @@ export default class ChainService extends BaseService<Events> {
 
     const accounts = await this.getAccountsToTrack()
 
-    this.emitter.emit("supportedNetworks", NetworksArray)
+    this.emitter.emit("supportedNetworks", PELAGUS_NETWORKS)
 
     await this.subscribeOnNetworksAndAddresses(this.supportedNetworks, accounts)
   }

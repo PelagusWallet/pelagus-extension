@@ -7,6 +7,7 @@ export const QuaiGoldenAgeTestnet: NetworkInterface = {
   family: "EVM",
   isDisabled: false,
   isTestNetwork: false,
+  isLocalNode: false,
   jsonRpcUrls: ["https://rpc.quai.network"],
   webSocketRpcUrls: ["wss://rpc.quai.network"],
   blockExplorerURL: QUAI_SCAN_URL,
@@ -26,6 +27,7 @@ export const QuaiOrchardTestnet: NetworkInterface = {
   family: "EVM",
   isDisabled: false,
   isTestNetwork: true,
+  isLocalNode: false,
   jsonRpcUrls: ["https://rpc.orchard.quai.network"],
   webSocketRpcUrls: ["wss://rpc.orchard.quai.network"],
   blockExplorerURL: ORCHARD_QUAI_SCAN_URL,
@@ -45,6 +47,7 @@ export const QuaiLocalNodeNetwork: NetworkInterface = {
   family: "EVM",
   isDisabled: true,
   isTestNetwork: true,
+  isLocalNode: true,
   jsonRpcUrls: ["http://localhost"],
   webSocketRpcUrls: ["ws://localhost"],
   blockExplorerURL: "",
@@ -108,7 +111,7 @@ export const QuaiLocalNodeNetwork: NetworkInterface = {
 
 export const DEFAULT_PELAGUS_NETWORK = QuaiGoldenAgeTestnet
 
-export const NetworksArray = [
+export const PELAGUS_NETWORKS = [
   QuaiGoldenAgeTestnet,
   QuaiOrchardTestnet,
   QuaiLocalNodeNetwork,

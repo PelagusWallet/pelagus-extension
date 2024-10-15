@@ -21,7 +21,7 @@ import {
   isUnverifiedAssetByUser,
 } from "@pelagus/pelagus-background/redux-slices/utils/asset-utils"
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
-import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
+import { PELAGUS_NETWORKS } from "@pelagus/pelagus-background/constants/networks/networks"
 import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 import { useBackgroundSelector } from "../hooks"
 import SharedAssetIcon from "../components/Shared/SharedAssetIcon"
@@ -149,7 +149,7 @@ export default function SingleAsset(): ReactElement {
                     <a
                       className="new_tab_link"
                       href={
-                        NetworksArray.find(
+                        PELAGUS_NETWORKS.find(
                           (network) =>
                             network.chainID === currentNetwork.chainID
                         )

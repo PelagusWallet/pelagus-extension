@@ -3,7 +3,7 @@ import ChainService from ".."
 import { createChainService } from "../../../tests/factories"
 import { ChainDatabase } from "../db"
 import {
-  NetworksArray,
+  PELAGUS_NETWORKS,
   QuaiGoldenAgeTestnet,
 } from "../../../constants/networks/networks"
 import { QuaiTransactionDB } from "../../transactions/types"
@@ -103,7 +103,7 @@ describe("ChainService", () => {
       })
 
       expect(
-        NetworksArray.find((network) => network.chainID === "12345")
+        PELAGUS_NETWORKS.find((network) => network.chainID === "12345")
       ).toBeTruthy()
     })
   })

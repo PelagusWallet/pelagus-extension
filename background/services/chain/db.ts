@@ -10,7 +10,7 @@ import { NetworkBaseAsset } from "../../networks"
 import { FungibleAsset } from "../../assets"
 import { BASE_ASSETS } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
-import { NetworksArray } from "../../constants/networks/networks"
+import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 
 type AccountAssetTransferLookup = {
   addressNetwork: AddressOnNetwork
@@ -82,7 +82,7 @@ export class ChainDatabase extends Dexie {
   async initializeNetworks(): Promise<void> {
     const existingQuaiNetworks = await this.getAllQuaiNetworks()
     await Promise.all(
-      NetworksArray.map(async (defaultNetwork) => {
+      PELAGUS_NETWORKS.map(async (defaultNetwork) => {
         if (
           !existingQuaiNetworks.some(
             (network) => network.chainID === defaultNetwork.chainID

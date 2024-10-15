@@ -7,6 +7,7 @@ import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
 import { formatUnits, JsonRpcProvider, WebSocketProvider, Zone } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
+import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
 import {
   AnalyticsService,
@@ -149,14 +150,13 @@ import { NetworkInterface } from "./constants/networks/networkTypes"
 import { SignerImportMetadata } from "./services/keyring/types"
 import {
   DEFAULT_PELAGUS_NETWORK,
-  NetworksArray,
+  PELAGUS_NETWORKS,
 } from "./constants/networks/networks"
 import ProviderFactory from "./services/provider-factory/provider-factory"
 import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/events"
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
-import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -629,11 +629,13 @@ export default class Main extends BaseService<never> {
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService()
 
+    // Sequential initialization for services that depend on others
+    await this.preferenceService.startService()
+    await this.providerFactoryService.startService()
+    await this.chainService.startService()
+
     // Concurrent initialization for services that don't depend on other services
     const independentServices = [
-      this.preferenceService.startService(),
-      this.providerFactoryService.startService(),
-      this.chainService.startService(),
       this.indexingService.startService(),
       this.enrichmentService.startService(),
       this.keyringService.startService(),
@@ -1149,7 +1151,7 @@ export default class Main extends BaseService<never> {
     })
 
     this.keyringService.emitter.on("address", (address) => {
-      NetworksArray.forEach((network) => {
+      PELAGUS_NETWORKS.forEach((network) => {
         this.store.dispatch(
           loadAccount({
             address,
@@ -1167,7 +1169,7 @@ export default class Main extends BaseService<never> {
     })
 
     this.keyringService.emitter.on("loadQiWallet", (qiWallet) => {
-      NetworksArray.forEach((network) => {
+      PELAGUS_NETWORKS.forEach((network) => {
         this.store.dispatch(
           loadUtxoAccount({
             qiWallet,
@@ -1534,9 +1536,9 @@ export default class Main extends BaseService<never> {
         this.store.dispatch(toggleTestNetworks(isShowTestNetworks))
 
         if (isShowTestNetworks) {
-          this.providerFactoryService.startLocalNodeCheckingInterval()
+          this.providerFactoryService.onShowTestNetworks()
         } else {
-          this.providerFactoryService.stopLocalNodeCheckingInterval()
+          this.providerFactoryService.onDisableTestNetworks()
         }
       }
     )
@@ -1801,8 +1803,8 @@ export default class Main extends BaseService<never> {
     const maxAttempts = 200
     let attempts = 0
     let address: HexString = ""
-    let account: number = 0
-    let index: number = 0
+    let account = 0
+    let index = 0
 
     // Create a Set for faster lookup
     const existingAddressesSet = new Set(

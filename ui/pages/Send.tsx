@@ -78,6 +78,10 @@ export default function Send(): ReactElement {
   const [minerTip, setMinerTip] = useState(toBigInt(2000000000))
   const [gasLimit, setGasLimit] = useState<number>(100000)
 
+  const [gasPriceChanged, setGasPriceChanged] = useState(false)
+  const [minerTipChanged, setMinerTipChanged] = useState(false)
+  const [gasLimitChanged, setGasLimitChanged] = useState(false)
+
   const [advancedVisible, setAdvancedVisible] = useState(false)
 
   const handleAssetSelect = (asset: FungibleAsset) => {
@@ -180,7 +184,7 @@ export default function Send(): ReactElement {
     try {
       setIsSendingTransactionRequest(true)
 
-      const transferDetails = {
+      const transferDetails: any = {
         fromAddressNetwork: currentAccount,
         toAddressNetwork: {
           address: destinationAddress,
@@ -188,10 +192,20 @@ export default function Send(): ReactElement {
         },
         assetAmount,
         accountSigner: currentAccountSigner,
-        gasLimit: BigInt(gasLimit),
-        gasPrice,
-        minerTip,
       }
+
+      if (gasPriceChanged) {
+        transferDetails.gasPrice = gasPrice
+      }
+
+      if (minerTipChanged) {
+        transferDetails.minerTip = minerTip
+      }
+
+      if (gasLimitChanged) {
+        transferDetails.gasLimit = BigInt(gasLimit)
+      }
+
       const { success } = (await dispatch(
         sendAsset(transferDetails)
       )) as AsyncThunkFulfillmentType<typeof sendAsset>
@@ -341,9 +355,10 @@ export default function Send(): ReactElement {
                   type="number"
                   placeholder={gasLimit.toString()}
                   spellCheck={false}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setGasLimit(parseInt(event.target.value))
-                  }
+                    setGasLimitChanged(true)
+                  }}
                   className={classNames({
                     error: addressErrorMessage !== undefined,
                     resolved_address: resolvedNameToAddress,
@@ -357,7 +372,10 @@ export default function Send(): ReactElement {
                   type="number"
                   placeholder={gasPrice.toString()}
                   spellCheck={false}
-                  onChange={(event) => setGasPrice(toBigInt(event.target.value))}
+                  onChange={(event) => {
+                    setGasPrice(toBigInt(event.target.value))
+                    setGasPriceChanged(true)
+                  }}
                   className={classNames({
                     error: addressErrorMessage !== undefined,
                     resolved_address: resolvedNameToAddress,
@@ -371,7 +389,10 @@ export default function Send(): ReactElement {
                   type="number"
                   placeholder={minerTip.toString()}
                   spellCheck={false}
-                  onChange={(event) => setMinerTip(toBigInt(event.target.value))}
+                  onChange={(event) => {
+                    setMinerTip(toBigInt(event.target.value))
+                    setMinerTipChanged(true)
+                  }}
                   className={classNames({
                     error: addressErrorMessage !== undefined,
                     resolved_address: resolvedNameToAddress,

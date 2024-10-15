@@ -48,9 +48,17 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
       MAILBOX_INTERFACE,
       jsonRpcProvider
     )
-    const notifications: string[] = await mailboxContract.getNotifications(
-      thisQiWalletPaymentCode
-    )
+
+    let notifications: string[] = []
+    try {
+      notifications = await mailboxContract.getNotifications(
+        thisQiWalletPaymentCode
+      )
+    } catch (error) {
+      console.error(
+        "Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet."
+      )
+    }
 
     qiWallet.connect(jsonRpcProvider)
     notifications.forEach((paymentCode) => {

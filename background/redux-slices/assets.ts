@@ -1,4 +1,4 @@
-import { Contract, getAddress, toBigInt } from "quais"
+import { Contract, getAddress, toBigInt, Zone } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { createSelector, createSlice } from "@reduxjs/toolkit"
 import { QRC20_INTERFACE } from "../contracts/qrc-20"
@@ -191,7 +191,7 @@ export const getMaxFeeAndMinerTip = createBackgroundAsyncThunk(
     const { jsonRpcProvider } = globalThis.main.chainService
 
     try {
-      const feeData = await jsonRpcProvider.getFeeData()
+      const feeData = await jsonRpcProvider.getFeeData(Zone.Cyprus1)
       const baseFeeSettings = {
         gasPrice: toBigInt(6000000000),
         minerTip: toBigInt(2000000000),
@@ -282,11 +282,20 @@ export const sendAsset = createBackgroundAsyncThunk(
         to: getAddress(toAddressData),
         from: fromAddress,
         chainId: toBigInt(fromNetwork?.chainID),
-        gasLimit,
-        minerTip,
-        gasPrice,
         data: transactionData,
         value: transactionValue,
+      }
+
+      if (gasLimit) {
+        request.gasLimit = gasLimit * 10n
+      }
+
+      if (minerTip) {
+        request.minerTip = minerTip * 10n
+      }
+
+      if (gasPrice) {
+        request.gasPrice = gasPrice * 10n
       }
 
       const isSignedAndSent = await main.signAndSendQuaiTransaction({

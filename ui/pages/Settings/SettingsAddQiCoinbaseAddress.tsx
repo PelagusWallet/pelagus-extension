@@ -37,7 +37,7 @@ export default function SettingsAddQiCoinbaseAddress(): ReactElement {
       setIsGenerating(false)
       history.goBack()
     } catch (error) {
-      console.error("Error adding Qi coinbase address:", error)
+      console.error("Error adding Qi mining address:", error)
       setIsGenerating(false)
     }
   }

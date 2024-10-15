@@ -5,7 +5,7 @@ import { NetworkProviders } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import ProviderFactoryEvents from "./events"
 import {
-  NetworksArray,
+  PELAGUS_NETWORKS,
   QuaiLocalNodeNetwork,
 } from "../../constants/networks/networks"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
@@ -13,6 +13,13 @@ import PreferenceService from "../preferences"
 
 // TODO temp solution instead of provider timeout
 const DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS = 7000
+
+const shouldUsePathingJsonRpc = (rpcUrls: string | string[]) => {
+  if (typeof rpcUrls === "string") {
+    return rpcUrls.includes("https") || rpcUrls.includes("wss")
+  }
+  return rpcUrls.some((url) => url.includes("https") || url.includes("wss"))
+}
 
 export default class ProviderFactory extends BaseService<ProviderFactoryEvents> {
   private lastLocalNodeStatus: boolean | null = null
@@ -37,48 +44,64 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-    this.initializeProvidersForNetworks(NetworksArray)
-  }
 
-  private async initializeProvidersForNetworks(networks: NetworkInterface[]) {
-    const isTestNetworkEnabled =
-      await this.preferenceService.getShowTestNetworks()
-
-    const shouldUsePathingJsonRpc = (rpcUrls: string | string[]) => {
-      if (typeof rpcUrls === "string") {
-        return rpcUrls.includes("https") || rpcUrls.includes("wss")
-      }
-      return rpcUrls.some((url) => url.includes("https") || url.includes("wss"))
-    }
-
-    networks.forEach(
-      ({ chainID, jsonRpcUrls, webSocketRpcUrls, isTestNetwork }) => {
-        if (isTestNetwork && !isTestNetworkEnabled) return
-
-        const usePathingJsonRpc = shouldUsePathingJsonRpc(jsonRpcUrls)
-        const usePathingWebSocketRpc = shouldUsePathingJsonRpc(webSocketRpcUrls)
-
-        const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, undefined, {
-          usePathing: usePathingJsonRpc,
-        })
-        const webSocketProvider = new WebSocketProvider(
-          webSocketRpcUrls,
-          undefined,
-          {
-            usePathing: usePathingWebSocketRpc,
-          }
-        )
-
-        const networkProviders: NetworkProviders = {
-          jsonRpcProvider,
-          webSocketProvider,
-        }
-        this.providersForNetworks.set(chainID, networkProviders)
-      }
+    const networks = PELAGUS_NETWORKS.filter(
+      (network) => !network.isTestNetwork && !network.isLocalNode
     )
+    await this.initializeProviders(networks)
   }
 
-  private initializeProvidersForLocalNodeNetwork(): void {
+  private async initializeProviders(
+    networks: NetworkInterface[]
+  ): Promise<void> {
+    networks.forEach(({ chainID, jsonRpcUrls, webSocketRpcUrls }) => {
+      const providersForNetwork = this.providersForNetworks.get(chainID)
+      if (providersForNetwork) return
+
+      const usePathingJsonRpc = shouldUsePathingJsonRpc(jsonRpcUrls)
+      const usePathingWebSocketRpc = shouldUsePathingJsonRpc(webSocketRpcUrls)
+
+      const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, undefined, {
+        usePathing: usePathingJsonRpc,
+      })
+      const webSocketProvider = new WebSocketProvider(
+        webSocketRpcUrls,
+        undefined,
+        {
+          usePathing: usePathingWebSocketRpc,
+        }
+      )
+
+      const networkProviders: NetworkProviders = {
+        jsonRpcProvider,
+        webSocketProvider,
+      }
+      this.providersForNetworks.set(chainID, networkProviders)
+    })
+  }
+
+  public onShowTestNetworks(): void {
+    const testNetworks = PELAGUS_NETWORKS.filter(
+      (network) => network.isTestNetwork && !network.isLocalNode
+    )
+    this.initializeProviders(testNetworks)
+    this.startLocalNodeCheckingInterval()
+  }
+
+  public onDisableTestNetworks(): void {
+    this.stopLocalNodeCheckingInterval()
+  }
+
+  public getProvidersForNetwork(networkChainId: string): NetworkProviders {
+    const providers = this.providersForNetworks.get(networkChainId)
+    if (!providers) {
+      throw new Error(`Provider not found for chainID: ${networkChainId}`)
+    }
+    return providers
+  }
+
+  // --------------------------------- local node methods ---------------------------------
+  private initializeLocalNodeProviders(): void {
     // TODO temporary solution due to absence of timeout in providers, uncomment
     // if (this.isLocalNodeNetworkProvidersInitialized) return
 
@@ -101,10 +124,10 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
 
     // slight improvement to check local node status immediately after toggle click
     // optional: we can wait DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS delay or force check
-    this.checkLocalNodeNetworkStatus()
+    this.checkLocalNodeStatus()
   }
 
-  private async checkLocalNodeNetworkStatus(): Promise<void> {
+  private async checkLocalNodeStatus(): Promise<void> {
     try {
       const providersForLocalNodeNetwork = this.providersForNetworks.get(
         QuaiLocalNodeNetwork.chainID
@@ -123,16 +146,16 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
       ])
 
       if (!blockNumber) {
-        this.emitLocalNodeNetworkStatusEvent(true)
+        this.emitLocalNodeStatusEvent(true)
       } else {
-        this.emitLocalNodeNetworkStatusEvent(false)
+        this.emitLocalNodeStatusEvent(false)
       }
     } catch (error) {
-      this.emitLocalNodeNetworkStatusEvent(true)
+      this.emitLocalNodeStatusEvent(true)
     }
   }
 
-  private emitLocalNodeNetworkStatusEvent(isDisabled: boolean): void {
+  private emitLocalNodeStatusEvent(isDisabled: boolean): void {
     if (this.lastLocalNodeStatus === isDisabled) return
 
     this.lastLocalNodeStatus = isDisabled
@@ -143,37 +166,29 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
     })
   }
 
-  public startLocalNodeCheckingInterval(
+  private startLocalNodeCheckingInterval(
     intervalMs = DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS
   ): void {
     if (this.localNodeCheckerInterval) return
 
     // TODO temporary solution due to absence of timeout in providers
     // delete
-    this.initializeProvidersForLocalNodeNetwork()
+    this.initializeLocalNodeProviders()
     // uncomment
     // if (!this.isLocalNodeNetworkProvidersInitialized) {
     //   this.initializeProvidersForLocalNodeNetwork()
     // }
 
     this.localNodeCheckerInterval = setInterval(
-      () => this.checkLocalNodeNetworkStatus(),
+      () => this.checkLocalNodeStatus(),
       intervalMs
     )
   }
 
-  public stopLocalNodeCheckingInterval(): void {
+  private stopLocalNodeCheckingInterval(): void {
     if (!this.localNodeCheckerInterval) return
 
     clearInterval(this.localNodeCheckerInterval)
     this.localNodeCheckerInterval = null
-  }
-
-  public getProvidersForNetwork(networkChainId: string): NetworkProviders {
-    const providers = this.providersForNetworks.get(networkChainId)
-    if (!providers) {
-      throw new Error(`Provider not found for chainID: ${networkChainId}`)
-    }
-    return providers
   }
 }

@@ -2,7 +2,11 @@ import { getAddress } from "quais"
 import logger from "../../lib/logger"
 import { HexString } from "../../types"
 import { sameNetwork } from "../../networks"
-import { AccountBalance, AddressOnNetwork } from "../../accounts"
+import {
+  AccountBalance,
+  AddressOnNetwork,
+  QiCoinbaseAddress,
+} from "../../accounts"
 import {
   AnyAsset,
   AnyAssetMetadata,
@@ -27,11 +31,10 @@ import { sameQuaiAddress } from "../../lib/utils"
 import { getExtendedZoneForAddress, getNetworkById } from "../chain/utils"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { isQuaiHandle } from "../../constants/networks/networkUtils"
-import { NetworksArray } from "../../constants/networks/networks"
+import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import BlockService from "../block"
 import TransactionService from "../transactions"
 import { EnrichedQuaiTransaction } from "../transactions/types"
-import { QiCoinbaseAddress } from "../../accounts"
 
 // Transactions seen within this many blocks of the chain tip will schedule a
 // token refresh sooner than the standard rate.
@@ -153,7 +156,7 @@ export default class IndexingService extends BaseService<Events> {
 
     this.chainService.emitter.once("serviceStarted").then(async () => {
       Promise.allSettled(
-        NetworksArray.map(async (network) => {
+        PELAGUS_NETWORKS.map(async (network) => {
           await this.cacheAssetsForNetwork(network)
           this.emitter.emit("assets", this.getCachedAssets(network))
         })

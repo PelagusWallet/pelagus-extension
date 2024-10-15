@@ -1,5 +1,5 @@
 import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
-import { NetworksArray } from "@pelagus/pelagus-background/constants/networks/networks"
+import { PELAGUS_NETWORKS } from "@pelagus/pelagus-background/constants/networks/networks"
 import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
 import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 import { blockExplorer } from "./constants"
@@ -38,7 +38,7 @@ export const getBlockExplorerURL = (
   network: NetworkInterface,
   address: string
 ): string | undefined => {
-  return NetworksArray.find((net) => net.chainID === network.chainID)
+  return PELAGUS_NETWORKS.find((net) => net.chainID === network.chainID)
     ? isQuaiHandle(network)
       ? CurrentShardToExplorer(network, address)
       : blockExplorer[network.chainID].url

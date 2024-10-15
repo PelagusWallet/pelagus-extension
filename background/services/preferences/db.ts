@@ -6,7 +6,7 @@ import {
   AccountSignerWithId,
 } from "../../accounts"
 import {
-  NetworksArray,
+  PELAGUS_NETWORKS,
   QuaiGoldenAgeTestnet,
 } from "../../constants/networks/networks"
 import { FiatCurrency } from "../../assets"
@@ -81,7 +81,7 @@ export class PreferenceDatabase extends Dexie {
             update.analytics = DEFAULT_PREFERENCES.analytics
 
             if (storedPreferences.selectedAccount?.network) {
-              const updatedNetwork = NetworksArray.find(
+              const updatedNetwork = PELAGUS_NETWORKS.find(
                 (net) =>
                   net.chainID ===
                   storedPreferences.selectedAccount?.network?.chainID

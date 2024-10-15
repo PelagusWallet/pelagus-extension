@@ -180,7 +180,9 @@ export default function WalletAccountBalanceControl(
           <span className="balance_area">
             <span className="balance" data-testid="wallet_balance">
               {isUtxoSelected ? utxoBalance ?? 0 : mainAssetBalance ?? 0}
-              <span className="dollar_sign">{isUtxoSelected ? "QI" : "Q"}</span>
+              <span className="dollar_sign">
+                {isUtxoSelected ? "QI" : "QUAI"}
+              </span>
             </span>
           </span>
         </SharedSkeletonLoader>

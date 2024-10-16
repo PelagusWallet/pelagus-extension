@@ -127,6 +127,7 @@ import { PELAGUS_INTERNAL_ORIGIN } from "./services/internal-quai-provider/const
 import {
   ActivityDetail,
   addActivity,
+  addUtxoActivity,
   initializeActivities,
   removeActivities,
 } from "./redux-slices/activities"
@@ -906,6 +907,10 @@ export default class Main extends BaseService<never> {
       this.store.dispatch(
         setSnackbarConfig({ message: "Transaction failed to broadcast." })
       )
+    })
+
+    this.transactionService.emitter.on("addUtxoActivity", (payload) => {
+      this.store.dispatch(addUtxoActivity(payload))
     })
   }
 

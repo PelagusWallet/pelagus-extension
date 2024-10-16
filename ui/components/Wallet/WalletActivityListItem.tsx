@@ -6,10 +6,10 @@ import {
 } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
+import { TransactionStatus } from "@pelagus/pelagus-background/services/transactions/types"
 import SharedAssetIcon from "../Shared/SharedAssetIcon"
 import SharedActivityIcon from "../Shared/SharedActivityIcon"
 import useActivityViewDetails from "../../hooks/activity-hooks"
-import { QuaiTransactionStatus } from "@pelagus/pelagus-background/services/transactions/types"
 
 interface Props {
   onClick: () => void
@@ -60,13 +60,13 @@ export default function WalletActivityListItem(props: Props): ReactElement {
           <div className="left">
             <SharedActivityIcon type={activityViewDetails.icon} size={14} />
             {activityViewDetails.label}
-            {activity.status === QuaiTransactionStatus.FAILED && (
+            {activity.status === TransactionStatus.FAILED && (
               <div className="status failed">{t("transactionFailed")}</div>
             )}
-            {activity.status === QuaiTransactionStatus.CONFIRMED && (
+            {activity.status === TransactionStatus.CONFIRMED && (
               <div className="status settled">{t("transactionSettled")}</div>
             )}
-            {activity.status === QuaiTransactionStatus.PENDING && (
+            {activity.status === TransactionStatus.PENDING && (
               <div className="status pending">{t("transactionPending")}</div>
             )}
           </div>

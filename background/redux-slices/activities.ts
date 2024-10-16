@@ -15,9 +15,9 @@ import {
 } from "./utils/activities-utils"
 import {
   EnrichedQuaiTransaction,
+  QiTransactionDB,
   QuaiTransactionDB,
 } from "../services/transactions/types"
-import { UtxoActivity } from "./utils/utxo-activities-utils"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
 export type Activities = {
@@ -28,7 +28,7 @@ export type Activities = {
 
 export type UtxoActivities = {
   [paymentCode: string]: {
-    [chainID: string]: UtxoActivity[]
+    [chainID: string]: QiTransactionDB[]
   }
 }
 
@@ -213,13 +213,18 @@ const activitiesSlice = createSlice({
     ) => {
       immerState.utxoActivities = payload
     },
-    addUtxoActivity: (immerState, { payload }: { payload: UtxoActivity }) => {
-      const { from, to, chainID } = payload
+    addUtxoActivity: (
+      immerState,
+      { payload }: { payload: QiTransactionDB }
+    ) => {
+      const { senderPaymentCode, receiverPaymentCode, chainId } = payload
 
-      const fromActivities = immerState.utxoActivities[from][chainID]
-      const toActivities = immerState.utxoActivities[to][chainID]
+      const fromActivities =
+        immerState.utxoActivities[senderPaymentCode][chainId]
+      const toActivities =
+        immerState.utxoActivities[receiverPaymentCode][chainId]
 
-      const addHandle = (activities: UtxoActivity[]) => {
+      const addHandle = (activities: QiTransactionDB[]) => {
         if (!activities) return
         activities.unshift(payload)
       }
@@ -229,15 +234,15 @@ const activitiesSlice = createSlice({
     },
     updateUtxoActivity: (
       immerState,
-      { payload }: { payload: UtxoActivity }
+      { payload }: { payload: QiTransactionDB }
     ) => {
-      const { from, to, chainID, id } = payload
+      const { senderPaymentCode, receiverPaymentCode, chainId, hash } = payload
 
-      const updateHandle = (activities: UtxoActivity[]) => {
+      const updateHandle = (activities: QiTransactionDB[]) => {
         if (!activities || !activities?.length) return
 
         const activityIndex = activities.findIndex(
-          (activity) => activity.id === id
+          (activity) => activity.hash === hash
         )
 
         if (activityIndex === -1) return
@@ -245,8 +250,10 @@ const activitiesSlice = createSlice({
         activities.splice(activityIndex, 1, payload)
       }
 
-      const fromActivities = immerState.utxoActivities[from][chainID]
-      const toActivities = immerState.utxoActivities[to][chainID]
+      const fromActivities =
+        immerState.utxoActivities[senderPaymentCode][chainId]
+      const toActivities =
+        immerState.utxoActivities[receiverPaymentCode][chainId]
 
       updateHandle(fromActivities)
       updateHandle(toActivities)
@@ -259,6 +266,7 @@ export const {
   addActivity,
   removeActivities,
   initializeActivitiesForAccount,
+  addUtxoActivity,
 } = activitiesSlice.actions
 
 export default activitiesSlice.reducer

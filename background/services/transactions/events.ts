@@ -1,5 +1,5 @@
 import { HexString } from "../../types"
-import { QuaiTransactionDB } from "./types"
+import { QiTransactionDB, QuaiTransactionDB } from "./types"
 import { ServiceLifecycleEvents } from "../types"
 import { AddressOnNetwork } from "../../accounts"
 
@@ -16,4 +16,8 @@ export interface TransactionServiceEvents extends ServiceLifecycleEvents {
     transaction: QuaiTransactionDB
     forAccounts: string[]
   }
+
+  addUtxoActivity: QiTransactionDB
+  updateQiTransaction: QiTransactionDB
+  initializeQiTransactions: QiTransactionDB[]
 }

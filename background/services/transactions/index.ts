@@ -19,11 +19,11 @@ import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
 import { MAILBOX_CONTRACT_ADDRESS, MINUTE } from "../../constants"
-import { QuaiTransactionDB, QuaiTransactionStatus } from "./types"
+import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import NotificationsManager from "../notifications"
-import { quaiTransactionFromResponse } from "./utils"
+import { processSentQiTransaction, quaiTransactionFromResponse } from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
@@ -236,6 +236,35 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     })
   }
 
+  // TODO
+  // /**
+  //  * Fetches all transactions from the database and emits them to update the UI,
+  //  * on TransactionService initialization.
+  //  */
+  // private async initializeQiTransactions(): Promise<void> {
+  //   const { jsonRpcProvider } = this.chainService
+  //
+  //   const qiWallet = await this.keyringService.getQiHDWallet()
+  //   qiWallet.connect(jsonRpcProvider)
+  //   await qiWallet.sync(Zone.Cyprus1, 0)
+  //
+  //   const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
+  //   const uniqueHashes = getUniqueQiTransactionHashes(outpoints)
+  //   const changeAddresses = qiWallet.getChangeAddressesForZone(Zone.Cyprus1)
+  //
+  //   await Promise.all(
+  //     Array.from(uniqueHashes).map(async (hash) => {
+  //       const response = await jsonRpcProvider.getTransaction(hash)
+  //       if (response) {
+  //         await this.processQiTransactionResponse(response, changeAddresses)
+  //       }
+  //     })
+  //   )
+  //
+  //   const transactions = await this.db.getAllQiTransactions()
+  //   this.emitter.emit("initializeQiTransactions", transactions)
+  // }
+
   /**
    * Gets all pending transactions from the database and attempts to confirm them.
    * If the transaction is already confirmed and has a receipt, it updates the transaction with the receipt.
@@ -271,12 +300,34 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   ): Promise<void> {
     const transaction = quaiTransactionFromResponse(
       transactionResponse,
-      QuaiTransactionStatus.PENDING
+      TransactionStatus.PENDING
     )
     await this.saveQuaiTransaction(transaction)
     this.emitter.emit("transactionSend", transactionResponse.hash)
     this.subscribeToQuaiTransaction(transactionResponse.hash)
   }
+
+  // TODO
+  // private async processQiTransactionResponse(
+  //   transactionResponse: TransactionResponse,
+  //   changeAddresses: NeuteredAddressInfo[]
+  // ): Promise<void> {
+  //   const { hash } = transactionResponse
+  //
+  //   const savedTransaction = await this.db.getQiTransactionByHash(hash)
+  //   if (savedTransaction) {
+  //     savedTransaction.status = TransactionStatus.CONFIRMED
+  //     await this.saveQiTransaction(savedTransaction)
+  //   } else {
+  //     const transaction = qiTransactionFromResponse(
+  //       transactionResponse as QiTransactionResponse,
+  //       10, // TODO how I can get balance of transaction that was sent to me not by me
+  //       changeAddresses,
+  //       TransactionStatus.CONFIRMED
+  //     )
+  //     await this.saveQiTransaction(transaction)
+  //   }
+  // }
 
   /**
    * Subscribes to a transaction confirmation event and updates the transaction status once confirmed.
@@ -323,6 +374,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   /**
+   * Saves or updates a transaction in the database and notifies the UI about the updated transaction.
+   * Emits an event to notify the UI about a transaction update.
+   *
+   * @param {QiTransactionDB} transaction - The transaction to save or update.
+   */
+  private async saveQiTransaction(transaction: QiTransactionDB): Promise<void> {
+    await this.db.addOrUpdateQiTransaction(transaction)
+    this.emitter.emit("addUtxoActivity", transaction)
+  }
+
+  /**
    * Updates a transaction in the database with the receipt data.
    * Checks the status of a receipt to determine whether the transaction has been confirmed or reverted.
    *
@@ -334,18 +396,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const transaction = await this.db.getQuaiTransactionByHash(receipt.hash)
     if (!transaction) return
 
-    const { status, blockHash, blockNumber, gasPrice, gasUsed, outboundEtxs } =
-      receipt
+    const { status, blockHash, blockNumber, gasPrice, gasUsed } = receipt
 
     if (status === 1) {
-      transaction.status = QuaiTransactionStatus.CONFIRMED
+      transaction.status = TransactionStatus.CONFIRMED
       NotificationsManager.createSuccessTxNotification(
         transaction.nonce,
         transaction.hash
       )
     } else if (status === 0) {
       // reverted
-      transaction.status = QuaiTransactionStatus.FAILED
+      transaction.status = TransactionStatus.FAILED
     }
 
     transaction.blockHash = blockHash
@@ -370,9 +431,24 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async handleQuaiTransactionFail(hash: string): Promise<void> {
     const transaction = await this.db.getQuaiTransactionByHash(hash)
     if (transaction) {
-      transaction.status = QuaiTransactionStatus.FAILED
+      transaction.status = TransactionStatus.FAILED
       await this.saveQuaiTransaction(transaction)
     }
+  }
+
+  private async handleQiTransactionSend(
+    senderPaymentCode: string,
+    receiverPaymentCode: string,
+    tx: QiTransactionResponse,
+    amount: bigint
+  ): Promise<void> {
+    const transaction = processSentQiTransaction(
+      senderPaymentCode,
+      receiverPaymentCode,
+      tx,
+      Number(amount)
+    )
+    await this.saveQiTransaction(transaction)
   }
 
   private async notifyQiRecipient(

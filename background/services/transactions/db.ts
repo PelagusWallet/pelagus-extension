@@ -2,11 +2,7 @@ import Dexie, { DexieOptions } from "dexie"
 import { HexString } from "quais/lib/commonjs/utils"
 
 import { UNIXTime } from "../../types"
-import {
-  QiTransactionDB,
-  QuaiTransactionDB,
-  QuaiTransactionStatus,
-} from "./types"
+import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
 
 type AdditionalTransactionFieldsForDB = {
   dataSource: "local"
@@ -37,7 +33,7 @@ export class TransactionsDatabase extends Dexie {
 
     this.version(2).stores({
       qiTransactions:
-        "&[hash+chainId],hash,from,status,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,firstSeen,dataSource",
+        "&[hash+chainId],hash,from,status,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,timestamp,firstSeen,dataSource",
     })
   }
 
@@ -62,7 +58,7 @@ export class TransactionsDatabase extends Dexie {
   async getPendingQuaiTransactions(): Promise<QuaiTransactionDBEntry[] | []> {
     return this.quaiTransactions
       .where("status")
-      .equals(QuaiTransactionStatus.PENDING)
+      .equals(TransactionStatus.PENDING)
       .toArray()
   }
 
@@ -130,7 +126,7 @@ export class TransactionsDatabase extends Dexie {
   async getPendingQiTransactions(): Promise<QiTransactionDBEntry[] | []> {
     return this.qiTransactions
       .where("status")
-      .equals(QuaiTransactionStatus.PENDING)
+      .equals(TransactionStatus.PENDING)
       .toArray()
   }
 
@@ -141,7 +137,6 @@ export class TransactionsDatabase extends Dexie {
     try {
       const existingTx = await this.getQiTransactionByHash(tx.hash)
 
-      const nonce = existingTx?.nonce ? existingTx?.nonce : tx?.nonce
       const blockNumber = existingTx?.blockNumber
         ? existingTx?.blockNumber
         : tx?.blockNumber
@@ -150,7 +145,6 @@ export class TransactionsDatabase extends Dexie {
         await this.qiTransactions.put({
           ...existingTx,
           ...tx,
-          nonce,
           blockNumber,
           dataSource,
           firstSeen: existingTx?.firstSeen ?? Date.now(),

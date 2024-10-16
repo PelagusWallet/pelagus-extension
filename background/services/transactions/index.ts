@@ -171,17 +171,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       const qiWallet = await this.keyringService.getQiHDWallet()
       qiWallet.connect(jsonRpcProvider)
       await qiWallet.scan(Zone.Cyprus1)
-      const tx = (await qiWallet.sendTransaction(
+      const tx = await qiWallet.sendTransaction(
         receiverPaymentCode,
         amount,
         Zone.Cyprus1,
         Zone.Cyprus1
-      )) as QiTransactionResponse
+      )
 
       const transaction = processSentQiTransaction(
         senderPaymentCode,
         receiverPaymentCode,
-        tx,
+        tx as QiTransactionResponse,
         amount
       )
       await this.saveQiTransaction(transaction)

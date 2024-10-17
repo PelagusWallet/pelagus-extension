@@ -2,8 +2,7 @@ import {
   QiTransactionResponse,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
-import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
-
+import { formatQi } from "quais"
 import {
   QiTransactionDB,
   QuaiTransactionDB,
@@ -37,65 +36,22 @@ export const quaiTransactionFromResponse = (
   }
 }
 
-// export const qiTransactionFromResponse = (
-//   response: QiTransactionResponse,
-//   amountSent: number,
-//   changeAddresses: NeuteredAddressInfo[],
-//   status: TransactionStatus
-// ): QiTransactionDB => {
-//   const { txOutputs } = response
-//
-//   const initialChange = 0
-//   const outputsChange = txOutputs?.reduce((accumulator, txOutput) => {
-//     const { address, denomination } = txOutput
-//
-//     const isMatch = changeAddresses.some(
-//       (changeAddress) => changeAddress.address === address
-//     )
-//     if (isMatch) {
-//       return accumulator + denomination
-//     }
-//
-//     return accumulator
-//   }, initialChange)
-//
-//   const value = amountSent - (outputsChange ?? initialChange)
-//
-//   return {
-//     hash: response.hash,
-//     chainId: Number(response.chainId),
-//     value,
-//     status,
-//     blockHash: response.blockHash || null,
-//     blockNumber: response.blockNumber || null,
-//   }
-// }
-
 export const processSentQiTransaction = (
   senderPaymentCode: string,
   receiverPaymentCode: string,
   tx: QiTransactionResponse,
-  amount: number
+  amount: bigint
 ): QiTransactionDB => {
   return {
     senderPaymentCode,
     receiverPaymentCode,
     hash: tx.hash,
     chainId: Number(tx.chainId),
-    value: amount,
+    value: Number(formatQi(amount)),
     type: UtxoActivityType.SEND,
     timestamp: Date.now(),
     status: TransactionStatus.PENDING,
     blockHash: tx.blockHash || null,
     blockNumber: tx.blockNumber || null,
   }
-}
-
-export const getUniqueQiTransactionHashes = (
-  outpointInfos: OutpointInfo[]
-): string[] => {
-  const uniqueHashes = new Set<string>(
-    outpointInfos.map((info) => info.outpoint.txhash)
-  )
-  return Array.from(uniqueHashes)
 }

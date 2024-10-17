@@ -129,7 +129,9 @@ import {
   addActivity,
   addUtxoActivity,
   initializeActivities,
+  initializeUtxoActivities,
   removeActivities,
+  updateUtxoActivity,
 } from "./redux-slices/activities"
 import { selectActivitiesHashesForEnrichment } from "./redux-slices/selectors"
 import { getActivityDetails } from "./redux-slices/utils/activities-utils"
@@ -909,8 +911,19 @@ export default class Main extends BaseService<never> {
       )
     })
 
+    this.transactionService.emitter.on(
+      "initializeQiTransactions",
+      async (payload) => {
+        this.store.dispatch(initializeUtxoActivities(payload))
+      }
+    )
+
     this.transactionService.emitter.on("addUtxoActivity", (payload) => {
       this.store.dispatch(addUtxoActivity(payload))
+    })
+
+    this.transactionService.emitter.on("updateUtxoActivity", (payload) => {
+      this.store.dispatch(updateUtxoActivity(payload))
     })
   }
 

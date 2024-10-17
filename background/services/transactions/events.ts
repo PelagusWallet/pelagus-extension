@@ -18,6 +18,6 @@ export interface TransactionServiceEvents extends ServiceLifecycleEvents {
   }
 
   addUtxoActivity: QiTransactionDB
-  updateQiTransaction: QiTransactionDB
+  updateUtxoActivity: QiTransactionDB
   initializeQiTransactions: QiTransactionDB[]
 }

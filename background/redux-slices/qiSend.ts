@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { parseQi } from "quais"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
@@ -86,7 +87,7 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
     const { paymentCode: senderPaymentCode } =
       senderQiAccount as UtxoAccountData
 
-    const parsedAmount = BigInt(Number(amount) * 1000) // FIXME parseQi(amount)
+    const parsedAmount = parseQi(amount)
     const minerTipBigInt = minerTip !== "" ? BigInt(minerTip) : null
 
     await main.transactionService.sendQiTransaction(

@@ -3,7 +3,7 @@ import {
   TransactionStatus,
   UtxoActivityType,
 } from "../../services/transactions/types"
-import { UtxoActivities } from "../activities"
+import { ACTIVITIES_MAX_COUNT, UtxoActivities } from "../activities"
 
 export const utxoActivityTypeHandle = (type: UtxoActivityType) => {
   switch (type) {
@@ -91,7 +91,17 @@ export const initializeUtxoActivitiesFromTransactions = (
       if (!utxoActivities[senderPaymentCode][chainIdStr]) {
         utxoActivities[senderPaymentCode][chainIdStr] = []
       }
-      utxoActivities[senderPaymentCode][chainIdStr].push(transaction)
+
+      if (
+        utxoActivities[senderPaymentCode][chainIdStr].length >=
+        ACTIVITIES_MAX_COUNT
+      ) {
+        const activityArr = utxoActivities[senderPaymentCode][chainIdStr]
+        activityArr.push(transaction)
+        activityArr.splice(0, ACTIVITIES_MAX_COUNT)
+      } else {
+        utxoActivities[senderPaymentCode][chainIdStr].push(transaction)
+      }
     }
 
     if (receiverPaymentCode) {
@@ -101,7 +111,17 @@ export const initializeUtxoActivitiesFromTransactions = (
       if (!utxoActivities[receiverPaymentCode][chainIdStr]) {
         utxoActivities[receiverPaymentCode][chainIdStr] = []
       }
-      utxoActivities[receiverPaymentCode][chainIdStr].push(transaction)
+
+      if (
+        utxoActivities[receiverPaymentCode][chainIdStr].length >=
+        ACTIVITIES_MAX_COUNT
+      ) {
+        const activityArr = utxoActivities[receiverPaymentCode][chainIdStr]
+        activityArr.push(transaction)
+        activityArr.splice(0, ACTIVITIES_MAX_COUNT)
+      } else {
+        utxoActivities[receiverPaymentCode][chainIdStr].push(transaction)
+      }
     }
   })
 

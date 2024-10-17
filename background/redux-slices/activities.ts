@@ -18,6 +18,7 @@ import {
   QiTransactionDB,
   QuaiTransactionDB,
 } from "../services/transactions/types"
+import { initializeUtxoActivitiesFromTransactions } from "./utils/utxo-activities-utils"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
 export type Activities = {
@@ -209,25 +210,37 @@ const activitiesSlice = createSlice({
     },
     initializeUtxoActivities: (
       immerState,
-      { payload }: { payload: UtxoActivities }
+      { payload }: { payload: QiTransactionDB[] }
     ) => {
-      immerState.utxoActivities = payload
+      immerState.utxoActivities =
+        initializeUtxoActivitiesFromTransactions(payload)
     },
     addUtxoActivity: (
       immerState,
       { payload }: { payload: QiTransactionDB }
     ) => {
-      const { senderPaymentCode, receiverPaymentCode, chainId } = payload
+      const { senderPaymentCode, receiverPaymentCode } = payload
+      const chainId = payload.chainId.toString()
 
-      const fromActivities =
-        immerState.utxoActivities[senderPaymentCode][chainId]
-      const toActivities =
-        immerState.utxoActivities[receiverPaymentCode][chainId]
+      const validateActivitiesHandle = (paymentCode: string) => {
+        if (!paymentCode) return []
+
+        if (!immerState.utxoActivities[paymentCode]) {
+          immerState.utxoActivities[paymentCode] = {}
+        }
+        if (!immerState.utxoActivities[paymentCode][chainId]) {
+          immerState.utxoActivities[paymentCode][chainId] = []
+        }
+        return immerState.utxoActivities[paymentCode][chainId]
+      }
 
       const addHandle = (activities: QiTransactionDB[]) => {
         if (!activities) return
         activities.unshift(payload)
       }
+
+      const fromActivities = validateActivitiesHandle(senderPaymentCode)
+      const toActivities = validateActivitiesHandle(receiverPaymentCode)
 
       addHandle(fromActivities)
       addHandle(toActivities)
@@ -267,6 +280,8 @@ export const {
   removeActivities,
   initializeActivitiesForAccount,
   addUtxoActivity,
+  initializeUtxoActivities,
+  updateUtxoActivity,
 } = activitiesSlice.actions
 
 export default activitiesSlice.reducer

@@ -1,7 +1,9 @@
 import {
+  QiTransactionDB,
   TransactionStatus,
   UtxoActivityType,
 } from "../../services/transactions/types"
+import { UtxoActivities } from "../activities"
 
 export const utxoActivityTypeHandle = (type: UtxoActivityType) => {
   switch (type) {
@@ -71,4 +73,37 @@ export const utxoActivityTimestampHandle = (blockTimestamp: number) => {
   const year = date.getFullYear()
 
   return `${month} ${dayOfMonth}, ${year} ${hours}:${minutes}:${seconds}`
+}
+
+export const initializeUtxoActivitiesFromTransactions = (
+  transactions: QiTransactionDB[]
+): UtxoActivities => {
+  const utxoActivities: UtxoActivities = {}
+
+  transactions.forEach((transaction) => {
+    const { senderPaymentCode, receiverPaymentCode, chainId } = transaction
+    const chainIdStr = chainId.toString()
+
+    if (senderPaymentCode) {
+      if (!utxoActivities[senderPaymentCode]) {
+        utxoActivities[senderPaymentCode] = {}
+      }
+      if (!utxoActivities[senderPaymentCode][chainIdStr]) {
+        utxoActivities[senderPaymentCode][chainIdStr] = []
+      }
+      utxoActivities[senderPaymentCode][chainIdStr].push(transaction)
+    }
+
+    if (receiverPaymentCode) {
+      if (!utxoActivities[receiverPaymentCode]) {
+        utxoActivities[receiverPaymentCode] = {}
+      }
+      if (!utxoActivities[receiverPaymentCode][chainIdStr]) {
+        utxoActivities[receiverPaymentCode][chainIdStr] = []
+      }
+      utxoActivities[receiverPaymentCode][chainIdStr].push(transaction)
+    }
+  })
+
+  return utxoActivities
 }

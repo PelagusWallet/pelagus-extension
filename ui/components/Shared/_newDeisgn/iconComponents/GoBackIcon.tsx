@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"
 const GoBackIcon = ({
   width = 16,
   height = 17,
-  fillColor = "#19191A",
+  fillColor = `var(--primary-text)`,
   style = {},
   linkTo = "-1",
 }: {

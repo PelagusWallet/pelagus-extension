@@ -68,6 +68,9 @@
   --accent-color: #1775E4;
   --contrast-text: #F2F2F2;
 
+  --primary-text: #F2F2F2;
+  --secondary-text: #7E7E83;
+
   --error-color: #CA4242;
   --success-color: #1CAF4E;
 }

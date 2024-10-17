@@ -3,7 +3,7 @@ import React, { CSSProperties } from "react"
 const GoForwardMenuIcon = ({
   width = 6,
   height = 11,
-  fillColor = "#19191A",
+  fillColor = `var(--primary-text)`,
   style = {},
   onClick = () => {},
 }: {

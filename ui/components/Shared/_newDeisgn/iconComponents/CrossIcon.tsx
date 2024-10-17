@@ -3,7 +3,7 @@ import React, { CSSProperties } from "react"
 const CrossIcon = ({
   width = 14,
   height = 15,
-  fillColor = "#7C7C83",
+  fillColor = `var(--secondary-text)`,
   style = {},
   onClick = () => {},
 }: {

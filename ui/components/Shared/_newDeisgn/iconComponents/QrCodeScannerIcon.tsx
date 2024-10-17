@@ -3,7 +3,7 @@ import React, { CSSProperties } from "react"
 const QrCodeScannerIcon = ({
   width = 20,
   height = 19,
-  fillColor = "#19191A",
+  fillColor = `var(--primary-text)`,
   style = {},
   onClick = () => {},
 }: {

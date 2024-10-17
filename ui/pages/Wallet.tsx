@@ -29,6 +29,7 @@ import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import WalletAlphaBanner from "../components/Wallet/WalletAlphaBanner"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
+import UtxoActivityList from "../components/_NewDesign/Activities/UtxoActivityList/UtxoActivityList"
 
 export default function Wallet(): ReactElement {
   const { t } = useTranslation()
@@ -131,7 +132,11 @@ export default function Wallet(): ReactElement {
             panelNumber={panelNumber}
             panelNames={panelNames}
           />
-          <div className={classNames("panel standard_width")}>
+          <div
+            className={classNames("panel standard_width", {
+              qiPanel: isUtxoSelected,
+            })}
+          >
             {panelNumber === 0 && !isUtxoSelected && (
               <>
                 <WalletAssetList
@@ -174,9 +179,14 @@ export default function Wallet(): ReactElement {
                 )}
               </>
             )}
-            {panelNumber === 1 && (
-              <WalletActivityList activities={currentAccountActivities ?? []} />
-            )}
+            {panelNumber === 1 &&
+              (isUtxoSelected ? (
+                <UtxoActivityList />
+              ) : (
+                <WalletActivityList
+                  activities={currentAccountActivities ?? []}
+                />
+              ))}
           </div>
         </div>
       </div>
@@ -206,6 +216,10 @@ export default function Wallet(): ReactElement {
 
           .panel::-webkit-scrollbar {
             display: none;
+          }
+
+          .qiPanel {
+            width: 100%;
           }
 
           .add_custom_asset {

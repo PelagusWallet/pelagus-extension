@@ -43,7 +43,7 @@ const initialState: ActivitiesState = {
   utxoActivities: {},
 }
 
-const ACTIVITIES_MAX_COUNT = 25
+export const ACTIVITIES_MAX_COUNT = 25
 
 const cleanActivitiesArray = (activitiesArray: Activity[] = []) => {
   activitiesArray.sort(sortActivities)

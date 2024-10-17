@@ -3,7 +3,6 @@ import { setShowingActivityDetail } from "@pelagus/pelagus-background/redux-slic
 import {
   selectCurrentAccount,
   selectCurrentNetwork,
-  selectIsUtxoSelected,
   selectShowingActivityDetail,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
@@ -73,28 +72,6 @@ export default function WalletActivityList({
   const handleClose = useCallback(() => {
     dispatch(setShowingActivityDetail(null))
   }, [dispatch])
-
-  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
-
-  if (isUtxoSelected)
-    return (
-      <span>
-        Qi transaction history will be available soon. Stay tuned for updates!
-        <style jsx>{`
-          span {
-            width: 316px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--green-40);
-            font-size: 16px;
-            text-align: center;
-            line-height: 22px;
-            margin: 15px auto 0 auto;
-          }
-        `}</style>
-      </span>
-    )
 
   if (!activities || activities.length === 0)
     return (

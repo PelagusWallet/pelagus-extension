@@ -29,3 +29,13 @@ export const selectActivitiesHashesForEnrichment = createSelector(
     )
   }
 )
+
+export const selectCurrentAccountUtxoActivities = createSelector(
+  (state: RootState) => state.activities.utxoActivities,
+  (state: RootState) => state.ui.selectedUtxoAccount,
+  selectCurrentNetwork,
+  (activities, account, network) => {
+    if (!account) return []
+    return activities[account?.paymentCode]?.[network.chainID] ?? []
+  }
+)

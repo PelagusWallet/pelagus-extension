@@ -16,7 +16,7 @@ const UtxoActivityDateAndBlock = ({
           {utxoActivityTimestampHandle(timestamp)}
         </h5>
         <a
-          href={`${QUAI_SCAN_URL}`}
+          href={`${QUAI_SCAN_URL}/tx/${hash}`}
           target="_blank"
           rel="noopener noreferrer"
           className="activity-block-explorer"

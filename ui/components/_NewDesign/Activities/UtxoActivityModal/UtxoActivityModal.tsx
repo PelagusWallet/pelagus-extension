@@ -82,12 +82,12 @@ const UtxoActivityModal = ({
           background: rgba(0, 0, 0, 0.5);
           display: flex;
           justify-content: center;
-          align-items: flex-start;
+          align-items: flex-end;
           padding: 8px;
           z-index: 1000;
           box-sizing: border-box;
           opacity: 0;
-          transition: opacity 0.3s ease;
+          transition: opacity 0.2s ease;
         }
 
         .modal-wrapper.visible {
@@ -102,7 +102,7 @@ const UtxoActivityModal = ({
           position: relative;
           transform: translateY(-20px);
           opacity: 0;
-          transition: transform 0.3s ease, opacity 0.3s ease;
+          transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
         .modal-open {

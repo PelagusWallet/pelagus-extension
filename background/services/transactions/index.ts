@@ -27,6 +27,8 @@ import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import NotificationsManager from "../notifications"
 import {
+  getUniqueQiTransactionHashes,
+  processReceivedQiTransaction,
   processConvertQiTransaction,
   processSentQiTransaction,
   quaiTransactionFromResponse,
@@ -86,6 +88,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await super.internalStartService()
 
     this.checkPendingQiTransactions()
+    this.checkReceivedQiTransactions()
     this.checkPendingQuaiTransactions()
 
     await this.initializeQiTransactions()
@@ -405,6 +408,32 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async initializeQiTransactions(): Promise<void> {
     const transactions = await this.db.getAllQiTransactions()
     this.emitter.emit("initializeQiTransactions", transactions)
+  }
+
+  private async checkReceivedQiTransactions(): Promise<void> {
+    const { jsonRpcProvider } = this.chainService
+
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+    await qiWallet.sync(Zone.Cyprus1, 0)
+
+    const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
+    const uniqueHashes = getUniqueQiTransactionHashes(outpoints)
+    const changeAddresses = qiWallet.getChangeAddressesForZone(Zone.Cyprus1)
+
+    await Promise.all(
+      Array.from(uniqueHashes).map(async (hash) => {
+        const response = await jsonRpcProvider.getTransaction(hash)
+        if (response) {
+          const transaction = processReceivedQiTransaction(
+            response as QiTransactionResponse,
+            changeAddresses,
+            qiWallet.getPaymentCode(0)
+          )
+          await this.saveQiTransaction(transaction)
+        }
+      })
+    )
   }
 
   /**

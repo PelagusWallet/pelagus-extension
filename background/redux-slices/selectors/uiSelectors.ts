@@ -74,7 +74,7 @@ export const selectQiBalanceForCurrentUtxoAccountCyprus1 = createSelector(
     const amount = balances?.[Zone.Cyprus1]?.assetAmount?.amount
 
     return amount !== undefined && amount !== null && !isNaN(Number(amount))
-      ? Number(amount).toFixed(3)
+      ? (Number(amount) / 1000).toFixed(3)
       : null
   }
 )

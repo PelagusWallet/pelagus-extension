@@ -38,10 +38,14 @@ const QiAccountsList = () => {
     if (!utxoAccount?.balances[Zone.Cyprus1]) {
       return <SharedLoadingSpinner size="small" />
     }
-
-    return `${Number(
+    let qiBalance = Number(
       utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
-    )?.toFixed(4)} ${utxoAccount?.balances[
+    )
+    if (qiBalance > 0) {
+      qiBalance = qiBalance / 1000
+    }
+
+    return `${qiBalance.toFixed(3)} ${utxoAccount?.balances[
       Zone.Cyprus1
     ]?.assetAmount?.asset?.symbol?.toUpperCase()}`
   }

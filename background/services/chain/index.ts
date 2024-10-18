@@ -296,7 +296,7 @@ export default class ChainService extends BaseService<Events> {
       qiWallet.connect(this.jsonRpcProvider)
       await qiWallet.scan(Zone.Cyprus1)
 
-      const balance = qiWallet.getBalanceForZone(Zone.Cyprus1) / 1000n
+      const balance = qiWallet.getBalanceForZone(Zone.Cyprus1)
       const paymentCode = qiWallet.getPaymentCode(0)
 
       await this.keyringService.vaultManager.add(

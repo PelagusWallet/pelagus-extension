@@ -219,7 +219,11 @@ export default function Wallet(): ReactElement {
           }
 
           .qiPanel {
+            padding-bottom: 16px;
             width: 100%;
+            height: 100%;
+            min-height: 302px;
+            max-height: 325px;
           }
 
           .add_custom_asset {

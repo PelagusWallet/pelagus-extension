@@ -19,7 +19,7 @@ const SharedUtxoActivityTab = ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "11px 24px",
+    padding: "11px 16px",
   },
   type,
   status,

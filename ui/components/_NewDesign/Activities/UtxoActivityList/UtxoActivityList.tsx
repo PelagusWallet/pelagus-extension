@@ -46,6 +46,7 @@ const UtxoActivityList = () => {
       <div className="qi-activity-list">
         {qiActivities.map((activity) => (
           <button
+            key={activity.hash}
             className="qi-activity-item"
             type="button"
             aria-label={activity.hash}
@@ -73,15 +74,17 @@ const UtxoActivityList = () => {
         .qi-activity-list {
           display: flex;
           flex-direction: column;
+          margin-bottom: 8px;
         }
 
         .qi-activity-item {
           transition: background-color 0.1s ease;
           border-radius: 8px;
+          margin: 0 8px;
         }
 
         .qi-activity-item:hover {
-          background-color: var(--secondary-bg);
+          background-color: var(--tertiary-bg);
         }
       `}</style>
     </>

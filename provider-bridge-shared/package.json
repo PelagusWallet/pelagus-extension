@@ -1,6 +1,6 @@
 {
   "name": "@pelagus-provider/provider-bridge-shared",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Pelagus, the community owned and operated Web3 wallet: provider bridge to connect the in-page provider with the background script.",
   "main": "index.ts",
   "repository": "git@github.com:PelagusWallet/pelagus-extension.git",

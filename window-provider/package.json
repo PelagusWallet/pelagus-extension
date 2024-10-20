@@ -1,6 +1,6 @@
 {
   "name": "@pelagus-provider/window-provider",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Pelagus, the community owned and operated Web3 wallet: window provider is responsible for creating the in-page object for communication.",
   "main": "index.ts",
   "repository": "git@github.com:PelagusWallet/pelagus-extension.git",
@@ -15,6 +15,6 @@
     "dapp"
   ],
   "dependencies": {
-    "@pelagus-provider/provider-bridge-shared": "1.0.11"
+    "@pelagus-provider/provider-bridge-shared": "1.0.12"
   }
 }

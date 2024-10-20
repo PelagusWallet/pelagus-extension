@@ -1686,6 +1686,10 @@ export default class Main extends BaseService<never> {
     return this.keyringService.exportWalletPrivateKey(address)
   }
 
+  async exportQiCoinbaseAddress(address: string): Promise<string> {
+    return this.keyringService.exportQiCoinbaseAddress(address)
+  }
+
   async importSigner(
     signerRaw: SignerImportMetadata
   ): Promise<{ address: string | null; errorMessage: string }> {

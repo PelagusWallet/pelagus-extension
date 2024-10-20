@@ -1,8 +1,6 @@
 import React from "react"
-import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
-import SettingsQiCoinbaseAddressListItem from "./SettingsQiCoinbaseAddressListItem"
-import { useBackgroundDispatch } from "../../hooks"
 import { DisplayedQiCoinbaseAddress } from "./SettingsQiCoinbaseAddress"
+import QiCoinbaseAddressOptionsMenu from "../../components/AccountItem/QiCoinbaseAddressOptionsMenu"
 
 type SettingsQiCoinbaseAddressListProps = {
   qiCoinbaseAddressListData: DisplayedQiCoinbaseAddress[]
@@ -11,20 +9,20 @@ type SettingsQiCoinbaseAddressListProps = {
 export default function SettingsQiCoinbaseAddressList({
   qiCoinbaseAddressListData,
 }: SettingsQiCoinbaseAddressListProps): React.ReactElement {
-  const dispatch = useBackgroundDispatch()
-  function copyAddress(address: string) {
-    navigator.clipboard.writeText(address)
-    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
-  }
   return (
     <div className="container">
       <ul>
         {qiCoinbaseAddressListData.map((addressItem) => (
           <li key={addressItem.address}>
-            <SettingsQiCoinbaseAddressListItem
-              qiCoinbaseAddress={addressItem}
-              onCopyClick={(address: string) => copyAddress(address)}
-            />
+            <div className="qi-coinbase-address-item">
+              <div className="address-info">
+                <div className="zoneName">
+                  {addressItem.displayZone} ({addressItem.displayIndex})
+                </div>
+                <div className="details">{addressItem.displayAddress}</div>
+              </div>
+              <QiCoinbaseAddressOptionsMenu qiCoinbaseAddress={addressItem} />
+            </div>
           </li>
         ))}
       </ul>
@@ -37,6 +35,26 @@ export default function SettingsQiCoinbaseAddressList({
             align-items: normal;
             margin-top: 16px;
             height: 100%;
+          }
+          .qi-coinbase-address-item {
+            display: flex;
+            align-items: center;
+            margin-top: 11px;
+            width: 100%;
+          }
+          .address-info {
+            flex-grow: 1;
+          }
+          .zoneName {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 20px;
+          }
+          .details {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 18px;
+            letter-spacing: 0.05em;
           }
         `}
       </style>

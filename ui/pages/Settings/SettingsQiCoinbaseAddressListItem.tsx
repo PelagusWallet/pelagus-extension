@@ -1,16 +1,13 @@
 import React, { ReactElement } from "react"
-import { HexString } from "@pelagus/pelagus-background/types"
-import SharedCircleButton from "../../components/Shared/SharedCircleButton"
 import { DisplayedQiCoinbaseAddress } from "./SettingsQiCoinbaseAddress"
+import QiCoinbaseAddressOptionsMenu from "../../components/AccountItem/QiCoinbaseAddressOptionsMenu"
 
 type SettingsQiCoinbaseAddressListItemProps = {
   qiCoinbaseAddress: DisplayedQiCoinbaseAddress
-  onCopyClick: (address: HexString) => void
 }
 
 export default function SettingsQiCoinbaseAddressListItem({
   qiCoinbaseAddress,
-  onCopyClick,
 }: SettingsQiCoinbaseAddressListItemProps): ReactElement {
   return (
     <div className="qi-coinbase-address-item">
@@ -21,23 +18,7 @@ export default function SettingsQiCoinbaseAddressListItem({
         <div className="details">{qiCoinbaseAddress.displayAddress}</div>
       </div>
       <div className="button-container">
-      <SharedCircleButton
-        disabled={false}
-        icon="icons/s/copy.svg" 
-        ariaLabel="copy"
-        onClick={() => {
-          onCopyClick(qiCoinbaseAddress.address)
-        }}
-        iconColor={{
-          color: "#3A4565",
-          hoverColor: "#3A4565",
-        }}
-        iconWidth="20"
-        iconHeight="18"
-        size={36}
-      >
-        <> </>
-        </SharedCircleButton>
+        <QiCoinbaseAddressOptionsMenu qiCoinbaseAddress={qiCoinbaseAddress} />
       </div>
       <style jsx>{`
         .qi-coinbase-address-item {

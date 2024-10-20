@@ -221,6 +221,17 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     return privateKey ?? "Not found"
   }
 
+  public async exportQiCoinbaseAddress(address: string): Promise<string> {
+    this.verifyKeyringIsUnlocked()
+
+    const qiHDWallet = await this.walletManager.getQiHDWallet()
+    if (qiHDWallet) {
+      return qiHDWallet.getPrivateKey(address)
+    }
+
+    return ""
+  }
+
   public async getSigner(address: string): Promise<InternalSignerWithType> {
     this.verifyKeyringIsUnlocked()
 

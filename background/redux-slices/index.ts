@@ -10,6 +10,7 @@ import uiReducer from "./ui"
 import dappReducer from "./dapp"
 import signingReducer from "./signing"
 import qiSendReducer from "./qiSend"
+import convertAssetsReducer from "./convertAssets"
 
 const mainReducer = combineReducers({
   account: accountsReducer,
@@ -22,6 +23,7 @@ const mainReducer = combineReducers({
   dapp: dappReducer,
   signing: signingReducer,
   qiSend: qiSendReducer,
+  convertAssets: convertAssetsReducer,
 })
 
 export default mainReducer

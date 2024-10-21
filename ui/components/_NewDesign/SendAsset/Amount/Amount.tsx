@@ -29,17 +29,17 @@ const Amount = () => {
     }
   }
 
-  const onMaxAmount = (utxoAccount: UtxoAccountData | null) => {
+  const onMaxAmount = async (utxoAccount: UtxoAccountData | null) => {
     if (!utxoAccount?.balances[Zone.Cyprus1]) {
       setInputValue("0")
       return
     }
 
-    setInputValue(
-      `${Number(
-        utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
-      )?.toFixed(4)}`
-    )
+    const qiMaxAmount = `${Number(
+      utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+    )?.toFixed(4)}`
+    setInputValue(qiMaxAmount)
+    await dispatch(setQiSendAmount(qiMaxAmount))
   }
 
   const balanceHandle = (utxoAccount: UtxoAccountData | null) => {

@@ -1,4 +1,7 @@
-import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
+import {
+  AccountType,
+  UtxoAccountData,
+} from "@pelagus/pelagus-background/redux-slices/accounts"
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 export const isAccountWithSecrets = (accountType: AccountType): boolean =>
@@ -26,4 +29,10 @@ export const searchAccountsHandle = (
       (shard && shard.includes(searchValueToLowerCase))
     )
   })
+}
+
+export const isUtxoAccountTypeGuard = (
+  account: UtxoAccountData | AccountTotal
+): account is UtxoAccountData => {
+  return (account as UtxoAccountData)?.paymentCode !== undefined
 }

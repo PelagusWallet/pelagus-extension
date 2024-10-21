@@ -2,12 +2,14 @@ import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   selectCurrentAccountSigner,
+  selectIsQiWalletInit,
   selectIsUtxoSelected,
   selectQiBalanceForCurrentUtxoAccountCyprus1,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { useHistory } from "react-router-dom"
 import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { resetConvertAssetsSlice } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
@@ -15,7 +17,6 @@ import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import Receive from "../../pages/Receive"
 import ReadOnlyNotice from "../Shared/ReadOnlyNotice"
 import SharedCircleButton from "../Shared/SharedCircleButton"
-import SharedTooltip from "../Shared/SharedTooltip"
 
 type ActionButtonsProps = {
   onReceive: () => void
@@ -29,6 +30,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
   const history = useHistory()
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+
+  const isQiWalletInit = useBackgroundSelector(selectIsQiWalletInit)
   const dispatch = useBackgroundDispatch()
 
   return (
@@ -60,42 +63,19 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         {t("receive")}
       </SharedCircleButton>
 
-      <SharedTooltip
-        type="dark"
-        width={150}
-        height={48}
-        horizontalPosition="center"
-        verticalPosition="bottom"
-        horizontalShift={30}
-        verticalShift={-35}
-        customStyles={{
-          marginLeft: "0",
-          display: "flex",
-          justifyContent: "center",
-          width: "100%",
-          margin: "0",
-          padding: "0",
+      <SharedCircleButton
+        icon="icons/s/convert.svg"
+        ariaLabel={t("swap")}
+        onClick={async () => {
+          await dispatch(resetConvertAssetsSlice())
+          history.push("/convert")
         }}
-        IconComponent={() => (
-          <SharedCircleButton
-            icon="icons/s/convert.svg"
-            ariaLabel={t("swap")}
-            iconColor={{
-              color: "#3A4565",
-              hoverColor: "#3A4565",
-            }}
-            iconWidth="20"
-            iconHeight="18"
-            disabled
-          >
-            {t("swap")}
-          </SharedCircleButton>
-        )}
+        iconWidth="20"
+        iconHeight="18"
+        disabled={!isQiWalletInit}
       >
-        <div className="centered_tooltip">
-          <div>{t("swapDisabledOne")}</div>
-        </div>
-      </SharedTooltip>
+        {t("swap")}
+      </SharedCircleButton>
 
       <style jsx>
         {`

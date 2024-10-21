@@ -27,7 +27,7 @@ const ConfirmConversionAmount = () => {
       <div className="amount-wrapper">
         <h5 className="type">Converting</h5>
         <h2 className="amount">
-          {trimWithEllipsis(amount, 12)} {tokenSymbolHandler(from)} to{" "}
+          {trimWithEllipsis(amount, 8)} {tokenSymbolHandler(from)} to{" "}
           {tokenSymbolHandler(to)}
         </h2>
         <h5 className="rate">

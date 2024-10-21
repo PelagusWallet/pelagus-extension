@@ -55,3 +55,23 @@ export const processSentQiTransaction = (
     blockNumber: tx.blockNumber || null,
   }
 }
+
+export const processConvertQiTransaction = (
+  senderPaymentCode: string,
+  receiverAddress: string,
+  tx: QiTransactionResponse,
+  amount: bigint
+): QiTransactionDB => {
+  return {
+    senderPaymentCode,
+    receiverPaymentCode: receiverAddress,
+    hash: tx.hash,
+    chainId: Number(tx.chainId),
+    value: Number(formatQi(amount)),
+    type: UtxoActivityType.CONVERT,
+    timestamp: Date.now(),
+    status: TransactionStatus.PENDING,
+    blockHash: tx.blockHash || null,
+    blockNumber: tx.blockNumber || null,
+  }
+}

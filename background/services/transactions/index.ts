@@ -6,6 +6,7 @@ import {
 import {
   Contract,
   getZoneForAddress,
+  parseQi,
   QuaiTransaction,
   TransactionReceipt,
   TransactionResponse,
@@ -28,6 +29,7 @@ import { processSentQiTransaction, quaiTransactionFromResponse } from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
+import IndexingService from "../indexing"
 
 const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
@@ -52,19 +54,21 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
     TransactionService,
-    [Promise<ChainService>, Promise<KeyringService>]
-  > = async (chainService, keyringService) => {
+    [Promise<ChainService>, Promise<KeyringService>, Promise<IndexingService>]
+  > = async (chainService, keyringService, indexingService) => {
     return new this(
       initializeTransactionsDatabase(),
       await chainService,
-      await keyringService
+      await keyringService,
+      await indexingService
     )
   }
 
   private constructor(
     private db: TransactionsDatabase,
     private chainService: ChainService,
-    private keyringService: KeyringService
+    private keyringService: KeyringService,
+    private indexingService: IndexingService
   ) {
     super()
   }
@@ -242,6 +246,61 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
   public async send(method: string, params: unknown[]): Promise<unknown> {
     return this.chainService.jsonRpcProvider.send(method, params)
+  }
+
+  public async convertQuaiToQi(from: string, value: bigint): Promise<void> {
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    const gapAddresses = qiWallet.getGapAddressesForZone(Zone.Cyprus1)
+    const coinbaseAddresses =
+      await this.indexingService.getQiCoinbaseAddresses()
+
+    const coinbaseAddressSet = new Set(
+      coinbaseAddresses.map((addr) => addr.address)
+    )
+    const foundedAddress = gapAddresses.find(
+      (gapAddress) => !coinbaseAddressSet.has(gapAddress.address)
+    )
+
+    let unusedAddress: string | null = null
+
+    if (foundedAddress) {
+      unusedAddress = foundedAddress.address
+    } else {
+      const maxAttempts = 200
+      let attempts = 0
+
+      while (attempts < maxAttempts) {
+        const { address } = await qiWallet.getNextAddress(0, Zone.Cyprus1)
+        if (!coinbaseAddressSet.has(address)) {
+          unusedAddress = address
+          break
+        }
+        attempts++
+      }
+
+      if (!unusedAddress) {
+        logger.warn(
+          "Maximum attempts reached without finding an unused address."
+        )
+        return
+      }
+    }
+
+    const convertTxRequest = {
+      to: unusedAddress,
+      from,
+      value,
+    }
+    await this.signAndSendQuaiTransaction(convertTxRequest)
+  }
+
+  public async convertQiToQuai(to: string, value: string): Promise<void> {
+    const { jsonRpcProvider } = this.chainService
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+
+    const amount = parseQi(value)
+    const tx = await qiWallet.convertToQuai(to, amount)
   }
 
   // ------------------------------------ private methods ------------------------------------

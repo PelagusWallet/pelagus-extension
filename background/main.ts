@@ -14,6 +14,7 @@ import {
 } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
+import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
 import {
   AnalyticsService,
@@ -166,7 +167,6 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
-import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -294,15 +294,15 @@ export default class Main extends BaseService<never> {
       keyringService
     )
     const blockService = BlockService.create(chainService, preferenceService)
-    const transactionService = TransactionService.create(
-      chainService,
-      keyringService
-    )
     const indexingService = IndexingService.create(
       preferenceService,
       chainService,
-      transactionService,
       blockService
+    )
+    const transactionService = TransactionService.create(
+      chainService,
+      keyringService,
+      indexingService
     )
     const nameService = NameService.create(chainService, preferenceService)
     const enrichmentService = EnrichmentService.create(

@@ -68,32 +68,6 @@ export const createChainService = async (
   )
 }
 
-type CreateTransactionServiceOverrides = {
-  chainService?: Promise<ChainService>
-  keyringService?: Promise<KeyringService>
-}
-
-export const createTransactionService = async (
-  overrides: CreateTransactionServiceOverrides = {}
-): Promise<TransactionService> => {
-  return TransactionService.create(
-    overrides.chainService ?? createChainService(),
-    overrides.keyringService ?? createKeyringService()
-  )
-}
-
-export async function createNameService(overrides?: {
-  chainService?: Promise<ChainService>
-  preferenceService?: Promise<PreferenceService>
-}): Promise<NameService> {
-  const preferenceService =
-    overrides?.preferenceService ?? createPreferenceService()
-  return NameService.create(
-    overrides?.chainService ?? createChainService({ preferenceService }),
-    preferenceService
-  )
-}
-
 export async function createIndexingService(overrides?: {
   chainService?: Promise<ChainService>
   preferenceService?: Promise<PreferenceService>
@@ -109,9 +83,36 @@ export async function createIndexingService(overrides?: {
   return IndexingService.create(
     preferenceService,
     chainService,
-    overrides?.transactionService ?? createTransactionService(),
     BlockService.create(chainService, preferenceService),
     overrides?.dexieOptions
+  )
+}
+
+type CreateTransactionServiceOverrides = {
+  chainService?: Promise<ChainService>
+  keyringService?: Promise<KeyringService>
+  indexingService?: Promise<IndexingService>
+}
+
+export const createTransactionService = async (
+  overrides: CreateTransactionServiceOverrides = {}
+): Promise<TransactionService> => {
+  return TransactionService.create(
+    overrides.chainService ?? createChainService(),
+    overrides.keyringService ?? createKeyringService(),
+    overrides.indexingService ?? createIndexingService()
+  )
+}
+
+export async function createNameService(overrides?: {
+  chainService?: Promise<ChainService>
+  preferenceService?: Promise<PreferenceService>
+}): Promise<NameService> {
+  const preferenceService =
+    overrides?.preferenceService ?? createPreferenceService()
+  return NameService.create(
+    overrides?.chainService ?? createChainService({ preferenceService }),
+    preferenceService
   )
 }
 

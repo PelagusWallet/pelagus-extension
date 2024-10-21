@@ -25,7 +25,11 @@ import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import NotificationsManager from "../notifications"
-import { processSentQiTransaction, quaiTransactionFromResponse } from "./utils"
+import {
+  processConvertQiTransaction,
+  processSentQiTransaction,
+  quaiTransactionFromResponse,
+} from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
@@ -301,6 +305,15 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     const amount = parseQi(value)
     const tx = await qiWallet.convertToQuai(to, amount)
+
+    const senderPaymentCode = qiWallet.getPaymentCode(0)
+    const transaction = processConvertQiTransaction(
+      senderPaymentCode,
+      to,
+      tx as QiTransactionResponse,
+      amount
+    )
+    await this.saveQiTransaction(transaction)
   }
 
   // ------------------------------------ private methods ------------------------------------

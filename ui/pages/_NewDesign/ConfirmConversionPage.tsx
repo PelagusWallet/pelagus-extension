@@ -4,6 +4,7 @@ import { convertAssetsHandle } from "@pelagus/pelagus-background/redux-slices/co
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
 import { useBackgroundDispatch } from "../../hooks"
+import ConfirmConversion from "../../components/_NewDesign/ConfirmConversion/ConfirmConversion"
 
 const ConfirmConversionPage = () => {
   const history = useHistory()
@@ -11,12 +12,14 @@ const ConfirmConversionPage = () => {
 
   const handleConfirm = async () => {
     await dispatch(convertAssetsHandle())
+    history.push("/")
   }
 
   return (
     <>
       <main className="convert-confirmation-wrapper">
         <SharedGoBackPageHeader title="Confirm Conversion" />
+        <ConfirmConversion />
         <SharedActionButtons
           title={{ confirmTitle: "Send", cancelTitle: "Back" }}
           onClick={{

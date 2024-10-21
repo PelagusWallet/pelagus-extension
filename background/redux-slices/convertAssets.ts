@@ -95,7 +95,7 @@ export const convertAssetsHandle = createBackgroundAsyncThunk(
       return
     }
 
-    // Convert QUI to QI
+    // Convert QUAI to QI
     dispatch(resetConvertAssetsSlice())
   }
 )

@@ -1,5 +1,5 @@
 import { Zone } from "quais"
-import { useHistory } from "react-router-dom"
+import { useHistory, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import React, { ReactElement, useEffect, useRef, useState } from "react"
 
@@ -16,6 +16,7 @@ import {
   selectCurrentAccount,
   selectCurrentNetwork,
   selectIsUtxoSelected,
+  selectConvertAssetQuaiAcc,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { VALID_ZONES } from "@pelagus/pelagus-background/constants"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
@@ -41,6 +42,8 @@ import SharedLoadingShip from "../Shared/SharedLoadingShip"
 import AccountsSearchBar from "../AccountItem/AccountsSearchBar"
 import SelectAccountListItem from "../AccountItem/SelectAccountListItem"
 import AccountItemOptionsMenu from "../AccountItem/AccountItemOptionsMenu"
+import { updateQuaiAccountInConversionDestination } from "@pelagus/pelagus-background/redux-slices/convertAssets"
+import { use } from "i18next"
 
 const shouldAddHeader = (
   existingAccountTypes: AccountType[],
@@ -80,6 +83,7 @@ export default function AccountsNotificationPanelAccounts({
   const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
+  const { pathname } = useLocation()
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const isMounted = useRef(false)
@@ -184,16 +188,42 @@ export default function AccountsNotificationPanelAccounts({
     useBackgroundSelector((state) => state.qiSend.senderQuaiAccount?.address) ??
     ""
 
-  const updateCurrentAccount = (address: string, signerId: string) => {
-    if (!isNeedToChangeAccount) {
-      dispatch(setShowingAccountsModal(false))
-      return
+  const convertAssetQuaiAccAddress =
+    useBackgroundSelector(selectConvertAssetQuaiAcc)?.address ?? ""
+
+  const isSelectedQuaiAccCustomHandle = (accountTotal: AccountTotal) => {
+    switch (pathname) {
+      case "/send-qi/confirmation":
+        return sameQuaiAddress(accountTotal.address, qiSendQuaiAddress)
+      case "/convert":
+        return sameQuaiAddress(accountTotal.address, convertAssetQuaiAccAddress)
+      default:
+        return false
     }
-    setPendingSelectedAddress(address)
-    setSelectedAccountSigner(signerId)
+  }
+
+  const updateCurrentAccount = (accountTotal: AccountTotal) => {
+    if (!isNeedToChangeAccount) {
+      switch (pathname) {
+        case "/send-qi/confirmation":
+          dispatch(setQiSendQuaiAcc(accountTotal))
+          dispatch(setShowingAccountsModal(false))
+          return
+        case "/convert":
+          dispatch(updateQuaiAccountInConversionDestination(accountTotal))
+          dispatch(setShowingAccountsModal(false))
+          return
+        default:
+          dispatch(setShowingAccountsModal(false))
+          return
+      }
+    }
+
+    setPendingSelectedAddress(accountTotal.address)
+    setSelectedAccountSigner(accountTotal.signerId ?? "")
     dispatch(
       setNewSelectedAccount({
-        address,
+        address: accountTotal.address,
         network: selectedNetwork,
       })
     )
@@ -412,10 +442,7 @@ export default function AccountsNotificationPanelAccounts({
                                 accountTotal.address,
                                 selectedAccountAddress
                               )
-                            : sameQuaiAddress(
-                                accountTotal.address,
-                                qiSendQuaiAddress
-                              )
+                            : isSelectedQuaiAccCustomHandle(accountTotal)
                         }
 
                         return (
@@ -443,19 +470,11 @@ export default function AccountsNotificationPanelAccounts({
                               tabIndex={0}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                  updateCurrentAccount(
-                                    accountTotal.address,
-                                    accountTotal.signerId ?? ""
-                                  )
-                                  dispatch(setQiSendQuaiAcc(accountTotal))
+                                  updateCurrentAccount(accountTotal)
                                 }
                               }}
                               onClick={() => {
-                                updateCurrentAccount(
-                                  accountTotal.address,
-                                  accountTotal.signerId ?? ""
-                                )
-                                dispatch(setQiSendQuaiAcc(accountTotal))
+                                updateCurrentAccount(accountTotal)
                               }}
                             >
                               <SelectAccountListItem

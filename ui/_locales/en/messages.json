@@ -465,7 +465,6 @@
     "totalAccountBalance": "Total account balance",
     "send": "Send",
     "swap": "Convert",
-    "swapDisabledOne": "Convert coming soon",
     "receive": "Receive",
     "secureSeed": "First, secure your recovery seed",
     "sendAsset": "Send Asset",

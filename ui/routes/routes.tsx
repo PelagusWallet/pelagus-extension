@@ -19,6 +19,8 @@ import SendPage from "../pages/_NewDesign/SendPage"
 import ConfirmTransactionPage from "../pages/_NewDesign/ConfirmTransactionPage"
 import SettingsQiCoinbaseAddress from "../pages/Settings/SettingsQiCoinbaseAddress"
 import SettingsAddQiCoinbaseAddress from "../pages/Settings/SettingsAddQiCoinbaseAddress"
+import ConvertPage from "../pages/_NewDesign/ConvertPage"
+import ConfirmConversionPage from "../pages/_NewDesign/ConfirmConversionPage"
 
 type PageList = {
   path: string
@@ -109,6 +111,16 @@ const pageList: PageList[] = [
     path: "/send",
     Component: Send,
     hasTopBar: true,
+  },
+  {
+    path: "/convert/confirmation",
+    Component: ConfirmConversionPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/convert",
+    Component: ConvertPage,
+    hasTopBar: false,
   },
   {
     path: "/dapp-permission",

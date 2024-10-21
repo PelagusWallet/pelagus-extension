@@ -523,3 +523,10 @@ export const selectQiCoinbaseAddresses = createSelector(
     return account?.qiCoinbaseAddresses ?? []
   }
 )
+
+export const selectIsQiWalletInit = createSelector(
+  (state: RootState) => state.keyrings.qiHDWallet,
+  (qiHdWallet) => {
+    return !!qiHdWallet
+  }
+)

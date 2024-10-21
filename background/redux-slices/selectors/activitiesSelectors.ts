@@ -36,6 +36,6 @@ export const selectCurrentAccountUtxoActivities = createSelector(
   selectCurrentNetwork,
   (activities, account, network) => {
     if (!account) return []
-    return activities[account?.paymentCode]?.[network.chainID] ?? []
+    return activities?.[account?.paymentCode]?.[network.chainID] ?? []
   }
 )

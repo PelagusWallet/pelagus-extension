@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
+import { toBigInt } from "quais"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
@@ -81,21 +82,22 @@ export const setConvertRateHandle = createBackgroundAsyncThunk(
 
 export const convertAssetsHandle = createBackgroundAsyncThunk(
   "convertAssets/convertAssetsHandle",
-  async (_, { getState, dispatch }) => {
+  async (_, { getState, dispatch, extra: { main } }) => {
     const { convertAssets } = getState() as RootState
-    console.log(convertAssets)
 
-    const { from, to, amount } = convertAssets
+    const { from, to, amount = "0" } = convertAssets
 
     if (!from || !to) return
 
+    const amountToBigInt = toBigInt(amount)
+
     if (isUtxoAccountTypeGuard(from)) {
-      // Convert QI to QUAI
+      await main.transactionService.convertQiToQuai(from.paymentCode, amount)
       dispatch(resetConvertAssetsSlice())
       return
     }
 
-    // Convert QUAI to QI
+    await main.transactionService.convertQuaiToQi(from.address, amountToBigInt)
     dispatch(resetConvertAssetsSlice())
   }
 )

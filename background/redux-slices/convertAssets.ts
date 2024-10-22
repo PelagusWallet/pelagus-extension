@@ -75,8 +75,14 @@ export default convertAssetsSlice.reducer
 
 export const setConvertRateHandle = createBackgroundAsyncThunk(
   "convertAssets/setConvertRateHandle",
-  async (_, { dispatch }) => {
-    dispatch(setConvertRate(20.132))
+  async (_, { getState, dispatch }) => {
+    const { convertAssets } = getState() as RootState
+
+    if (convertAssets?.from && isUtxoAccountTypeGuard(convertAssets?.from)) {
+      dispatch(setConvertRate(3000))
+      return
+    }
+    dispatch(setConvertRate(0.0003))
   }
 )
 

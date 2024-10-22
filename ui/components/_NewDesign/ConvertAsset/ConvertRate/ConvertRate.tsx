@@ -19,7 +19,7 @@ const ConvertRate = () => {
   return (
     <>
       <h5 className="rate">
-        1 {isUtxoAccountTypeGuard(convertFromAccount) ? "QI" : "QUAI"} = {rate}{" "}
+        1 {isUtxoAccountTypeGuard(convertFromAccount) ? "QI" : "QUAI"} ≈ {rate}{" "}
         {isUtxoAccountTypeGuard(convertFromAccount) ? "QUAI" : "QI"}
       </h5>
       <style jsx>{`

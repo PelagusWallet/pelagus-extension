@@ -6,10 +6,12 @@ const SharedActionButtons = ({
   title = { confirmTitle: "", cancelTitle: "" },
   onClick = { onConfirm: () => {}, onCancel: () => {} },
   isConfirmDisabled = false,
+  isLoading = false,
 }: {
   title?: { confirmTitle: string; cancelTitle: string }
   onClick?: { onConfirm: () => void; onCancel: () => void }
   isConfirmDisabled?: boolean
+  isLoading?: boolean
 }) => {
   return (
     <>
@@ -20,6 +22,7 @@ const SharedActionButtons = ({
         />
         <SharedConfirmButton
           isConfirmDisabled={isConfirmDisabled}
+          isLoading={isLoading}
           title={title.confirmTitle}
           onClick={onClick.onConfirm}
         />

@@ -10,12 +10,12 @@ const ConfirmConversionPage = () => {
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
 
-  const [isConfirmDisabled, setIsConfirmDisabled] = useState(false)
+  const [isConfirmLoading, setIsConfirmLoading] = useState(false)
 
   const handleConfirm = async () => {
-    setIsConfirmDisabled(true)
+    setIsConfirmLoading(true)
     await dispatch(convertAssetsHandle())
-    setIsConfirmDisabled(false)
+    setIsConfirmLoading(false)
     history.push("/")
   }
 
@@ -30,7 +30,7 @@ const ConfirmConversionPage = () => {
             onConfirm: () => handleConfirm(),
             onCancel: () => history.push("-1"),
           }}
-          isConfirmDisabled={isConfirmDisabled}
+          isLoading={isConfirmLoading}
         />
       </main>
 

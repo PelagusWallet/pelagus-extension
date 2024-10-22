@@ -24,7 +24,7 @@ import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import NotificationsManager from "../notifications"
-import { quaiTransactionFromResponse } from "./utils"
+import { processSentQiTransaction, quaiTransactionFromResponse } from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
@@ -178,10 +178,18 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         Zone.Cyprus1
       )) as QiTransactionResponse
 
+      const transaction = processSentQiTransaction(
+        senderPaymentCode,
+        receiverPaymentCode,
+        tx,
+        amount
+      )
+      await this.saveQiTransaction(transaction)
+
       // Wait for the transaction to be included in a block
       await tx.wait()
-      // await this.handleQiTransaction(tx)
-      // qiWallet.sync()
+      await this.handleQiTransaction(tx)
+      await qiWallet.sync(Zone.Cyprus1, 0)
 
       // This should only be called if this is the first time the user
       // has sent Qi to this payment code, otherwise, the transaction will fail

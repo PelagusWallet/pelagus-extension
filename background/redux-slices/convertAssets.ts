@@ -89,15 +89,14 @@ export const convertAssetsHandle = createBackgroundAsyncThunk(
 
     if (!from || !to) return
 
-    const amountToBigInt = toBigInt(amount)
-
-    if (isUtxoAccountTypeGuard(from)) {
-      await main.transactionService.convertQiToQuai(from.paymentCode, amount)
+    if (!isUtxoAccountTypeGuard(to)) {
+      await main.transactionService.convertQiToQuai(to.address, amount)
       dispatch(resetConvertAssetsSlice())
       return
     }
 
-    await main.transactionService.convertQuaiToQi(from.address, amountToBigInt)
+    if (!isUtxoAccountTypeGuard(from))
+      await main.transactionService.convertQuaiToQi(from.address, amount)
     dispatch(resetConvertAssetsSlice())
   }
 )

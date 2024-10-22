@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { setConvertAmount } from "@pelagus/pelagus-background/redux-slices/convertAssets"
-import { Zone } from "quais"
+import { formatQi, Zone } from "quais"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
 import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
@@ -40,7 +40,9 @@ const ConvertFromAmount = () => {
       convertFromAccount?.balances[Zone.Cyprus1]
     ) {
       const qiMaxamount = `${Number(
-        convertFromAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+        formatQi(
+          convertFromAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+        )
       )?.toFixed(4)}`
 
       setInputValue(qiMaxamount)
@@ -70,7 +72,9 @@ const ConvertFromAmount = () => {
       convertFromAccount?.balances[Zone.Cyprus1]
     ) {
       return `${Number(
-        convertFromAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+        formatQi(
+          convertFromAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+        )
       )?.toFixed(4)} ${convertFromAccount?.balances[
         Zone.Cyprus1
       ]?.assetAmount?.asset?.symbol?.toUpperCase()}`

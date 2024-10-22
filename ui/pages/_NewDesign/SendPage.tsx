@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { useHistory } from "react-router-dom"
 import { selectShowPaymentChannelModal } from "@pelagus/pelagus-background/redux-slices/ui"
-import { Zone } from "quais"
+import { parseQi, Zone } from "quais"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SendAsset from "../../components/_NewDesign/SendAsset/SendAsset"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
@@ -37,8 +37,8 @@ const SendPage = () => {
       receiverPaymentCode &&
       receiverPaymentCode.length === 116 &&
       utxoAccountArr[0]?.balances[Zone.Cyprus1]?.assetAmount?.amount &&
-      Number(utxoAccountArr[0]?.balances[Zone.Cyprus1]?.assetAmount?.amount) >=
-        Number(amount)
+      utxoAccountArr[0]?.balances[Zone.Cyprus1]?.assetAmount?.amount >=
+        parseQi(amount)
     ) {
       setIsConfirmDisabled(false)
       return

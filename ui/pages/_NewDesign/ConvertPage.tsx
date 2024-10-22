@@ -2,7 +2,7 @@ import React from "react"
 import { useHistory } from "react-router-dom"
 
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
-import { toBigInt, Zone } from "quais"
+import { parseQi, Zone } from "quais"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
 import ConvertAsset from "../../components/_NewDesign/ConvertAsset/ConvertAsset"
@@ -28,14 +28,12 @@ const ConvertPage = () => {
     if (isUtxoAccountTypeGuard(from)) {
       return (
         !from?.balances[Zone.Cyprus1]?.assetAmount?.amount ||
-        from?.balances[Zone.Cyprus1]?.assetAmount?.amount < toBigInt(amount)
+        from?.balances[Zone.Cyprus1]?.assetAmount?.amount < parseQi(amount)
       )
     }
 
-    return (
-      !from?.localizedTotalMainCurrencyAmount ||
-      from?.localizedTotalMainCurrencyAmount < amount
-    )
+    const quaiBalance = from?.balance?.split(" ")[0]
+    return !quaiBalance || Number(quaiBalance) < Number(amount)
   }
 
   return (

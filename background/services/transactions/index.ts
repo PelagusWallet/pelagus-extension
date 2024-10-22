@@ -299,8 +299,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       minerTip: 2000000000n,
       gasLimit: 100000n,
     }
-
-    console.log("==convertQuaiToQi", convertTxRequest)
     await this.signAndSendQuaiTransaction(convertTxRequest)
   }
 
@@ -311,9 +309,15 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     const amount = parseQi(value)
     const tx = await qiWallet.convertToQuai(to, amount)
+    await qiWallet.sync(Zone.Cyprus1, 0)
+    await this.keyringService.vaultManager.add(
+      {
+        qiHDWallet: qiWallet.serialize(),
+      },
+      {}
+    )
 
     const senderPaymentCode = qiWallet.getPaymentCode(0)
-    console.log("==convertQiToQuai", { to, amount, tx, senderPaymentCode })
 
     const transaction = processConvertQiTransaction(
       senderPaymentCode,

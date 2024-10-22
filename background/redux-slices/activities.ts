@@ -15,8 +15,10 @@ import {
 } from "./utils/activities-utils"
 import {
   EnrichedQuaiTransaction,
+  QiTransactionDB,
   QuaiTransactionDB,
 } from "../services/transactions/types"
+import { initializeUtxoActivitiesFromTransactions } from "./utils/utxo-activities-utils"
 
 export { Activity, ActivityDetail, INFINITE_VALUE }
 export type Activities = {
@@ -25,15 +27,23 @@ export type Activities = {
   }
 }
 
+export type UtxoActivities = {
+  [paymentCode: string]: {
+    [chainID: string]: QiTransactionDB[]
+  }
+}
+
 type ActivitiesState = {
   activities: Activities
+  utxoActivities: UtxoActivities
 }
 
 const initialState: ActivitiesState = {
   activities: {},
+  utxoActivities: {},
 }
 
-const ACTIVITIES_MAX_COUNT = 25
+export const ACTIVITIES_MAX_COUNT = 25
 
 const cleanActivitiesArray = (activitiesArray: Activity[] = []) => {
   activitiesArray.sort(sortActivities)
@@ -144,9 +154,9 @@ const activitiesSlice = createSlice({
           accounts: AddressOnNetwork[]
         }
       }
-    ) => ({
-      activities: initializeActivitiesFromTransactions(payload),
-    }),
+    ) => {
+      immerState.activities = initializeActivitiesFromTransactions(payload)
+    },
     initializeActivitiesForAccount: (
       immerState,
       {
@@ -198,6 +208,69 @@ const activitiesSlice = createSlice({
         )
       })
     },
+    initializeUtxoActivities: (
+      immerState,
+      { payload }: { payload: QiTransactionDB[] }
+    ) => {
+      immerState.utxoActivities =
+        initializeUtxoActivitiesFromTransactions(payload)
+    },
+    addUtxoActivity: (
+      immerState,
+      { payload }: { payload: QiTransactionDB }
+    ) => {
+      const { senderPaymentCode, receiverPaymentCode } = payload
+      const chainId = payload.chainId.toString()
+
+      const validateActivitiesHandle = (paymentCode: string) => {
+        if (!paymentCode) return []
+
+        if (!immerState.utxoActivities[paymentCode]) {
+          immerState.utxoActivities[paymentCode] = {}
+        }
+        if (!immerState.utxoActivities[paymentCode][chainId]) {
+          immerState.utxoActivities[paymentCode][chainId] = []
+        }
+        return immerState.utxoActivities[paymentCode][chainId]
+      }
+
+      const addHandle = (activities: QiTransactionDB[]) => {
+        if (!activities) return
+        activities.unshift(payload)
+      }
+
+      const fromActivities = validateActivitiesHandle(senderPaymentCode)
+      const toActivities = validateActivitiesHandle(receiverPaymentCode)
+
+      addHandle(fromActivities)
+      addHandle(toActivities)
+    },
+    updateUtxoActivity: (
+      immerState,
+      { payload }: { payload: QiTransactionDB }
+    ) => {
+      const { senderPaymentCode, receiverPaymentCode, chainId, hash } = payload
+
+      const updateHandle = (activities: QiTransactionDB[]) => {
+        if (!activities || !activities?.length) return
+
+        const activityIndex = activities.findIndex(
+          (activity) => activity.hash === hash
+        )
+
+        if (activityIndex === -1) return
+
+        activities.splice(activityIndex, 1, payload)
+      }
+
+      const fromActivities =
+        immerState.utxoActivities[senderPaymentCode][chainId]
+      const toActivities =
+        immerState.utxoActivities[receiverPaymentCode][chainId]
+
+      updateHandle(fromActivities)
+      updateHandle(toActivities)
+    },
   },
 })
 
@@ -206,6 +279,9 @@ export const {
   addActivity,
   removeActivities,
   initializeActivitiesForAccount,
+  addUtxoActivity,
+  initializeUtxoActivities,
+  updateUtxoActivity,
 } = activitiesSlice.actions
 
 export default activitiesSlice.reducer

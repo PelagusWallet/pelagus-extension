@@ -1,10 +1,18 @@
-import { QuaiTransactionResponse } from "quais/lib/commonjs/providers"
-
-import { QuaiTransactionDB, QuaiTransactionStatus } from "../types"
+import {
+  QiTransactionResponse,
+  QuaiTransactionResponse,
+} from "quais/lib/commonjs/providers"
+import { formatQi } from "quais"
+import {
+  QiTransactionDB,
+  QuaiTransactionDB,
+  TransactionStatus,
+  UtxoActivityType,
+} from "../types"
 
 export const quaiTransactionFromResponse = (
   transactionResponse: QuaiTransactionResponse,
-  status: QuaiTransactionStatus
+  status: TransactionStatus
 ): QuaiTransactionDB => {
   return {
     to: transactionResponse.to ?? "",
@@ -25,5 +33,25 @@ export const quaiTransactionFromResponse = (
     gasUsed: null,
     outboundEtxs: [],
     logs: [],
+  }
+}
+
+export const processSentQiTransaction = (
+  senderPaymentCode: string,
+  receiverPaymentCode: string,
+  tx: QiTransactionResponse,
+  amount: bigint
+): QiTransactionDB => {
+  return {
+    senderPaymentCode,
+    receiverPaymentCode,
+    hash: tx.hash,
+    chainId: Number(tx.chainId),
+    value: Number(formatQi(amount)),
+    type: UtxoActivityType.SEND,
+    timestamp: Date.now(),
+    status: TransactionStatus.PENDING,
+    blockHash: tx.blockHash || null,
+    blockNumber: tx.blockNumber || null,
   }
 }

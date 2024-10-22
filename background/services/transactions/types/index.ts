@@ -1,10 +1,11 @@
 import { BigNumberish, LogParams } from "quais"
 import { EtxParams } from "quais/lib/commonjs/providers/formatting"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
+
 import { TransactionAnnotation } from "../../enrichment"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
 
-export enum QuaiTransactionStatus {
+export enum TransactionStatus {
   FAILED = 0,
   PENDING = 1,
   CONFIRMED = 2,
@@ -18,7 +19,7 @@ export type QuaiTransactionDB = {
   type: number | null
   data: string | null
   nonce: number | null
-  status: QuaiTransactionStatus
+  status: TransactionStatus
 
   gasUsed?: bigint | null
   gasLimit: BigNumberish | null
@@ -32,6 +33,25 @@ export type QuaiTransactionDB = {
 
   outboundEtxs: EtxParams[]
   logs: LogParams[]
+}
+
+export enum UtxoActivityType {
+  RECEIVE = 0,
+  SEND = 1,
+  CONVERT = 2,
+}
+
+export type QiTransactionDB = {
+  senderPaymentCode: string
+  receiverPaymentCode: string
+  hash: string
+  chainId: number
+  value: number
+  type: UtxoActivityType
+  status: TransactionStatus
+  timestamp: number
+  blockHash: string | null
+  blockNumber: number | null
 }
 
 export type EnrichedQuaiTransaction = QuaiTransactionDB & {

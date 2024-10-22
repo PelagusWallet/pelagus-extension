@@ -3,7 +3,7 @@ import React, { CSSProperties } from "react"
 const ArrowRightIcon = ({
   width = 14,
   height = 11,
-  fillColor = "#7C7C83",
+  fillColor = `var(--secondary-text)`,
   style = {},
   onClick = () => {},
 }: {

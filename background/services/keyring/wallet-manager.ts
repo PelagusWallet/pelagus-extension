@@ -60,56 +60,78 @@ export default class WalletManager {
     const { wallets, qiHDWallet, quaiHDWallets, metadata, hiddenAccounts } =
       await this.vault.get()
 
-    this.privateKeys = wallets.map((serializedWallet) => {
-      const wallet = new Wallet(serializedWallet.privateKey)
-      return {
-        type: KeyringTypes.singleSECP,
-        addresses: [wallet.address],
-        id: wallet.signingKey.publicKey,
-        path: null,
-      }
-    })
+    // Run independent async operations in parallel
+    const [privateKeysPromise, qiHDWalletPromise, quaiHDWalletsPromise] =
+      await Promise.all([
+        // Process private keys
+        Promise.all(
+          wallets.map(async (serializedWallet) => {
+            const wallet = new Wallet(serializedWallet.privateKey)
+            return {
+              type: KeyringTypes.singleSECP,
+              addresses: [wallet.address],
+              id: wallet.signingKey.publicKey,
+              path: null,
+            }
+          })
+        ),
 
-    if (qiHDWallet) {
-      const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
-      await this.qiHDWalletManager.syncQiWalletPaymentCodes(
-        deserializedQiHDWallet
-      )
-      const paymentCode = deserializedQiHDWallet.getPaymentCode(
-        this.qiHDWalletManager.qiHDWalletAccountIndex
-      )
-      this.qiHDWallet = {
-        id: deserializedQiHDWallet.xPub,
-        path: null,
-        type: KeyringTypes.mnemonicBIP47,
-        addresses: [],
-        paymentCode,
-      }
-    } else {
-      this.qiHDWallet = null
-    }
+        // Process qiHDWallet
+        (async () => {
+          if (!qiHDWallet) return null
 
-    const deserializedQuaiHDWallets = await Promise.all(
-      quaiHDWallets.map((quaiHDWallet) =>
-        QuaiHDWallet.deserialize(quaiHDWallet)
-      )
-    )
-    this.quaiHDWallets = deserializedQuaiHDWallets.map((quaiHDWallet) => {
-      return {
-        type: KeyringTypes.mnemonicBIP39S256,
-        addresses: [
-          ...quaiHDWallet
-            .getAddressesForAccount(
-              this.quaiHDWalletManager.quaiHDWalletAccountIndex
+          let deserializedQiHDWallet
+          try {
+            deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
+          } catch (error) {
+            logger.error(
+              "Error deserializing QiHDWallet, recreating from mnemonic"
             )
-            .filter(({ address }) => !this.hiddenAccounts[address])
-            .map(({ address }) => address),
-        ],
-        id: quaiHDWallet.xPub,
-        path: null,
-      }
-    })
+            const mnemonic = Mnemonic.fromPhrase(qiHDWallet.phrase)
+            deserializedQiHDWallet = QiHDWallet.fromMnemonic(mnemonic)
+          }
+          this.qiHDWalletManager.syncQiWalletPaymentCodes(
+            deserializedQiHDWallet
+          )
+          const paymentCode = deserializedQiHDWallet.getPaymentCode(
+            this.qiHDWalletManager.qiHDWalletAccountIndex
+          )
+          return {
+            id: deserializedQiHDWallet.xPub,
+            path: null,
+            type: KeyringTypes.mnemonicBIP47,
+            addresses: [],
+            paymentCode,
+          }
+        })(),
 
+        // Process quaiHDWallets
+        Promise.all(
+          quaiHDWallets.map(async (quaiHDWallet) => {
+            const deserializedQuaiHDWallet = await QuaiHDWallet.deserialize(
+              quaiHDWallet
+            )
+            return {
+              type: KeyringTypes.mnemonicBIP39S256,
+              addresses: [
+                ...deserializedQuaiHDWallet
+                  .getAddressesForAccount(
+                    this.quaiHDWalletManager.quaiHDWalletAccountIndex
+                  )
+                  .filter(({ address }) => !hiddenAccounts[address])
+                  .map(({ address }) => address),
+              ],
+              id: deserializedQuaiHDWallet.xPub,
+              path: null,
+            }
+          })
+        ),
+      ])
+
+    // Assign results to class properties
+    this.privateKeys = privateKeysPromise as PrivateKey[]
+    this.qiHDWallet = qiHDWalletPromise
+    this.quaiHDWallets = quaiHDWalletsPromise
     this.keyringMetadata = metadata
     this.hiddenAccounts = hiddenAccounts
   }
@@ -298,7 +320,7 @@ export default class WalletManager {
     if (qiHDWallet) return
 
     const { qiHDWallet: wallet } = await this.qiHDWalletManager.create(mnemonic)
-    await this.qiHDWalletManager.syncQiWalletPaymentCodes(wallet, true)
+    await this.qiHDWalletManager.syncQiWalletPaymentCodes(wallet)
 
     this.keyringMetadata[wallet.xPub] = {
       source: SignerImportSource.internal,

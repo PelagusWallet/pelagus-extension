@@ -418,7 +418,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         TRANSACTION_CONFIRMATIONS,
         TRANSACTION_RECEIPT_WAIT_TIMEOUT
       )
-      console.log("==receipt", receipt)
       if (receipt) {
         await this.handleQuaiTransactionReceipt(receipt)
       } else {

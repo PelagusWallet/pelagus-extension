@@ -12,10 +12,10 @@ const ConvertToAmount = () => {
   const rate = useBackgroundSelector((state) => state.convertAssets.rate)
 
   const tokenLabelHandle = () => {
-    if (convertToAccount && isUtxoAccountTypeGuard(convertToAccount)) {
+    const convertingToUtxoAccount = convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
+    if (convertingToUtxoAccount) {
       return "QI"
     }
-
     return "QUAI"
   }
 
@@ -24,6 +24,10 @@ const ConvertToAmount = () => {
       return <SharedLoadingSpinner size="small" />
     }
 
+    const convertingToUtxoAccount = convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
+    if (convertingToUtxoAccount) {
+      return (Number(amount) * rate).toFixed(3)
+    }
     return (Number(amount) * rate).toFixed(4)
   }
 

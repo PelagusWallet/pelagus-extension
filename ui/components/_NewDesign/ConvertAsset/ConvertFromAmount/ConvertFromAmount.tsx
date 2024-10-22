@@ -43,7 +43,7 @@ const ConvertFromAmount = () => {
         formatQi(
           convertFromAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
         )
-      )?.toFixed(4)}`
+      )?.toFixed(3)}`
 
       setInputValue(qiMaxamount)
       await dispatch(setConvertAmount(qiMaxamount))

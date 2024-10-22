@@ -1,4 +1,4 @@
-import { BigNumberish, toBigInt } from "quais"
+import { BigNumberish, isQiAddress, toBigInt } from "quais"
 import { assetAmountToDesiredDecimals } from "../../assets"
 import {
   convertToEth,
@@ -140,8 +140,7 @@ const getAnnotationType = (transaction: QuaiTransactionDB) => {
   if (!to) return "contract-deployment"
 
   if (!from) return "contract-interaction"
-
-  if (to.length === 116 && from) return "convert"
+  if (isQiAddress(to) && from) return "convert"
 
   return getExtendedZoneForAddress(to, false) !==
     getExtendedZoneForAddress(from, false)

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
 import { convertAssetsHandle } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
@@ -10,8 +10,12 @@ const ConfirmConversionPage = () => {
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
 
+  const [isConfirmDisabled, setIsConfirmDisabled] = useState(false)
+
   const handleConfirm = async () => {
+    setIsConfirmDisabled(true)
     await dispatch(convertAssetsHandle())
+    setIsConfirmDisabled(false)
     history.push("/")
   }
 
@@ -26,6 +30,7 @@ const ConfirmConversionPage = () => {
             onConfirm: () => handleConfirm(),
             onCancel: () => history.push("-1"),
           }}
+          isConfirmDisabled={isConfirmDisabled}
         />
       </main>
 

@@ -52,7 +52,7 @@ export default function useActivityViewDetails(
     assetValue: activity.value,
   }
   switch (activity.type) {
-    case "convert": 
+    case "convert":
       return {
         ...baseDetails,
         label: t("tokenConvert"),

@@ -190,6 +190,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       await tx.wait()
       await this.handleQiTransaction(tx)
       await qiWallet.sync(Zone.Cyprus1, 0)
+      await this.keyringService.vaultManager.add(
+        {
+          qiHDWallet: qiWallet.serialize(),
+        },
+        {}
+      )
 
       // This should only be called if this is the first time the user
       // has sent Qi to this payment code, otherwise, the transaction will fail

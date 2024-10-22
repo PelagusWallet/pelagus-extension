@@ -24,6 +24,7 @@ export type ActivityIconType =
   | Exclude<TransactionAnnotation["type"], "asset-transfer">
   | "asset-transfer-receive"
   | "asset-transfer-send"
+  | "asset-convert"
 
 type ActivityViewDetails = {
   icon: ActivityIconType
@@ -51,6 +52,12 @@ export default function useActivityViewDetails(
     assetValue: activity.value,
   }
   switch (activity.type) {
+    case "convert": 
+      return {
+        ...baseDetails,
+        label: t("tokenConvert"),
+        icon: "asset-convert",
+      }
     case "asset-transfer":
       return {
         ...baseDetails,

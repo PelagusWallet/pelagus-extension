@@ -23,6 +23,10 @@ export default function SharedActivityIcon({
           margin-right: 4px;
           margin-left: 4px;
         }
+        .asset-convert {
+          background: url("./images/asset_convert@2x.png");
+          background-size: cover;
+        }
         .asset-transfer-receive {
           background: url("./images/activity_receive@2x.png");
           background-size: cover;

@@ -449,6 +449,7 @@
       "externalReceived": "External Receive",
       "externalSend": "External Send",
       "tokenReceived": "Received",
+      "tokenConvert": "Convert",
       "tokenSent": "Send",
       "infiniteApproval": "Infinite",
       "transactionFailed": "Failed",

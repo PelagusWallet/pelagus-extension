@@ -141,6 +141,8 @@ const getAnnotationType = (transaction: QuaiTransactionDB) => {
 
   if (!from) return "contract-interaction"
 
+  if (to.length === 116 && from) return "convert"
+
   return getExtendedZoneForAddress(to, false) !==
     getExtendedZoneForAddress(from, false)
     ? "external-transfer"

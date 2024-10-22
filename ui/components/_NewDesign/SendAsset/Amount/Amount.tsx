@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { setQiSendAmount } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
-import { Zone } from "quais"
+import { formatQi, Zone } from "quais"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
@@ -36,7 +36,7 @@ const Amount = () => {
     }
 
     const qiMaxAmount = `${Number(
-      utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+      formatQi(utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount)
     )?.toFixed(4)}`
     setInputValue(qiMaxAmount)
     await dispatch(setQiSendAmount(qiMaxAmount))
@@ -48,7 +48,7 @@ const Amount = () => {
     }
 
     return `${Number(
-      utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
+      formatQi(utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount)
     )?.toFixed(4)} ${utxoAccount?.balances[
       Zone.Cyprus1
     ]?.assetAmount?.asset?.symbol?.toUpperCase()}`

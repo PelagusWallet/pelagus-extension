@@ -1,5 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit"
-import { Zone } from "quais"
+import { formatQi, Zone } from "quais"
 import type { RootState } from ".."
 import {
   hardcodedMainCurrencySign,
@@ -74,7 +74,7 @@ export const selectQiBalanceForCurrentUtxoAccountCyprus1 = createSelector(
     const amount = balances?.[Zone.Cyprus1]?.assetAmount?.amount
 
     return amount !== undefined && amount !== null && !isNaN(Number(amount))
-      ? (Number(amount) / 1000).toFixed(3)
+      ? Number(formatQi(amount)).toFixed(3)
       : null
   }
 )

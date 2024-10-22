@@ -10,7 +10,7 @@ import {
   selectCurrentUtxoAccount,
   selectIsUtxoSelected,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { Zone } from "quais"
+import { formatQi, Zone } from "quais"
 import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../hooks"
 import SharedIconGA from "../../Shared/SharedIconGA"
@@ -42,7 +42,7 @@ const QiAccountsList = () => {
       utxoAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
     )
     if (qiBalance > 0) {
-      qiBalance = qiBalance / 1000
+      qiBalance = +formatQi(qiBalance)
     }
 
     return `${qiBalance.toFixed(3)} ${utxoAccount?.balances[

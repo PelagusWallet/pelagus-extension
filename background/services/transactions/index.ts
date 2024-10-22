@@ -252,7 +252,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return this.chainService.jsonRpcProvider.send(method, params)
   }
 
-  public async convertQuaiToQi(from: string, value: bigint): Promise<void> {
+  public async convertQuaiToQi(from: string, value: string): Promise<void> {
+    const amount = parseQi(value)
     const qiWallet = await this.keyringService.getQiHDWallet()
     const gapAddresses = qiWallet.getGapAddressesForZone(Zone.Cyprus1)
     const coinbaseAddresses =
@@ -293,8 +294,13 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const convertTxRequest = {
       to: unusedAddress,
       from,
-      value,
+      value: amount,
+      // FIXME: remove minerTip and gasLimit ==>
+      minerTip: 2000000000n,
+      gasLimit: 100000n,
     }
+
+    console.log("==convertQuaiToQi", convertTxRequest)
     await this.signAndSendQuaiTransaction(convertTxRequest)
   }
 
@@ -307,6 +313,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const tx = await qiWallet.convertToQuai(to, amount)
 
     const senderPaymentCode = qiWallet.getPaymentCode(0)
+    console.log("==convertQiToQuai", { to, amount, tx, senderPaymentCode })
+
     const transaction = processConvertQiTransaction(
       senderPaymentCode,
       to,
@@ -410,6 +418,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         TRANSACTION_CONFIRMATIONS,
         TRANSACTION_RECEIPT_WAIT_TIMEOUT
       )
+      console.log("==receipt", receipt)
       if (receipt) {
         await this.handleQuaiTransactionReceipt(receipt)
       } else {
@@ -418,6 +427,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
     } catch (error) {
       // dropped / failed
+      logger.error(error)
       await this.handleQuaiTransactionFail(hash)
     }
   }

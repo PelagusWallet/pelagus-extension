@@ -27,13 +27,18 @@ const ConvertPage = () => {
 
     if (isUtxoAccountTypeGuard(from)) {
       return (
+        Number(amount) < 10 ||
         !from?.balances[Zone.Cyprus1]?.assetAmount?.amount ||
         from?.balances[Zone.Cyprus1]?.assetAmount?.amount < parseQi(amount)
       )
     }
 
     const quaiBalance = from?.balance?.split(" ")[0]
-    return !quaiBalance || Number(quaiBalance) < Number(amount)
+    return (
+      !quaiBalance ||
+      Number(amount) < 10 ||
+      Number(quaiBalance) < Number(amount)
+    )
   }
 
   return (

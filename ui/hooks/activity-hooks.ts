@@ -6,6 +6,7 @@ import {
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import { useTranslation } from "react-i18next"
 import { TransactionAnnotation } from "@pelagus/pelagus-background/services/enrichment"
+import { isQiAddress } from "quais"
 
 function isReceiveActivity(
   activity: Activity,
@@ -51,13 +52,16 @@ export default function useActivityViewDetails(
     assetSymbol: activity.assetSymbol,
     assetValue: activity.value,
   }
+
+  if (activity?.to && isQiAddress(activity?.to)) {
+    return {
+      ...baseDetails,
+      label: t("tokenConvert"),
+      icon: "asset-convert",
+    }
+  }
+
   switch (activity.type) {
-    case "convert":
-      return {
-        ...baseDetails,
-        label: t("tokenConvert"),
-        icon: "asset-convert",
-      }
     case "asset-transfer":
       return {
         ...baseDetails,

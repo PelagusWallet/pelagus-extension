@@ -1,28 +1,34 @@
 import React from "react"
 import classNames from "classnames"
+import SharedLoadingSpinner from "../../SharedLoadingSpinner"
 
 const SharedConfirmButton = ({
   title = "",
   onClick = () => {},
   isConfirmDisabled = false,
+  isLoading = false,
 }: {
   title?: string
   onClick?: () => void
   isConfirmDisabled?: boolean
+  isLoading?: boolean
 }) => {
   return (
     <>
       <button
         type="button"
         className={classNames("button", {
-          disabled: isConfirmDisabled,
+          disabled: isConfirmDisabled || isLoading,
         })}
         onClick={() => {
-          if (isConfirmDisabled) return
+          if (isConfirmDisabled || isLoading) return
           onClick()
         }}
       >
-        {title}
+        <>
+          <span>{title}</span>
+          {isLoading && <SharedLoadingSpinner size="small" />}
+        </>
       </button>
 
       <style jsx>{`
@@ -41,6 +47,10 @@ const SharedConfirmButton = ({
           background: var(--accent-color);
           color: var(--contrast-text);
           text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
         }
 
         .disabled {

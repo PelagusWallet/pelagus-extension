@@ -31,7 +31,7 @@ const ConfirmConversionAmount = () => {
           {tokenSymbolHandler(to)}
         </h2>
         <h5 className="rate">
-          1 {tokenSymbolHandler(from)} = {rate} {tokenSymbolHandler(to)}
+          1 {tokenSymbolHandler(from)} ≈ {rate} {tokenSymbolHandler(to)}
         </h5>
       </div>
       <style jsx>{`

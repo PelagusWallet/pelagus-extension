@@ -1,4 +1,5 @@
 import {
+  QiTransactionResponse,
   QuaiTransactionRequest,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
@@ -164,14 +165,18 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       const qiWallet = await this.keyringService.getQiHDWallet()
       qiWallet.connect(jsonRpcProvider)
       await qiWallet.scan(Zone.Cyprus1)
-
-      const tx = await qiWallet.sendTransaction(
+      const tx = (await qiWallet.sendTransaction(
         receiverPaymentCode,
         amount,
         Zone.Cyprus1,
         Zone.Cyprus1
-      )
+      )) as QiTransactionResponse
 
+      // Wait for the transaction to be included in a block
+      await tx.wait()
+
+      // This should only be called if this is the first time the user
+      // has sent Qi to this payment code, otherwise, the transaction will fail
       await this.notifyQiRecipient(
         quaiAddress,
         senderPaymentCode,
@@ -180,7 +185,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       )
       NotificationsManager.createSendQiTxNotification()
     } catch (error) {
-      logger.error()
+      logger.error("Failed to send Qi transaction", error)
       NotificationsManager.createFailedQiTxNotification()
     }
   }
@@ -394,16 +399,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         wallet
       )
       const gasOptions = minerTip ? { minerTip } : {}
-      console.log("senderPaymentCode", senderPaymentCode)
-      console.log("receiverPaymentCode", receiverPaymentCode)
       const tx = await mailboxContract.notify(
         senderPaymentCode,
         receiverPaymentCode,
         gasOptions
       )
-      console.log("notified tx", tx)
-      const receipt = await tx.wait()
-      console.log("notified receipt", receipt)
+      await tx.wait()
     } catch (error) {
       logger.error("Error occurs while notifying Qi recipient", error)
     }

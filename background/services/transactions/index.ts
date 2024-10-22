@@ -314,6 +314,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       amount
     )
     await this.saveQiTransaction(transaction)
+    this.subscribeToQiTransaction(tx.hash)
   }
 
   // ------------------------------------ private methods ------------------------------------

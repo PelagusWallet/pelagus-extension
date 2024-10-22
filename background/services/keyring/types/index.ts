@@ -7,6 +7,7 @@ import {
   Zone,
 } from "quais"
 import { HexString } from "../../../types"
+import { SerializedQuaiHDWallet } from "quais/lib/commonjs/wallet/quai-hdwallet"
 
 export enum KeyringTypes {
   mnemonicBIP47 = "mnemonic#bip47",
@@ -92,7 +93,7 @@ export type SerializedPrivateKey = {
 export interface SerializedVaultData {
   wallets: SerializedPrivateKey[]
   qiHDWallet: SerializedQiHDWallet | null
-  quaiHDWallets: SerializedHDWallet[]
+  quaiHDWallets: SerializedQuaiHDWallet[]
   metadata: { [keyringId: string]: { source: SignerImportSource } }
   hiddenAccounts: { [address: HexString]: boolean }
 }

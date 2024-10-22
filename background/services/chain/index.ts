@@ -34,6 +34,7 @@ import { sameQuaiAddress } from "../../lib/utils"
 import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
+import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -294,7 +295,7 @@ export default class ChainService extends BaseService<Events> {
       const network = this.selectedNetwork
       const qiWallet = await this.keyringService.getQiHDWallet()
       qiWallet.connect(this.jsonRpcProvider)
-      await qiWallet.scan(Zone.Cyprus1)
+      await qiWallet.sync(Zone.Cyprus1)
 
       const balance = qiWallet.getBalanceForZone(Zone.Cyprus1)
       const paymentCode = qiWallet.getPaymentCode(0)
@@ -328,6 +329,10 @@ export default class ChainService extends BaseService<Events> {
     } catch (error) {
       logger.error("Error getting qi wallet balance for address", error)
     }
+  }
+
+  async getOutpointsForQiAddress(address: string): Promise<Outpoint[]> {
+    return await this.jsonRpcProvider.getOutpointsByAddress(address)
   }
 
   async getLatestBaseAccountBalance({

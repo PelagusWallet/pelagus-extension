@@ -2,6 +2,7 @@
 /* eslint-disable no-console */
 /* eslint-disable import/no-cycle */
 import {
+  Contract,
   JsonRpcProvider,
   Shard,
   toBigInt,
@@ -24,7 +25,7 @@ import {
   AssetTransfer,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MINUTE, QI } from "../../constants"
+import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, initializeChainDatabase } from "./db"
@@ -35,6 +36,7 @@ import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
+import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -294,11 +296,31 @@ export default class ChainService extends BaseService<Events> {
     try {
       const network = this.selectedNetwork
       const qiWallet = await this.keyringService.getQiHDWallet()
+      const paymentCode = qiWallet.getPaymentCode(0)
+
+      let notifications: string[] = []
+      try {
+        const mailboxContract = new Contract(
+          MAILBOX_CONTRACT_ADDRESS || "",
+          MAILBOX_INTERFACE,
+          this.jsonRpcProvider
+        )
+        notifications = await mailboxContract.getNotifications(paymentCode)
+      } catch (error) {
+        console.error(
+          "Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet."
+        )
+      }
+
       qiWallet.connect(this.jsonRpcProvider)
+      notifications.forEach((paymentCode) => {
+        // if the channel is already open, it will be ignored
+        qiWallet.openChannel(paymentCode)
+      })
+
       await qiWallet.sync(Zone.Cyprus1)
 
       const balance = qiWallet.getBalanceForZone(Zone.Cyprus1)
-      const paymentCode = qiWallet.getPaymentCode(0)
 
       await this.keyringService.vaultManager.add(
         {

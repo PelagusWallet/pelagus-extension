@@ -102,11 +102,11 @@ const pageList: PageList[] = [
     Component: ConfirmTransactionPage,
     hasTopBar: false,
   },
-  {
-    path: "/send-qi",
-    Component: SendPage,
-    hasTopBar: false,
-  },
+  // {
+  //   path: "/send-qi",
+  //   Component: SendPage,
+  //   hasTopBar: false,
+  // },
   {
     path: "/send",
     Component: Send,

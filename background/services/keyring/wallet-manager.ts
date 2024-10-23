@@ -320,7 +320,6 @@ export default class WalletManager {
     if (qiHDWallet) return
 
     const { qiHDWallet: wallet } = await this.qiHDWalletManager.create(mnemonic)
-    await this.qiHDWalletManager.syncQiWalletPaymentCodes(wallet)
 
     this.keyringMetadata[wallet.xPub] = {
       source: SignerImportSource.internal,

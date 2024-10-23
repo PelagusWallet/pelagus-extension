@@ -6,6 +6,7 @@ import {
   MAILBOX_INTERFACE,
 } from "../../../contracts/payment-channel-mailbox"
 import { MAILBOX_CONTRACT_ADDRESS } from "../../../constants"
+import logger from "../../../lib/logger"
 
 export interface IQiHDWalletManager {
   get(): Promise<QiHDWallet | null>
@@ -83,14 +84,42 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
   private async subscribeToContractEvents(): Promise<void> {
     const { qiHDWallet } = await this.vaultManager.get()
     if (!qiHDWallet) return
-    const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
+
+    const { webSocketProvider, jsonRpcProvider } = globalThis.main.chainService
+    let deserializedQiHDWallet: QiHDWallet
+    try {
+      deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
+    } catch (error) {
+      const errorRegex = /Address (0x[a-fA-F0-9]{40}) not found in wallet/
+      const match = (error as Error).message.match(errorRegex)
+      if (match) {
+        logger.info("Error locating address for outpoint. Rescanning...")
+        const removedOutpointsSerialized = {
+          ...qiHDWallet,
+          outpoints: [],
+          pendingOutpoints: [],
+        }
+        deserializedQiHDWallet = await QiHDWallet.deserialize(
+          removedOutpointsSerialized
+        )
+        deserializedQiHDWallet.connect(jsonRpcProvider)
+        await deserializedQiHDWallet.scan(Zone.Cyprus1, 0)
+        logger.info("Rescan successful. Adding to vault...")
+        await this.vaultManager.add(
+          {
+            qiHDWallet: deserializedQiHDWallet.serialize(),
+          },
+          {}
+        )
+      }
+      throw error
+    }
+
+    deserializedQiHDWallet.connect(webSocketProvider)
+
     const thisQiWalletPaymentCode = deserializedQiHDWallet.getPaymentCode(
       this.qiHDWalletAccountIndex
     )
-
-    const { webSocketProvider } = globalThis.main.chainService
-    deserializedQiHDWallet.connect(webSocketProvider)
-
     const mailboxContract = new Contract(
       MAILBOX_CONTRACT_ADDRESS || "",
       MAILBOX_INTERFACE,

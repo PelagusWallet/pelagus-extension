@@ -45,11 +45,12 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             return
           }
 
-          await dispatch(resetQiSendSlice())
-          history.push("/send-qi")
+          // await dispatch(resetQiSendSlice())
+          // history.push("/send-qi")
         }}
         iconWidth="20"
         iconHeight="18"
+        disabled={isUtxoSelected}
       >
         {t("send")}
       </SharedCircleButton>

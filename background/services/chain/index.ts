@@ -22,11 +22,12 @@ import {
   QiWalletOnNetwork,
 } from "../../accounts"
 import {
+  AnyAsset,
   AnyAssetAmount,
   AssetTransfer,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI } from "../../constants"
+import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI, QUAI } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, initializeChainDatabase } from "./db"
@@ -38,6 +39,10 @@ import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
+import {
+  updateAccountBalance,
+  updateUtxoAccountsBalances,
+} from "../../redux-slices/accounts"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different

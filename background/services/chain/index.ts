@@ -252,18 +252,19 @@ export default class ChainService extends BaseService<Events> {
       this.getLatestBaseAccountBalance({ address: item.account, network })
     )
 
-    // if (this.isNetworkSubscribed(network)) {
-    //   console.log(
-    //     `Network ${network.chainID} is already subscribed. Skipping subscription.`
-    //   )
-    //   return
-    // }
-
     this.startAddressBalanceSubscriber()
   }
 
   // --------------------------------------------------------------------------------------------------
   private async startAddressBalanceSubscriber(): Promise<void> {
+    console.log(this.activeSubscriptions)
+    if (this.isNetworkSubscribed(this.selectedNetwork)) {
+      logger.info(
+        `Network ${this.selectedNetwork.chainID} is already subscribed. Skipping subscription.`
+      )
+      return
+    }
+
     const accounts = await this.getTrackedAddressesOnNetwork(
       this.selectedNetwork
     )
@@ -289,8 +290,15 @@ export default class ChainService extends BaseService<Events> {
   ): Promise<void> {
     console.log("subscribing to accounts balances", accounts, network)
 
+    const { webSocketProvider } = this.providerFactory.getProvidersForNetwork(
+      network.chainID
+    )
+
+    if (!webSocketProvider)
+      logger.error("WebSocketProvider for balance subscription not found")
+
     accounts.forEach(({ address }) => {
-      this.webSocketProvider.on({ type: "balance", address }, (balance) => {
+      webSocketProvider.on({ type: "balance", address }, (balance) => {
         console.log("new balance for account", address, balance)
         this.updateQuaiBalanceCallback({
           network,
@@ -345,9 +353,15 @@ export default class ChainService extends BaseService<Events> {
     if (subscribedAccounts) {
       this.subscribeOnBalances(network, [newAccount])
       subscribedAccounts.add(newAccount.address)
-    } else {
+      return
+    }
+
+    const provider = this.providerFactory.getProvidersForNetwork(
+      network.chainID
+    )
+
+    if (provider) {
       const accounts = await this.getTrackedAddressesOnNetwork(network)
-      accounts.push(newAccount)
 
       this.subscribeOnBalances(network, accounts)
       this.trackSubscriptions(network, accounts)

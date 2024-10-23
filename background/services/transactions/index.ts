@@ -180,12 +180,24 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       const qiWallet = await this.keyringService.getQiHDWallet()
       qiWallet.connect(jsonRpcProvider)
       await qiWallet.sync(Zone.Cyprus1, 0)
-      const tx = await qiWallet.sendTransaction(
-        receiverPaymentCode,
-        amount,
-        Zone.Cyprus1,
-        Zone.Cyprus1
-      )
+
+      let tx: QiTransactionResponse
+      try {
+        tx = (await qiWallet.sendTransaction(
+          receiverPaymentCode,
+          amount,
+          Zone.Cyprus1,
+          Zone.Cyprus1
+        )) as QiTransactionResponse
+      } catch (error) {
+        await qiWallet.scan(Zone.Cyprus1, 0)
+        tx = (await qiWallet.sendTransaction(
+          receiverPaymentCode,
+          amount,
+          Zone.Cyprus1,
+          Zone.Cyprus1
+        )) as QiTransactionResponse
+      }
 
       const transaction = processSentQiTransaction(
         senderPaymentCode,
@@ -196,8 +208,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       await this.saveQiTransaction(transaction)
 
       // Wait for the transaction to be included in a block
-      await tx.wait()
-      await this.handleQiTransaction(tx)
+      await this.subscribeToQiTransaction(transaction.hash)
       await qiWallet.sync(Zone.Cyprus1, 0)
       await this.keyringService.vaultManager.add(
         {

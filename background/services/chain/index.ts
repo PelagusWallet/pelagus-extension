@@ -21,11 +21,12 @@ import {
   QiWalletOnNetwork,
 } from "../../accounts"
 import {
+  AnyAsset,
   AnyAssetAmount,
   AssetTransfer,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI } from "../../constants"
+import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI, QUAI } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, initializeChainDatabase } from "./db"
@@ -37,6 +38,10 @@ import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
+import {
+  updateAccountBalance,
+  updateUtxoAccountsBalances,
+} from "../../redux-slices/accounts"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -112,6 +117,8 @@ export default class ChainService extends BaseService<Events> {
   public selectedNetwork: NetworkInterface
 
   public supportedNetworks = PELAGUS_NETWORKS
+
+  private activeSubscriptions: Map<string, Set<string>> = new Map()
 
   subscribedAccounts: {
     account: string
@@ -229,9 +236,11 @@ export default class ChainService extends BaseService<Events> {
     this.emitter.emit("supportedNetworks", PELAGUS_NETWORKS)
 
     await this.subscribeOnNetworksAndAddresses(this.supportedNetworks, accounts)
+
+    await this.startAddressBalanceSubscriber()
   }
 
-  public switchNetwork(network: NetworkInterface): void {
+  public async switchNetwork(network: NetworkInterface): Promise<void> {
     const { jsonRpcProvider, webSocketProvider } =
       this.providerFactory.getProvidersForNetwork(network.chainID)
 
@@ -242,9 +251,170 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedAccounts.map((item) =>
       this.getLatestBaseAccountBalance({ address: item.account, network })
     )
+
+    // if (this.isNetworkSubscribed(network)) {
+    //   console.log(
+    //     `Network ${network.chainID} is already subscribed. Skipping subscription.`
+    //   )
+    //   return
+    // }
+
+    this.startAddressBalanceSubscriber()
   }
 
   // --------------------------------------------------------------------------------------------------
+  private async startAddressBalanceSubscriber(): Promise<void> {
+    const accounts = await this.getTrackedAddressesOnNetwork(
+      this.selectedNetwork
+    )
+    this.subscribeOnBalances(this.selectedNetwork, accounts)
+    this.trackSubscriptions(this.selectedNetwork, accounts)
+  }
+
+  private trackSubscriptions(
+    network: NetworkInterface,
+    accounts: AddressOnNetwork[]
+  ) {
+    const subscribedAccounts =
+      this.activeSubscriptions.get(network.chainID) || new Set<string>()
+
+    accounts.forEach((account) => subscribedAccounts.add(account.address))
+
+    this.activeSubscriptions.set(network.chainID, subscribedAccounts)
+  }
+
+  private async subscribeOnBalances(
+    network: NetworkInterface,
+    accounts: AddressOnNetwork[]
+  ): Promise<void> {
+    console.log("subscribing to accounts balances", accounts, network)
+
+    accounts.forEach(({ address }) => {
+      this.webSocketProvider.on({ type: "balance", address }, (balance) => {
+        console.log("new balance for account", address, balance)
+        this.updateQuaiBalanceCallback({
+          network,
+          balance,
+          address,
+          asset: network.baseAsset,
+        })
+      })
+    })
+  }
+
+  private async subscribeOnQiBalances() {
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(this.jsonRpcProvider)
+    const addressesForZone = qiWallet.getAddressesForZone(Zone.Cyprus1)
+    const paymentCode = qiWallet.getPaymentCode(0)
+
+    if (!addressesForZone?.length) return
+
+    this.supportedNetworks.map((supportedNetwork) => {
+      addressesForZone.map((qiAddress) => {
+        this.webSocketProvider.on(
+          { type: "balance", address: qiAddress.address },
+          (balance) => {
+            const zoneBalance = qiWallet.getBalanceForZone(Zone.Cyprus1)
+
+            console.log("new balance for account", paymentCode, balance)
+            this.updateQiBalanceCallback({
+              network: supportedNetwork,
+              balance: zoneBalance,
+              paymentCode,
+              asset: QI, // TO WHICH ASSET AMOUNT UPDATED //
+            })
+          }
+        )
+      })
+    })
+  }
+
+  private isNetworkSubscribed(network: NetworkInterface): boolean {
+    return this.activeSubscriptions.has(network.chainID)
+  }
+
+  public async onNewAccountCreated(
+    network: NetworkInterface,
+    newAccount: AddressOnNetwork
+  ) {
+    console.log(`New account created on network: ${network.chainID}`)
+
+    const subscribedAccounts = this.activeSubscriptions.get(network.chainID)
+
+    if (subscribedAccounts) {
+      this.subscribeOnBalances(network, [newAccount])
+      subscribedAccounts.add(newAccount.address)
+    } else {
+      const accounts = await this.getTrackedAddressesOnNetwork(network)
+      accounts.push(newAccount)
+
+      this.subscribeOnBalances(network, accounts)
+      this.trackSubscriptions(network, accounts)
+    }
+  }
+
+  public async updateQuaiBalanceCallback({
+    network,
+    address,
+    balance,
+    asset,
+  }: {
+    network: NetworkInterface
+    address: string
+    balance: bigint
+    asset: AnyAsset
+  }) {
+    globalThis.main.store.dispatch(
+      updateAccountBalance({
+        balances: [
+          {
+            address,
+            assetAmount: {
+              amount: balance,
+              asset,
+            },
+            network,
+            retrievedAt: Date.now(),
+            dataSource: "local",
+          },
+        ],
+        addressOnNetwork: {
+          address,
+          network,
+        },
+      })
+    )
+  }
+
+  public async updateQiBalanceCallback({
+    network,
+    paymentCode,
+    balance,
+    asset,
+  }: {
+    network: NetworkInterface
+    paymentCode: string
+    balance: bigint
+    asset: AnyAsset
+  }) {
+    globalThis.main.store.dispatch(
+      updateUtxoAccountsBalances({
+        balances: [
+          {
+            paymentCode,
+            network,
+            assetAmount: {
+              asset,
+              amount: balance,
+            },
+            dataSource: "local",
+            retrievedAt: Date.now(),
+          },
+        ],
+      })
+    )
+  }
 
   private subscribeOnNetworksAndAddresses = async (
     networks: NetworkInterface[],
@@ -449,6 +619,7 @@ export default class ChainService extends BaseService<Events> {
         addressOnNetwork: addressNetwork,
         source,
       })
+      await this.onNewAccountCreated(addressNetwork.network, addressNetwork)
     }
 
     this.getLatestBaseAccountBalance(addressNetwork).catch((e) => {

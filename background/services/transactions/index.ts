@@ -7,6 +7,7 @@ import {
   Contract,
   getZoneForAddress,
   parseQi,
+  parseQuai,
   QuaiTransaction,
   TransactionReceipt,
   TransactionResponse,
@@ -253,7 +254,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   public async convertQuaiToQi(from: string, value: string): Promise<void> {
-    const amount = parseQi(value)
+    const amount = parseQuai(value)
     const qiWallet = await this.keyringService.getQiHDWallet()
     const gapAddresses = qiWallet.getGapAddressesForZone(Zone.Cyprus1)
     const coinbaseAddresses =
@@ -295,9 +296,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       to: unusedAddress,
       from,
       value: amount,
-      // FIXME: remove minerTip and gasLimit ==>
-      minerTip: 2000000000n,
-      gasLimit: 100000n,
     }
     await this.signAndSendQuaiTransaction(convertTxRequest)
   }
@@ -308,25 +306,31 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     qiWallet.connect(jsonRpcProvider)
 
     const amount = parseQi(value)
-    const tx = await qiWallet.convertToQuai(to, amount)
-    await qiWallet.sync(Zone.Cyprus1, 0)
-    await this.keyringService.vaultManager.add(
-      {
-        qiHDWallet: qiWallet.serialize(),
-      },
-      {}
-    )
+    try {
+      const tx = await qiWallet.convertToQuai(to, amount)
 
-    const senderPaymentCode = qiWallet.getPaymentCode(0)
+      const senderPaymentCode = qiWallet.getPaymentCode(0)
 
-    const transaction = processConvertQiTransaction(
-      senderPaymentCode,
-      to,
-      tx as QiTransactionResponse,
-      amount
-    )
-    await this.saveQiTransaction(transaction)
-    this.subscribeToQiTransaction(tx.hash)
+      const transaction = processConvertQiTransaction(
+        senderPaymentCode,
+        to,
+        tx as QiTransactionResponse,
+        amount
+      )
+      await this.saveQiTransaction(transaction)
+      await this.subscribeToQiTransaction(transaction.hash)
+
+      await qiWallet.sync(Zone.Cyprus1, 0)
+      await this.keyringService.vaultManager.add(
+        {
+          qiHDWallet: qiWallet.serialize(),
+        },
+        {}
+      )
+    } catch (error) {
+      logger.error("Failed to convert Qi to Quai", error)
+      NotificationsManager.createFailedQiTxNotification()
+    }
   }
 
   // ------------------------------------ private methods ------------------------------------

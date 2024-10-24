@@ -87,7 +87,6 @@ export const setConvertRateHandle = createBackgroundAsyncThunk(
       return
     }
 
-    // console.log("10 Quai", parseQuai("10"))
     rate = await jsonRpcProvider.getLatestQuaiRate(
       Zone.Cyprus1,
       parseQuai("10")

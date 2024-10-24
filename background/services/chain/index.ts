@@ -253,7 +253,6 @@ export default class ChainService extends BaseService<Events> {
 
   // --------------------------------------------------------------------------------------------------
   private async startAddressBalanceSubscriber(): Promise<void> {
-    console.log(this.activeSubscriptions)
     if (this.isNetworkSubscribed(this.selectedNetwork)) {
       logger.info(
         `Network ${this.selectedNetwork.chainID} is already subscribed. Skipping subscription.`
@@ -288,8 +287,6 @@ export default class ChainService extends BaseService<Events> {
     network: NetworkInterface,
     accounts: AddressOnNetwork[]
   ): Promise<void> {
-    console.log("subscribing to accounts balances", accounts, network)
-
     const { webSocketProvider } = this.providerFactory.getProvidersForNetwork(
       network.chainID
     )
@@ -379,8 +376,6 @@ export default class ChainService extends BaseService<Events> {
     network: NetworkInterface,
     newAccount: AddressOnNetwork
   ) {
-    console.log(`New account created on network: ${network.chainID}`)
-
     const subscribedAccountsOnNetwork = this.activeSubscriptions.get(
       network.chainID
     )
@@ -531,7 +526,10 @@ export default class ChainService extends BaseService<Events> {
     let balance: bigint | undefined = toBigInt(0)
 
     try {
-      balance = await this.jsonRpcProvider.getBalance(address, "latest")
+      const { jsonRpcProvider } = this.providerFactory.getProvidersForNetwork(
+        network.chainID
+      )
+      balance = await jsonRpcProvider.getBalance(address, "latest")
     } catch (error) {
       if (error instanceof Error) {
         logger.error("Error getting balance for address", address, error)

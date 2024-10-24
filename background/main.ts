@@ -577,21 +577,12 @@ export default class Main extends BaseService<never> {
               asset.contractAddress
             )
           ).amount
-        } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
-          newBalance = (
-            await this.chainService.getLatestBaseAccountBalance(selectedAccount)
-          ).assetAmount.amount
         } else {
           logger.error(
             `Unknown asset type for balance checker, asset: ${asset.symbol}`
           )
           continue
         }
-        // isSmartContractFungibleAsset(asset)
-        //   ? logger.info(
-        //       `Balance checker: ${asset.symbol} ${newBalance} ${asset.contractAddress}`
-        //     )
-        //   : logger.info(`Balance checker: ${asset.symbol} ${newBalance}`)
 
         if (newBalance > amount && !this.keyringService.isLocked()) {
           const parsedAmount = bigIntToDecimal(newBalance - amount)

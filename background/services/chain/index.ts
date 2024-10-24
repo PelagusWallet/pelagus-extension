@@ -26,7 +26,7 @@ import {
   AssetTransfer,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI, QUAI } from "../../constants"
+import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, initializeChainDatabase } from "./db"
@@ -118,7 +118,7 @@ export default class ChainService extends BaseService<Events> {
 
   public supportedNetworks = PELAGUS_NETWORKS
 
-  private activeSubscriptions: Map<string, Set<string>> = new Map()
+  private activeSubscriptions: Map<string, string[]> = new Map()
 
   subscribedAccounts: {
     account: string
@@ -277,9 +277,9 @@ export default class ChainService extends BaseService<Events> {
     accounts: AddressOnNetwork[]
   ) {
     const subscribedAccounts =
-      this.activeSubscriptions.get(network.chainID) || new Set<string>()
+      this.activeSubscriptions.get(network.chainID) || []
 
-    accounts.forEach((account) => subscribedAccounts.add(account.address))
+    accounts.forEach((account) => subscribedAccounts.push(account.address))
 
     this.activeSubscriptions.set(network.chainID, subscribedAccounts)
   }
@@ -348,11 +348,14 @@ export default class ChainService extends BaseService<Events> {
   ) {
     console.log(`New account created on network: ${network.chainID}`)
 
-    const subscribedAccounts = this.activeSubscriptions.get(network.chainID)
+    const subscribedAccountsOnNetwork = this.activeSubscriptions.get(
+      network.chainID
+    )
 
-    if (subscribedAccounts) {
+    if (subscribedAccountsOnNetwork) {
       this.subscribeOnBalances(network, [newAccount])
-      subscribedAccounts.add(newAccount.address)
+      subscribedAccountsOnNetwork.push(newAccount.address)
+
       return
     }
 

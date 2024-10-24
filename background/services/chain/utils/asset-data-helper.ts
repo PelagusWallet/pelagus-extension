@@ -32,7 +32,7 @@ export default class AssetDataHelper {
   ): Promise<SmartContractAmount> {
     const prevShard = globalThis.main.GetShard()
     globalThis.main.SetShard(getExtendedZoneForAddress(smartContractAddress))
-    const provider = this.providerTracker
+    const provider = globalThis.main.chainService.jsonRpcProvider
 
     if (!provider) {
       throw logger.buildError(
@@ -64,7 +64,7 @@ export default class AssetDataHelper {
     globalThis.main.SetShard(
       getExtendedZoneForAddress(addressOnNetwork.address)
     )
-    const provider = this.providerTracker
+    const provider = globalThis.main.chainService.jsonRpcProvider
 
     if (!provider) throw new Error("Failed get provider for network")
     globalThis.main.SetShard(prevShard)
@@ -93,7 +93,7 @@ export default class AssetDataHelper {
   async getTokenMetadata(
     tokenSmartContract: SmartContract
   ): Promise<SmartContractFungibleAsset | undefined> {
-    const provider = this.providerTracker
+    const provider = globalThis.main.chainService.jsonRpcProvider
     if (!provider) throw new Error("Failed get provider for network")
 
     return getERC20Metadata(provider, tokenSmartContract)

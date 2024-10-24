@@ -39,7 +39,6 @@ import {
   AddressOnNetwork,
   NameOnNetwork,
   QiCoinbaseAddress,
-  QiWalletBalance,
 } from "./accounts"
 import rootReducer from "./redux-slices"
 import {
@@ -168,7 +167,6 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
-import { QI } from "./constants"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -494,54 +492,6 @@ export default class Main extends BaseService<never> {
     await this.store.dispatch(setNewNetworkConnectError(chainIdWithError))
   }
 
-  async startQiMiningAddressBalanceChecker(): Promise<void> {
-    const interval = setInterval(async () => {
-      const qiMiningAddresses =
-        await this.indexingService.getQiCoinbaseAddresses()
-      const allOutpoints = (
-        await Promise.all(
-          qiMiningAddresses.map(async (qiAddress) => {
-            const outpoints = await this.chainService.getOutpointsForQiAddress(
-              qiAddress.address
-            )
-            return outpoints.map((outpoint) => ({
-              outpoint,
-              address: qiAddress.address,
-              account: qiAddress.account,
-              zone: Zone.Cyprus1,
-            }))
-          })
-        )
-      ).flat()
-
-      if (allOutpoints.length === 0) return
-
-      const qiWallet = await this.keyringService.getQiHDWallet()
-      qiWallet.importOutpoints(allOutpoints)
-      const serializedQiHDWallet = qiWallet.serialize()
-      await this.keyringService.vaultManager.add(
-        { qiHDWallet: serializedQiHDWallet },
-        {}
-      )
-
-      const qiWalletBalance: QiWalletBalance = {
-        paymentCode: qiWallet.getPaymentCode(0),
-        network: this.chainService.selectedNetwork,
-        assetAmount: {
-          asset: QI,
-          amount: qiWallet.getBalanceForZone(Zone.Cyprus1),
-        },
-        dataSource: "local",
-        retrievedAt: Date.now(),
-      }
-
-      this.store.dispatch(
-        updateUtxoAccountsBalances({ balances: [qiWalletBalance] })
-      )
-    }, 30000)
-    this.qiMiningAddressBalanceChecker = interval
-  }
-
   async startBalanceChecker(): Promise<void> {
     const interval = setInterval(async () => {
       if (!walletOpen) return
@@ -699,7 +649,6 @@ export default class Main extends BaseService<never> {
       this.signingService.startService(),
       this.analyticsService.startService(),
       this.startBalanceChecker(),
-      this.startQiMiningAddressBalanceChecker(),
     ]
     await Promise.all(independentServices)
 

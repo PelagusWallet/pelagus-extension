@@ -3,12 +3,14 @@
 /* eslint-disable import/no-cycle */
 import {
   Contract,
+  isQiAddress,
   JsonRpcProvider,
   Shard,
   toBigInt,
   WebSocketProvider,
   Zone,
 } from "quais"
+import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
@@ -22,7 +24,6 @@ import {
   QiWalletOnNetwork,
 } from "../../accounts"
 import {
-  AnyAsset,
   AnyAssetAmount,
   AssetTransfer,
   SmartContractFungibleAsset,
@@ -37,12 +38,7 @@ import { sameQuaiAddress } from "../../lib/utils"
 import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
-import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
-import {
-  updateAccountBalance,
-  updateUtxoAccountsBalances,
-} from "../../redux-slices/accounts"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -273,7 +269,7 @@ export default class ChainService extends BaseService<Events> {
 
     const qiAccounts =
       await globalThis.main.indexingService.getQiCoinbaseAddresses()
-    this.subscribeOnQiBalances(this.selectedNetwork, qiAccounts)
+    await this.subscribeOnBalances(this.selectedNetwork, qiAccounts)
   }
 
   private trackSubscriptions(
@@ -290,7 +286,7 @@ export default class ChainService extends BaseService<Events> {
 
   private async subscribeOnBalances(
     network: NetworkInterface,
-    accounts: AddressOnNetwork[]
+    accounts: AddressOnNetwork[] | QiCoinbaseAddress[]
   ): Promise<void> {
     const { webSocketProvider } = this.providerFactory.getProvidersForNetwork(
       network.chainID
@@ -300,71 +296,96 @@ export default class ChainService extends BaseService<Events> {
       logger.error("WebSocketProvider for balance subscription not found")
 
     accounts.forEach(({ address }) => {
-      webSocketProvider.on({ type: "balance", address }, async (balance) => {
-        const asset = await this.db.getBaseAssetForNetwork(network.chainID)
-        const accountBalance: AccountBalance = {
-          address,
-          network,
-          assetAmount: {
-            asset,
-            amount: balance ?? toBigInt(0),
-          },
-          dataSource: "local",
-          retrievedAt: Date.now(),
+      webSocketProvider.on(
+        { type: "balance", address },
+        async (balance: bigint) => {
+          if (isQiAddress(address)) {
+            await this.handleQiMiningAddressBalanceUpdate(network)
+          } else {
+            await this.handleQuaiAddressBalanceUpdate(network, address, balance)
+          }
         }
-        this.emitter.emit("accountsWithBalances", {
-          balances: [accountBalance],
-          addressOnNetwork: {
-            address,
-            network,
-          },
-        })
-        await this.db.addBalance(accountBalance)
-      })
+      )
     })
   }
 
-  private async subscribeOnQiBalances(
+  async handleQuaiAddressBalanceUpdate(
     network: NetworkInterface,
-    accounts: QiCoinbaseAddress[]
-  ) {
+    address: string,
+    balance: bigint
+  ): Promise<void> {
+    const asset = await this.db.getBaseAssetForNetwork(network.chainID)
+    const accountBalance: AccountBalance = {
+      address,
+      network,
+      assetAmount: {
+        asset,
+        amount: balance ?? toBigInt(0),
+      },
+      dataSource: "local",
+      retrievedAt: Date.now(),
+    }
+    this.emitter.emit("accountsWithBalances", {
+      balances: [accountBalance],
+      addressOnNetwork: {
+        address,
+        network,
+      },
+    })
+    await this.db.addBalance(accountBalance)
+  }
+
+  async handleQiMiningAddressBalanceUpdate(
+    network: NetworkInterface
+  ): Promise<void> {
+    const qiMiningAddresses =
+      await globalThis.main.indexingService.getQiCoinbaseAddresses()
+    const allOutpoints = (
+      await Promise.all(
+        qiMiningAddresses.map(async (qiAddress) => {
+          const outpoints = await this.getOutpointsForQiAddress(
+            qiAddress.address
+          )
+          return outpoints.map((outpoint) => ({
+            outpoint,
+            address: qiAddress.address,
+            account: qiAddress.account,
+            zone: Zone.Cyprus1,
+          }))
+        })
+      )
+    ).flat()
+
+    if (allOutpoints.length === 0) return
+
     const qiWallet = await this.keyringService.getQiHDWallet()
-    const paymentCode = qiWallet.getPaymentCode()
-    const { webSocketProvider } = this.providerFactory.getProvidersForNetwork(
-      network.chainID
-    )
-    if (!webSocketProvider) {
-      logger.error("WebSocketProvider for balance subscription not found")
+    const paymentCode = qiWallet.getPaymentCode(0)
+    qiWallet.importOutpoints(allOutpoints)
+
+    const serializedQiHDWallet = qiWallet.serialize()
+    await this.keyringService.vaultManager.update({
+      qiHDWallet: serializedQiHDWallet,
+    })
+
+    const qiWalletBalance: QiWalletBalance = {
+      paymentCode,
+      network,
+      assetAmount: {
+        asset: QI,
+        amount: qiWallet.getBalanceForZone(Zone.Cyprus1),
+      },
+      dataSource: "local",
+      retrievedAt: Date.now(),
     }
 
-    accounts.forEach(({ address }) => {
-      webSocketProvider.on({ type: "balance", address }, async (balance) => {
-        const qiWalletBalance: QiWalletBalance = {
-          paymentCode,
-          network,
-          assetAmount: {
-            asset: QI,
-            amount: balance,
-          },
-          dataSource: "local",
-          retrievedAt: Date.now(),
-        }
-
-        this.emitter.emit("updatedQiLedgerBalance", {
-          balances: [qiWalletBalance],
-          addressOnNetwork: {
-            paymentCode,
-            network,
-          },
-        })
-        await this.db.addQiLedgerBalance(qiWalletBalance)
-        await qiWallet.scan(Zone.Cyprus1)
-        await this.keyringService.vaultManager.add(
-          { qiHDWallet: qiWallet.serialize() },
-          {}
-        )
-      })
+    this.emitter.emit("updatedQiLedgerBalance", {
+      balances: [qiWalletBalance],
+      addressOnNetwork: {
+        paymentCode,
+        network,
+      },
     })
+    await this.db.addQiLedgerBalance(qiWalletBalance)
   }
 
   private isNetworkSubscribed(network: NetworkInterface): boolean {
@@ -374,7 +395,7 @@ export default class ChainService extends BaseService<Events> {
   public async onNewQiAccountCreated(
     qiCoinbaseAddress: QiCoinbaseAddress
   ): Promise<void> {
-    this.subscribeOnQiBalances(this.selectedNetwork, [qiCoinbaseAddress])
+    await this.subscribeOnBalances(this.selectedNetwork, [qiCoinbaseAddress])
   }
 
   public async onNewAccountCreated(
@@ -512,7 +533,7 @@ export default class ChainService extends BaseService<Events> {
   }
 
   async getOutpointsForQiAddress(address: string): Promise<Outpoint[]> {
-    return await this.jsonRpcProvider.getOutpointsByAddress(address)
+    return this.jsonRpcProvider.getOutpointsByAddress(address)
   }
 
   async getLatestBaseAccountBalance({

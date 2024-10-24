@@ -27,7 +27,7 @@ import {
   AssetTransfer,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI, QUAI } from "../../constants"
+import { HOUR, MAILBOX_CONTRACT_ADDRESS, MINUTE, QI } from "../../constants"
 import PreferenceService from "../preferences"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import { ChainDatabase, initializeChainDatabase } from "./db"

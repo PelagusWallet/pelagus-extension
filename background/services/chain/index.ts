@@ -237,7 +237,7 @@ export default class ChainService extends BaseService<Events> {
     await this.startAddressBalanceSubscriber()
   }
 
-  public async switchNetwork(network: NetworkInterface): Promise<void> {
+  public switchNetwork(network: NetworkInterface): void {
     const { jsonRpcProvider, webSocketProvider } =
       this.providerFactory.getProvidersForNetwork(network.chainID)
 
@@ -254,22 +254,25 @@ export default class ChainService extends BaseService<Events> {
 
   // --------------------------------------------------------------------------------------------------
   private async startAddressBalanceSubscriber(): Promise<void> {
-    if (this.isNetworkSubscribed(this.selectedNetwork)) {
+    const { selectedNetwork } = this
+    if (this.isNetworkSubscribed(selectedNetwork)) {
       logger.info(
-        `Network ${this.selectedNetwork.chainID} is already subscribed. Skipping subscription.`
+        `Network ${selectedNetwork.chainID} is already subscribed. Skipping subscription.`
       )
       return
     }
 
-    const accounts = await this.getTrackedAddressesOnNetwork(
-      this.selectedNetwork
-    )
-    this.subscribeOnBalances(this.selectedNetwork, accounts)
-    this.trackSubscriptions(this.selectedNetwork, accounts)
+    const [quaiAccounts, qiAccounts] = await Promise.all([
+      this.getTrackedAddressesOnNetwork(selectedNetwork),
+      globalThis.main.indexingService.getQiCoinbaseAddresses(),
+    ])
 
-    const qiAccounts =
-      await globalThis.main.indexingService.getQiCoinbaseAddresses()
-    await this.subscribeOnBalances(this.selectedNetwork, qiAccounts)
+    await Promise.all([
+      this.subscribeOnBalances(selectedNetwork, quaiAccounts),
+      this.subscribeOnBalances(selectedNetwork, qiAccounts),
+    ])
+
+    this.trackSubscriptions(selectedNetwork, quaiAccounts)
   }
 
   private trackSubscriptions(

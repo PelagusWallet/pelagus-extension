@@ -402,7 +402,7 @@ export default class Main extends BaseService<never> {
      * A promise to the indexing service, keeping track of token balances and
      * prices. The promise will be resolved when the service is initialized.
      */
-    private indexingService: IndexingService,
+    public indexingService: IndexingService,
     /**
      * A promise to the keyring service, which stores key material, derives
      * accounts, and signs messagees and transactions. The promise will be
@@ -1931,6 +1931,12 @@ export default class Main extends BaseService<never> {
 
     // Add the new address to the indexing service
     await this.indexingService.persistQiCoinbaseAddress({
+      address,
+      account,
+      index,
+      zone,
+    })
+    await this.chainService.onNewQiAccountCreated({
       address,
       account,
       index,

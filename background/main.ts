@@ -284,8 +284,6 @@ export default class Main extends BaseService<never> {
 
   balanceChecker: NodeJS.Timeout
 
-  qiMiningAddressBalanceChecker: NodeJS.Timeout
-
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
     const providerFactoryService = ProviderFactory.create(preferenceService)
@@ -674,7 +672,6 @@ export default class Main extends BaseService<never> {
       this.transactionService.stopService(),
       this.blockService.stopService(),
       clearInterval(this.balanceChecker),
-      clearInterval(this.qiMiningAddressBalanceChecker),
     ]
 
     await Promise.all(servicesToBeStopped)

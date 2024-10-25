@@ -490,6 +490,63 @@ export default class Main extends BaseService<never> {
     await this.store.dispatch(setNewNetworkConnectError(chainIdWithError))
   }
 
+  async startQiMiningAddressBalanceChecker(): Promise<void> {
+    const interval = setInterval(async () => {
+      const qiWalletBalance = await this.updateQiMiningAddressBalance()
+      if (qiWalletBalance !== null) {
+        this.store.dispatch(
+          updateUtxoAccountsBalances({ balances: [qiWalletBalance] })
+        )
+      }
+    }, 60000)
+  }
+
+  /**
+   * Returns the balance of the mining address or null if there is no balance
+   */
+  async updateQiMiningAddressBalance(): Promise<QiWalletBalance | null> {
+    const qiMiningAddresses =
+      await this.indexingService.getQiCoinbaseAddresses()
+    const allOutpoints = (
+      await Promise.all(
+        qiMiningAddresses.map(async (qiAddress) => {
+          const outpoints = await this.chainService.getOutpointsForQiAddress(
+            qiAddress.address
+          )
+          return outpoints.map((outpoint) => ({
+            outpoint,
+            address: qiAddress.address,
+            account: qiAddress.account,
+            zone: Zone.Cyprus1,
+          }))
+        })
+      )
+    ).flat()
+    if (allOutpoints.length === 0) return null
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.importOutpoints(allOutpoints)
+    const serializedQiHDWallet = qiWallet.serialize()
+    await this.keyringService.vaultManager.add(
+      { qiHDWallet: serializedQiHDWallet },
+      {}
+    )
+    const qiWalletBalance: QiWalletBalance = {
+      paymentCode: qiWallet.getPaymentCode(0),
+      network: this.chainService.selectedNetwork,
+      assetAmount: {
+        asset: QI,
+        amount: qiWallet.getBalanceForZone(Zone.Cyprus1),
+      },
+      dataSource: "local",
+      retrievedAt: Date.now(),
+    }
+    console.log(
+      "updateQiMiningAddressBalance: after qiWalletBalance",
+      qiWalletBalance
+    )
+    return qiWalletBalance
+  }
+
   async startBalanceChecker(): Promise<void> {
     const interval = setInterval(async () => {
       if (!walletOpen) return

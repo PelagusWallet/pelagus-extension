@@ -52,6 +52,14 @@ export class ChainDatabase extends Dexie {
 
   private baseAssets!: Dexie.Table<NetworkBaseAsset, string>
 
+  private qiCoinbaseAddressBalances!: Dexie.Table<
+    {
+      address: string
+      balance: string
+    },
+    number
+  >
+
   constructor(options?: DexieOptions) {
     super("pelagus/chain", options)
     this.version(1).stores({
@@ -70,6 +78,10 @@ export class ChainDatabase extends Dexie {
     this.version(2).stores({
       qiLedgerBalance:
         "[paymentCode+assetAmount.asset.symbol+network.chainID],paymentCode,assetAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
+    })
+
+    this.version(3).stores({
+      qiCoinbaseAddressBalance: "++id,balance",
     })
   }
 
@@ -250,6 +262,30 @@ export class ChainDatabase extends Dexie {
           .toArray()
       )[0] ?? null
     )
+  }
+
+  async setQiCoinbaseAddressBalance(balance: {
+    address: string
+    balance: string
+  }): Promise<void> {
+    await this.qiCoinbaseAddressBalances.put(balance)
+  }
+
+  async getQiCoinbaseAddressBalance(address: string): Promise<bigint> {
+    return BigInt(
+      (
+        await this.qiCoinbaseAddressBalances
+          .where("address")
+          .equals(address)
+          .toArray()
+      )[0]?.balance ?? "0"
+    )
+  }
+
+  async getQiCoinbaseAddressBalances(): Promise<
+    { address: string; balance: string }[]
+  > {
+    return this.qiCoinbaseAddressBalances.toArray()
   }
 }
 

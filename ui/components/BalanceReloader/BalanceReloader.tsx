@@ -1,11 +1,11 @@
 import React, { ReactElement, useState } from "react"
 import classNames from "classnames"
-import { useDispatch } from "react-redux"
-import { refreshBackgroundPage } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useLocalStorage } from "../../hooks"
+import { triggerManualBalanceUpdate } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { useBackgroundDispatch } from "../../hooks"
 
 export default function BalanceReloader(): ReactElement {
-  const dispatch = useDispatch()
+  const dispatch = useBackgroundDispatch()
 
   const [isSpinning, setIsSpinning] = useState(false)
 
@@ -15,41 +15,39 @@ export default function BalanceReloader(): ReactElement {
     "0"
   )
 
-  const loadingTimeMs = 15000
   const timeGapBetweenRunningReloadMs = 60000 * 2
+  const minLoadTimeMs = 2000 // New constant for minimum load time
 
   return (
     <button
       type="button"
       disabled={isSpinning}
       className={classNames("reload", { spinning: isSpinning })}
-      onClick={() => {
+      onClick={async () => {
         const currentTime = new Date().getTime()
         setIsSpinning(true)
-
-        // Appear to spin regardless if too recent. Only refresh
-        // background page if timeGapBetweenRunningReloadMs is met.
         if (
           Number(timeWhenLastReloaded) + timeGapBetweenRunningReloadMs <
           currentTime
         ) {
           setTimeWhenLastReloaded(`${currentTime}`)
-          dispatch(refreshBackgroundPage())
         }
-        setTimeout(() => {
-          setIsSpinning(false)
-          window.location.reload()
-        }, loadingTimeMs)
+        const startTime = Date.now()
+        await dispatch(triggerManualBalanceUpdate())
+        const elapsedTime = Date.now() - startTime
+        if (elapsedTime < minLoadTimeMs) {
+          await new Promise(resolve => setTimeout(resolve, minLoadTimeMs - elapsedTime))
+        }
+        setIsSpinning(false)
       }}
     >
       <style jsx>{`
         .reload {
           mask-image: url("./images/reload@2x.png");
           mask-size: cover;
-          background-color: #fff;
+          background-color: #96969B;
           width: 17px;
           height: 17px;
-          margin-left: 10px;
         }
         .reload:hover {
           background-color: var(--trophy-gold);

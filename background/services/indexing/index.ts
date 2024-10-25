@@ -770,4 +770,17 @@ export default class IndexingService extends BaseService<Events> {
   async getQiCoinbaseAddresses(): Promise<QiCoinbaseAddress[]> {
     return this.db.getQiCoinbaseAddresses()
   }
+
+  // async persistQiCoinbaseAddressBalance(balance: {
+  //   address: string
+  //   balance: string
+  // }): Promise<void> {
+  //   await this.chainService.setQiCoinbaseAddressBalance(balance)
+  // }
+
+  // async getQiCoinbaseAddressBalances(): Promise<
+  //   { address: string; balance: string }[]
+  // > {
+  //   return this.chainService.getQiCoinbaseAddressBalances()
+  // }
 }

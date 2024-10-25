@@ -39,6 +39,7 @@ import AssetDataHelper from "./utils/asset-data-helper"
 import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
+import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -474,7 +475,11 @@ export default class ChainService extends BaseService<Events> {
     await this.db.removeAccountToTrack(address)
   }
 
-  async syncQiWallet(): Promise<void> {
+  async getOutpointsForQAddresses(address: string): Promise<Outpoint[]> {
+    return await this.jsonRpcProvider.getOutpointsByAddress(address)
+  }
+
+  async syncQiWallet(recheckAddresses: string[] = []): Promise<void> {
     try {
       const network = this.selectedNetwork
       const qiWallet = await this.keyringService.getQiHDWallet()
@@ -499,6 +504,27 @@ export default class ChainService extends BaseService<Events> {
         // if the channel is already open, it will be ignored
         qiWallet.openChannel(paymentCode)
       })
+
+      let allOutpoints: OutpointInfo[] = []
+      if (recheckAddresses.length > 0) {
+        allOutpoints = (
+          await Promise.all(
+            recheckAddresses.map(async (address) => {
+              const outpoints = await this.getOutpointsForQiAddress(address)
+              return outpoints.map((outpoint) => ({
+                outpoint,
+                address,
+                account: 0,
+                zone: Zone.Cyprus1,
+              }))
+            })
+          )
+        ).flat()
+
+        if (allOutpoints.length > 0) {
+          qiWallet.importOutpoints(allOutpoints)
+        }
+      }
 
       await qiWallet.sync(Zone.Cyprus1)
 
@@ -529,7 +555,14 @@ export default class ChainService extends BaseService<Events> {
           network,
         },
       })
+
       await this.db.addQiLedgerBalance(qiWalletBalance)
+
+      // this.db.getQiCoinbaseAddressBalance(paymentCode).then((balance) => {
+      //   if (balance) {
+      //     this.emitter.emit("qiCoinbaseAddressBalance", balance)
+      //   }
+      // })
     } catch (error) {
       logger.error("Error getting qi wallet balance for address", error)
     }

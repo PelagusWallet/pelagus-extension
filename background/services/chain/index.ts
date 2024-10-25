@@ -40,6 +40,8 @@ import KeyringService from "../keyring"
 import type { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
 import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
+import NotificationsManager from "../notifications"
+import { bigIntToDecimal } from "../../redux-slices/utils/asset-utils"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -199,7 +201,7 @@ export default class ChainService extends BaseService<Events> {
       },
       qiWalletSync: {
         schedule: {
-          periodInMinutes: 1,
+          periodInMinutes: 5,
         },
         handler: () => this.syncQiWallet(),
       },
@@ -304,7 +306,7 @@ export default class ChainService extends BaseService<Events> {
         { type: "balance", address },
         async (balance: bigint) => {
           if (isQiAddress(address)) {
-            await this.handleQiMiningAddressBalanceUpdate(network)
+            await this.handleQiMiningAddressBalanceUpdate(network, address)
           } else {
             await this.handleQuaiAddressBalanceUpdate(network, address, balance)
           }
@@ -329,6 +331,35 @@ export default class ChainService extends BaseService<Events> {
       dataSource: "local",
       retrievedAt: Date.now(),
     }
+
+    //get current selected account balance and compare to get amount of incoming assets
+    const selectedAccount = await this.preferenceService.getSelectedAccount()
+    const currentAccountState =
+      globalThis.main.store.getState().account.accountsData.evm[
+        selectedAccount.network.chainID
+      ]?.[selectedAccount.address]
+    const currentNetworkChainID = selectedAccount.network.chainID
+
+    if (currentAccountState === "loading") return
+
+    const currentBalanceAmount =
+      currentAccountState?.balances["QUAI"].assetAmount.amount
+
+    // show this is the current network is selected
+    if (
+      currentBalanceAmount &&
+      balance > currentBalanceAmount &&
+      currentNetworkChainID === network.chainID &&
+      !this.keyringService.isLocked()
+    ) {
+      const parsedAmount = bigIntToDecimal(balance - currentBalanceAmount)
+      NotificationsManager.createIncomingAssetsNotification(
+        parsedAmount,
+        asset.symbol,
+        address
+      )
+    }
+
     this.emitter.emit("accountsWithBalances", {
       balances: [accountBalance],
       addressOnNetwork: {
@@ -340,31 +371,22 @@ export default class ChainService extends BaseService<Events> {
   }
 
   async handleQiMiningAddressBalanceUpdate(
-    network: NetworkInterface
+    network: NetworkInterface,
+    address: string
   ): Promise<void> {
-    const qiMiningAddresses =
-      await globalThis.main.indexingService.getQiCoinbaseAddresses()
-    const allOutpoints = (
-      await Promise.all(
-        qiMiningAddresses.map(async (qiAddress) => {
-          const outpoints = await this.getOutpointsForQiAddress(
-            qiAddress.address
-          )
-          return outpoints.map((outpoint) => ({
-            outpoint,
-            address: qiAddress.address,
-            account: qiAddress.account,
-            zone: Zone.Cyprus1,
-          }))
-        })
-      )
-    ).flat()
+    const outpointReqs = await this.getOutpointsForQiAddress(address)
+    const outpoints = outpointReqs.map((outpoint) => ({
+      outpoint,
+      address,
+      account: 0,
+      zone: Zone.Cyprus1,
+    }))
 
-    if (allOutpoints.length === 0) return
+    if (outpoints.length === 0) return
 
     const qiWallet = await this.keyringService.getQiHDWallet()
     const paymentCode = qiWallet.getPaymentCode(0)
-    qiWallet.importOutpoints(allOutpoints)
+    qiWallet.importOutpoints(outpoints)
 
     const serializedQiHDWallet = qiWallet.serialize()
     await this.keyringService.vaultManager.update({
@@ -479,7 +501,7 @@ export default class ChainService extends BaseService<Events> {
     return await this.jsonRpcProvider.getOutpointsByAddress(address)
   }
 
-  async syncQiWallet(recheckAddresses: string[] = []): Promise<void> {
+  async syncQiWallet(forceFullScan = false): Promise<void> {
     try {
       const network = this.selectedNetwork
       const qiWallet = await this.keyringService.getQiHDWallet()
@@ -505,37 +527,13 @@ export default class ChainService extends BaseService<Events> {
         qiWallet.openChannel(paymentCode)
       })
 
-      let allOutpoints: OutpointInfo[] = []
-      if (recheckAddresses.length > 0) {
-        allOutpoints = (
-          await Promise.all(
-            recheckAddresses.map(async (address) => {
-              const outpoints = await this.getOutpointsForQiAddress(address)
-              return outpoints.map((outpoint) => ({
-                outpoint,
-                address,
-                account: 0,
-                zone: Zone.Cyprus1,
-              }))
-            })
-          )
-        ).flat()
-
-        if (allOutpoints.length > 0) {
-          qiWallet.importOutpoints(allOutpoints)
-        }
+      if (forceFullScan) {
+        await qiWallet.scan(Zone.Cyprus1)
+      } else {
+        await qiWallet.sync(Zone.Cyprus1)
       }
 
-      await qiWallet.sync(Zone.Cyprus1)
-
       const balance = qiWallet.getBalanceForZone(Zone.Cyprus1)
-
-      await this.keyringService.vaultManager.add(
-        {
-          qiHDWallet: qiWallet.serialize(),
-        },
-        {}
-      )
 
       const qiWalletBalance: QiWalletBalance = {
         paymentCode,
@@ -558,11 +556,12 @@ export default class ChainService extends BaseService<Events> {
 
       await this.db.addQiLedgerBalance(qiWalletBalance)
 
-      // this.db.getQiCoinbaseAddressBalance(paymentCode).then((balance) => {
-      //   if (balance) {
-      //     this.emitter.emit("qiCoinbaseAddressBalance", balance)
-      //   }
-      // })
+      await this.keyringService.vaultManager.add(
+        {
+          qiHDWallet: qiWallet.serialize(),
+        },
+        {}
+      )
     } catch (error) {
       logger.error("Error getting qi wallet balance for address", error)
     }

@@ -4,6 +4,8 @@ import { UNIXTime } from "../../types"
 import {
   AccountBalance,
   AddressOnNetwork,
+  QiCoinbaseAddressBalance,
+  QiLedgerLastFullScan,
   QiWalletBalance,
 } from "../../accounts"
 import { NetworkBaseAsset } from "../../networks"
@@ -53,12 +55,11 @@ export class ChainDatabase extends Dexie {
   private baseAssets!: Dexie.Table<NetworkBaseAsset, string>
 
   private qiCoinbaseAddressBalances!: Dexie.Table<
-    {
-      address: string
-      balance: string
-    },
+    QiCoinbaseAddressBalance,
     number
   >
+
+  private qiLedgerLastFullScan!: Dexie.Table<QiLedgerLastFullScan, string>
 
   constructor(options?: DexieOptions) {
     super("pelagus/chain", options)
@@ -81,7 +82,9 @@ export class ChainDatabase extends Dexie {
     })
 
     this.version(3).stores({
-      qiCoinbaseAddressBalance: "++id,balance",
+      qiCoinbaseAddressBalances:
+        "&[address+chainID],address,chainID,balance,retrievedAt,dataSource",
+      // qiLedgerLastFullScan: "&chainID,retrievedAt",
     })
   }
 
@@ -266,26 +269,51 @@ export class ChainDatabase extends Dexie {
 
   async setQiCoinbaseAddressBalance(balance: {
     address: string
-    balance: string
+    balance: bigint
+    chainID: string
   }): Promise<void> {
-    await this.qiCoinbaseAddressBalances.put(balance)
+    await this.qiCoinbaseAddressBalances.put({
+      ...balance,
+      retrievedAt: Date.now(),
+      dataSource: "local",
+    })
   }
 
-  async getQiCoinbaseAddressBalance(address: string): Promise<bigint> {
+  async getQiCoinbaseAddressBalance(
+    address: string,
+    chainID: string
+  ): Promise<bigint> {
     return BigInt(
       (
         await this.qiCoinbaseAddressBalances
-          .where("address")
-          .equals(address)
+          .where("[address+chainID]")
+          .equals([address, chainID])
           .toArray()
       )[0]?.balance ?? "0"
     )
   }
 
-  async getQiCoinbaseAddressBalances(): Promise<
-    { address: string; balance: string }[]
-  > {
-    return this.qiCoinbaseAddressBalances.toArray()
+  async getQiCoinbaseAddressBalances(
+    chainID: string
+  ): Promise<QiCoinbaseAddressBalance[]> {
+    const balances = await this.qiCoinbaseAddressBalances
+      .where("chainID")
+      .equals(chainID)
+      .toArray()
+    return balances
+  }
+
+  async setQiLedgerLastFullScan(chainID: string): Promise<void> {
+    await this.qiLedgerLastFullScan.put({
+      chainID,
+      retrievedAt: Date.now(),
+    })
+  }
+
+  async getQiLedgerLastFullScan(
+    chainID: string
+  ): Promise<QiLedgerLastFullScan | undefined> {
+    return this.qiLedgerLastFullScan.get(chainID)
   }
 }
 

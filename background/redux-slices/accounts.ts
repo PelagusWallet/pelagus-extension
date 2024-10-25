@@ -608,17 +608,8 @@ export const triggerManualBalanceUpdate = createBackgroundAsyncThunk(
     const uiState = state.ui
     const isUtxoSelected = uiState.isUtxoSelected
     if (isUtxoSelected) {
-      // const qiCoinbaseAddressBalances =
-      //   await main.indexingService.getQiCoinbaseAddressBalances()
-
-      // await main.indexingService.persistQiCoinbaseAddressBalance(
-      //   qiCoinbaseAddressBalances
-      // )
-      // await main.updateQiMiningAddressBalance()
-      await main.chainService.syncQiWallet()
-      console.log("triggerManualBalanceUpdate: after syncQiWallet")
+      await main.chainService.syncQiWallet(true)
     } else {
-      console.log("triggerManualBalanceUpdate: !isUtxoSelected")
       await main.manuallyCheckBalances()
     }
   }

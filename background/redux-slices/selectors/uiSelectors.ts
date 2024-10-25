@@ -72,9 +72,8 @@ export const selectQiBalanceForCurrentUtxoAccountCyprus1 = createSelector(
   (state: RootState) => state.ui.selectedUtxoAccount?.balances,
   (balances) => {
     const amount = balances?.[Zone.Cyprus1]?.assetAmount?.amount
-
     return amount !== undefined && amount !== null && !isNaN(Number(amount))
-      ? Number(formatQi(amount)).toFixed(3)
+      ? formatQi(amount)
       : null
   }
 )

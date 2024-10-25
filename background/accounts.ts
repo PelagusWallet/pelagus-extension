@@ -46,6 +46,19 @@ export type QiWalletBalance = {
   dataSource: "local"
 }
 
+export type QiLedgerLastFullScan = {
+  chainID: string
+  retrievedAt: number
+}
+
+export type QiCoinbaseAddressBalance = {
+  address: string
+  balance: bigint
+  retrievedAt: number
+  chainID: string
+  dataSource: "local"
+}
+
 /**
  * An address on a particular network. That's it. That's the comment.
  */

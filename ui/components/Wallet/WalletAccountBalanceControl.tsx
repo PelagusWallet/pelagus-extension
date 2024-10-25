@@ -130,28 +130,17 @@ export default function WalletAccountBalanceControl(
   )
 
   const formatBalance = (balance: string) => {
-    let balanceSigFigs: number;
-    if (!balance) return "0"
-    let balanceValue: number;
-    if (isUtxoSelected) {
-      balanceValue = Number(balance) / 1e3
-      balanceSigFigs = 3;
-    } else {
-      balanceValue = Number(balance) / 1e18
-      balanceSigFigs = 4;
-    }
-
-    return balanceValue < 1000
-      ? balanceValue.toFixed(0)
-      : humanNumber(balanceValue, (n: number) => n.toFixed(balanceSigFigs))
+    return Number(balance) < 1000
+      ? balance
+      : humanNumber(Number(balance), (n: number) => n.toFixed(3))
   }
 
-  const [formattedBalance, setFormattedBalance] = useState(
-    formatBalance((isUtxoSelected ? utxoBalance : mainAssetBalance) || "0")
-  )
+  const [formattedBalance, setFormattedBalance] = useState("")
 
   useEffect(() => {
-    setFormattedBalance(formatBalance((isUtxoSelected ? utxoBalance : mainAssetBalance) || "0"))
+    const balance = isUtxoSelected ? utxoBalance : mainAssetBalance
+    const newFormattedBalance = formatBalance(balance || "0")
+    setFormattedBalance(newFormattedBalance)
   }, [isUtxoSelected, utxoBalance, mainAssetBalance])
 
   const shouldIndicateLoadingHandle = ({

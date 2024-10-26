@@ -2027,6 +2027,11 @@
     "@types/react" "*"
     hoist-non-react-statics "^3.3.0"
 
+"@types/human-number@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/human-number/-/human-number-1.0.2.tgz#5e3083b5cd9d5bfe9b79186f0bfb56b6c4b8ed0a"
+  integrity sha512-Xm2hW0MXOjX/IOrRv8IRLycwVz23cU51b3fUn3Km5q8+4oM88uJaZ36dD1S0qINg92jhfQm7iEuAxZefIIffYg==
+
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0", "@types/istanbul-lib-coverage@^2.0.1":
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/@types/istanbul-lib-coverage/-/istanbul-lib-coverage-2.0.6.tgz#7739c232a1fee9b4d3ce8985f314c0c6d33549d7"
@@ -4960,6 +4965,13 @@ https-proxy-agent@^7.0.1:
     agent-base "^7.0.2"
     debug "4"
 
+human-number@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/human-number/-/human-number-2.0.4.tgz#345b1f5bc34a3559c04da06af5eb5588b42f2732"
+  integrity sha512-OENvA941poJU1VGR6s5Nf/GpYNPE+81lmHkIVLO9FgiyHxB+BSlVOJV3lnItk5tfHzcEbZv3kTQrzpZK0+ExRA==
+  dependencies:
+    round-to "~5.0.0"
+
 human-signals@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-2.1.0.tgz#dc91fcba42e4d06e4abaed33b3e7a3c02f514ea0"
@@ -7756,6 +7768,11 @@ rn-host-detect@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/rn-host-detect/-/rn-host-detect-1.2.0.tgz#8b0396fc05631ec60c1cb8789e5070cdb04d0da0"
   integrity sha512-btNg5kzHcjZZ7t7mvvV/4wNJ9e3MPgrWivkRgWURzXL0JJ0pwWlU4zrbmdlz3HHzHOxhBhHB4D+/dbMFfu4/4A==
+
+round-to@~5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/round-to/-/round-to-5.0.0.tgz#a66292701a93b194f630a0d57f04c08821b6eeed"
+  integrity sha512-i4+Ntwmo5kY7UWWFSDEVN3RjT2PX1FqkZ9iCcAO3sKML3Ady9NgsjM/HLdYKUAnrxK4IlSvXzpBMDvMHZQALRQ==
 
 run-parallel@^1.1.9:
   version "1.2.0"

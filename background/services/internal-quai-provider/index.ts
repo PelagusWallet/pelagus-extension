@@ -180,9 +180,13 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
         )
       case "quai_blockNumber":
-        return this.chainService.jsonRpcProvider.getBlockNumber(
-          params[0] as Shard
-        )
+        if (!params[0]) {
+          return this.chainService.jsonRpcProvider.getBlockNumber("0x00" as Shard)
+        } else {
+          return this.chainService.jsonRpcProvider.getBlockNumber(
+            params[0] as Shard
+          )
+        }
       case "quai_estimateGas":
         return this.chainService.jsonRpcProvider
           .estimateGas(params[0] as TransactionRequest)

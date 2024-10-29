@@ -511,7 +511,7 @@ export default class Main extends BaseService<never> {
       const { balances } = currentAccountState
       for (const assetSymbol in balances) {
         const { asset, amount } = balances[assetSymbol].assetAmount
-        let newBalance = BigInt(0)
+        let newBalance = amount ?? BigInt(0)
         if (isSmartContractFungibleAsset(asset)) {
           if (
             getExtendedZoneForAddress(asset.contractAddress, false) !==
@@ -525,7 +525,7 @@ export default class Main extends BaseService<never> {
               asset.contractAddress
             )
           ).amount
-        } else {
+        } else if (!isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
           logger.error(
             `Unknown asset type for balance checker, asset: ${asset.symbol}`
           )

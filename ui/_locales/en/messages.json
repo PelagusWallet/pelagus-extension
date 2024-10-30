@@ -34,10 +34,10 @@
         "others": "Imported & generated"
       },
       "signing": {
-        "lock": "Lock signing",
-        "unlock": "Unlock signing"
+        "lock": "Lock wallet",
+        "unlock": "Unlock wallet"
       },
-      "snackbar": "Signing locked"
+      "snackbar": "Wallet locked"
     },
     "noResults": "No results found",
     "copyPrivateKeyWarning": "Warning: Never disclose this key. Anyone with your private keys can steal any assets held in your account."
@@ -84,9 +84,9 @@
   },
   "keyring": {
     "setPassword": {
-      "title": "Set unlock signing password",
+      "title": "Set Pelagus password",
       "subtitleFirstLine": "You will be asked to enter this",
-      "subtitleSecondLine": "password to unlock signing transactions.",
+      "subtitleSecondLine": "password to unlock Pelagus.",
       "password": "Password",
       "repeatPassword": "Repeat password",
       "restorePassword": "Restoring account?",
@@ -98,14 +98,14 @@
       }
     },
     "unlock": {
-      "title": "Unlock signing",
-      "subtitle": "Enter your signing password to continue",
+      "title": "Unlock Pelagus",
+      "subtitle": "Enter your password",
       "submitBtn": "Unlock",
-      "signingPassword": "Signing password",
+      "signingPassword": "Pelagus password",
       "error": {
         "incorrect": "Incorrect password"
       },
-      "snackbar": "Signing unlocked"
+      "snackbar": "Pelagus unlocked"
     }
   },
   "networkFees": {

@@ -7336,10 +7336,10 @@ qs@^6.4.0:
   dependencies:
     side-channel "^1.0.6"
 
-quais@^1.0.0-alpha.21:
-  version "1.0.0-alpha.21"
-  resolved "https://registry.yarnpkg.com/quais/-/quais-1.0.0-alpha.21.tgz#7bfe3801ecc08cc66f999bb8f89890eca964caa0"
-  integrity sha512-1A2pkYC78AyONZgo+zBb562YQs2FaCmhlvYUSzX7mz0PgQedUGGInILp/abxo1EdH1FFCnL1yzUG1gpyK3yAWw==
+quais@^1.0.0-alpha.22:
+  version "1.0.0-alpha.22"
+  resolved "https://registry.yarnpkg.com/quais/-/quais-1.0.0-alpha.22.tgz#83d1e41b0e7c636629040a96041489d2dc6a7fd8"
+  integrity sha512-XbTSljklzDUTImOPvuzLBEeN8Di6FITUD5JzStV2O0LJ4gr2nRsf0tlaDnFRD4P5iGuZ5V9SzhDKNyCaZu/odA==
   dependencies:
     "@bitcoinerlab/secp256k1" "^1.1.1"
     "@brandonblack/musig" "^0.0.1-alpha.1"

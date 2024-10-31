@@ -3,7 +3,8 @@ import { AllowedQueryParamPageType } from "@pelagus-provider/provider-bridge-sha
 
 export default async function showExtensionPopup(
   url: AllowedQueryParamPageType,
-  additionalOptions: { [key: string]: string } = {}
+  additionalOptions: { [key: string]: string } = {},
+  onClose?: () => void,
 ): Promise<browser.Windows.Window> {
   const { left = 0, top, width = 1920 } = await browser.windows.getCurrent()
   const popupWidth = 384
@@ -24,5 +25,19 @@ export default async function showExtensionPopup(
     focused: true,
   }
 
-  return browser.windows.create(params)
+
+  const window = await browser.windows.create(params)
+
+  if (onClose !== undefined) {
+    const listener = (windowId: number) => {
+      if (windowId === window.id) {
+        onClose()
+
+        browser.windows.onRemoved.removeListener(listener)
+      }
+    }
+    browser.windows.onRemoved.addListener(listener)
+  }
+
+  return window
 }

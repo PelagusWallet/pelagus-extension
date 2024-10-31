@@ -353,11 +353,24 @@ export default class ProviderBridgeService extends BaseService<Events> {
     permissionRequest: PermissionRequest
   ): Promise<unknown> {
     this.emitter.emit("requestPermission", permissionRequest)
-    await showExtensionPopup(AllowedQueryParamPage.dappPermission)
-
-    return new Promise((resolve) => {
+    const permissionPromise = new Promise((resolve) => {
       this.#pendingPermissionsRequests[permissionRequest.origin] = resolve
+
+      showExtensionPopup(AllowedQueryParamPage.dappPermission, {}, () => {
+        resolve("Time to move on")
+      })
     })
+
+    const result = await permissionPromise
+
+    if (this.#pendingPermissionsRequests[permissionRequest.origin]) {
+      // Just in case this is a different promise, go ahead and resolve it with
+      // the same result.
+      this.#pendingPermissionsRequests[permissionRequest.origin](result)
+      delete this.#pendingPermissionsRequests[permissionRequest.origin]
+    }
+
+    return result
   }
 
   async grantPermission(permission: PermissionRequest): Promise<void> {
@@ -374,11 +387,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     }
 
     await this.db.setPermission(permission)
-
-    if (this.#pendingPermissionsRequests[permission.origin]) {
-      this.#pendingPermissionsRequests[permission.origin](permission)
-      delete this.#pendingPermissionsRequests[permission.origin]
-    }
+    this.#pendingPermissionsRequests[permission.origin]?.(permission)
   }
 
   async denyOrRevokePermission(permission: PermissionRequest): Promise<void> {

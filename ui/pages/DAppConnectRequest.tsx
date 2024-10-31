@@ -50,7 +50,7 @@ export default function DAppConnectRequest(): ReactElement {
       )
     }
     window.onbeforeunload = null
-    window.close()
+    setTimeout(() => window.close(), 300)
   }, [dispatch, permission, currentAccountTotal])
 
   const deny = useCallback(async () => {

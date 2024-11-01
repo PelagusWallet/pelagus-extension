@@ -181,7 +181,9 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         )
       case "quai_blockNumber":
         if (!params[0]) {
-          return this.chainService.jsonRpcProvider.getBlockNumber("0x00" as Shard)
+          return this.chainService.jsonRpcProvider.getBlockNumber(
+            "0x00" as Shard
+          )
         } else {
           return this.chainService.jsonRpcProvider.getBlockNumber(
             params[0] as Shard

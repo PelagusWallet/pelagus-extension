@@ -1350,9 +1350,6 @@ export default class Main extends BaseService<never> {
         resolver: (result: string | PromiseLike<string>) => void
         rejecter: () => void
       }) => {
-        await this.blockService.pollBlockPricesForNetwork({
-          network: payload.account.network,
-        })
         this.store.dispatch(signDataRequest(payload))
 
         const clear = () => {

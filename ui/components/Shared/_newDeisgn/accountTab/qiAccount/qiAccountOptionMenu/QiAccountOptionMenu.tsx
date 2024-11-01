@@ -36,16 +36,16 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
           />
         )}
         options={[
-          // {
-          //   key: "send",
-          //   icon: "icons/s/arrow-up.svg",
-          //   label: "Send asset",
-          //   onClick: async () => {
-          //     await dispatch(resetQiSendSlice())
-          //     history.push("/send-qi")
-          //     await dispatch(setShowingAccountsModal(false))
-          //   },
-          // },
+          {
+            key: "send",
+            icon: "icons/s/arrow-up.svg",
+            label: "Send asset",
+            onClick: async () => {
+              await dispatch(resetQiSendSlice())
+              history.push("/send-qi")
+              await dispatch(setShowingAccountsModal(false))
+            },
+          },
           {
             key: "copy",
             icon: "icons/s/copy.svg",

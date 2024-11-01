@@ -18,6 +18,7 @@ import ReadOnlyNotice from "../Shared/ReadOnlyNotice"
 import SharedCircleButton from "../Shared/SharedCircleButton"
 import BalanceReloader from '../BalanceReloader/BalanceReloader';
 import humanNumber from "human-number"
+import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
 
 type ActionButtonsProps = {
   onReceive: () => void
@@ -46,12 +47,11 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             return
           }
 
-          // await dispatch(resetQiSendSlice())
-          // history.push("/send-qi")
+          await dispatch(resetQiSendSlice())
+          history.push("/send-qi")
         }}
         iconWidth="20"
         iconHeight="18"
-        disabled={isUtxoSelected}
       >
         {t("send")}
       </SharedCircleButton>

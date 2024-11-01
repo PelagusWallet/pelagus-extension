@@ -1,7 +1,10 @@
 import React, { ReactElement, useState, useEffect, useCallback } from "react"
 import { browser } from "@pelagus/pelagus-background"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
-import { selectAllowedPagesForAllAcccounts } from "@pelagus/pelagus-background/redux-slices/selectors"
+import {
+  selectAllowedPagesForAllAcccounts,
+  selectCurrentNetwork,
+} from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
   FeatureFlags,
   isDisabled,
@@ -43,6 +46,7 @@ export default function TopMenu(): ReactElement {
   const allowedPages = useBackgroundSelector((state) =>
     selectAllowedPagesForAllAcccounts(state)
   )
+  const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
 
   const onProtocolListClose = () => setIsProtocolListOpen(false)
 
@@ -63,7 +67,9 @@ export default function TopMenu(): ReactElement {
       (permission) => permission.origin === origin
     )
     const dAppAccounts = allowedPages.filter(
-      (permission) => permission.origin === origin
+      (permission) =>
+        permission.origin === origin &&
+        permission.chainID === currentNetwork.chainID
     )
 
     if (dAppInfo) {
@@ -74,7 +80,7 @@ export default function TopMenu(): ReactElement {
       setIsConnectedToDApp(false)
       setConnectedAccountsToDApp([])
     }
-  }, [allowedPages, setCurrentDAppInfo])
+  }, [allowedPages, currentNetwork, setCurrentDAppInfo])
 
   useEffect(() => {
     initPermissionAndOrigin()

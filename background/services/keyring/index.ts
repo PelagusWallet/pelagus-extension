@@ -17,6 +17,7 @@ import {
   SignerImportSource,
 } from "./types"
 import { isSignerPrivateKeyType } from "./utils"
+import { browser } from "../../index"
 
 export const MAX_KEYRING_IDLE_TIME = 10 * MINUTE
 export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
@@ -59,6 +60,13 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
           this.serviceAutoLockHandler()
         },
       },
+      autoReload: {
+        schedule: {
+          periodInMinutes: 720,
+        },
+        handler: () => this.dailyReload(),
+        runAtStart: false,
+      },
     })
 
     this.vaultManager = new VaultManager()
@@ -93,6 +101,8 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     this.lastInternalWalletActivity = null
 
     await this.notifyUIWithUpdates()
+
+    await this.shouldReloadHandler()
   }
 
   public async unlock(password: string): Promise<boolean> {
@@ -112,10 +122,34 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     }
   }
 
+  /**
+   * Restarts the wallet extension background worker.
+   * This function is triggered every 12 hours.
+   */
+  private async dailyReload() {
+    if (this.isLocked()) {
+      chrome.runtime.reload()
+      return
+    }
+
+    await browser.storage.local.set({ shouldReload: true })
+  }
+
+  private async shouldReloadHandler() {
+    const { shouldReload } = await browser.storage.local.get("shouldReload")
+
+    if (!shouldReload) return
+
+    await browser.storage.local.set({ shouldReload: false })
+    chrome.runtime.reload()
+  }
+
   // Locks the keyring if the time since last keyring or outside activity exceeds preset levels.
   private serviceAutoLockHandler(): void {
     if (!this.lastInternalWalletActivity || !this.lastExternalWalletActivity) {
-      this.notifyUIWithUpdates().then(() => this.walletManager.clearState())
+      this.notifyUIWithUpdates()
+        .then(() => this.walletManager.clearState())
+        .then(() => this.shouldReloadHandler())
       return
     }
 
@@ -127,7 +161,9 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       timeSinceLastKeyringActivity >= MAX_KEYRING_IDLE_TIME ||
       timeSinceLastOutsideActivity >= MAX_OUTSIDE_IDLE_TIME
     ) {
-      this.notifyUIWithUpdates().then(() => this.walletManager.clearState())
+      this.notifyUIWithUpdates()
+        .then(() => this.walletManager.clearState())
+        .then(() => this.shouldReloadHandler())
     }
   }
 

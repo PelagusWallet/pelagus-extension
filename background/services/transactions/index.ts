@@ -217,8 +217,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         {}
       )
 
-      // This should only be called if this is the first time the user
-      // has sent Qi to this payment code, otherwise, the transaction will fail
       await this.notifyQiRecipient(
         quaiAddress,
         senderPaymentCode,
@@ -584,6 +582,13 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     try {
       const { jsonRpcProvider } = this.chainService
 
+      const isPaymentChannelEstablished =
+        await this.isPaymentChannelEstablished(
+          senderPaymentCode,
+          receiverPaymentCode
+        )
+      if (isPaymentChannelEstablished) return
+
       let privateKey: string
       const signerWithType = await this.keyringService.getSigner(quaiAddress)
       if (isSignerPrivateKeyType(signerWithType)) {
@@ -605,8 +610,50 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         gasOptions
       )
       await tx.wait()
+
+      // add payment channel if the recipient has been notified
+      await this.db.addPaymentChannel(receiverPaymentCode)
     } catch (error) {
       logger.error("Error occurs while notifying Qi recipient", error)
     }
+  }
+
+  /**
+   * @returns {Promise<boolean>} - True if a channel is established and notification is unnecessary; false if receiver needs notification.
+   */
+  private async isPaymentChannelEstablished(
+    senderPaymentCode: string,
+    receiverPaymentCode: string
+  ): Promise<boolean> {
+    const { jsonRpcProvider } = this.chainService
+    const mailboxContract = new Contract(
+      this.MAILBOX_CONTRACT_ADDRESS,
+      MAILBOX_INTERFACE,
+      jsonRpcProvider
+    )
+
+    try {
+      // check if channel is established: receiver notified and local record exists
+      const [receiverPaymentChannels, paymentChannel] = await Promise.all([
+        mailboxContract.getNotifications(receiverPaymentCode),
+        this.db.getPaymentChannel(receiverPaymentCode),
+      ])
+
+      if (receiverPaymentChannels.includes(senderPaymentCode)) {
+        if (paymentChannel) {
+          // channel is established and can be reopened using getNotifications on both sides
+          return true
+        }
+
+        // channel is established but only receiver knows about it, so we need update our local db
+        await this.db.addPaymentChannel(receiverPaymentCode)
+        return true
+      }
+    } catch (error) {
+      logger.error("Error checking if payment channel is established:", error)
+      throw error
+    }
+
+    return false
   }
 }

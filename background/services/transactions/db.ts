@@ -23,6 +23,8 @@ export class TransactionsDatabase extends Dexie {
 
   private qiTransactions!: Dexie.Table<QiTransactionDBEntry, [string, string]>
 
+  private openedPaymentChannels!: Dexie.Table<{ paymentCode: string }, number>
+
   constructor(options?: DexieOptions) {
     super("pelagus/transactions", options)
     this.version(1).stores({
@@ -34,6 +36,10 @@ export class TransactionsDatabase extends Dexie {
     this.version(2).stores({
       qiTransactions:
         "&[hash+chainId],hash,from,status,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,timestamp,firstSeen,dataSource",
+    })
+
+    this.version(3).stores({
+      openedPaymentChannels: "++id,paymentCode",
     })
   }
 
@@ -169,6 +175,24 @@ export class TransactionsDatabase extends Dexie {
       (await this.qiTransactions.where("hash").equals(txHash).toArray())[0]
         .firstSeen || Date.now()
     )
+  }
+
+  // ------------------------------------- payment channels -------------------------------------
+  async addPaymentChannel(paymentCode: string): Promise<void> {
+    await this.openedPaymentChannels.add({ paymentCode })
+  }
+
+  async getPaymentChannel(
+    paymentCode: string
+  ): Promise<{ paymentCode: string } | undefined> {
+    return this.openedPaymentChannels
+      .where("paymentCode")
+      .equals(paymentCode)
+      .first()
+  }
+
+  async getPaymentChannels(): Promise<{ paymentCode: string }[]> {
+    return this.openedPaymentChannels.toArray()
   }
 }
 

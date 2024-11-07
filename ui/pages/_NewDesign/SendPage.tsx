@@ -3,14 +3,17 @@ import { useHistory } from "react-router-dom"
 import { selectShowPaymentChannelModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { parseQi, Zone } from "quais"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { doesChannelExists } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import SendAsset from "../../components/_NewDesign/SendAsset/SendAsset"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import PaymentChanelModal from "../../components/_NewDesign/SendAsset/PaymentChanelModal/PaymentChanelModal"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
-import { useBackgroundSelector } from "../../hooks"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 
 const SendPage = () => {
   const history = useHistory()
+  const dispatch = useBackgroundDispatch()
 
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
   const utxoAccountsByPaymentCode = useBackgroundSelector(
@@ -24,6 +27,7 @@ const SendPage = () => {
   )
   const [isOpenPaymentChanelModal, setIsOpenPaymentChanelModal] =
     useState(false)
+  const [isConfirmLoading, setIsConfirmLoading] = useState(false)
 
   const { amount, receiverPaymentCode } = useBackgroundSelector(
     (state) => state.qiSend
@@ -47,8 +51,14 @@ const SendPage = () => {
     setIsConfirmDisabled(true)
   }, [amount, receiverPaymentCode, utxoAccountArr])
 
-  const handleConfirm = () => {
-    if (!showPaymentChannelModal) {
+  const handleConfirm = async () => {
+    setIsConfirmLoading(true)
+    const channelExists = (await dispatch(
+      doesChannelExists()
+    )) as AsyncThunkFulfillmentType<typeof doesChannelExists>
+    setIsConfirmLoading(false)
+
+    if (channelExists || !showPaymentChannelModal) {
       history.push("/send-qi/confirmation")
     } else {
       setIsOpenPaymentChanelModal(true)
@@ -67,6 +77,7 @@ const SendPage = () => {
             onConfirm: () => handleConfirm(),
             onCancel: () => history.push("/"),
           }}
+          isLoading={isConfirmLoading}
         />
       </main>
       {isOpenPaymentChanelModal && (

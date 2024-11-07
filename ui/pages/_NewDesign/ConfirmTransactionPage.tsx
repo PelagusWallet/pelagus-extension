@@ -18,7 +18,9 @@ const ConfirmTransactionPage = () => {
     keyPrefix: "drawers.transactionConfirmation",
   })
 
-  const { senderQuaiAccount } = useBackgroundSelector((state) => state.qiSend)
+  const { senderQuaiAccount, channelExists } = useBackgroundSelector(
+    (state) => state.qiSend
+  )
   const { balance: quaiBalance = "" } = senderQuaiAccount ?? {}
 
   const [isInsufficientQuai, setInsufficientQuai] = useState(false)
@@ -26,6 +28,8 @@ const ConfirmTransactionPage = () => {
   const [isTransactionError, setIsTransactionError] = useState(false)
 
   useEffect(() => {
+    if (channelExists) return
+
     const serializedBalance = Number(quaiBalance.split(" ")[0])
 
     if (senderQuaiAccount && !serializedBalance) {
@@ -33,10 +37,10 @@ const ConfirmTransactionPage = () => {
       return
     }
     setInsufficientQuai(false)
-  }, [quaiBalance, senderQuaiAccount])
+  }, [quaiBalance, senderQuaiAccount, channelExists])
 
   const onSendQiTransaction = async () => {
-    if (isInsufficientQuai) return
+    if (!channelExists && isInsufficientQuai) return
 
     dispatch(sendQiTransaction())
     setIsOpenConfirmationModal(true)
@@ -73,7 +77,9 @@ const ConfirmTransactionPage = () => {
         <ConfirmTransaction isInsufficientQuai={isInsufficientQuai} />
         <SharedActionButtons
           title={{ confirmTitle: "Send", cancelTitle: "Back" }}
-          isConfirmDisabled={!senderQuaiAccount || isInsufficientQuai}
+          isConfirmDisabled={
+            !channelExists && (!senderQuaiAccount || isInsufficientQuai)
+          }
           onClick={{
             onConfirm: onSendQiTransaction,
             onCancel: () => history.push("-1"),

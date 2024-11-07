@@ -1,9 +1,10 @@
 import React, { useState } from "react"
 import { setQiSendMinerTip } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import { useBackgroundDispatch } from "../../../../hooks"
+import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 
 const FeeSettings = () => {
   const dispatch = useBackgroundDispatch()
+  const { channelExists } = useBackgroundSelector((state) => state.qiSend)
 
   const [isShowAdvancedSettings, setIsShowAdvancedSettings] = useState(false)
 
@@ -28,17 +29,19 @@ const FeeSettings = () => {
     <>
       <div>
         <div className="fees">
-          <div className="fee-row">
-            <p className="fee-row-key">Payment Channel Gas Fee</p>
-            <p className="fee-row-value">- QUAI</p>
-          </div>
+          {!channelExists && (
+            <div className="fee-row">
+              <p className="fee-row-key">Payment Channel Gas Fee</p>
+              <p className="fee-row-value">- QUAI</p>
+            </div>
+          )}
           <div className="fee-row">
             <p className="fee-row-key">Estimated Fee</p>
             <p className="fee-row-value">- QI</p>
           </div>
         </div>
 
-        {!isShowAdvancedSettings && (
+        {!channelExists && !isShowAdvancedSettings && (
           <button
             type="button"
             className="advanced-settings"

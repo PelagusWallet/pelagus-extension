@@ -217,12 +217,19 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         {}
       )
 
-      await this.notifyQiRecipient(
-        quaiAddress,
+      const channelExists = await this.doesChannelExistForReceiver(
         senderPaymentCode,
-        receiverPaymentCode,
-        minerTip
+        receiverPaymentCode
       )
+      if (!channelExists) {
+        await this.notifyQiRecipient(
+          quaiAddress,
+          senderPaymentCode,
+          receiverPaymentCode,
+          minerTip
+        )
+      }
+
       NotificationsManager.createSendQiTxNotification()
     } catch (error) {
       logger.error("Failed to send Qi transaction", error)
@@ -340,6 +347,45 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       logger.error("Failed to convert Qi to Quai", error)
       NotificationsManager.createFailedQiTxNotification()
     }
+  }
+
+  /**
+   * @returns {Promise<boolean>} - True if a channel is known and notification is unnecessary; false if receiver needs notification.
+   */
+  public async doesChannelExistForReceiver(
+    senderPaymentCode: string,
+    receiverPaymentCode: string
+  ): Promise<boolean> {
+    const { jsonRpcProvider } = this.chainService
+    const mailboxContract = new Contract(
+      this.MAILBOX_CONTRACT_ADDRESS,
+      MAILBOX_INTERFACE,
+      jsonRpcProvider
+    )
+
+    try {
+      // check if channel is established: receiver notified and local record exists
+      const [receiverPaymentChannels, paymentChannel] = await Promise.all([
+        mailboxContract.getNotifications(receiverPaymentCode),
+        this.db.getPaymentChannel(receiverPaymentCode),
+      ])
+
+      if (receiverPaymentChannels.includes(senderPaymentCode)) {
+        if (paymentChannel) {
+          // channel is established and can be reopened using getNotifications on both sides
+          return true
+        }
+
+        // channel is established but only receiver knows about it, so we need update our local db
+        await this.db.addPaymentChannel(receiverPaymentCode)
+        return true
+      }
+    } catch (error) {
+      logger.error("Error checking if payment channel is established:", error)
+      throw error
+    }
+
+    return false
   }
 
   // ------------------------------------ private methods ------------------------------------
@@ -582,13 +628,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     try {
       const { jsonRpcProvider } = this.chainService
 
-      const isPaymentChannelEstablished =
-        await this.isPaymentChannelEstablished(
-          senderPaymentCode,
-          receiverPaymentCode
-        )
-      if (isPaymentChannelEstablished) return
-
       let privateKey: string
       const signerWithType = await this.keyringService.getSigner(quaiAddress)
       if (isSignerPrivateKeyType(signerWithType)) {
@@ -616,44 +655,5 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     } catch (error) {
       logger.error("Error occurs while notifying Qi recipient", error)
     }
-  }
-
-  /**
-   * @returns {Promise<boolean>} - True if a channel is established and notification is unnecessary; false if receiver needs notification.
-   */
-  private async isPaymentChannelEstablished(
-    senderPaymentCode: string,
-    receiverPaymentCode: string
-  ): Promise<boolean> {
-    const { jsonRpcProvider } = this.chainService
-    const mailboxContract = new Contract(
-      this.MAILBOX_CONTRACT_ADDRESS,
-      MAILBOX_INTERFACE,
-      jsonRpcProvider
-    )
-
-    try {
-      // check if channel is established: receiver notified and local record exists
-      const [receiverPaymentChannels, paymentChannel] = await Promise.all([
-        mailboxContract.getNotifications(receiverPaymentCode),
-        this.db.getPaymentChannel(receiverPaymentCode),
-      ])
-
-      if (receiverPaymentChannels.includes(senderPaymentCode)) {
-        if (paymentChannel) {
-          // channel is established and can be reopened using getNotifications on both sides
-          return true
-        }
-
-        // channel is established but only receiver knows about it, so we need update our local db
-        await this.db.addPaymentChannel(receiverPaymentCode)
-        return true
-      }
-    } catch (error) {
-      logger.error("Error checking if payment channel is established:", error)
-      throw error
-    }
-
-    return false
   }
 }

@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
-import { Zone, parseQi, parseQuai } from "quais"
+import { Zone, formatQi, formatQuai, parseQi, parseQuai } from "quais"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
@@ -82,16 +82,13 @@ export const setConvertRateHandle = createBackgroundAsyncThunk(
     const convertingFromUtxoAccount =
       convertAssets?.from && isUtxoAccountTypeGuard(convertAssets?.from)
     if (convertingFromUtxoAccount) {
-      rate = await jsonRpcProvider.getLatestQiRate(Zone.Cyprus1, parseQi("100"))
-      dispatch(setConvertRate(Number(rate) / 10e18))
+      rate = await jsonRpcProvider.getLatestQiRate(Zone.Cyprus1, parseQi("1"))
+      dispatch(setConvertRate(Number(formatQuai(rate))))
       return
     }
 
-    rate = await jsonRpcProvider.getLatestQuaiRate(
-      Zone.Cyprus1,
-      parseQuai("10")
-    )
-    dispatch(setConvertRate(Number(rate) / 10e3))
+    rate = await jsonRpcProvider.getLatestQuaiRate(Zone.Cyprus1, parseQuai("1"))
+    dispatch(setConvertRate(Number(formatQi(rate))))
   }
 )
 

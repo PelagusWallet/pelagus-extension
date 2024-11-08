@@ -294,7 +294,7 @@ export default async function resolveTransactionAnnotation(
 
       txAnnotation = {
         ...txAnnotation,
-        blockTimestamp: block?.timestamp,
+        blockTimestamp: block?.timestamp * 1000,
       }
     } catch (e) {
       logger.error(e)

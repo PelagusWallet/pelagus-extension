@@ -1,7 +1,6 @@
 import { Block } from "quais"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
 import { AnyEVMBlock } from "../../../networks"
-import { parseHexTimestamp } from "../../../utils/time"
 
 export function blockFromProviderBlock(
   network: NetworkInterface,
@@ -20,7 +19,7 @@ export function blockFromProviderBlock(
     blockHeight: blockNumber,
     parentHash: parentHash[parentHash.length - 1] || "",
     difficulty: BigInt(difficulty),
-    timestamp: parseHexTimestamp(timestamp),
+    timestamp: Number(timestamp),
     baseFeePerGas: baseFeePerGas ? BigInt(baseFeePerGas) : 0n,
     network,
   }

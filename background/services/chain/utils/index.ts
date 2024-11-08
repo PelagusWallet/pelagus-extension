@@ -1,33 +1,4 @@
-import { getZoneForAddress, Block, BigNumberish, toBigInt } from "quais"
-import { AnyEVMBlock } from "../../../networks"
-import { NetworkInterface } from "../../../constants/networks/networkTypes"
-import { parseHexTimestamp } from "../../../utils/time"
-
-/**
- * Parse a block as returned by a provider query.
- */
-export function blockFromProviderBlock(
-  network: NetworkInterface,
-  block: Block
-): AnyEVMBlock {
-  const { hash } = block
-  const { difficulty, timestamp } = block.woHeader
-  const { number, parentHash, baseFeePerGas } = block.header
-
-  const blockNumber: number | null = Array.isArray(number)
-    ? number[number.length - 1]
-    : number
-
-  return {
-    hash: hash || "",
-    blockHeight: Number(blockNumber),
-    parentHash: parentHash[parentHash.length - 1] || "",
-    difficulty: BigInt(difficulty),
-    timestamp: parseHexTimestamp(timestamp),
-    baseFeePerGas: baseFeePerGas ? BigInt(baseFeePerGas) : 0n,
-    network,
-  }
-}
+import { getZoneForAddress, BigNumberish, toBigInt } from "quais"
 
 // TODO: should be provided from SDK
 const shardsForUI = {

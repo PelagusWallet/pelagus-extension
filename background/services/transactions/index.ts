@@ -439,7 +439,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await Promise.all(
       pendingTransactions.map(async ({ hash }) => {
         const transaction = await jsonRpcProvider.getTransaction(hash)
-        if (transaction) {
+        if (transaction && transaction.blockNumber) {
           await this.handleQiTransaction(transaction)
         } else {
           await this.subscribeToQiTransaction(hash)
@@ -510,7 +510,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         break
       }
 
-      if (transaction) {
+      if (transaction && transaction.blockNumber) {
         await this.handleQiTransaction(transaction)
       }
     }

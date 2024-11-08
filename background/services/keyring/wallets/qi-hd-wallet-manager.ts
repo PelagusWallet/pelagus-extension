@@ -79,6 +79,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
       {}
     )
     this.subscribeToContractEvents()
+    globalThis.main.chainService.subscribeToQiAddresses()
   }
 
   private async subscribeToContractEvents(): Promise<void> {
@@ -137,6 +138,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
             },
             {}
           )
+          await globalThis.main.chainService.subscribeToQiAddresses()
         }
       }
     )

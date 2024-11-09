@@ -132,6 +132,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
         if (thisQiWalletPaymentCode === receiverPaymentCode) {
           deserializedQiHDWallet.openChannel(senderPaymentCode)
           await deserializedQiHDWallet.sync(Zone.Cyprus1, 0)
+
           await this.vaultManager.add(
             {
               qiHDWallet: deserializedQiHDWallet.serialize(),

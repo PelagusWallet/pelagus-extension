@@ -327,7 +327,13 @@ export default class ChainService extends BaseService<Events> {
     const qiAddresses = [
       qiWallet.getGapAddressesForZone(Zone.Cyprus1)[0],
       qiWallet.getGapChangeAddressesForZone(Zone.Cyprus1)[0],
-      qiWallet.getGapPaymentChannelAddresses(Zone.Cyprus1)[0],
+      ...qiWallet.openChannels.map(
+        (channel) =>
+          qiWallet.getGapPaymentChannelAddressesForZone(
+            channel,
+            Zone.Cyprus1
+          )[0]
+      ),
     ].filter((address) => address !== undefined)
 
     const categories: AddressCategory[] = [

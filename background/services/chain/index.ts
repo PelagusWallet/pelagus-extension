@@ -450,6 +450,7 @@ export default class ChainService extends BaseService<Events> {
   ): Promise<void> {
     const qiWallet = await this.keyringService.getQiHDWallet()
     const paymentCode = qiWallet.getPaymentCode(0)
+    qiWallet.connect(this.jsonRpcProvider)
     await qiWallet.scan(Zone.Cyprus1)
 
     const serializedQiHDWallet = qiWallet.serialize()
@@ -643,6 +644,7 @@ export default class ChainService extends BaseService<Events> {
         {}
       )
       this.subscribeToQiAddresses()
+      globalThis.main.transactionService.checkReceivedQiTransactions()
     } catch (error) {
       logger.error("Error getting qi wallet balance for address", error)
     }

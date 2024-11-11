@@ -54,8 +54,8 @@ const UtxoActivityList = () => {
 
   return (
     <>
-      {Object.entries(groupedQiActivities).map(([date, activities]) => (
-        <div className="qi-activity-list">
+      {Object.entries(groupedQiActivities).map(([date, activities], index) => (
+        <div key={index} className="qi-activity-list">
           <h3 className="date-heading">{date}</h3>
           {activities.map((activity) => (
             <button

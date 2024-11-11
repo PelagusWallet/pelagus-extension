@@ -9,6 +9,7 @@ import {
   parseQi,
   parseQuai,
   QuaiTransaction,
+  Shard,
   TransactionReceipt,
   TransactionResponse,
   Wallet,
@@ -32,6 +33,7 @@ import {
   processConvertQiTransaction,
   processSentQiTransaction,
   quaiTransactionFromResponse,
+  processFailedQiTransaction,
 } from "./utils"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
@@ -88,7 +90,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await super.internalStartService()
 
     this.checkPendingQiTransactions()
-    this.checkReceivedQiTransactions()
     this.checkPendingQuaiTransactions()
 
     await this.initializeQiTransactions()
@@ -236,6 +237,15 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       NotificationsManager.createSendQiTxNotification()
     } catch (error) {
       logger.error("Failed to send Qi transaction", error)
+
+      const { chainID } = this.chainService.selectedNetwork
+      const transaction = processFailedQiTransaction(
+        senderPaymentCode,
+        receiverPaymentCode,
+        amount,
+        chainID
+      )
+      await this.saveQiTransaction(transaction)
       NotificationsManager.createFailedQiTxNotification()
     }
   }
@@ -391,6 +401,52 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return false
   }
 
+  public async checkReceivedQiTransactions(): Promise<void> {
+    const { jsonRpcProvider } = this.chainService
+
+    const [qiWallet, dbTransactions] = await Promise.all([
+      this.keyringService.getQiHDWallet(),
+      this.db.getAllQiTransactions(),
+    ])
+    qiWallet.connect(jsonRpcProvider)
+    await qiWallet.sync(Zone.Cyprus1, 0)
+
+    const blockTimestampCache = new Map<string, number>()
+    const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
+    const changeAddresses = qiWallet.getChangeAddressesForZone(Zone.Cyprus1)
+    const uniqueHashes = getUniqueQiTransactionHashes(outpoints, dbTransactions)
+
+    await Promise.all(
+      Array.from(uniqueHashes).map(async (hash) => {
+        const response = await jsonRpcProvider.getTransaction(hash)
+        if (response && response.blockNumber && response.blockHash) {
+          let timestamp: number
+
+          if (blockTimestampCache.has(response.blockHash)) {
+            timestamp = blockTimestampCache.get(response.blockHash)!
+          } else {
+            const block = await jsonRpcProvider.getBlock(
+              Shard.Cyprus1,
+              response.blockHash
+            )
+            timestamp = block ? Number(block.woHeader.timestamp) : Date.now()
+            blockTimestampCache.set(response.blockHash, timestamp)
+          }
+
+          const transaction = processReceivedQiTransaction(
+            response as QiTransactionResponse,
+            timestamp,
+            changeAddresses,
+            qiWallet.getPaymentCode(0)
+          )
+          await this.saveQiTransaction(transaction)
+        } else {
+          await this.subscribeToQiTransaction(hash)
+        }
+      })
+    )
+  }
+
   // ------------------------------------ private methods ------------------------------------
   /**
    * Fetches all transactions from the database and emits them to update the UI,
@@ -408,32 +464,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async initializeQiTransactions(): Promise<void> {
     const transactions = await this.db.getAllQiTransactions()
     this.emitter.emit("initializeQiTransactions", transactions)
-  }
-
-  private async checkReceivedQiTransactions(): Promise<void> {
-    const { jsonRpcProvider } = this.chainService
-
-    const qiWallet = await this.keyringService.getQiHDWallet()
-    qiWallet.connect(jsonRpcProvider)
-    await qiWallet.sync(Zone.Cyprus1, 0)
-
-    const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
-    const uniqueHashes = getUniqueQiTransactionHashes(outpoints)
-    const changeAddresses = qiWallet.getChangeAddressesForZone(Zone.Cyprus1)
-
-    await Promise.all(
-      Array.from(uniqueHashes).map(async (hash) => {
-        const response = await jsonRpcProvider.getTransaction(hash)
-        if (response) {
-          const transaction = processReceivedQiTransaction(
-            response as QiTransactionResponse,
-            changeAddresses,
-            qiWallet.getPaymentCode(0)
-          )
-          await this.saveQiTransaction(transaction)
-        }
-      })
-    )
   }
 
   /**

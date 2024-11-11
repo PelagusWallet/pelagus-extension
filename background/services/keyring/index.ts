@@ -91,6 +91,9 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     await super.internalStopService()
   }
 
+  /**
+   * @returns {Promise<boolean>} - True if keyring service is locked; false if keyring service is unlocked.
+   */
   public isLocked(): boolean {
     return !this.vaultManager.isSaltedKeyInitialized()
   }

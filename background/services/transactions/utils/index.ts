@@ -38,6 +38,26 @@ export const quaiTransactionFromResponse = (
   }
 }
 
+export const processFailedQiTransaction = (
+  senderPaymentCode: string,
+  receiverPaymentCode: string,
+  amount: bigint,
+  chainId: string
+): QiTransactionDB => {
+  return {
+    senderPaymentCode,
+    receiverPaymentCode,
+    hash: "",
+    chainId: Number(chainId),
+    value: Number(formatQi(amount)),
+    type: UtxoActivityType.SEND,
+    timestamp: Date.now(),
+    status: TransactionStatus.FAILED,
+    blockHash: null,
+    blockNumber: null,
+  }
+}
+
 export const processSentQiTransaction = (
   senderPaymentCode: string,
   receiverPaymentCode: string,
@@ -80,6 +100,7 @@ export const processConvertQiTransaction = (
 
 export const processReceivedQiTransaction = (
   response: QiTransactionResponse,
+  timestamp: number,
   walletAddresses: NeuteredAddressInfo[],
   receiverPaymentCode: string
 ): QiTransactionDB => {
@@ -106,17 +127,24 @@ export const processReceivedQiTransaction = (
     value: outputsValue ?? 0,
     status: TransactionStatus.CONFIRMED,
     type: UtxoActivityType.RECEIVE,
-    timestamp: Date.now(),
+    timestamp: timestamp * 1000,
     blockHash: response.blockHash || null,
     blockNumber: response.blockNumber || null,
   }
 }
 
 export const getUniqueQiTransactionHashes = (
-  outpointInfos: OutpointInfo[]
+  outpointInfos: OutpointInfo[],
+  transactionsInDB: QiTransactionDB[]
 ): string[] => {
+  const existingHashes = new Set(transactionsInDB.map((tx) => tx.hash))
+
   const uniqueHashes = new Set<string>(
-    outpointInfos.map((info) => info.outpoint.txhash)
+    outpointInfos
+      .map((info) => info.outpoint.txhash)
+      // filter out hashes that already exist in the database
+      .filter((hash) => !existingHashes.has(hash))
   )
+
   return Array.from(uniqueHashes)
 }

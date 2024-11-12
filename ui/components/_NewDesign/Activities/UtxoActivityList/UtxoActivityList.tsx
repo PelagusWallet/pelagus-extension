@@ -43,6 +43,7 @@ const UtxoActivityList = () => {
     )
 
   const groupedQiActivities = _(qiActivities)
+    .orderBy((v) => new Date(v.timestamp), ["desc"])
     .groupBy((v) =>
       new Date(v.timestamp).toLocaleDateString("en-US", {
         month: "long",

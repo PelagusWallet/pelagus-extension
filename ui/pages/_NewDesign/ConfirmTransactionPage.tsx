@@ -89,8 +89,6 @@ const ConfirmTransactionPage = () => {
 
       <AccountsNotificationPanel
         onCurrentAddressChange={() => dispatch(setShowingAccountsModal(false))}
-        setSelectedAccountSigner={() => {}}
-        selectedAccountSigner=""
         isNeedToChangeAccount={false}
       />
       <SharedConfirmationModal

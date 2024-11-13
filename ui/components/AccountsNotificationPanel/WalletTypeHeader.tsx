@@ -1,34 +1,15 @@
 import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { AccountSigner } from "@pelagus/pelagus-background/services/signing"
-import { Zone } from "quais"
 import { useTranslation } from "react-i18next"
-import {
-  VALID_ZONES,
-  VALID_ZONES_NAMES,
-} from "@pelagus/pelagus-background/constants"
-import {
-  setShowingAccountsModal,
-  setShowingAddAccountModal,
-  updateSignerTitle,
-} from "@pelagus/pelagus-background/redux-slices/ui"
-import React, { useEffect, useMemo, useState } from "react"
+
+import { updateSignerTitle } from "@pelagus/pelagus-background/redux-slices/ui"
+import React, { useMemo, useState } from "react"
 import { isSameAccountSignerWithId } from "@pelagus/pelagus-background/utils/signing"
-import { useHistory } from "react-router-dom"
-import { selectIsWalletExists } from "@pelagus/pelagus-background/redux-slices/selectors"
-import {
-  useAreKeyringsUnlocked,
-  useBackgroundDispatch,
-  useBackgroundSelector,
-} from "../../hooks"
+
+import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import EditSectionForm from "./EditSectionForm"
-import SharedSelect from "../Shared/SharedSelect"
-import SharedButton from "../Shared/SharedButton"
-import OnboardingRoutes, {
-  ONBOARDING_ROOT,
-  PAGE_ROOT,
-} from "../../pages/Onboarding/Tabbed/Routes"
-import SharedORDivider from "../Shared/SharedORDivider"
+import { ONBOARDING_ROOT } from "../../pages/Onboarding/Tabbed/Routes"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedIcon from "../Shared/SharedIcon"
 
@@ -38,44 +19,24 @@ type WalletTypeInfo = {
   category: string
 }
 
-const sharedButtonStyle = {
-  width: "-webkit-fill-available",
-  height: "40px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}
-
 export default function WalletTypeHeader({
   accountType,
-  onClickAddAddress,
   walletNumber,
   accountSigner,
   signerId,
-  setZone,
-  addAddressSelected,
   updateCustomOrder,
   updateUseCustomOrder,
-  setSelectedAccountSigner,
 }: {
   accountType: AccountType
-  onClickAddAddress?: () => void
   accountSigner: AccountSigner
   signerId?: string | null
   walletNumber?: number
-  setZone: (zone: Zone) => void
-  addAddressSelected: boolean
   updateCustomOrder: (address: string[], signerId: string) => void
   updateUseCustomOrder: (useOrder: boolean, signerId: string) => void
-  setSelectedAccountSigner: (signerId: string) => void
 }) {
   const { t } = useTranslation()
 
-  const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
-  const history = useHistory()
   const [showEditMenu, setShowEditMenu] = useState(false)
-  const [showZoneMenu, setShowZoneMenu] = useState(false)
-  const isWalletExists = useBackgroundSelector(selectIsWalletExists)
 
   const walletTypeDetails: { [key in AccountType]: WalletTypeInfo } = {
     [AccountType.ReadOnly]: {
@@ -101,26 +62,6 @@ export default function WalletTypeHeader({
   }
   const { title } = walletTypeDetails[accountType]
   const dispatch = useBackgroundDispatch()
-  const zoneOptions = VALID_ZONES.map((zone, index) => ({
-    value: zone,
-    label: VALID_ZONES_NAMES[index],
-  }))
-
-  const handleZoneSelection = (selectedZone: Zone) => {
-    setZone(selectedZone as Zone)
-  }
-
-  useEffect(() => {
-    if (addAddressSelected) {
-      if (areKeyringsUnlocked) {
-        setShowZoneMenu(true)
-      } else {
-        history.push("/keyring/unlock")
-        dispatch(setShowingAddAccountModal(true))
-        dispatch(setShowingAccountsModal(true))
-      }
-    }
-  }, [addAddressSelected])
 
   const settingsBySigner = useBackgroundSelector(
     (state) => state.ui.accountSignerSettings
@@ -167,84 +108,7 @@ export default function WalletTypeHeader({
           />
         </SharedSlideUpMenu>
       )}
-      <SharedSlideUpMenu
-        size="custom"
-        customSize="400px"
-        isOpen={showZoneMenu}
-        close={(e) => {
-          e.stopPropagation()
-          setShowZoneMenu(false)
-          dispatch(setShowingAddAccountModal(false))
-        }}
-        customStyles={{
-          display: "flex",
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div className="menu-content">
-          {isWalletExists ? (
-            <>
-              <SharedSelect
-                options={zoneOptions}
-                onChange={(value: string) => handleZoneSelection(value as Zone)}
-                defaultIndex={0}
-                label="Choose Shard"
-                width="100%"
-                align-self="center"
-              />
-              <SharedButton
-                type="tertiary"
-                size="small"
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  width: "fit-content",
-                  marginLeft: "75%",
-                }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onClickAddAddress && onClickAddAddress()
-                  setShowZoneMenu(false)
-                  dispatch(setShowingAddAccountModal(false))
-                }}
-              >
-                Confirm
-              </SharedButton>
-            </>
-          ) : (
-            <SharedButton
-              type="primary"
-              size="small"
-              style={{ ...sharedButtonStyle, marginTop: "20px" }}
-              onClick={() => {
-                setShowZoneMenu(false)
-                dispatch(setShowingAddAccountModal(false))
-                window.open(`${ONBOARDING_ROOT}`)
-                window.close()
-              }}
-            >
-              Add Wallet
-            </SharedButton>
-          )}
 
-          <SharedORDivider />
-          <SharedButton
-            type="primary"
-            size="small"
-            style={sharedButtonStyle}
-            onClick={() => {
-              setShowZoneMenu(false)
-              dispatch(setShowingAddAccountModal(false))
-              window.open(`${PAGE_ROOT}${OnboardingRoutes.IMPORT_PRIVATE_KEY}`)
-              window.close()
-            }}
-          >
-            Import from Private Key
-          </SharedButton>
-        </div>
-      </SharedSlideUpMenu>
       <header className="wallet_title">
         <h2 className="left">
           {sectionTitle.length > 25
@@ -280,27 +144,6 @@ export default function WalletTypeHeader({
                     },
                   }
                 : undefined,
-              onClickAddAddress && {
-                key: "addAddress",
-                onClick: () => {
-                  if (areKeyringsUnlocked) {
-                    if (accountType === AccountType.PrivateKey) {
-                      window.open(
-                        `${PAGE_ROOT}${OnboardingRoutes.IMPORT_PRIVATE_KEY}`
-                      )
-                      window.close()
-                      return
-                    }
-
-                    setSelectedAccountSigner(signerId ?? "")
-                    setShowZoneMenu(true)
-                  } else {
-                    history.push("/keyring/unlock")
-                  }
-                },
-                icon: "icons/s/add.svg",
-                label: t("accounts.notificationPanel.addAddress"),
-              },
               {
                 key: "resetOrder",
                 icon: "icons/s/refresh.svg",

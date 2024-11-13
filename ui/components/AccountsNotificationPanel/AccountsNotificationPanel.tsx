@@ -1,9 +1,10 @@
-import React, { ReactElement, useState } from "react"
+import React, { ReactElement, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   selectShowingAccountsModal,
   setShowingAccountsModal,
   setShowingAddAccountModal,
+  setShowingImportPrivateKeyModal,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { selectIsUtxoSelected } from "@pelagus/pelagus-background/redux-slices/selectors"
 import AccountsNotificationPanelAccounts from "./AccountsNotificationPanelAccounts"
@@ -12,22 +13,24 @@ import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SelectAccountCategoryTabs from "./SelectAccountCategoryTabs"
 import { AccountCategoriesEnum } from "../../utils/enum/accountsEnum"
 import QiAccountsList from "../_NewDesign/QiAccountsList/QiAccountsList"
+import ImportAccount from "./ImportAccount/ImportAccount"
 
 type Props = {
   onCurrentAddressChange: (address: string) => void
-  setSelectedAccountSigner: (address: string) => void
-  selectedAccountSigner: string
   isNeedToChangeAccount?: boolean
 }
 
 export default function AccountsNotificationPanel({
   onCurrentAddressChange,
-  setSelectedAccountSigner,
-  selectedAccountSigner,
   isNeedToChangeAccount = true,
 }: Props): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "topMenu" })
   const dispatch = useBackgroundDispatch()
+
+  useEffect(() => {
+    dispatch(setShowingAddAccountModal(false))
+  }, [])
+
   const isShowingAccountsModal = useBackgroundSelector(
     selectShowingAccountsModal
   )
@@ -40,6 +43,15 @@ export default function AccountsNotificationPanel({
       : AccountCategoriesEnum.quai
   )
 
+  const onAddAccount = async () => {
+    if (accountCategory === AccountCategoriesEnum.quai) {
+      await dispatch(setShowingAddAccountModal(true))
+      return
+    }
+
+    await dispatch(setShowingImportPrivateKeyModal(true))
+  }
+
   return (
     <>
       <SharedDrawer
@@ -50,17 +62,18 @@ export default function AccountsNotificationPanel({
         customStyles={{ padding: "24px 0" }}
         titleWithoutSidePaddings
         footer={
-          accountCategory === AccountCategoriesEnum.quai && (
-            <div className="footer_wrap">
-              <button
-                type="button"
-                onClick={() => dispatch(setShowingAddAccountModal(true))}
-                className="confirmation-btn"
-              >
-                &#43; {t("addQuaiaccount")}
-              </button>
-            </div>
-          )
+          <div className="footer_wrap">
+            <button
+              type="button"
+              onClick={onAddAccount}
+              className="confirmation-btn"
+            >
+              &#43;{" "}
+              {accountCategory === AccountCategoriesEnum.quai
+                ? t("addQuaiaccount")
+                : t("addQiaccount")}
+            </button>
+          </div>
         }
       >
         {isNeedToChangeAccount && (
@@ -72,14 +85,15 @@ export default function AccountsNotificationPanel({
         {accountCategory === AccountCategoriesEnum.quai ? (
           <AccountsNotificationPanelAccounts
             onCurrentAddressChange={onCurrentAddressChange}
-            setSelectedAccountSigner={setSelectedAccountSigner}
-            selectedAccountSigner={selectedAccountSigner}
             isNeedToChangeAccount={isNeedToChangeAccount}
           />
         ) : (
           isNeedToChangeAccount && <QiAccountsList />
         )}
       </SharedDrawer>
+
+      <ImportAccount accountCategory={accountCategory} />
+
       <style jsx>
         {`
           .confirmation-btn {

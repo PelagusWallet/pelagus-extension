@@ -29,7 +29,6 @@ import SharedButton from "../Shared/SharedButton"
 
 export default function TopMenu(): ReactElement {
   const [isProtocolListOpen, setIsProtocolListOpen] = useState(false)
-  const [selectedAccountSigner, setSelectedAccountSigner] = useState("")
 
   const [isActiveDAppConnectionInfoOpen, setIsActiveDAppConnectionInfoOpen] =
     useState(false)
@@ -149,8 +148,6 @@ export default function TopMenu(): ReactElement {
 
       <AccountsNotificationPanel
         onCurrentAddressChange={() => dispatch(setShowingAccountsModal(false))}
-        setSelectedAccountSigner={setSelectedAccountSigner}
-        selectedAccountSigner={selectedAccountSigner}
       />
       {isEnabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && (
         <DAppConnection />

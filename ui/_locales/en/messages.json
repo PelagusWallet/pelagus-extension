@@ -423,6 +423,7 @@
     "showCurrentDappConnection": "Show current dApp connection",
     "accountSelect": "Select an account",
     "addQuaiaccount": "Add Quai account",
+    "addQiaccount": "Add Qi private key",
     "connectToWebsiteUsing": "Connect to website using:",
     "setPelagusAsDefault": "Set Pelagus as default",
     "setOtherAsDefault": "Set MetaMask/other wallet as default",

@@ -7,6 +7,7 @@ const GoBackIcon = ({
   fillColor = `var(--primary-text)`,
   style = {},
   linkTo = "-1",
+  onClick = () => {},
 }: {
   width?: number
   height?: number
@@ -20,9 +21,10 @@ const GoBackIcon = ({
         state: unknown
       }
     | string
+  onClick?: () => void
 }) => {
   return (
-    <Link to={linkTo}>
+    <Link to={linkTo} onClick={onClick}>
       <div role="button" aria-label="back-icon" style={style}>
         <svg
           aria-label="back-icon"

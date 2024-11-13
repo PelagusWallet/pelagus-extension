@@ -40,6 +40,7 @@ export type UIState = {
   showingActivityDetailID: string | null
   showingAccountsModal: boolean
   showingAddAccountModal: boolean
+  showingImportPrivateKeyModal: boolean
   initializationLoadingTimeExpired: boolean
   // FIXME: Move these settings to preferences service db
   settings: {
@@ -96,6 +97,7 @@ export const initialState: UIState = {
   showingActivityDetailID: null,
   showingAccountsModal: false,
   showingAddAccountModal: false,
+  showingImportPrivateKeyModal: false,
   selectedAccount: {
     address: "",
     network: QuaiGoldenAgeTestnet,
@@ -193,6 +195,13 @@ const uiSlice = createSlice({
     ): UIState => ({
       ...state,
       showingAddAccountModal: isShowingAddAccountModal,
+    }),
+    setShowingImportPrivateKeyModal: (
+      state,
+      { payload: isShowingPrivateKeyModal }: { payload: boolean }
+    ): UIState => ({
+      ...state,
+      showingImportPrivateKeyModal: isShowingPrivateKeyModal,
     }),
     setSelectedAccount: (
       immerState,
@@ -319,6 +328,7 @@ export const {
   setShowingActivityDetail,
   setShowingAccountsModal,
   setShowingAddAccountModal,
+  setShowingImportPrivateKeyModal,
   initializationLoadingTimeHitLimit,
   toggleHideDust,
   toggleTestNetworks,
@@ -584,6 +594,11 @@ export const selectShowingAccountsModal = createSelector(
 export const selectShowingAddAccountModal = createSelector(
   selectUI,
   (ui) => ui.showingAddAccountModal
+)
+
+export const selectShowingImportPrivateKeyModal = createSelector(
+  selectUI,
+  (ui) => ui.showingImportPrivateKeyModal
 )
 
 export const selectShowTestNetworks = createSelector(

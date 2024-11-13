@@ -1,4 +1,5 @@
 import to2 from "./to-2"
+import to3 from "./to-3"
 
 /**
  * The version of persisted Redux state the extension is expecting. Any previous
@@ -16,6 +17,7 @@ type Migration = (prevState: Record<string, unknown>) => Record<string, unknown>
 // state consistent with version n.
 const allMigrations: { [targetVersion: string]: Migration } = {
   2: to2,
+  3: to3,
 }
 
 /**

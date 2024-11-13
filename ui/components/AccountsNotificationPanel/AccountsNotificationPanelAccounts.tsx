@@ -1,10 +1,8 @@
-import { Zone } from "quais"
 import { useHistory, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import React, { ReactElement, useEffect, useRef, useState } from "react"
 
 import {
-  selectShowingAddAccountModal,
   setIsUtxoSelected,
   setNewSelectedAccount,
   setShowingAccountsModal,
@@ -18,14 +16,13 @@ import {
   selectIsUtxoSelected,
   selectConvertAssetQuaiAcc,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
-import { VALID_ZONES } from "@pelagus/pelagus-background/constants"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
 import {
   ACCOUNT_TYPES,
   AccountType,
 } from "@pelagus/pelagus-background/redux-slices/accounts"
-import { deriveAddress } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { setQiSendQuaiAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { updateQuaiAccountInConversionDestination } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import {
   isAccountWithSecrets,
   searchAccountsHandle,
@@ -42,8 +39,6 @@ import SharedLoadingShip from "../Shared/SharedLoadingShip"
 import AccountsSearchBar from "../AccountItem/AccountsSearchBar"
 import SelectAccountListItem from "../AccountItem/SelectAccountListItem"
 import AccountItemOptionsMenu from "../AccountItem/AccountItemOptionsMenu"
-import { updateQuaiAccountInConversionDestination } from "@pelagus/pelagus-background/redux-slices/convertAssets"
-import { use } from "i18next"
 
 const shouldAddHeader = (
   existingAccountTypes: AccountType[],
@@ -69,15 +64,11 @@ const shouldAddHeader = (
 
 type AccountsNotificationPanelAccountsProps = {
   onCurrentAddressChange: (newAddress: string) => void
-  setSelectedAccountSigner: (signerId: string) => void
-  selectedAccountSigner: string
   isNeedToChangeAccount?: boolean
 }
 
 export default function AccountsNotificationPanelAccounts({
   onCurrentAddressChange,
-  setSelectedAccountSigner,
-  selectedAccountSigner,
   isNeedToChangeAccount = true,
 }: AccountsNotificationPanelAccountsProps): ReactElement {
   const { t } = useTranslation()
@@ -166,20 +157,6 @@ export default function AccountsNotificationPanelAccounts({
   )
 
   const [pendingSelectedAddress, setPendingSelectedAddress] = useState("")
-  const defaultSigner = useRef(
-    accountTotals.internal != undefined
-      ? accountTotals.internal[0].signerId ?? ""
-      : accountTotals.imported != undefined
-      ? accountTotals.imported[0].signerId ?? ""
-      : ""
-  )
-
-  const zone = useRef(Zone.Cyprus1)
-  const handleSetZone = (newZone: Zone) => (zone.current = newZone)
-
-  const isShowingAddAccountModal = useBackgroundSelector(
-    selectShowingAddAccountModal
-  )
 
   const selectedAccountAddress =
     useBackgroundSelector(selectCurrentAccount).address
@@ -220,7 +197,6 @@ export default function AccountsNotificationPanelAccounts({
     }
 
     setPendingSelectedAddress(accountTotal.address)
-    setSelectedAccountSigner(accountTotal.signerId ?? "")
     dispatch(
       setNewSelectedAccount({
         address: accountTotal.address,
@@ -400,36 +376,8 @@ export default function AccountsNotificationPanelAccounts({
                       walletNumber={idx + 1}
                       accountSigner={accountTotalsBySignerId[0].accountSigner}
                       signerId={accountTotalsBySignerId[0].signerId}
-                      setZone={handleSetZone}
-                      onClickAddAddress={() => {
-                        if (zone.current === null) {
-                          throw new Error("zone is empty")
-                        } else if (!VALID_ZONES.includes(zone.current)) {
-                          dispatch(
-                            setSnackbarConfig({ message: "Invalid zone" })
-                          )
-                          throw new Error("zone is invalid")
-                        }
-
-                        let signerId = selectedAccountSigner
-                        if (
-                          !selectedAccountSigner ||
-                          selectedAccountSigner === "private-key"
-                        ) {
-                          signerId = defaultSigner.current
-                          setSelectedAccountSigner(defaultSigner.current)
-                        }
-                        dispatch(
-                          deriveAddress({
-                            signerId,
-                            zone: zone.current,
-                          })
-                        )
-                      }}
-                      addAddressSelected={isShowingAddAccountModal}
                       updateCustomOrder={updateCustomOrder}
                       updateUseCustomOrder={updateUseCustomOrder}
-                      setSelectedAccountSigner={setSelectedAccountSigner}
                     />
                     <ul>
                       {accountTotalsBySignerId.map((accountTotal, idx) => {

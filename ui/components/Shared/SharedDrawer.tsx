@@ -1,17 +1,19 @@
-import React, { CSSProperties, ReactNode, useRef } from "react"
+import React, { CSSProperties, ReactNode } from "react"
 
 import classNames from "classnames"
 import { useTranslation } from "react-i18next"
-import { useDelayContentChange, useOnClickOutside } from "../../hooks"
+import { useDelayContentChange } from "../../hooks"
 import SharedIcon from "./SharedIcon"
 
-const SLIDE_TRANSITION_MS = 445
+const SLIDE_TRANSITION_MS = 245
 
 interface SharedDrawerProps {
   isOpen: boolean
   title: string
   close: (
-    e: MouseEvent | TouchEvent | React.MouseEvent<HTMLButtonElement, MouseEvent>
+    e:
+      | React.MouseEvent<HTMLDivElement, MouseEvent>
+      | React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => void
   showSearchBar?: boolean
   children?: ReactNode
@@ -38,8 +40,13 @@ export default function SharedDrawer({
   fillAvailable = false,
   titleWithoutSidePaddings = false,
 }: SharedDrawerProps) {
-  const sharedDrawerRef = useRef(null)
-  useOnClickOutside(sharedDrawerRef, close)
+  const handleOverlayClick = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    if (e.target === e.currentTarget) {
+      close(e)
+    }
+  }
 
   const visibleChildren = isOpen || alwaysRenderChildren ? children : <></>
   const displayChildren = useDelayContentChange(
@@ -52,7 +59,10 @@ export default function SharedDrawer({
 
   return (
     <>
-      <div className={classNames("drawer-overlay", { closed: !isOpen })} />
+      <div
+        className={classNames("drawer-overlay", { closed: !isOpen })}
+        onClick={handleOverlayClick}
+      />
       <div
         className={classNames("drawer-wrapper", {
           dark: isDark,
@@ -64,7 +74,6 @@ export default function SharedDrawer({
             ...customStyles,
           } as CSSProperties
         }
-        ref={isOpen ? sharedDrawerRef : null}
       >
         <div className="drawer-header-wrapper">
           <div className="drawer-header">

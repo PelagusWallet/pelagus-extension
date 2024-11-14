@@ -200,3 +200,27 @@ export const exportQiCoinbaseAddress = createBackgroundAsyncThunk(
     return { key: await main.exportQiCoinbaseAddress(address) }
   }
 )
+
+export const importQiPrivateKey = createBackgroundAsyncThunk(
+  "keyrings/importQiPrivateKey",
+  async (
+    privateKey: string
+  ): Promise<{ success: boolean; errorMessage: string }> => {
+    try {
+      const { errorMessage } = await main.importQiPrivateKey(privateKey)
+      if (errorMessage) {
+        return {
+          success: false,
+          errorMessage,
+        }
+      }
+
+      return { success: true, errorMessage: "" }
+    } catch (error) {
+      return {
+        success: false,
+        errorMessage: "Unexpected error occurred",
+      }
+    }
+  }
+)

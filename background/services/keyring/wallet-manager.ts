@@ -343,6 +343,15 @@ export default class WalletManager {
     )
   }
 
+  public async importQiPrivateKey(privateKey: string): Promise<void> {
+    // TODO: ADD IMPORT QI PRIVATE KEY
+    this.qiHDWalletManager.importPrivateKey(privateKey)
+
+    throw new Error("Qi import private key not implemented", {
+      cause: applicationError,
+    })
+  }
+
   private async importQuaiHDWallet(
     mnemonic: string,
     source: SignerImportSource

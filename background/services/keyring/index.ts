@@ -239,6 +239,26 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     }
   }
 
+  public async importQiPrivateKey(
+    privateKey: string
+  ): Promise<{ errorMessage: string }> {
+    try {
+      this.verifyKeyringIsUnlocked()
+      await this.walletManager.importQiPrivateKey(privateKey)
+
+      return { errorMessage: "" }
+    } catch (error: any) {
+      logger.error("Qi private key import failed:", error)
+
+      return {
+        errorMessage:
+          error?.cause === applicationError
+            ? error?.message
+            : "Unexpected error during signer import",
+      }
+    }
+  }
+
   public async exportWalletPrivateKey(address: string): Promise<string> {
     this.verifyKeyringIsUnlocked()
 

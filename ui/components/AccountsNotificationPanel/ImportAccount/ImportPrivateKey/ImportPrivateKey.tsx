@@ -6,7 +6,10 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { SignerSourceTypes } from "@pelagus/pelagus-background/services/keyring/types"
-import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import {
+  importKeyring,
+  importQiPrivateKey,
+} from "@pelagus/pelagus-background/redux-slices/keyrings"
 import {
   useAreKeyringsUnlocked,
   useBackgroundDispatch,
@@ -28,10 +31,19 @@ const ImportPrivateKey = () => {
     selectImportPrivateKeyModalCategory
   )
 
-  // TODO: ADD IMPORT QI PRIVATE KEY
-  const importQiPrivateKey = async () => {}
+  const handleImportQiPrivateKey = async () => {
+    const trimmedPrivateKey = privateKey.toLowerCase().trim()
+    const { success, errorMessage: customError } = (await dispatch(
+      importQiPrivateKey(trimmedPrivateKey)
+    )) as AsyncThunkFulfillmentType<typeof importQiPrivateKey>
 
-  const importQuaiPrivateKey = async () => {
+    if (success) {
+      await dispatch(setShowingImportPrivateKeyModal(false))
+    }
+    setErrorMessage(customError || "errorImport")
+  }
+
+  const handleImportQuaiPrivateKey = async () => {
     const trimmedPrivateKey = privateKey.toLowerCase().trim()
     const { success, errorMessage: customError } = (await dispatch(
       importKeyring({
@@ -46,16 +58,16 @@ const ImportPrivateKey = () => {
     setErrorMessage(customError || "errorImport")
   }
 
-  const importPrivateKey = async () => {
+  const handleImportPrivateKey = async () => {
     if (!areKeyringsUnlocked) {
       history.push("/keyring/unlock")
       return
     }
 
     if (accountCategory === AccountCategoriesEnum.quai) {
-      await importQuaiPrivateKey()
+      await handleImportQuaiPrivateKey()
     } else {
-      await importQiPrivateKey()
+      await handleImportQiPrivateKey()
     }
   }
 
@@ -82,7 +94,7 @@ const ImportPrivateKey = () => {
           <p className="error_msg">{errorMessage}</p>
           <SharedConfirmButton
             title="Import From Private Key"
-            onClick={importPrivateKey}
+            onClick={handleImportPrivateKey}
           />
         </div>
       </div>

@@ -1702,6 +1702,12 @@ export default class Main extends BaseService<never> {
     return this.keyringService.importKeyring(signerRaw)
   }
 
+  async importQiPrivateKey(
+    privateKey: string
+  ): Promise<{ errorMessage: string }> {
+    return this.keyringService.importQiPrivateKey(privateKey)
+  }
+
   async getActivityDetails(txHash: string): Promise<ActivityDetail[]> {
     const transaction = await this.transactionService.getQuaiTransaction(txHash)
     if (!transaction) return []

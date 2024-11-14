@@ -1,6 +1,7 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit"
 import Emittery from "emittery"
 import { Zone } from "quais"
+import { AccountCategoriesEnum } from "@pelagus/pelagus-ui/utils/enum/accountsEnum"
 import { AnalyticsEvent, OneTimeAnalyticsEvent } from "../lib/posthog"
 import { ChainIdWithError } from "../networks"
 import { AnalyticsPreferences } from "../services/preferences/types"
@@ -40,7 +41,10 @@ export type UIState = {
   showingActivityDetailID: string | null
   showingAccountsModal: boolean
   showingAddAccountModal: boolean
-  showingImportPrivateKeyModal: boolean
+  showingImportPrivateKeyModal: {
+    isOpen: boolean
+    category: AccountCategoriesEnum
+  }
   initializationLoadingTimeExpired: boolean
   // FIXME: Move these settings to preferences service db
   settings: {
@@ -97,7 +101,10 @@ export const initialState: UIState = {
   showingActivityDetailID: null,
   showingAccountsModal: false,
   showingAddAccountModal: false,
-  showingImportPrivateKeyModal: false,
+  showingImportPrivateKeyModal: {
+    isOpen: false,
+    category: AccountCategoriesEnum.quai,
+  },
   selectedAccount: {
     address: "",
     network: QuaiGoldenAgeTestnet,
@@ -201,7 +208,20 @@ const uiSlice = createSlice({
       { payload: isShowingPrivateKeyModal }: { payload: boolean }
     ): UIState => ({
       ...state,
-      showingImportPrivateKeyModal: isShowingPrivateKeyModal,
+      showingImportPrivateKeyModal: {
+        isOpen: isShowingPrivateKeyModal,
+        category: state.showingImportPrivateKeyModal.category,
+      },
+    }),
+    setImportPrivateKeyModalCategory: (
+      state,
+      { payload: privateKeyModalCategory }: { payload: AccountCategoriesEnum }
+    ): UIState => ({
+      ...state,
+      showingImportPrivateKeyModal: {
+        isOpen: state.showingImportPrivateKeyModal.isOpen,
+        category: privateKeyModalCategory,
+      },
     }),
     setSelectedAccount: (
       immerState,
@@ -329,6 +349,7 @@ export const {
   setShowingAccountsModal,
   setShowingAddAccountModal,
   setShowingImportPrivateKeyModal,
+  setImportPrivateKeyModalCategory,
   initializationLoadingTimeHitLimit,
   toggleHideDust,
   toggleTestNetworks,
@@ -598,7 +619,12 @@ export const selectShowingAddAccountModal = createSelector(
 
 export const selectShowingImportPrivateKeyModal = createSelector(
   selectUI,
-  (ui) => ui.showingImportPrivateKeyModal
+  (ui) => ui.showingImportPrivateKeyModal.isOpen
+)
+
+export const selectImportPrivateKeyModalCategory = createSelector(
+  selectUI,
+  (ui) => ui.showingImportPrivateKeyModal.category
 )
 
 export const selectShowTestNetworks = createSelector(

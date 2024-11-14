@@ -2,6 +2,7 @@ import React from "react"
 import {
   selectShowingAddAccountModal,
   selectShowingImportPrivateKeyModal,
+  setImportPrivateKeyModalCategory,
   setShowingAddAccountModal,
   setShowingImportPrivateKeyModal,
 } from "@pelagus/pelagus-background/redux-slices/ui"
@@ -42,6 +43,7 @@ const ImportAccount = ({
   }
 
   const goToImportPrivateKey = async () => {
+    await dispatch(setImportPrivateKeyModalCategory(accountCategory))
     await dispatch(setShowingImportPrivateKeyModal(true))
     await dispatch(setShowingAddAccountModal(false))
   }
@@ -87,7 +89,7 @@ const ImportAccount = ({
           onClose={onClose}
           isOpen={isShowingImportPrivateKeyModal}
         >
-          <ImportPrivateKey accountCategory={accountCategory} />
+          <ImportPrivateKey />
         </SharedModalWrapper>
       )}
     </>

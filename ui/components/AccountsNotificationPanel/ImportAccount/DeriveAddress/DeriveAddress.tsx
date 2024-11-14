@@ -111,6 +111,7 @@ const DeriveAddress = () => {
       <div className="modal_body">
         <>
           <SharedSelectMenu
+            direction={zoneOptions?.length > 2 ? "top" : "bottom"}
             options={zoneOptions}
             label="Select a Shard"
             onSelectOption={setZone}

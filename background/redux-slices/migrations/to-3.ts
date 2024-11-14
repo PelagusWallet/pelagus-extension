@@ -7,7 +7,10 @@ type OldState = {
 
 type NewState = {
   ui: {
-    showingImportPrivateKeyModal: boolean
+    showingImportPrivateKeyModal: {
+      isOpen: boolean
+      category: "Quai Account" | "Qi Wallet"
+    }
     [sliceKey: string]: unknown
   }
   [otherSlice: string]: unknown
@@ -20,7 +23,10 @@ export default (oldState: Record<string, unknown>): NewState => {
     ...prevState,
     ui: {
       ...prevState.ui,
-      showingImportPrivateKeyModal: false,
+      showingImportPrivateKeyModal: {
+        isOpen: false,
+        category: "Quai Account",
+      },
     },
   }
 }

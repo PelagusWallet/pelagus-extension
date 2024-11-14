@@ -1,21 +1,21 @@
 import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
-import { setShowingImportPrivateKeyModal } from "@pelagus/pelagus-background/redux-slices/ui"
+import {
+  selectImportPrivateKeyModalCategory,
+  setShowingImportPrivateKeyModal,
+} from "@pelagus/pelagus-background/redux-slices/ui"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { SignerSourceTypes } from "@pelagus/pelagus-background/services/keyring/types"
 import { importKeyring } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import {
   useAreKeyringsUnlocked,
   useBackgroundDispatch,
+  useBackgroundSelector,
 } from "../../../../hooks"
 import { AccountCategoriesEnum } from "../../../../utils/enum/accountsEnum"
 import SharedConfirmButton from "../../../Shared/_newDeisgn/actionButtons/SharedConfirmButton"
 
-const ImportPrivateKey = ({
-  accountCategory,
-}: {
-  accountCategory: AccountCategoriesEnum
-}) => {
+const ImportPrivateKey = () => {
   const dispatch = useBackgroundDispatch()
 
   const [privateKey, setPrivateKey] = useState("")
@@ -23,6 +23,10 @@ const ImportPrivateKey = ({
 
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const history = useHistory()
+
+  const accountCategory = useBackgroundSelector(
+    selectImportPrivateKeyModalCategory
+  )
 
   // TODO: ADD IMPORT QI PRIVATE KEY
   const importQiPrivateKey = async () => {}

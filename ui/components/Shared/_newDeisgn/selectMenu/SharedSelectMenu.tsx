@@ -7,6 +7,7 @@ export type Option = {
 }
 
 type Props = {
+  direction: "top" | "bottom"
   options: Option[]
   onSelectOption?: (
     value: Option
@@ -17,6 +18,7 @@ type Props = {
 }
 
 export default function SharedSelectMenu({
+  direction = "bottom",
   options = [],
   onSelectOption = () => {},
   label,
@@ -45,7 +47,12 @@ export default function SharedSelectMenu({
           <span className={classNames("icon", { open: isDropdownOpen })} />
         </button>
         {isDropdownOpen && (
-          <ul className="options" style={{ display: "block" }}>
+          <ul
+            className={classNames("options", {
+              revertedDirection: direction === "top",
+            })}
+            style={{ display: "block" }}
+          >
             {options.map((option) => (
               <li
                 key={option.value}
@@ -124,6 +131,12 @@ export default function SharedSelectMenu({
           overflow-y: auto;
           z-index: 1000;
           padding: 4px 4px 0 4px;
+        }
+
+        .revertedDirection {
+          top: unset;
+          bottom: calc(100% - 21px);
+          margin-top: 0;
         }
 
         .option {

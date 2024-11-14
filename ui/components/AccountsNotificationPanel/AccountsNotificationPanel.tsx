@@ -2,6 +2,7 @@ import React, { ReactElement, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   selectShowingAccountsModal,
+  setImportPrivateKeyModalCategory,
   setShowingAccountsModal,
   setShowingAddAccountModal,
   setShowingImportPrivateKeyModal,
@@ -50,6 +51,7 @@ export default function AccountsNotificationPanel({
     }
 
     await dispatch(setShowingImportPrivateKeyModal(true))
+    await dispatch(setImportPrivateKeyModalCategory(accountCategory))
   }
 
   return (

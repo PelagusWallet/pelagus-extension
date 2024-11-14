@@ -2,7 +2,7 @@ import {
   QiTransactionResponse,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
-import { formatQi } from "quais"
+import { formatQi, denominations } from "quais"
 import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
 import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
 import {
@@ -113,18 +113,20 @@ export const processReceivedQiTransaction = (
       (changeAddress) => changeAddress.address === address
     )
     if (isMatch) {
-      return accumulator + denomination
+      return accumulator + denominations[denomination]
     }
 
     return accumulator
-  }, 0)
+  }, 0n)
+
+  console.log("outputsValue", outputsValue)
 
   return {
     senderPaymentCode: "",
     receiverPaymentCode,
     hash: response.hash,
     chainId: Number(response.chainId),
-    value: outputsValue ?? 0,
+    value: Number(formatQi(outputsValue!)),
     status: TransactionStatus.CONFIRMED,
     type: UtxoActivityType.RECEIVE,
     timestamp: timestamp * 1000,
@@ -138,6 +140,11 @@ export const getUniqueQiTransactionHashes = (
   transactionsInDB: QiTransactionDB[]
 ): string[] => {
   const existingHashes = new Set(transactionsInDB.map((tx) => tx.hash))
+  console.log("getUniqueQiTransactionHashes existingHashes", existingHashes)
+  console.log(
+    "getUniqueQiTransactionHashes outpointInfos",
+    new Set<string>(outpointInfos.map((info) => info.outpoint.txhash))
+  )
 
   const uniqueHashes = new Set<string>(
     outpointInfos

@@ -410,15 +410,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     ])
     qiWallet.connect(jsonRpcProvider)
     await qiWallet.sync(Zone.Cyprus1, 0)
+    console.log("checkReceivedQiTransactions Synced wallet")
 
     const blockTimestampCache = new Map<string, number>()
     const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
     const changeAddresses = qiWallet.getChangeAddressesForZone(Zone.Cyprus1)
     const uniqueHashes = getUniqueQiTransactionHashes(outpoints, dbTransactions)
-
+    console.log("checkReceivedQiTransactions uniqueHashes", uniqueHashes)
     await Promise.all(
       Array.from(uniqueHashes).map(async (hash) => {
         const response = await jsonRpcProvider.getTransaction(hash)
+        console.log("Checking tx", response)
         if (response && response.blockNumber && response.blockHash) {
           let timestamp: number
 
@@ -433,12 +435,15 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             blockTimestampCache.set(response.blockHash, timestamp)
           }
 
+          console.log("processing transaction")
+
           const transaction = processReceivedQiTransaction(
             response as QiTransactionResponse,
             timestamp,
             changeAddresses,
             qiWallet.getPaymentCode(0)
           )
+          console.log("saving transaction", transaction)
           await this.saveQiTransaction(transaction)
         } else {
           await this.subscribeToQiTransaction(hash)
@@ -557,7 +562,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     let transaction = null
     const { jsonRpcProvider } = this.chainService
 
-    while (transaction === null) {
+    while (!transaction?.blockNumber || !transaction?.blockHash) {
       await new Promise((resolve) =>
         setTimeout(resolve, QI_TRANSACTIONS_FETCH_INTERVAL)
       )
@@ -569,7 +574,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         break
       }
 
-      if (transaction && transaction.blockNumber) {
+      if (transaction && transaction.blockNumber && transaction.blockHash) {
         await this.handleQiTransaction(transaction)
       }
     }

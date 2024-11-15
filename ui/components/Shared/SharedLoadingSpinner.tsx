@@ -4,7 +4,7 @@ import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-gu
 
 type SharedLoadingSpinnerProps = {
   size: "small" | "medium"
-  variant?: "hunter-green" | "dark-green" | "transparent"
+  variant?: "hunter-green" | "dark-green" | "transparent" | "gray"
 }
 
 function getVariantStyles(
@@ -23,6 +23,10 @@ function getVariantStyles(
     // use for the disabled button
     case "transparent":
       styles = ["var(--green-20)", "transparent"]
+      break
+
+    case "gray":
+      styles = ["var(--tertiary-bg)", "var(--secondary-text)"]
       break
 
     default:

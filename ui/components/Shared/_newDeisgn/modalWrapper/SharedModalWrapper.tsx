@@ -27,6 +27,8 @@ export default function SharedModalWrapper({
     }
   }
 
+  if (!isOpen) return <></>
+
   return (
     <>
       <div

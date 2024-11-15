@@ -449,7 +449,7 @@
       "contractInteraction": "Contract Interaction",
       "externalReceived": "External Receive",
       "externalSend": "External Send",
-      "tokenReceived": "Received",
+      "tokenReceived": "Receive",
       "tokenConvert": "Convert",
       "tokenSent": "Send",
       "infiniteApproval": "Infinite",

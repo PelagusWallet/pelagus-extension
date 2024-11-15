@@ -1,253 +1,218 @@
-import React, { ReactElement, useEffect, useRef, useState } from "react"
-import dayjs from "dayjs"
-import {
-  sameQuaiAddress,
-  truncateAddress,
-} from "@pelagus/pelagus-background/lib/utils"
+import React, { ReactElement } from "react"
+
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
 import { TransactionStatus } from "@pelagus/pelagus-background/services/transactions/types"
-import SharedAssetIcon from "../Shared/SharedAssetIcon"
-import SharedActivityIcon from "../Shared/SharedActivityIcon"
-import useActivityViewDetails from "../../hooks/activity-hooks"
+
+import classNames from "classnames"
+import { utxoActivityStatusHandle } from "@pelagus/pelagus-background/redux-slices/utils/utxo-activities-utils"
+import { isQiAddress } from "quais"
+import { isReceiveActivity } from "../../hooks/activity-hooks"
+import ReceiveIcon from "../Shared/_newDeisgn/iconComponents/ReceiveIcon"
+import SendIcon from "../Shared/_newDeisgn/iconComponents/SendIcon"
+import ConvertIcon from "../Shared/_newDeisgn/iconComponents/ConvertIcon"
 
 interface Props {
-  onClick: () => void
+  onClick?: () => void
   activity: Activity
   activityInitiatorAddress: string
-}
-
-function isSendActivity(
-  activity: Activity,
-  activityInitiatorAddress: string
-): boolean {
-  return activity.type === "asset-transfer" ||
-    activity.type === "external-transfer"
-    ? sameQuaiAddress(activity.sender?.address, activityInitiatorAddress)
-    : true
+  isInModal?: boolean
 }
 
 export default function WalletActivityListItem(props: Props): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet.activities",
   })
-  const { onClick, activity, activityInitiatorAddress } = props
-  const outcomeRef = useRef<HTMLDivElement>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const [outcomeWidth, setOutcomeWidth] = useState(0)
-  const [bottomWidth, setBottomWidth] = useState(0)
-
-  useEffect(() => {
-    if (outcomeRef.current) {
-      setOutcomeWidth(outcomeRef.current.offsetWidth)
-    }
-  }, [outcomeRef])
-
-  useEffect(() => {
-    if (bottomRef.current) {
-      setBottomWidth(bottomRef.current.offsetWidth)
-    }
-  }, [bottomRef])
-
-  const activityViewDetails = useActivityViewDetails(
+  const {
+    onClick,
     activity,
-    activityInitiatorAddress
-  )
+    activityInitiatorAddress,
+    isInModal = false,
+  } = props
+
+  const quaiActivityTabHandle = () => {
+    const iconStyle = {
+      width: "36px",
+      height: "36px",
+      borderRadius: "50%",
+      background: isInModal ? "var(--tertiary-bg)" : "var(--secondary-bg)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    }
+
+    if (activity?.to && isQiAddress(activity?.to)) {
+      return {
+        ...activity,
+        label: t("tokenConvert"),
+        icon: <ConvertIcon style={iconStyle} />,
+      }
+    }
+
+    switch (activity.type) {
+      case "asset-transfer":
+        return {
+          ...activity,
+          label: isReceiveActivity(activity, activityInitiatorAddress)
+            ? t("tokenReceived")
+            : t("tokenSent"),
+          icon: isReceiveActivity(activity, activityInitiatorAddress) ? (
+            <ReceiveIcon style={iconStyle} />
+          ) : (
+            <SendIcon style={iconStyle} />
+          ),
+          value: isReceiveActivity(activity, activityInitiatorAddress)
+            ? `+${activity.value}`
+            : `-${activity.value}`,
+        }
+      case "asset-approval":
+        return {
+          ...activity,
+          label: t("tokenApproved"),
+          icon: <SendIcon style={iconStyle} />,
+          value: activity.value,
+        }
+      case "external-transfer":
+        return {
+          ...activity,
+          icon: isReceiveActivity(activity, activityInitiatorAddress) ? (
+            <ReceiveIcon style={iconStyle} />
+          ) : (
+            <SendIcon style={iconStyle} />
+          ),
+          label: isReceiveActivity(activity, activityInitiatorAddress)
+            ? t("externalReceived")
+            : t("externalSend"),
+          value: isReceiveActivity(activity, activityInitiatorAddress)
+            ? `+${activity.value}`
+            : `-${activity.value}`,
+        }
+      case "contract-deployment":
+      case "contract-interaction":
+      default:
+        return {
+          ...activity,
+          icon: <ConvertIcon style={iconStyle} />,
+          label: t("contractInteraction"),
+          value: activity.value,
+        }
+    }
+  }
+
+  const { icon, hash, status, value, label, assetSymbol } =
+    quaiActivityTabHandle()
+
   return (
-    <li>
-      <button type="button" className="standard_width" onClick={onClick}>
-        <div className="top">
-          <div className="left">
-            <SharedActivityIcon type={activityViewDetails.icon} size={14} />
-            {activityViewDetails.label}
-            {activity.status === TransactionStatus.FAILED && (
-              <div className="status failed">{t("transactionFailed")}</div>
-            )}
-            {activity.status === TransactionStatus.CONFIRMED && (
-              <div className="status settled">{t("transactionSettled")}</div>
-            )}
-            {activity.status === TransactionStatus.PENDING && (
-              <div className="status pending">{t("transactionPending")}</div>
-            )}
-          </div>
-          <div className="right">
-            {activity.blockTimestamp &&
-              dayjs(activity.blockTimestamp).format("MMM D")}
-          </div>
-        </div>
-        <div ref={bottomRef} className="bottom">
-          <div className="left">
-            <div className="token_icon_wrap">
-              <SharedAssetIcon
-                // TODO this should come from a connected component that knows
-                // about all of our asset metadata
-                logoURL={activityViewDetails.assetLogoURL}
-                symbol={activityViewDetails.assetSymbol}
-                size="small"
-              />
-            </div>
-            <div className="amount">
-              <span
-                className="bold_amount_count"
-                title={activityViewDetails.assetValue}
+    <>
+      <button
+        key={hash}
+        className={classNames("quai-activity-item", {
+          "activity-in-modal": isInModal,
+        })}
+        type="button"
+        aria-label={hash}
+        onClick={() => onClick && onClick()}
+      >
+        <div
+          style={
+            isInModal
+              ? {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "16px",
+                }
+              : {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "11px 16px",
+                }
+          }
+        >
+          <div className="info-wrapper">
+            {icon}
+            <div>
+              <h4 className="type">{label}</h4>
+              <h5
+                className={classNames("status", {
+                  confirmed: status === TransactionStatus.CONFIRMED,
+                  pending: status === TransactionStatus.PENDING,
+                  failed: status === TransactionStatus.FAILED,
+                })}
               >
-                {activityViewDetails.assetValue}
-              </span>
-              <span className="name">{activityViewDetails.assetSymbol}</span>
+                {utxoActivityStatusHandle(status ?? 3)}
+              </h5>
             </div>
           </div>
-          <div ref={outcomeRef} className="right">
-            {isSendActivity(activity, activityInitiatorAddress) ? (
-              <div
-                className="outcome"
-                title={activityViewDetails.recipient.address}
-              >
-                {t("transactionTo")}
-                {` ${
-                  activityViewDetails.recipient.name ??
-                  (!activityViewDetails.recipient.address
-                    ? t("contractCreation")
-                    : truncateAddress(activityViewDetails.recipient.address))
-                }`}
-              </div>
-            ) : (
-              <div className="outcome" title={activity.from}>
-                {activity.type === "external-transfer"
-                  ? "External"
-                  : ` ${truncateAddress(activity.from ?? "")}`}
-              </div>
-            )}
+          <div>
+            <h4 className="amount-token">
+              {value} {assetSymbol}
+            </h4>
           </div>
         </div>
       </button>
-      <style jsx>
-        {`
-          button {
-            height: 72px;
-            border-radius: 16px;
-            background-color: var(--green-95);
-            display: flex;
-            flex-direction: column;
-            padding: 9px 19px 8px 8px;
-            box-sizing: border-box;
-            margin-bottom: 16px;
-            justify-content: space-between;
-            align-items: center;
-          }
-          button:hover .top,
-          button:hover .bottom,
-          button:hover .left,
-          button:hover .right,
-          button:hover .outcome,
-          button:hover .amount,
-          button:hover .bold_amount_count,
-          button:hover .name {
-            color: white !important;
-          }
-          button:hover {
-            background-color: var(--green-80);
-          }
-          .status:before {
-            content: "•";
-            margin: 0 3px;
-          }
-          .failed {
-            color: var(--error);
-          }
-          .pending {
-            color: var(--attention);
-          }
-          .dropped {
-            color: var(--green-20);
-          }
-          .approved {
-            color: #5fb375;
-          }
-          .settled {
-            color: #3b66e1;
-          }
-          .top {
-            height: 16px;
-            color: var(--green-40);
-            font-size: 12px;
-            font-weight: 500;
-            line-height: 16px;
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            align-items: center;
-            margin-bottom: 2px;
-          }
-          .bottom {
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .left {
-            display: flex;
-            align-items: center;
-          }
-          .token_icon_wrap {
-            width: 32px;
-            height: 32px;
-            background-color: var(--hunter-green);
-            border-radius: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .icon_eth {
-            background: url("./images/eth@2x.png");
-            background-size: 18px 29px;
-            width: 18px;
-            height: 29px;
-            transform: scale(0.8);
-          }
-          .amount {
-            color: var(--green-40);
-            font-size: 14px;
-            font-weight: 400;
-            letter-spacing: 0.42px;
-            line-height: 16px;
-            text-transform: uppercase;
-            display: flex;
-            flex-wrap: wrap;
-            padding: 0px 8px;
-            align-items: center;
-          }
-          .bold_amount_count {
-            height: 24px;
-            color: var(--trophy-gold);
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 24px;
-            margin-right: 4px;
-            max-width: calc(${bottomWidth}px - 50px - ${outcomeWidth}px);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            // For Infinite text in token approvals.
-            text-transform: none;
-          }
-          .name {
-            white-space: nowrap;
-            padding-top: 3px;
-          }
-          .right {
-            display: flex;
-            justify-content: space-between;
-            text-align: right;
-            white-space: nowrap;
-          }
-          .outcome {
-            color: var(--green-5);
-            font-size: 14px;
-            font-weight: 400;
-            letter-spacing: 0.42px;
-            text-align: right;
-          }
-        `}
-      </style>
-    </li>
+
+      <style jsx>{`
+        .quai-activity-item {
+          transition: background-color 0.1s ease;
+          border-radius: 8px;
+          margin: 0 8px;
+        }
+
+        .quai-activity-item:hover {
+          background-color: var(--tertiary-bg);
+        }
+        .activity-in-modal {
+          margin: 0;
+          cursor: unset;
+        }
+
+        .activity-in-modal:hover {
+          background-color: unset;
+        }
+
+        .info-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .type {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          margin: 0;
+          color: var(--primary-text);
+        }
+
+        .status {
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 18px;
+          margin: 0;
+        }
+
+        .confirmed {
+          color: var(--success-color);
+        }
+
+        .pending {
+          color: var(--secondary-text);
+        }
+
+        .failed {
+          color: var(--error-color);
+        }
+
+        .amount-token {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          margin: 0;
+          color: var(--primary-text);
+        }
+      `}</style>
+    </>
   )
 }

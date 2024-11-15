@@ -69,7 +69,11 @@ export default function SharedAssetItem<T extends AnyAsset>(
             />
 
             <div className="left_content">
-              <div className="symbol ellipsis" title={asset.symbol}>
+              <div
+                className="symbol ellipsis"
+                title={asset.symbol}
+                style={{ color: "var(--green-60)" }}
+              >
                 {asset.symbol}
               </div>
               <div className="token_subtitle ellipsis" title={asset.name}>

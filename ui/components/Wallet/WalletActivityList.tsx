@@ -2,19 +2,16 @@ import React, { ReactElement, useCallback, useEffect, useState } from "react"
 import { setShowingActivityDetail } from "@pelagus/pelagus-background/redux-slices/ui"
 import {
   selectCurrentAccount,
-  selectCurrentNetwork,
   selectShowingActivityDetail,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
-import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
-import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
+import _ from "lodash"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
-import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import WalletActivityDetails from "./WalletActivityDetails"
 import WalletActivityListItem from "./WalletActivityListItem"
-import { blockExplorer } from "../../utils/constants"
-import SharedButton from "../Shared/SharedButton"
+import SharedModalWrapper from "../Shared/_newDeisgn/modalWrapper/SharedModalWrapper"
+import SharedModalHeaders from "../Shared/_newDeisgn/modalWrapper/SharedModalHeaders"
 
 type Props = {
   activities: Activity[]
@@ -31,39 +28,15 @@ export default function WalletActivityList({
     selectShowingActivityDetail
   )
 
-  const account = useBackgroundSelector(selectCurrentAccount)
-
-  const [instantlyHideActivityDetails, setInstantlyHideActivityDetails] =
-    useState(true)
-
-  const network = useBackgroundSelector(selectCurrentNetwork)
-  const blockExplorerInfo = isQuaiHandle(network)
-    ? {
-        title: blockExplorer[network.chainID].title,
-        url: CurrentShardToExplorer(network, account.address),
-      }
-    : blockExplorer[network.chainID]
-
   useEffect(() => {
-    setInstantlyHideActivityDetails(true)
     dispatch(setShowingActivityDetail(null))
   }, [dispatch])
 
   const activityInitiatorAddress =
     useBackgroundSelector(selectCurrentAccount).address
 
-  const openExplorer = useCallback(() => {
-    window
-      .open(
-        `${blockExplorerInfo.url}/address/${activityInitiatorAddress}`,
-        "_blank"
-      )
-      ?.focus()
-  }, [blockExplorerInfo, activityInitiatorAddress])
-
   const handleOpen = useCallback(
     (activityItem: Activity) => {
-      setInstantlyHideActivityDetails(false)
       dispatch(setShowingActivityDetail(activityItem.hash))
     },
     [dispatch]
@@ -93,81 +66,103 @@ export default function WalletActivityList({
       </span>
     )
 
+  const groupedQuaiActivities = _(activities)
+    .orderBy((v) => v?.blockTimestamp && new Date(v.blockTimestamp), ["desc"])
+    .groupBy((v) =>
+      new Date(v.blockTimestamp ?? new Date()).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    )
+    .value()
+
   return (
     <>
-      {!instantlyHideActivityDetails && (
-        <SharedSlideUpMenu isOpen={!!showingActivityDetail} close={handleClose}>
-          {showingActivityDetail ? (
-            <WalletActivityDetails
-              activityItem={showingActivityDetail}
-              activityInitiatorAddress={activityInitiatorAddress}
-            />
-          ) : (
-            <></>
-          )}
-        </SharedSlideUpMenu>
-      )}
-      <ul>
-        {activities.map((activityItem) => {
-          if (activityItem) {
-            return (
-              <WalletActivityListItem
-                onClick={() => {
-                  handleOpen(activityItem)
-                }}
-                key={activityItem?.hash}
-                activity={activityItem}
-                activityInitiatorAddress={activityInitiatorAddress}
-              />
-            )
-          }
-          return <></>
-        })}
+      <ul style={{ width: "100%" }}>
+        {Object.entries(groupedQuaiActivities).map(([date, evmActivities]) => (
+          <li className="quai-activity-list" key={date}>
+            <h3 className="date-heading">{date}</h3>
+            {evmActivities.map((activityItem) => {
+              if (activityItem) {
+                return (
+                  <WalletActivityListItem
+                    onClick={() => {
+                      handleOpen(activityItem)
+                    }}
+                    key={activityItem?.hash}
+                    activity={activityItem}
+                    activityInitiatorAddress={activityInitiatorAddress}
+                  />
+                )
+              }
+              return <></>
+            })}
+          </li>
+        ))}
       </ul>
-      <span>
-        <div className="hand">✋</div>
-        <div>{t("endOfList")}</div>
-        {blockExplorerInfo && (
-          <div className="row">
-            {t("moreHistory")}
-            <SharedButton
-              type="tertiary"
-              size="small"
-              iconSmall="new-tab"
-              onClick={openExplorer}
-              style={{ padding: 0, fontWeight: 400 }}
-            >
-              {blockExplorerInfo?.title}
-            </SharedButton>
-          </div>
+
+      <SharedModalWrapper
+        footer={<></>}
+        header={
+          <SharedModalHeaders
+            title="Review Transaction"
+            onClose={handleClose}
+            withGoBackIcon={false}
+          />
+        }
+        isOpen={!!showingActivityDetail}
+        onClose={handleClose}
+        customStyles={{ alignItems: "flex-end" }}
+      >
+        {showingActivityDetail && (
+          <WalletActivityDetails
+            activityItem={showingActivityDetail}
+            activityInitiatorAddress={activityInitiatorAddress}
+          />
         )}
-        <style jsx>{`
-          span {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--green-20);
-            font-size: 16px;
-            font-weight: 400;
-            line-height: 24px;
-            text-align: center;
-          }
-          .row {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 8px;
-          }
-          .hand {
-            margin: 10px 0;
-            font-size: 22px;
-          }
-          div:last-child {
-            margin-bottom: 40px;
-          }
-        `}</style>
-      </span>
+      </SharedModalWrapper>
+
+      <style jsx>{`
+        .quai-activity-list {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 16px;
+        }
+
+        .date-heading {
+          font-weight: 500;
+          font-size: 12px;
+          line-height: 18px;
+          color: var(--secondary-text);
+          margin: 0 24px 4px 24px;
+        }
+
+        span {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          color: var(--green-20);
+          font-size: 16px;
+          font-weight: 400;
+          line-height: 24px;
+          text-align: center;
+        }
+        .row {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+        }
+        .hand {
+          margin: 10px 0;
+          font-size: 22px;
+        }
+        div:last-child {
+          margin-bottom: 40px;
+        }
+      `}</style>
     </>
   )
 }

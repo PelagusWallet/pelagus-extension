@@ -278,7 +278,7 @@ export async function getActivityDetails(
     { label: "Amount", value: getAmount(tx) ?? "" },
     { label: "Miner Tip", value: getGweiPrice(minerTip) },
     { label: "Gas Price", value: getGweiPrice(gasPrice) },
-    { label: "Gas", value: gasUsed ? gasUsed.toString() : "(Unknown)" },
+    { label: "Gas", value: gasUsed ? gasUsed.toString() : "" },
     { label: "Nonce", value: String(nonce) },
     { label: "Timestamp", value: getTimestamp(annotation?.blockTimestamp) },
     { label: "Hash", value: hash },

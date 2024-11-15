@@ -7,6 +7,7 @@ const SharedModalHeaders = ({
   linkTo,
   onClose,
   onBack,
+  withGoBackIcon = true,
 }: {
   title: string
   linkTo?:
@@ -19,22 +20,25 @@ const SharedModalHeaders = ({
     | string
   onClose?: () => void
   onBack?: () => void
+  withGoBackIcon?: boolean
 }) => {
   return (
     <>
       <header className="header_wrapper">
-        <GoBackIcon
-          style={{
-            position: "absolute",
-            left: "0",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "pointer",
-          }}
-          fillColor="var(--secondary-text)"
-          linkTo={linkTo}
-          onClick={onBack ?? onClose}
-        />
+        {withGoBackIcon && (
+          <GoBackIcon
+            style={{
+              position: "absolute",
+              left: "0",
+              top: "50%",
+              transform: "translateY(-50%)",
+              cursor: "pointer",
+            }}
+            fillColor="var(--secondary-text)"
+            linkTo={linkTo}
+            onClick={onBack ?? onClose}
+          />
+        )}
         <h2>{title}</h2>
         <CrossIcon
           style={{

@@ -1,153 +1,39 @@
-import React, { useCallback, ReactElement, useEffect, useState } from "react"
+import React, { ReactElement, useEffect, useState } from "react"
 import {
   selectCurrentAccount,
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import {
-  ActivityDetail,
   Activity,
+  ActivityDetail,
   fetchSelectedActivityDetails,
 } from "@pelagus/pelagus-background/redux-slices/activities"
-import SharedAddress from "../Shared/SharedAddress"
+import { utxoActivityTimestampHandle } from "@pelagus/pelagus-background/redux-slices/utils/utxo-activities-utils"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
-import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
-import SharedAssetIcon from "../Shared/SharedAssetIcon"
-import SharedActivityIcon from "../Shared/SharedActivityIcon"
-import SharedIcon from "../Shared/SharedIcon"
-import useActivityViewDetails from "../../hooks/activity-hooks"
 import { getBlockExplorerURL } from "../../utils/networks"
-
-function truncateValue(rowValue: string) {
-  const isLong = rowValue.length > 30
-  const displayValue = isLong
-    ? `${rowValue.substring(0, 13)}...${rowValue.substring(
-        rowValue.length - 13
-      )}`
-    : rowValue
-  if (isLong) {
-    return <SharedAddress name={displayValue} address={rowValue} />
-  }
-  return <div className="right">{rowValue}</div>
-}
-
-function DetailRowItem(props: ActivityDetail): ReactElement {
-  const { assetIconUrl, label, value } = props
-
-  return (
-    <li>
-      <div className="label">
-        {assetIconUrl === undefined ? (
-          <></>
-        ) : (
-          <SharedAssetIcon symbol={label} logoURL={assetIconUrl} size={24} />
-        )}
-        {label}
-      </div>
-      {value ? truncateValue(value) : ""}
-      <style jsx>
-        {`
-          li {
-            width: 100%;
-            border-bottom: 1px solid var(--hunter-green);
-            display: flex;
-            justify-content: space-between;
-            padding: 7px 0;
-            height: 24px;
-            align-items: center;
-          }
-          .label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          }
-          .right {
-            float: right;
-            display: flex;
-            align-items: flex-end;
-          }
-          .value_detail {
-            color: var(--green-40);
-            font-size: 14px;
-            font-weight: 400;
-            letter-spacing: 0.42px;
-            line-height: 16px;
-            margin-left: 8px;
-          }
-        `}
-      </style>
-    </li>
-  )
-}
-
-interface DestinationCardProps {
-  label: string
-  address: string
-  name?: string | undefined
-}
-
-function DestinationCard(props: DestinationCardProps): ReactElement {
-  const { label, address, name } = props
-
-  return (
-    <div className="card_wrap">
-      <div className="sub_info from">{label}:</div>
-      <SharedAddress address={address} name={name} alwaysShowAddress />
-      <div className="sub_info name" />
-      <style jsx>
-        {`
-          .card_wrap {
-            width: 160px;
-            height: 96px;
-            border-radius: 4px;
-            background-color: var(--hunter-green);
-            box-sizing: border-box;
-            padding: 15px;
-            flex-grow: 1;
-            flex-shrink: 0;
-          }
-          .sub_info {
-            width: 69px;
-            height: 17px;
-            color: var(--green-40);
-            font-size: 14px;
-            font-weight: 400;
-            letter-spacing: 0.42px;
-            line-height: 16px;
-          }
-          .from {
-            margin-bottom: 3px;
-          }
-          .name {
-            margin-top: 10px;
-          }
-        `}
-      </style>
-    </div>
-  )
-}
+import WalletActivityListItem from "./WalletActivityListItem"
+import ArrowRightIcon from "../Shared/_newDeisgn/iconComponents/ArrowRightIcon"
+import SharedLoadingSpinner from "../Shared/SharedLoadingSpinner"
 
 interface WalletActivityDetailsProps {
   activityItem: Activity
   activityInitiatorAddress: string
 }
-// Include this "or" type to handle existing placeholder data
-// on the single asset page. TODO: Remove once single asset page
-// has real data
 
 export default function WalletActivityDetails(
   props: WalletActivityDetailsProps
 ): ReactElement {
-  const { activityItem, activityInitiatorAddress } = props
   const dispatch = useBackgroundDispatch()
+  const { activityItem, activityInitiatorAddress } = props
+
   const [details, setDetails] = useState<ActivityDetail[]>([])
+
   const network = useBackgroundSelector(selectCurrentNetwork)
   const account = useBackgroundSelector(selectCurrentAccount)
   const blockExplorerUrl = getBlockExplorerURL(network, account.address)
-  const openExplorer = useCallback(() => {
-    window
-      .open(`${blockExplorerUrl}/tx/${activityItem.hash}`, "_blank")
-      ?.focus()
-  }, [activityItem?.hash, blockExplorerUrl])
+
+  const { hash, blockTimestamp, from, to, value, assetSymbol, nonce } =
+    activityItem
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -162,105 +48,181 @@ export default function WalletActivityDetails(
     fetchDetails()
   }, [activityItem.hash, dispatch])
 
-  const activityViewDetails = useActivityViewDetails(
-    activityItem,
-    activityInitiatorAddress
+  const loader = (
+    <div style={{ padding: "3px 0" }}>
+      <SharedLoadingSpinner size="small" variant="gray" />
+    </div>
   )
 
+  // Extract Gas, Gas Price, Amount and Miner Tip from details
+  const gas = details.find((detail) => detail.label === "Gas")?.value || loader
+  const gasPrice =
+    details.find((detail) => detail.label === "Gas Price")?.value || loader
+  const minerTip =
+    details.find((detail) => detail.label === "Miner Tip")?.value || loader
+  const amount =
+    details.find((detail) => detail.label === "Amount")?.value || loader
+
   return (
-    <div className="wrap standard_width center_horizontal">
-      <div className="header">
-        <SharedActivityIcon type={activityViewDetails.icon} size={16} />
-        <span className="header_title">{activityViewDetails.label}</span>
-        {blockExplorerUrl && (
-          <SharedIcon
-            icon="icons/s/new-tab.svg"
-            width={16}
-            color="var(--green-40)"
-            hoverColor="var(--trophy-gold)"
-            onClick={openExplorer}
-          />
-        )}
+    <>
+      <WalletActivityListItem
+        isInModal
+        key={hash}
+        activity={activityItem}
+        activityInitiatorAddress={activityInitiatorAddress}
+      />
+      <div className="activity-timestamp-block">
+        <h5 className="activity-timestamp">
+          {blockTimestamp && utxoActivityTimestampHandle(blockTimestamp)}
+        </h5>
+        <a
+          href={`${blockExplorerUrl}/tx/${hash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="activity-block-explorer"
+        >
+          View on block explorer
+        </a>
       </div>
-      <div className="destination_cards">
-        <DestinationCard label="From" address={activityItem.from} />
-        <div className="icon_transfer" />
-        <DestinationCard
-          label="To"
-          address={activityItem.recipient.address || "(Contract creation)"}
-          name={activityItem.recipient.name}
-        />
+      <div className="wallets">
+        <div className="wallet-sender">
+          <h5 className="wallet-role">Sender</h5>
+          <h4 className="wallet-payment-code">
+            ({from.slice(0, 6)}...{from.slice(-4)})
+          </h4>
+        </div>
+        <div className="arrow">
+          <ArrowRightIcon />
+        </div>
+        <div className="wallet-receiver">
+          <h5 className="wallet-role">Receiver</h5>
+          <h4 className="wallet-payment-code">
+            ({to?.slice(0, 6)}...
+            {to?.slice(-4)})
+          </h4>
+        </div>
       </div>
-      <ul>
-        {details?.length ? (
-          <></>
-        ) : (
-          Array.from({ length: 7 }).map((_, index) => (
-            <SharedSkeletonLoader
-              height={24}
-              customStyles="margin: 10px 0 15px;"
-              key={
-                // eslint-disable-next-line react/no-array-index-key
-                index
-              }
-            />
-          ))
-        )}
-        {details?.map(({ assetIconUrl, label, value }) => {
-          return (
-            <DetailRowItem
-              key={label}
-              assetIconUrl={assetIconUrl}
-              label={label}
-              value={value}
-            />
-          )
-        })}
-      </ul>
-      <style jsx>
-        {`
-          .wrap {
-            margin-top: -24px;
-          }
+      <div>
+        <h4 className="activity-info-section">Transaction</h4>
+        <div className="activity-info-wrapper">
+          <h5 className="activity-info-title">Amount</h5>
+          <h5 className="activity-info-value">{amount}</h5>
+        </div>
+        <div className="activity-info-wrapper">
+          <h5 className="activity-info-title">Miner Tip</h5>
+          <h5 className="activity-info-value">{minerTip}</h5>
+        </div>
+        <div className="activity-info-wrapper">
+          <h5 className="activity-info-title">Gas Price</h5>
+          <h5 className="activity-info-value">{gasPrice}</h5>
+        </div>
+        <div className="activity-info-wrapper">
+          <h5 className="activity-info-title">Gas</h5>
+          <h5 className="activity-info-value">{gas}</h5>
+        </div>
+        <div className="activity-info-wrapper">
+          <h5 className="activity-info-title">Nonce</h5>
+          <h5 className="activity-info-value">{nonce}</h5>
+        </div>
+        <div className="activity-info-wrapper">
+          <h5 className="activity-info-title">Hash</h5>
+          <h5 className="activity-info-value">
+            {hash.slice(0, 16)}...{hash.slice(-4)}
+          </h5>
+        </div>
+      </div>
 
-          .destination_cards {
-            display: flex;
-            align-items: center;
-            margin-bottom: 4px;
-          }
+      <style jsx>{`
+        .activity-timestamp-block {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-weight: 500;
+          font-size: 12px;
+          line-height: 18px;
+          margin-bottom: 24px;
+        }
 
-          .header {
-            display: flex;
-            align-items: center;
-            margin: 18px 0;
-          }
+        .activity-timestamp {
+          margin: 0;
+          color: var(--secondary-text);
+        }
 
-          .header_title {
-            margin-left: 4px;
-            margin-right: 8px;
-            font-family: "Segment";
-            font-style: normal;
-            font-weight: 600;
-            font-size: 18px;
-            line-height: 24px;
-            color: var(--white);
-          }
+        .activity-block-explorer {
+          color: var(--accent-color);
+        }
 
-          .icon_transfer {
-            background-size: 11px 12px;
-            width: 35px;
-            height: 35px;
-            border: 3px solid var(--green-95);
-            background: var(--hunter-green) url("./images/transfer@2x.png")
-              no-repeat center;
-            border-radius: 70%;
-            margin: 0 -5px;
-            position: relative;
-            flex-grow: 1;
-            flex-shrink: 0;
-          }
-        `}
-      </style>
-    </div>
+        .wallets {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+
+        .wallet-sender,
+        .wallet-receiver {
+          display: flex;
+          flex-direction: column;
+          align-content: center;
+        }
+
+        .wallet-sender {
+          align-items: flex-start;
+        }
+
+        .wallet-receiver {
+          align-items: flex-end;
+        }
+
+        .wallet-payment-code {
+          margin: 0;
+          font-weight: 500;
+          font-size: 12px;
+          line-height: 18px;
+          color: var(--secondary-text);
+        }
+
+        .wallet-role {
+          margin: 0;
+          font-weight: 500;
+          font-size: 14px;
+          line-height: 20px;
+          color: var(--primary-text);
+        }
+
+        .arrow {
+          padding: 15px 14px;
+          border: 1px solid var(--secondary-text);
+          border-radius: 50%;
+        }
+
+        .activity-info-section,
+        .activity-info-value {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          color: var(--primary-text);
+          margin: 0 0 8px;
+        }
+
+        .activity-info-value {
+          margin: 0;
+        }
+
+        .activity-info-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .activity-info-title {
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 18px;
+          color: var(--secondary-text);
+          margin: 0;
+        }
+      `}</style>
+    </>
   )
 }

@@ -9,8 +9,9 @@ import {
   selectShowingActivityDetail,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import WalletActivityDetails from "../../Wallet/WalletActivityDetails"
-import SharedSlideUpMenu from "../../Shared/SharedSlideUpMenu"
 import { useBackgroundSelector } from "../../../hooks"
+import SharedModalHeaders from "../../Shared/_newDeisgn/modalWrapper/SharedModalHeaders"
+import SharedModalWrapper from "../../Shared/_newDeisgn/modalWrapper/SharedModalWrapper"
 
 const SnackbarTransactionActivityModal = ({
   setIsOpenActivityDetails,
@@ -24,14 +25,26 @@ const SnackbarTransactionActivityModal = ({
   )
 
   const currentAddress = useBackgroundSelector(selectCurrentAccount).address
+
+  const handleClose = async () => {
+    dispatch(setShowingActivityDetail(null))
+    dispatch(resetSnackbarConfig())
+    setIsOpenActivityDetails(false)
+  }
+
   return (
-    <SharedSlideUpMenu
+    <SharedModalWrapper
+      footer={<></>}
+      header={
+        <SharedModalHeaders
+          title="Review Transaction"
+          onClose={handleClose}
+          withGoBackIcon={false}
+        />
+      }
       isOpen={!!showingActivityDetail}
-      close={() => {
-        dispatch(setShowingActivityDetail(null))
-        dispatch(resetSnackbarConfig())
-        setIsOpenActivityDetails(false)
-      }}
+      onClose={handleClose}
+      customStyles={{ alignItems: "flex-end" }}
     >
       {showingActivityDetail && (
         <WalletActivityDetails
@@ -39,7 +52,7 @@ const SnackbarTransactionActivityModal = ({
           activityInitiatorAddress={currentAddress}
         />
       )}
-    </SharedSlideUpMenu>
+    </SharedModalWrapper>
   )
 }
 

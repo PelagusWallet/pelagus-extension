@@ -134,7 +134,7 @@ export default function Wallet(): ReactElement {
           />
           <div
             className={classNames("panel standard_width", {
-              qiPanel: isUtxoSelected,
+              activityPanel: panelNumber === 1,
             })}
           >
             {panelNumber === 0 && !isUtxoSelected && (
@@ -218,7 +218,7 @@ export default function Wallet(): ReactElement {
             display: none;
           }
 
-          .qiPanel {
+          .activityPanel {
             padding-bottom: 16px;
             width: 100%;
             height: 100%;

@@ -6,6 +6,8 @@ import SharedSlideUpMenu from "../../Shared/SharedSlideUpMenu"
 import WalletActivityDetails from "../WalletActivityDetails"
 import AssetWarning from "./AssetWarning"
 import { useBackgroundSelector } from "../../../hooks"
+import SharedModalHeaders from "../../Shared/_newDeisgn/modalWrapper/SharedModalHeaders"
+import SharedModalWrapper from "../../Shared/_newDeisgn/modalWrapper/SharedModalWrapper"
 
 type AssetWarningWrapperProps = {
   asset: SmartContractFungibleAsset | null
@@ -29,6 +31,11 @@ export default function AssetWarningWrapper(
     setShowAssetWarning(!!asset)
   }, [asset])
 
+  const handleCloseTxDetailsModal = () => {
+    setActivityItem(undefined)
+    setShowAssetWarning(true)
+  }
+
   return (
     <>
       <SharedSlideUpMenu
@@ -48,13 +55,18 @@ export default function AssetWarningWrapper(
         )}
       </SharedSlideUpMenu>
 
-      <SharedSlideUpMenu
+      <SharedModalWrapper
+        footer={<></>}
+        header={
+          <SharedModalHeaders
+            title="Review Transaction"
+            onClose={handleCloseTxDetailsModal}
+            withGoBackIcon={false}
+          />
+        }
         isOpen={!!activityItem}
-        size="custom"
-        close={() => {
-          setActivityItem(undefined)
-          setShowAssetWarning(true)
-        }}
+        onClose={handleCloseTxDetailsModal}
+        customStyles={{ alignItems: "flex-end" }}
       >
         {activityItem && (
           <WalletActivityDetails
@@ -62,7 +74,7 @@ export default function AssetWarningWrapper(
             activityInitiatorAddress={activityInitiatorAddress}
           />
         )}
-      </SharedSlideUpMenu>
+      </SharedModalWrapper>
     </>
   )
 }

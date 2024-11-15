@@ -24,7 +24,6 @@ import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { PELAGUS_NETWORKS } from "@pelagus/pelagus-background/constants/networks/networks"
 import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
 import { useBackgroundSelector } from "../hooks"
-import SharedAssetIcon from "../components/Shared/SharedAssetIcon"
 import SharedButton from "../components/Shared/SharedButton"
 import WalletActivityList from "../components/Wallet/WalletActivityList"
 import SharedBackButton from "../components/Shared/SharedBackButton"
@@ -133,12 +132,13 @@ export default function SingleAsset(): ReactElement {
       </div>
       {asset && (
         <div className="header standard_width_padded">
-          <div className="left">
+          <div
+            className="left"
+            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          >
+            <div className="balance">{localizedDecimalAmount}</div>
+
             <div className="asset_wrap">
-              <SharedAssetIcon
-                logoURL={asset?.metadata?.logoURL}
-                symbol={asset?.symbol}
-              />
               <span className="asset_name">
                 {trimWithEllipsis(symbol, MAX_SYMBOL_LENGTH)}
               </span>
@@ -178,7 +178,6 @@ export default function SingleAsset(): ReactElement {
                 </SharedTooltip>
               )}
             </div>
-            <div className="balance">{localizedDecimalAmount}</div>
           </div>
           <div className="right">
             {isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET) && (
@@ -236,7 +235,6 @@ export default function SingleAsset(): ReactElement {
             gap: 4px;
           }
           .header .right {
-            height: 95px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -251,13 +249,11 @@ export default function SingleAsset(): ReactElement {
             gap: 16px;
           }
           .asset_name {
-            color: var(--green-20);
-            font-size: 22px;
+            color: var(--green-40);
+            font-size: 28px;
             font-weight: 500;
-            line-height: 32px;
+            line-height: 40px;
             text-transform: uppercase;
-            margin-left: 8px;
-            word-break: break-word;
           }
           .asset_wrap {
             display: flex;
@@ -265,14 +261,14 @@ export default function SingleAsset(): ReactElement {
           }
           .balance {
             width: 100%;
-            max-width: 177px;
+            max-width: 140px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: var(--green-20);
-            font-size: 36px;
+            color: var(--green-40);
+            font-size: 28px;
             font-weight: 500;
-            line-height: 48px;
+            line-height: 40px;
           }
           .icon_new_tab {
             mask-image: url("./images/new_tab@2x.png");

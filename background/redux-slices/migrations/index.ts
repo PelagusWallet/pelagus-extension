@@ -5,7 +5,7 @@ import to3 from "./to-3"
  * The version of persisted Redux state the extension is expecting. Any previous
  * state without this version, or with a lower version, ought to be migrated.
  */
-export const REDUX_STATE_VERSION = 2
+export const REDUX_STATE_VERSION = 3
 
 /**
  * Common type for all migration functions.

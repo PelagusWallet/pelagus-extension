@@ -119,8 +119,6 @@ export const processReceivedQiTransaction = (
     return accumulator
   }, 0n)
 
-  console.log("outputsValue", outputsValue)
-
   return {
     senderPaymentCode: "",
     receiverPaymentCode,

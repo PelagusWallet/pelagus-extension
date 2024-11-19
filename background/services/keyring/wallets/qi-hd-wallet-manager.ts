@@ -82,7 +82,18 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     globalThis.main.chainService.subscribeToQiAddresses()
   }
 
-  public async importPrivateKey(privateKey: string): Promise<void> {}
+  public async importPrivateKey(privateKey: string): Promise<void> {
+    const { qiHDWallet } = await this.vaultManager.get()
+    if (!qiHDWallet) return
+    const deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
+    await deserializedQiHDWallet.importPrivateKey(privateKey)
+    await this.vaultManager.add(
+      {
+        qiHDWallet: deserializedQiHDWallet.serialize(),
+      },
+      {}
+    )
+  }
 
   private async subscribeToContractEvents(): Promise<void> {
     const { qiHDWallet } = await this.vaultManager.get()

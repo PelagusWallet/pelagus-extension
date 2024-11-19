@@ -344,12 +344,22 @@ export default class WalletManager {
   }
 
   public async importQiPrivateKey(privateKey: string): Promise<void> {
-    // TODO: ADD IMPORT QI PRIVATE KEY
-    this.qiHDWalletManager.importPrivateKey(privateKey)
+    try {
+      await this.qiHDWalletManager.importPrivateKey(privateKey)
+    } catch (error: any) {
+      let message = error?.message
 
-    throw new Error("Qi import private key not implemented", {
-      cause: applicationError,
-    })
+      if (
+        message.includes(
+          "Private key does not correspond to a valid Qi address"
+        )
+      ) {
+        message = "Private key does not correspond to a valid Qi address"
+      }
+      throw new Error(message, {
+        cause: applicationError,
+      })
+    }
   }
 
   private async importQuaiHDWallet(

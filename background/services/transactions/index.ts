@@ -325,6 +325,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       to: unusedAddress,
       from,
       value: amount,
+      gasLimit: 1000000,
     }
     await this.signAndSendQuaiTransaction(convertTxRequest)
   }

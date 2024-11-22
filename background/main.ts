@@ -46,6 +46,7 @@ import {
   deleteAccount,
   loadAccount,
   loadUtxoAccount,
+  triggerManualBalanceUpdate,
   updateAccountBalance,
   updateAccountName,
   updateUtxoAccountsBalances,
@@ -1200,6 +1201,7 @@ export default class Main extends BaseService<never> {
         this.store.dispatch(keyringLocked())
       } else {
         this.store.dispatch(keyringUnlocked())
+        this.store.dispatch(triggerManualBalanceUpdate())
       }
     })
 

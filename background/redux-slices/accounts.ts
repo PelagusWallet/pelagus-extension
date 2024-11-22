@@ -608,7 +608,7 @@ export const triggerManualBalanceUpdate = createBackgroundAsyncThunk(
     const uiState = state.ui
     const isUtxoSelected = uiState.isUtxoSelected
     if (isUtxoSelected) {
-      await main.chainService.syncQiWallet(true)
+      await main.chainService.syncQiWallet()
     } else {
       await main.manuallyCheckBalances()
     }

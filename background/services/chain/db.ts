@@ -5,7 +5,7 @@ import {
   AccountBalance,
   AddressOnNetwork,
   QiCoinbaseAddressBalance,
-  QiLedgerLastFullScan,
+  QiWalletSyncInfo,
   QiWalletBalance,
 } from "../../accounts"
 import { NetworkBaseAsset } from "../../networks"
@@ -13,12 +13,20 @@ import { FungibleAsset } from "../../assets"
 import { BASE_ASSETS } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
+import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
 
 type AccountAssetTransferLookup = {
   addressNetwork: AddressOnNetwork
   retrievedAt: UNIXTime
   startBlock: bigint
   endBlock: bigint
+}
+
+export type QiOutpoint = {
+  outpoint: Outpoint
+  value: bigint // value in qits
+  address: string
+  chainID: string
 }
 
 // TODO keep track of blocks invalidated by a reorg
@@ -59,7 +67,9 @@ export class ChainDatabase extends Dexie {
     number
   >
 
-  private qiLedgerLastFullScan!: Dexie.Table<QiLedgerLastFullScan, string>
+  private qiOutpoints!: Dexie.Table<QiOutpoint, [string, string, number]>
+
+  private qiWalletSyncInfo!: Dexie.Table<QiWalletSyncInfo, string>
 
   constructor(options?: DexieOptions) {
     super("pelagus/chain", options)
@@ -84,7 +94,13 @@ export class ChainDatabase extends Dexie {
     this.version(3).stores({
       qiCoinbaseAddressBalances:
         "&[address+chainID],address,chainID,balance,retrievedAt,dataSource",
-      // qiLedgerLastFullScan: "&chainID,retrievedAt",
+    })
+
+    this.version(4).stores({
+      qiOutpoints:
+        "&[chainID+outpoint.txhash+outpoint.index],[chainID+outpoint.lock],chainID,address,value,outpoint.txhash,outpoint.index,outpoint.denomination,outpoint.lock",
+      qiWalletSyncInfo:
+        "&[chainID+type],chainID,blockNumber,blockHash,timestamp,type",
     })
   }
 
@@ -303,17 +319,131 @@ export class ChainDatabase extends Dexie {
     return balances
   }
 
-  async setQiLedgerLastFullScan(chainID: string): Promise<void> {
-    await this.qiLedgerLastFullScan.put({
+  async setQiLastFullScan(
+    chainID: string,
+    blockNumber: number,
+    blockHash: string
+  ): Promise<void> {
+    await this.qiWalletSyncInfo.put({
       chainID,
-      retrievedAt: Date.now(),
+      blockNumber,
+      blockHash,
+      timestamp: Date.now(),
+      type: "scan",
     })
   }
 
-  async getQiLedgerLastFullScan(
+  async getQiLastFullScan(
     chainID: string
-  ): Promise<QiLedgerLastFullScan | undefined> {
-    return this.qiLedgerLastFullScan.get(chainID)
+  ): Promise<QiWalletSyncInfo | undefined> {
+    return this.qiWalletSyncInfo.get([chainID, "scan"])
+  }
+
+  async setQiLastSync(
+    chainID: string,
+    blockNumber: number,
+    blockHash: string
+  ): Promise<void> {
+    await this.qiWalletSyncInfo.put({
+      chainID,
+      blockNumber,
+      blockHash,
+      timestamp: Date.now(),
+      type: "sync",
+    })
+  }
+
+  async getQiLastSync(chainID: string): Promise<QiWalletSyncInfo | undefined> {
+    return this.qiWalletSyncInfo.get([chainID, "sync"])
+  }
+
+  async addQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
+    await this.qiOutpoints.bulkPut(outpoints)
+  }
+
+  async removeQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
+    const keys: [string, string, number][] = outpoints.map((outpoint) => [
+      outpoint.chainID,
+      outpoint.outpoint.txhash,
+      outpoint.outpoint.index,
+    ])
+
+    await this.qiOutpoints.bulkDelete(keys)
+  }
+
+  async getAllQiOutpoints(chainID: string): Promise<QiOutpoint[]> {
+    return this.qiOutpoints.where("chainID").equals(chainID).toArray()
+  }
+
+  async getUnlockedQiOutpoints(
+    blockNumber: number,
+    maxDenomination?: bigint
+  ): Promise<QiOutpoint[]> {
+    const query = this.qiOutpoints.where("outpoint.lock").below(blockNumber)
+
+    if (maxDenomination) {
+      query.and((outpoint) => outpoint.outpoint.denomination < maxDenomination)
+    }
+
+    return query.toArray()
+  }
+
+  async getQiOutpointsLessThanDenomination(
+    denomination: bigint
+  ): Promise<QiOutpoint[]> {
+    return this.qiOutpoints
+      .where("outpoint.denomination")
+      .below(denomination)
+      .toArray()
+  }
+
+  async loadQiOutpointsForSending(
+    minimumAmt: bigint,
+    chainID: string,
+    currentBlockNumber: number
+  ): Promise<QiOutpoint[]> {
+    minimumAmt = minimumAmt * 3n // 3x buffer
+    const outpoints: QiOutpoint[] = []
+    let accumulatedValue = BigInt(0)
+    const batchSize = 1000 // Adjust based on performance needs
+    let lastKey = [chainID, Dexie.minKey]
+    let hasMore = true
+
+    while (hasMore && accumulatedValue < minimumAmt) {
+      const batch = await this.qiOutpoints
+        .where("[chainID+outpoint.lock]")
+        .between(lastKey, [chainID, currentBlockNumber], false, true)
+        .limit(batchSize)
+        .toArray()
+
+      if (batch.length === 0) {
+        hasMore = false
+        break
+      }
+
+      // Update lastKey for the next batch
+      lastKey = [chainID, batch[batch.length - 1].outpoint.lock!]
+
+      // Sort the batch by value in descending order
+      batch.sort((a, b) => Number(b.value) - Number(a.value))
+
+      for (const outpoint of batch) {
+        outpoints.push(outpoint)
+        accumulatedValue += outpoint.value
+        if (accumulatedValue >= minimumAmt) {
+          hasMore = false
+          break
+        }
+      }
+    }
+
+    if (accumulatedValue < minimumAmt) {
+      throw new Error(
+        "Insufficient funds: not enough unlocked outpoints to cover the desired amount."
+      )
+    }
+
+    return outpoints
   }
 }
 

@@ -66,12 +66,6 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
       qiWallet.openChannel(paymentCode)
     })
 
-    if (isRestored) {
-      await qiWallet.scan(Zone.Cyprus1, 0)
-    } else {
-      await qiWallet.sync(Zone.Cyprus1, 0)
-    }
-
     await this.vaultManager.add(
       {
         qiHDWallet: qiWallet.serialize(),

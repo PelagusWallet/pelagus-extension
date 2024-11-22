@@ -90,9 +90,6 @@ export default class WalletManager {
             const mnemonic = Mnemonic.fromPhrase(qiHDWallet.phrase)
             deserializedQiHDWallet = QiHDWallet.fromMnemonic(mnemonic)
           }
-          this.qiHDWalletManager.syncQiWalletPaymentCodes(
-            deserializedQiHDWallet
-          )
           const paymentCode = deserializedQiHDWallet.getPaymentCode(
             this.qiHDWalletManager.qiHDWalletAccountIndex
           )

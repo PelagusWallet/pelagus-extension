@@ -46,9 +46,12 @@ export type QiWalletBalance = {
   dataSource: "local"
 }
 
-export type QiLedgerLastFullScan = {
+export type QiWalletSyncInfo = {
   chainID: string
-  retrievedAt: number
+  blockNumber: number
+  blockHash: string
+  timestamp: number
+  type: "sync" | "scan"
 }
 
 export type QiCoinbaseAddressBalance = {

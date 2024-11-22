@@ -183,7 +183,15 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
       const qiWallet = await this.keyringService.getQiHDWallet()
       qiWallet.connect(jsonRpcProvider)
-      await qiWallet.sync(Zone.Cyprus1, 0)
+
+      const qiOutpoints = await this.chainService.getOutpointsForSending(amount)
+      const outpointInfos = qiOutpoints.map((outpoint) => ({
+        outpoint: outpoint.outpoint,
+        address: outpoint.address,
+        zone: Zone.Cyprus1,
+      }))
+
+      qiWallet.importOutpoints(outpointInfos)
 
       let tx: QiTransactionResponse
       try {
@@ -194,7 +202,22 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           Zone.Cyprus1
         )) as QiTransactionResponse
       } catch (error) {
-        await qiWallet.scan(Zone.Cyprus1, 0)
+        // if we get an error, we need to sync the wallet and try again
+        await this.chainService.syncQiWallet()
+        const qiWallet = await this.keyringService.getQiHDWallet()
+        qiWallet.connect(jsonRpcProvider)
+
+        const qiOutpoints = await this.chainService.getOutpointsForSending(
+          amount
+        )
+        const outpointInfos = qiOutpoints.map((outpoint) => ({
+          outpoint: outpoint.outpoint,
+          address: outpoint.address,
+          zone: Zone.Cyprus1,
+        }))
+
+        qiWallet.importOutpoints(outpointInfos)
+
         tx = (await qiWallet.sendTransaction(
           receiverPaymentCode,
           amount,
@@ -213,7 +236,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
       // Wait for the transaction to be included in a block
       await this.subscribeToQiTransaction(transaction.hash)
-      await qiWallet.sync(Zone.Cyprus1, 0)
+      await this.chainService.syncQiWallet()
       await this.keyringService.vaultManager.add(
         {
           qiHDWallet: qiWallet.serialize(),
@@ -557,7 +580,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     let transaction = null
     const { jsonRpcProvider } = this.chainService
 
-    while (transaction === null) {
+    while (!(transaction && transaction.blockNumber && transaction.blockHash)) {
       await new Promise((resolve) =>
         setTimeout(resolve, QI_TRANSACTIONS_FETCH_INTERVAL)
       )
@@ -569,7 +592,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         break
       }
 
-      if (transaction && transaction.blockNumber) {
+      if (transaction && transaction.blockNumber && transaction.blockHash) {
         await this.handleQiTransaction(transaction as TransactionResponse)
       }
     }

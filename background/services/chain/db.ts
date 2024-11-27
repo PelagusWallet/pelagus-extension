@@ -14,6 +14,9 @@ import { BASE_ASSETS } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
+import { getExtendedZoneForAddress } from "./utils"
+import { Zone } from "quais"
+import logger from "../../lib/logger"
 
 type AccountAssetTransferLookup = {
   addressNetwork: AddressOnNetwork
@@ -98,7 +101,7 @@ export class ChainDatabase extends Dexie {
 
     this.version(4).stores({
       qiOutpoints:
-        "&[chainID+outpoint.txhash+outpoint.index],[chainID+outpoint.lock],chainID,address,value,outpoint.txhash,outpoint.index,outpoint.denomination,outpoint.lock",
+        "&[chainID+outpoint.txhash+outpoint.index],[chainID+address+outpoint.txhash],[chainID+outpoint.lock],address,value,outpoint.txhash,outpoint.index,outpoint.denomination,outpoint.lock",
       qiWalletSyncInfo:
         "&[chainID+type],chainID,blockNumber,blockHash,timestamp,type",
     })
@@ -357,8 +360,45 @@ export class ChainDatabase extends Dexie {
     return this.qiWalletSyncInfo.get([chainID, "sync"])
   }
 
+  /**
+   * Add QiOutpoints to the database efficiently, even for very large datasets.
+   * @param outpoints - Array of QiOutpoint objects to insert.
+   */
   async addQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
-    await this.qiOutpoints.bulkPut(outpoints)
+    const chunkSize = 10000 // Adjust this value based on performance testing
+    try {
+      await this.transaction("rw", this.qiOutpoints, async () => {
+        for (let i = 0; i < outpoints.length; i += chunkSize) {
+          const chunk = outpoints.slice(i, i + chunkSize)
+          await this.qiOutpoints.bulkPut(chunk)
+          // Optional: Yield to the event loop to keep UI responsive
+          await Dexie.waitFor(
+            () => new Promise((resolve) => setTimeout(resolve, 0))
+          )
+        }
+      })
+    } catch (error) {
+      if (error instanceof Dexie.BulkError) {
+        console.error(
+          "Some QiOutpoints could not be added:",
+          error.failures.length,
+          "failures\n",
+          error.failures,
+          "\n",
+          error
+        )
+        logger.error(
+          "Some QiOutpoints could not be added:",
+          error.failures.length,
+          "failures\n",
+          error.failures,
+          "\n",
+          error
+        )
+      } else {
+        throw error
+      }
+    }
   }
 
   async removeQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
@@ -444,6 +484,62 @@ export class ChainDatabase extends Dexie {
     }
 
     return outpoints
+  }
+
+  /**
+   * Get addresses that have more than `minTxCount` unique transactions in their outpoints.
+   * This method efficiently queries the QiOutpoints table using indexed queries.
+   *
+   * @param chainID - The chain ID to query.
+   * @param zone - The zone to filter addresses.
+   * @param minTxCount - The minimum number of unique transactions required.
+   * @param existingAddressesSet - A set of addresses to exclude (already existing coinbase addresses).
+   * @returns A promise that resolves to an array of addresses matching the criteria.
+   */
+  async getPossibleCoinbaseAddressesFromOutpoints(
+    chainID: string,
+    zone: Zone,
+    minTxCount: number,
+    existingAddressesSet: Set<string>
+  ): Promise<string[]> {
+    const addressesSet = new Set<string>()
+    const addressList = new Set<string>()
+
+    // Collect unique addresses matching the criteria
+    await this.qiOutpoints
+      .where("chainID")
+      .equals(chainID)
+      .and((outpoint) => {
+        return (
+          getExtendedZoneForAddress(outpoint.address) === zone &&
+          !existingAddressesSet.has(outpoint.address)
+        )
+      })
+      .each((outpoint) => {
+        addressList.add(outpoint.address)
+      })
+
+    // For each address, count unique transaction hashes
+    await Promise.all(
+      Array.from(addressList).map(async (address) => {
+        const keys = await this.qiOutpoints
+          .where("[chainID+address+outpoint.txhash]")
+          .between(
+            [chainID, address, Dexie.minKey],
+            [chainID, address, Dexie.maxKey]
+          )
+          .primaryKeys()
+
+        // Extract unique transaction hashes
+        const txhashesSet = new Set(keys.map((key) => key[1])) // key[1] is outpoint.txhash
+
+        if (txhashesSet.size > minTxCount) {
+          addressesSet.add(address)
+        }
+      })
+    )
+
+    return Array.from(addressesSet)
   }
 }
 

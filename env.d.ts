@@ -63,6 +63,8 @@ interface Window {
   pelagus?: PelagusProvider
   ethereum?: WindowEthereum
   oldEthereum?: WindowEthereum
+  dataLayer?: any[]
+  gtag?: (...args: any[]) => void
 }
 
 declare namespace NodeJS {

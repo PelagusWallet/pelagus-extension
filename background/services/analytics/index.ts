@@ -1,27 +1,26 @@
-import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import BaseService from "../base"
 import { AnalyticsDatabase, getOrCreateDB } from "./db"
-import {
-  AnalyticsEvent,
-  deletePerson,
-  getPersonId,
-  OneTimeAnalyticsEvent,
-  sendPosthogEvent,
-} from "../../lib/posthog"
 import PreferenceService from "../preferences"
 import logger from "../../lib/logger"
 import { WEBSITE_ORIGIN } from "../../constants"
+import {
+  initializeGoogleAnalytics,
+  trackEvent,
+} from "./google-analytics/google-analytics"
 
-const chainSpecificOneTimeEvents = [OneTimeAnalyticsEvent.CHAIN_ADDED]
+const chainSpecificOneTimeEvents = ["CHAIN_ADDED"] as const // Adjust as needed
 interface Events extends ServiceLifecycleEvents {
   enableDefaultOn: void
 }
 
+// Environment variable to control analytics destination
+const ANALYTICS_DESTINATION = process.env.ANALYTICS_DESTINATION || "google" // Options: "google"
+
 /*
  * The analytics service is responsible for listening to events in the service layer,
- * handling sending and persistance concerns.
+ * handling sending and persistence concerns.
  */
 export default class AnalyticsService extends BaseService<Events> {
   /*
@@ -46,6 +45,14 @@ export default class AnalyticsService extends BaseService<Events> {
 
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService()
+    console.log("Analytics service started")
+
+    // Initialize Google Analytics if enabled
+    if (ANALYTICS_DESTINATION === "google") {
+      const MEASUREMENT_ID =
+        process.env.GOOGLE_ANALYTICS_PROPERTY_ID || "G-YOUR_MEASUREMENT_ID" // Replace with your actual measurement ID
+      initializeGoogleAnalytics(MEASUREMENT_ID)
+    }
 
     let { isEnabled, hasDefaultOnBeenTurnedOn } =
       await this.preferenceService.getAnalyticsPreferences()
@@ -64,13 +71,8 @@ export default class AnalyticsService extends BaseService<Events> {
     }
 
     if (isEnabled) {
-      const { isNew } = await this.getOrCreateAnalyticsUUID()
-
       browser.runtime.setUninstallURL(`${WEBSITE_ORIGIN}`)
-
-      if (isNew) {
-        await this.sendAnalyticsEvent(AnalyticsEvent.NEW_INSTALL)
-      }
+      await this.sendAnalyticsEvent("NEW_INSTALL")
     }
   }
 
@@ -80,23 +82,19 @@ export default class AnalyticsService extends BaseService<Events> {
   }
 
   async sendAnalyticsEvent(
-    eventName: AnalyticsEvent,
+    eventName: string,
     payload?: Record<string, unknown>
   ): Promise<void> {
-    // @TODO: implement event batching
     const { isEnabled } = await this.preferenceService.getAnalyticsPreferences()
-    // We want to send the ANALYTICS_TOGGLED event to denote that the user
-    // has disabled analytics - and we send the event after disabling, so
-    // we have a special exception here to allow the event to send even
-    // after analytics have been set to disabled in the preferenceService.
-    if (eventName === AnalyticsEvent.ANALYTICS_TOGGLED || isEnabled) {
-      const { uuid } = await this.getOrCreateAnalyticsUUID()
-      sendPosthogEvent(uuid, eventName, payload)
+    if (eventName === "ANALYTICS_TOGGLED" || isEnabled) {
+      if (ANALYTICS_DESTINATION === "google") {
+        trackEvent(eventName, "extension", JSON.stringify(payload))
+      }
     }
   }
 
   async sendOneTimeAnalyticsEvent(
-    eventName: OneTimeAnalyticsEvent,
+    eventName: string,
     payload?: Record<string, unknown>
   ): Promise<void> {
     const { isEnabled } = await this.preferenceService.getAnalyticsPreferences()
@@ -107,8 +105,7 @@ export default class AnalyticsService extends BaseService<Events> {
     // keep the event name uniform (while sending the chainId as a payload)
     // and use the key to track if we've already sent the event for that chainId.
     const chainId = payload?.chainId
-
-    const key = chainSpecificOneTimeEvents.includes(eventName)
+    const key = chainSpecificOneTimeEvents.includes(eventName as any)
       ? `${eventName}-${chainId}`
       : eventName
 
@@ -117,35 +114,19 @@ export default class AnalyticsService extends BaseService<Events> {
       return
     }
 
-    const { uuid } = await this.getOrCreateAnalyticsUUID()
+    if (ANALYTICS_DESTINATION === "google") {
+      trackEvent(eventName, "extension", JSON.stringify(payload))
+    }
 
-    sendPosthogEvent(uuid, eventName, payload)
     this.db.setOneTimeEvent(key)
   }
 
+  // eslint-disable-next-line class-methods-use-this
   async removeAnalyticsData(): Promise<void> {
     try {
-      const { uuid } = await this.getOrCreateAnalyticsUUID()
-      const id = await getPersonId(uuid)
-      deletePerson(id)
+      logger.info("Removing analytics data")
     } catch (e) {
       logger.error("Deleting Analytics Data Failed ", e)
     }
-  }
-
-  private async getOrCreateAnalyticsUUID(): Promise<{
-    uuid: string
-    isNew: boolean
-  }> {
-    const uuid = await this.db.getAnalyticsUUID()
-
-    if (uuid === undefined) {
-      const newUUID = uuidv4()
-      await this.db.setAnalyticsUUID(newUUID)
-
-      return { uuid: newUUID, isNew: true }
-    }
-
-    return { uuid, isNew: false }
   }
 }

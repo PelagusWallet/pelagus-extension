@@ -15,8 +15,8 @@ const defaultPreferences: Preferences = {
   },
   accountSignersSettings: [],
   analytics: {
-    isEnabled: false,
-    hasDefaultOnBeenTurnedOn: false,
+    isEnabled: true,
+    hasDefaultOnBeenTurnedOn: true,
   },
   showDefaultWalletBanner: true,
   showTestNetworks: false,

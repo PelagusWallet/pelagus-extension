@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next"
 import {
   selectShowAlphaWalletBanner,
   selectShowUnverifiedAssets,
+  selectShowAnalyticsNotification,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { CompleteAssetAmount } from "@pelagus/pelagus-background/redux-slices/accounts"
 import {
@@ -26,6 +27,7 @@ import WalletAccountBalanceControl from "../components/Wallet/WalletAccountBalan
 import WalletNoConnectionBanner from "../components/Wallet/WalletNoConnectionBanner"
 import WalletHiddenAssets from "../components/Wallet/WalletHiddenAssets"
 import WalletAlphaBanner from "../components/Wallet/WalletAlphaBanner"
+import WalletAnalyticsNotificationBanner from "../components/Wallet/WalletAnalyticsNotificationBanner"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedIcon from "../components/Shared/SharedIcon"
 
@@ -38,6 +40,10 @@ export default function Wallet(): ReactElement {
   const accountData = useBackgroundSelector(selectCurrentAccountBalances)
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showUnverifiedAssets = useBackgroundSelector(selectShowUnverifiedAssets)
+  const showAnalyticsNotification = useBackgroundSelector(
+    selectShowAnalyticsNotification
+  )
+  console.log("Show Analytics Notification:", showAnalyticsNotification)
 
   const { assetAmounts, unverifiedAssetAmounts } = accountData ?? {
     assetAmounts: [],
@@ -84,16 +90,13 @@ export default function Wallet(): ReactElement {
     <>
       <div className="page_content">
         {showAlphaWalletBanner && <WalletAlphaBanner />}
-        {/* {!showAnalyticsNotification && */}
-        {/*  isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && ( */}
-        {/*    <WalletToggleDefaultBanner /> */}
-        {/*  )} */}
-
+        {showAnalyticsNotification && <WalletAnalyticsNotificationBanner />}
         <WalletNoConnectionBanner />
 
         <div className="section">
           <WalletAccountBalanceControl
             mainAssetBalance={
+              // eslint-disable-next-line no-nested-ternary,eqeqeq
               assetAmounts[0] != undefined
                 ? isFungibleAsset(assetAmounts[0].asset)
                   ? bigIntToDecimal(

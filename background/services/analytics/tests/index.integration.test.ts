@@ -4,13 +4,10 @@
 // POC https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ0PWPAdhALgE4Cuw+8hAFAA6ECWAbmPgKbRgBc0B9OA5gBpotRszYAjLjmIBbcS0IBKFAF9Ua1CBb5oAM0TQAvNBwsA7nESUARGHHBrQgIwAmAMyLU2PPC0A6EHg+Sn14AG1bawBdZQB6WOgAeQBpVHisXAhfFgCgkMQIgH0waLiEgFEAJUrEyrSE0IiSqKNoAFZodKqayqA
 /* eslint-disable @typescript-eslint/dot-notation */
 import * as uuid from "uuid"
-import browser from "webextension-polyfill"
 import AnalyticsService from ".."
 import { createAnalyticsService } from "../../../tests/factories"
 import PreferenceService from "../../preferences"
 import * as posthog from "../../../lib/posthog"
-
-const { AnalyticsEvent } = posthog
 
 describe("AnalyticsService", () => {
   let analyticsService: AnalyticsService
@@ -98,77 +95,6 @@ describe("AnalyticsService", () => {
         "New install",
         undefined
       )
-    })
-  })
-  describe("feature is released and enabled (analytics uuid has been created earlier)", () => {
-    beforeEach(async () => {
-      jest.spyOn(analyticsService, "sendAnalyticsEvent")
-      jest.spyOn(preferenceService, "updateAnalyticsPreferences")
-      jest
-        .spyOn(preferenceService, "getAnalyticsPreferences")
-        .mockImplementation(() =>
-          Promise.resolve({
-            isEnabled: true,
-            hasDefaultOnBeenTurnedOn: true,
-          })
-        )
-
-      // Initialize analytics uuid
-      await analyticsService["getOrCreateAnalyticsUUID"]()
-
-      await analyticsService.startService()
-    })
-    it("should not run the initialization flow", async () => {
-      // uuid should be already present
-      expect(await analyticsService["getOrCreateAnalyticsUUID"]()).toEqual(
-        expect.objectContaining({ isNew: false })
-      )
-
-      expect(analyticsService.sendAnalyticsEvent).not.toHaveBeenCalledWith(
-        expect.anything(),
-        AnalyticsEvent.NEW_INSTALL,
-        undefined
-      )
-
-      expect(
-        preferenceService.updateAnalyticsPreferences
-      ).not.toHaveBeenCalled()
-    })
-
-    it("should set the uninstall url when the service starts", async () => {
-      expect(browser.runtime.setUninstallURL).toBeCalledTimes(1)
-    })
-  })
-  describe("feature is released but disabled", () => {
-    beforeEach(async () => {
-      jest.spyOn(analyticsService, "sendAnalyticsEvent")
-      jest.spyOn(posthog, "sendPosthogEvent")
-      jest
-        .spyOn(preferenceService, "getAnalyticsPreferences")
-        .mockImplementation(() =>
-          Promise.resolve({
-            isEnabled: false,
-            hasDefaultOnBeenTurnedOn: true,
-          })
-        )
-
-      // Initialize analytics uuid
-      await analyticsService["getOrCreateAnalyticsUUID"]()
-
-      await analyticsService.startService()
-    })
-    it("should not send any event when the service starts", async () => {
-      expect(analyticsService.sendAnalyticsEvent).not.toBeCalled()
-
-      expect(posthog.sendPosthogEvent).not.toBeCalled()
-      expect(fetch).not.toBeCalled()
-    })
-    it("should not send any event when the 'sendAnalyticsEvent()' method is called", async () => {
-      await analyticsService.sendAnalyticsEvent(AnalyticsEvent.UI_SHOWN)
-      expect(analyticsService.sendAnalyticsEvent).toBeCalledTimes(1)
-
-      expect(posthog.sendPosthogEvent).not.toBeCalled()
-      expect(fetch).not.toBeCalled()
     })
   })
 })

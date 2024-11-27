@@ -64,6 +64,16 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
       const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, undefined, {
         usePathing: usePathingJsonRpc,
       })
+
+      // Add provider than does not batch requests (useful when dealing with potentially large responses)
+      const immediateJsonRpcProvider = new JsonRpcProvider(
+        jsonRpcUrls,
+        undefined,
+        {
+          usePathing: usePathingJsonRpc,
+          batchMaxCount: 1,
+        }
+      )
       const webSocketProvider = new WebSocketProvider(
         webSocketRpcUrls,
         undefined,
@@ -75,6 +85,7 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
       const networkProviders: NetworkProviders = {
         jsonRpcProvider,
         webSocketProvider,
+        immediateJsonRpcProvider,
       }
       this.providersForNetworks.set(chainID, networkProviders)
     })

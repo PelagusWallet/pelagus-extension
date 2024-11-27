@@ -446,7 +446,7 @@ export default class Main extends BaseService<never> {
   ) {
     super({
       initialLoadWaitExpired: {
-        schedule: { delayInMinutes: 2.5 },
+        schedule: { delayInMinutes: 0.25 },
         handler: () => this.store.dispatch(initializationLoadingTimeHitLimit()),
       },
     })
@@ -1821,6 +1821,13 @@ export default class Main extends BaseService<never> {
     await this.indexingService.hideAsset(asset)
   }
 
+  /**
+   * Add a Qi coinbase address for mining, ensuring that it either reuses
+   * an existing address with sufficient outpoints or generates a new one.
+   *
+   * @param zone - The zone for which to add the coinbase address.
+   * @returns A promise that resolves to the added QiCoinbaseAddress.
+   */
   async addQiCoinbaseAddress(zone: Zone): Promise<QiCoinbaseAddress> {
     const qiWallet = await this.keyringService.getQiHDWallet()
     const existingQiCoinbaseAddresses =
@@ -1834,18 +1841,32 @@ export default class Main extends BaseService<never> {
       existingQiCoinbaseAddresses.map((addr) => addr.address)
     )
 
+    // // Check if the wallet has been synced at least once
+    // const lastScan = await this.chainService.getQiLastFullScan(
+    //   this.selectedNetwork.chainID
+    // )
+    // const walletSynced = !!lastScan
+
+    // if (!walletSynced) {
+    //   // Need to sync the wallet at least once
+    //   await this.chainService.syncQiWallet()
+    // }
+
     // Check for a previously used coinbase address
-    const potentialCoinbaseAddress = await this.findPreviousCoinbaseAddress(
-      qiWallet,
-      zone,
-      existingAddressesSet
-    )
+    const potentialCoinbaseAddress =
+      await this.chainService.findPreviousCoinbaseAddresses(
+        qiWallet,
+        zone,
+        existingAddressesSet
+      )
 
     if (potentialCoinbaseAddress) {
       address = potentialCoinbaseAddress.address
       account = potentialCoinbaseAddress.account
       index = potentialCoinbaseAddress.index
-    } else {
+    }
+
+    if (!address) {
       let newAddress: NeuteredAddressInfo
       let attempts = 0
       const maxAttempts = 200
@@ -1873,11 +1894,8 @@ export default class Main extends BaseService<never> {
         throw new Error("Failed to generate a new Qi mining address")
       }
 
-      const serializedQiHDWallet = qiWallet.serialize()
-      await this.keyringService.vaultManager.add(
-        { qiHDWallet: serializedQiHDWallet },
-        {}
-      )
+      const serializedQiHDWallet = { qiHDWallet: qiWallet.serialize() }
+      await this.keyringService.vaultManager.add(serializedQiHDWallet, {})
     }
 
     // Add the new address to the indexing service

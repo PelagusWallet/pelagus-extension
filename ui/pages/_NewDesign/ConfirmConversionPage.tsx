@@ -5,18 +5,36 @@ import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeade
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
 import { useBackgroundDispatch } from "../../hooks"
 import ConfirmConversion from "../../components/_NewDesign/ConfirmConversion/ConfirmConversion"
+import { useTranslation } from "react-i18next"
+import SharedConfirmationModal from "../../components/Shared/SharedConfirmationModal"
 
 const ConfirmConversionPage = () => {
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
 
   const [isConfirmLoading, setIsConfirmLoading] = useState(false)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(false)
+
+  const { t: confirmationLocales } = useTranslation("translation", {
+    keyPrefix: "drawers.transactionConfirmation",
+  })
 
   const handleConfirm = async () => {
     setIsConfirmLoading(true)
-    await dispatch(convertAssetsHandle())
-    setIsConfirmLoading(false)
-    history.push("/")
+    dispatch(convertAssetsHandle())
+    setTimeout(() => {
+      setIsConfirmLoading(false)
+      setIsOpenConfirmationModal(true)
+    }, 2000)
+  }
+
+  const confirmationModalProps = {
+    headerTitle: confirmationLocales("send.headerTitle", {
+      network: "",
+    }),
+    title: confirmationLocales("send.title"),
+    isOpen: isOpenConfirmationModal,
+    onClose: () => history.push("/"),
   }
 
   return (
@@ -25,7 +43,7 @@ const ConfirmConversionPage = () => {
         <SharedGoBackPageHeader title="Confirm Conversion" />
         <ConfirmConversion />
         <SharedActionButtons
-          title={{ confirmTitle: "Send", cancelTitle: "Back" }}
+          title={{ confirmTitle: "Convert", cancelTitle: "Back" }}
           onClick={{
             onConfirm: () => handleConfirm(),
             onCancel: () => history.push("-1"),
@@ -33,6 +51,13 @@ const ConfirmConversionPage = () => {
           isLoading={isConfirmLoading}
         />
       </main>
+
+      <SharedConfirmationModal
+        headerTitle={confirmationModalProps.headerTitle}
+        title={confirmationModalProps.title}
+        isOpen={confirmationModalProps.isOpen}
+        onClose={confirmationModalProps.onClose}
+      />
 
       <style jsx>{`
         .convert-confirmation-wrapper {

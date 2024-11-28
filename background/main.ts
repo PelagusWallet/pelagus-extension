@@ -446,7 +446,7 @@ export default class Main extends BaseService<never> {
   ) {
     super({
       initialLoadWaitExpired: {
-        schedule: { delayInMinutes: 0.25 },
+        schedule: { delayInMinutes: 0.5 },
         handler: () => this.store.dispatch(initializationLoadingTimeHitLimit()),
       },
     })

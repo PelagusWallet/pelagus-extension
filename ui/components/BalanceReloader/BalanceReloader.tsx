@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from "react"
+import React, { ReactElement, useState, useRef, useEffect } from "react"
 import classNames from "classnames"
 import { useLocalStorage } from "../../hooks"
 import { triggerManualBalanceUpdate } from "@pelagus/pelagus-background/redux-slices/accounts"
@@ -16,36 +16,63 @@ export default function BalanceReloader(): ReactElement {
   )
 
   const timeGapBetweenRunningReloadMs = 60000 * 2
-  const minLoadTimeMs = 2000 // New constant for minimum load time
+  const minLoadTimeMs = 2000 // Minimum load time
+  const maxSpinTimeMs = 90000 // Maximum spin time (90 seconds)
+
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  const onClick = async () => {
+    const currentTime = new Date().getTime()
+    setIsSpinning(true)
+
+    if (
+      Number(timeWhenLastReloaded) + timeGapBetweenRunningReloadMs <
+      currentTime
+    ) {
+      setTimeWhenLastReloaded(`${currentTime}`)
+    }
+
+    // Start a timeout to stop spinning after maxSpinTimeMs
+    const spinTimeout = setTimeout(() => {
+      if (isMountedRef.current) {
+        setIsSpinning(false)
+      }
+    }, maxSpinTimeMs)
+
+    const startTime = Date.now()
+    await dispatch(triggerManualBalanceUpdate())
+    const elapsedTime = Date.now() - startTime
+
+    if (elapsedTime < minLoadTimeMs) {
+      await new Promise(resolve =>
+        setTimeout(resolve, minLoadTimeMs - elapsedTime)
+      )
+    }
+
+    if (isMountedRef.current) {
+      clearTimeout(spinTimeout) // Clear the timeout if update completes before maxSpinTimeMs
+      setIsSpinning(false)
+    }
+  }
 
   return (
     <button
       type="button"
       disabled={isSpinning}
       className={classNames("reload", { spinning: isSpinning })}
-      onClick={async () => {
-        const currentTime = new Date().getTime()
-        setIsSpinning(true)
-        if (
-          Number(timeWhenLastReloaded) + timeGapBetweenRunningReloadMs <
-          currentTime
-        ) {
-          setTimeWhenLastReloaded(`${currentTime}`)
-        }
-        const startTime = Date.now()
-        await dispatch(triggerManualBalanceUpdate())
-        const elapsedTime = Date.now() - startTime
-        if (elapsedTime < minLoadTimeMs) {
-          await new Promise(resolve => setTimeout(resolve, minLoadTimeMs - elapsedTime))
-        }
-        setIsSpinning(false)
-      }}
+      onClick={onClick}
     >
       <style jsx>{`
         .reload {
           mask-image: url("./images/reload@2x.png");
           mask-size: cover;
-          background-color: #96969B;
+          background-color: #96969b;
           width: 17px;
           height: 17px;
         }

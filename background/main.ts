@@ -1853,28 +1853,31 @@ export default class Main extends BaseService<never> {
     // }
 
     // Check for a previously used coinbase address
-    const potentialCoinbaseAddress =
-      await this.chainService.findPreviousCoinbaseAddresses(
-        qiWallet,
-        zone,
-        existingAddressesSet
-      )
+    // const potentialCoinbaseAddress =
+    //   await this.chainService.findPreviousCoinbaseAddresses(
+    //     qiWallet,
+    //     zone,
+    //     existingAddressesSet
+    //   )
 
-    if (potentialCoinbaseAddress) {
-      address = potentialCoinbaseAddress.address
-      account = potentialCoinbaseAddress.account
-      index = potentialCoinbaseAddress.index
-    }
+    // if (potentialCoinbaseAddress) {
+    //   address = potentialCoinbaseAddress.address
+    //   account = potentialCoinbaseAddress.account
+    //   index = potentialCoinbaseAddress.index
+    // }
 
     if (!address) {
       let newAddress: NeuteredAddressInfo
       let attempts = 0
       const maxAttempts = 200
-      const gapAddresses = [...qiWallet.getGapAddressesForZone(zone)]
+      const externalAddresses = [...qiWallet.getAddressesForZone(zone)]
+
+      // sort by index
+      externalAddresses.sort((a, b) => a.index - b.index)
       while (attempts < maxAttempts) {
         // If there are gap addresses, we should use the first one
-        if (gapAddresses.length > 0) {
-          newAddress = gapAddresses.shift()!
+        if (externalAddresses.length > 0) {
+          newAddress = externalAddresses.shift()!
         } else {
           // Otherwise, we generate a new address
           newAddress = await qiWallet.getNextAddress(account, zone)
@@ -1915,29 +1918,29 @@ export default class Main extends BaseService<never> {
     return { address, account, index, zone }
   }
 
-  private async findPreviousCoinbaseAddress(
-    qiWallet: QiHDWallet,
-    zone: Zone,
-    existingAddressesSet: Set<string>
-  ): Promise<NeuteredAddressInfo | undefined> {
-    const addresses = qiWallet.getAddressesForZone(zone)
-    const outpoints = qiWallet.getOutpoints(zone)
+  // private async findPreviousCoinbaseAddress(
+  //   qiWallet: QiHDWallet,
+  //   zone: Zone,
+  //   existingAddressesSet: Set<string>
+  // ): Promise<NeuteredAddressInfo | undefined> {
+  //   const addresses = qiWallet.getAddressesForZone(zone)
+  //   const outpoints = qiWallet.getOutpoints(zone)
 
-    // since lock is an optional numberic value this will filter out any lock values of undefined or 0
-    const outpointsWithLock = outpoints.filter(
-      (o: OutpointInfo) => !!o.outpoint.lock
-    )
-    for (const address of addresses) {
-      if (existingAddressesSet.has(address.address)) continue
-      const outpointsWithLockForAddress = outpointsWithLock.filter(
-        (o: OutpointInfo) => o.address === address.address
-      )
-      if (outpointsWithLockForAddress.length > 3) {
-        return address
-      }
-    }
-    return undefined
-  }
+  //   // since lock is an optional numberic value this will filter out any lock values of undefined or 0
+  //   const outpointsWithLock = outpoints.filter(
+  //     (o: OutpointInfo) => !!o.outpoint.lock
+  //   )
+  //   for (const address of addresses) {
+  //     if (existingAddressesSet.has(address.address)) continue
+  //     const outpointsWithLockForAddress = outpointsWithLock.filter(
+  //       (o: OutpointInfo) => o.address === address.address
+  //     )
+  //     if (outpointsWithLockForAddress.length > 3) {
+  //       return address
+  //     }
+  //   }
+  //   return undefined
+  // }
 
   getAddNetworkRequestDetails(requestId: string): AddChainRequestData {
     return this.providerBridgeService.getNewCustomRPCDetails(requestId)

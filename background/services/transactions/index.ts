@@ -180,82 +180,68 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   ): Promise<void> {
     try {
       const { jsonRpcProvider } = this.chainService
-
-      const qiWallet = await this.keyringService.getQiHDWallet()
+      let qiWallet = await this.keyringService.getQiHDWallet()
       qiWallet.connect(jsonRpcProvider)
 
-      const qiOutpoints = await this.chainService.getOutpointsForSending(amount)
-      const outpointInfos = qiOutpoints.map((outpoint) => ({
-        outpoint: outpoint.outpoint,
-        address: outpoint.address,
-        zone: Zone.Cyprus1,
-      }))
+      const maxAttempts = 3
+      let attempts = 0
+      let bufferPercentage = 10
+      let transaction: QiTransactionDB | null = null
+      while (attempts < maxAttempts) {
+        try {
+          const qiOutpoints = await this.chainService.getOutpointsForSending(
+            amount,
+            bufferPercentage
+          )
+          const outpointInfos = qiOutpoints.map((outpoint) => ({
+            outpoint: outpoint.outpoint,
+            address: outpoint.address,
+            zone: Zone.Cyprus1,
+          }))
 
-      qiWallet.importOutpoints(outpointInfos)
+          qiWallet.importOutpoints(outpointInfos)
 
-      let tx: QiTransactionResponse
-      try {
-        tx = (await qiWallet.sendTransaction(
-          receiverPaymentCode,
-          amount,
-          Zone.Cyprus1,
-          Zone.Cyprus1
-        )) as QiTransactionResponse
-      } catch (error) {
-        // if we get an error, we need to sync the wallet and try again
-        await this.chainService.syncQiWallet()
-        const qiWallet = await this.keyringService.getQiHDWallet()
-        qiWallet.connect(jsonRpcProvider)
+          const tx = (await qiWallet.sendTransaction(
+            receiverPaymentCode,
+            amount,
+            Zone.Cyprus1,
+            Zone.Cyprus1
+          )) as QiTransactionResponse
 
-        const qiOutpoints = await this.chainService.getOutpointsForSending(
-          amount
-        )
-        const outpointInfos = qiOutpoints.map((outpoint) => ({
-          outpoint: outpoint.outpoint,
-          address: outpoint.address,
-          zone: Zone.Cyprus1,
-        }))
+          const senderPaymentCode = qiWallet.getPaymentCode(0)
 
-        qiWallet.importOutpoints(outpointInfos)
-
-        tx = (await qiWallet.sendTransaction(
-          receiverPaymentCode,
-          amount,
-          Zone.Cyprus1,
-          Zone.Cyprus1
-        )) as QiTransactionResponse
+          transaction = processSentQiTransaction(
+            senderPaymentCode,
+            receiverPaymentCode,
+            tx as QiTransactionResponse,
+            amount
+          )
+          break
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            error.message.includes("Insufficient funds")
+          ) {
+            bufferPercentage += 10
+          } else {
+            await this.chainService.syncQiWallet()
+            qiWallet = await this.keyringService.getQiHDWallet()
+            qiWallet.connect(jsonRpcProvider)
+          }
+          attempts++
+        }
       }
 
-      const transaction = processSentQiTransaction(
-        senderPaymentCode,
-        receiverPaymentCode,
-        tx as QiTransactionResponse,
-        amount
-      )
-      await this.saveQiTransaction(transaction)
+      if (!transaction) {
+        throw new Error("Failed to send Qi transaction")
+      }
 
       // Wait for the transaction to be included in a block
-      await this.subscribeToQiTransaction(transaction.hash)
-      await this.chainService.syncQiWallet()
-      await this.keyringService.vaultManager.add(
-        {
-          qiHDWallet: qiWallet.serialize(),
-        },
-        {}
-      )
-
-      const channelExists = await this.doesChannelExistForReceiver(
-        senderPaymentCode,
-        receiverPaymentCode
-      )
-      if (!channelExists) {
-        await this.notifyQiRecipient(
-          quaiAddress,
-          senderPaymentCode,
-          receiverPaymentCode,
-          minerTip
-        )
-      }
+      await Promise.all([
+        this.saveQiTransaction(transaction),
+        this.subscribeToQiTransaction(transaction.hash),
+        this.chainService.syncQiWallet(),
+      ])
 
       NotificationsManager.createSendQiTxNotification()
     } catch (error) {
@@ -270,6 +256,24 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       )
       await this.saveQiTransaction(transaction)
       NotificationsManager.createFailedQiTxNotification()
+    }
+
+    try {
+      const channelExists = await this.doesChannelExistForReceiver(
+        senderPaymentCode,
+        receiverPaymentCode
+      )
+
+      if (!channelExists) {
+        await this.notifyQiRecipient(
+          quaiAddress,
+          senderPaymentCode,
+          receiverPaymentCode,
+          minerTip
+        )
+      }
+    } catch (error) {
+      logger.error("Failed to notify Qi recipient", error)
     }
   }
 
@@ -354,34 +358,65 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   public async convertQiToQuai(to: string, value: string): Promise<void> {
-    const { jsonRpcProvider } = this.chainService
-    const qiWallet = await this.keyringService.getQiHDWallet()
-    qiWallet.connect(jsonRpcProvider)
-
     const amount = parseQi(value)
+    const { jsonRpcProvider } = this.chainService
+    let qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+    let transaction: QiTransactionDB | null = null
     try {
-      const tx = await qiWallet.convertToQuai(to, amount)
+      const maxAttempts = 3
+      let attempts = 0
+      let bufferPercentage = 10
+      while (attempts < maxAttempts) {
+        try {
+          const qiOutpoints = await this.chainService.getOutpointsForSending(
+            amount,
+            bufferPercentage
+          )
 
-      const senderPaymentCode = qiWallet.getPaymentCode(0)
+          const outpointInfos = qiOutpoints.map((outpoint) => ({
+            outpoint: outpoint.outpoint,
+            address: outpoint.address,
+            zone: Zone.Cyprus1,
+          }))
 
-      const transaction = processConvertQiTransaction(
-        senderPaymentCode,
-        to,
-        tx as QiTransactionResponse,
-        amount
-      )
+          qiWallet.importOutpoints(outpointInfos)
+
+          const tx = await qiWallet.convertToQuai(to, amount)
+
+          const senderPaymentCode = qiWallet.getPaymentCode(0)
+          transaction = processConvertQiTransaction(
+            senderPaymentCode,
+            to,
+            tx as QiTransactionResponse,
+            amount
+          )
+          break
+        } catch (error: any) {
+          logger.error("Failed to convert Qi to Quai", error.message)
+          if (
+            error instanceof Error &&
+            error.message.includes("Insufficient funds")
+          ) {
+            bufferPercentage += 10
+          } else {
+            await this.chainService.syncQiWallet()
+            qiWallet = await this.keyringService.getQiHDWallet()
+            qiWallet.connect(jsonRpcProvider)
+          }
+          attempts++
+        }
+      }
+      if (!transaction) {
+        throw new Error("Failed to convert Qi to Quai")
+      }
       await this.saveQiTransaction(transaction)
-      await this.subscribeToQiTransaction(transaction.hash)
-
-      await qiWallet.sync(Zone.Cyprus1, 0)
-      await this.keyringService.vaultManager.add(
-        {
-          qiHDWallet: qiWallet.serialize(),
-        },
-        {}
-      )
-    } catch (error) {
-      logger.error("Failed to convert Qi to Quai", error)
+      await Promise.all([
+        this.subscribeToQiTransaction(transaction.hash),
+        this.chainService.syncQiWallet(),
+      ])
+    } catch (error: any) {
+      logger.error("Failed to convert Qi to Quai", error.message)
       NotificationsManager.createFailedQiTxNotification()
     }
   }

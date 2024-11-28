@@ -25,6 +25,7 @@ const ConfirmTransactionPage = () => {
 
   const [isInsufficientQuai, setInsufficientQuai] = useState(false)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(false)
+  const [isConfirmLoading, setIsConfirmLoading] = useState(false)
   const [isTransactionError, setIsTransactionError] = useState(false)
 
   useEffect(() => {
@@ -42,8 +43,12 @@ const ConfirmTransactionPage = () => {
   const onSendQiTransaction = async () => {
     if (!channelExists && isInsufficientQuai) return
 
+    setIsConfirmLoading(true)
     dispatch(sendQiTransaction())
-    setIsOpenConfirmationModal(true)
+    setTimeout(() => {
+      setIsConfirmLoading(false)
+      setIsOpenConfirmationModal(true)
+    }, 2000)
   }
 
   const confirmationModalProps = isTransactionError
@@ -84,6 +89,7 @@ const ConfirmTransactionPage = () => {
             onConfirm: onSendQiTransaction,
             onCancel: () => history.push("-1"),
           }}
+          isLoading={isConfirmLoading}
         />
       </main>
 

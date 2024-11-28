@@ -7,7 +7,7 @@ const ConfirmConversionWarning = () => {
       <div className="conversion-warning-wrapper">
         <SharedInfoTab>
           <div className="warning-message">
-            These funds will be locked for a 14 day period.{" "}
+            These funds will be locked for about 12 hours.{" "}
             <a href="#" className="warning-link">
               Learn more
             </a>

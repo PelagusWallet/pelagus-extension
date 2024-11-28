@@ -440,20 +440,29 @@ export class ChainDatabase extends Dexie {
   async loadQiOutpointsForSending(
     minimumAmt: bigint,
     chainID: string,
-    currentBlockNumber: number
+    currentBlockNumber: number,
+    bufferPercentage: number
   ): Promise<QiOutpoint[]> {
-    minimumAmt = minimumAmt * 3n // 3x buffer
     const outpoints: QiOutpoint[] = []
     let accumulatedValue = BigInt(0)
+    const bufferAmt = (minimumAmt * BigInt(bufferPercentage)) / BigInt(100)
+    const targetAmt = minimumAmt + bufferAmt
     const batchSize = 1000 // Adjust based on performance needs
-    let lastKey = [chainID, Dexie.minKey]
-    let hasMore = true
 
-    while (hasMore && accumulatedValue < minimumAmt) {
+    let hasMore = true
+    let offset = 0
+
+    while (hasMore && accumulatedValue < targetAmt) {
       const batch = await this.qiOutpoints
         .where("[chainID+outpoint.lock]")
-        .between(lastKey, [chainID, currentBlockNumber], false, true)
+        .between(
+          [chainID, Dexie.minKey],
+          [chainID, currentBlockNumber],
+          false,
+          true
+        )
         .limit(batchSize)
+        .offset(offset)
         .toArray()
 
       if (batch.length === 0) {
@@ -462,7 +471,7 @@ export class ChainDatabase extends Dexie {
       }
 
       // Update lastKey for the next batch
-      lastKey = [chainID, batch[batch.length - 1].outpoint.lock!]
+      offset += batchSize
 
       // Sort the batch by value in descending order
       batch.sort((a, b) => Number(b.value) - Number(a.value))
@@ -470,7 +479,7 @@ export class ChainDatabase extends Dexie {
       for (const outpoint of batch) {
         outpoints.push(outpoint)
         accumulatedValue += outpoint.value
-        if (accumulatedValue >= minimumAmt) {
+        if (accumulatedValue >= targetAmt) {
           hasMore = false
           break
         }

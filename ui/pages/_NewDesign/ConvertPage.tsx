@@ -27,7 +27,7 @@ const ConvertPage = () => {
 
     if (isUtxoAccountTypeGuard(from)) {
       return (
-        Number(amount) < 10 ||
+        Number(amount) < 100 ||
         !from?.balances[Zone.Cyprus1]?.assetAmount?.amount ||
         from?.balances[Zone.Cyprus1]?.assetAmount?.amount < parseQi(amount)
       )

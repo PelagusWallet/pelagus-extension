@@ -370,6 +370,10 @@ export default class ChainService extends BaseService<Events> {
         asset,
         amount: balance ?? toBigInt(0),
       },
+      lockedAmount: {
+        asset,
+        amount: BigInt(0),
+      },
       dataSource: "local",
       retrievedAt: Date.now(),
     }
@@ -386,6 +390,12 @@ export default class ChainService extends BaseService<Events> {
 
     const currentBalanceAmount =
       currentAccountState?.balances["QUAI"].assetAmount.amount
+
+    const lockedBalance = await this.jsonRpcProvider.getLockedBalance(address)
+    accountBalance.lockedAmount = {
+      asset,
+      amount: lockedBalance,
+    }
 
     // show this is the current network is selected
     if (
@@ -566,22 +576,19 @@ export default class ChainService extends BaseService<Events> {
 
         const paymentCode = qiWallet.getPaymentCode(0)
         let notifications: string[] = []
-        let currentBlock: Block | null = null
         try {
           const mailboxContract = new Contract(
             MAILBOX_CONTRACT_ADDRESS || "",
             MAILBOX_INTERFACE,
             this.jsonRpcProvider
           )
-          const [currentBlockValue, notificationsValue] = await Promise.all([
-            await this.jsonRpcProvider.getBlock(Shard.Cyprus1, "latest"),
-            mailboxContract.getNotifications(paymentCode),
-          ])
-          currentBlock = currentBlockValue
+          const notificationsValue = await mailboxContract.getNotifications(
+            paymentCode
+          )
           notifications = notificationsValue
-        } catch (error) {
-          console.error(
-            "Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet."
+        } catch (error: any) {
+          logger.error(
+            `Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet. Error: ${error.message}`
           )
         }
 
@@ -591,8 +598,14 @@ export default class ChainService extends BaseService<Events> {
           qiWallet.openChannel(paymentCode)
         })
 
+        const currentBlock = await this.jsonRpcProvider.getBlock(
+          Shard.Cyprus1,
+          "latest"
+        )
+
         let storeOutpoints = false
-        let balance: bigint
+        let spendableBalance: bigint = BigInt(0)
+        let lockedBalance: bigint = BigInt(0)
 
         if (forceFullScan) {
           // use immediateJsonRpcProvider to avoid race condition
@@ -604,7 +617,12 @@ export default class ChainService extends BaseService<Events> {
           storeOutpoints = true
 
           // calculate spendable balance for the current block using in memory outpoints
-          balance = await qiWallet.getSpendableBalanceForZone(
+          spendableBalance = await qiWallet.getSpendableBalanceForZone(
+            Zone.Cyprus1,
+            currentBlock?.woHeader.number,
+            true
+          )
+          lockedBalance = await qiWallet.getLockedBalanceForZone(
             Zone.Cyprus1,
             currentBlock?.woHeader.number,
             true
@@ -618,11 +636,20 @@ export default class ChainService extends BaseService<Events> {
           )
 
           // fetch spendable balance for the current block using getBalance RPC
-          balance = await qiWallet.getSpendableBalanceForZone(
-            Zone.Cyprus1,
-            currentBlock?.woHeader.number,
-            false
-          )
+          const [sBalance, lBalance] = await Promise.all([
+            qiWallet.getSpendableBalanceForZone(
+              Zone.Cyprus1,
+              currentBlock?.woHeader.number,
+              false
+            ),
+            qiWallet.getLockedBalanceForZone(
+              Zone.Cyprus1,
+              currentBlock?.woHeader.number,
+              false
+            ),
+          ])
+          spendableBalance = sBalance
+          lockedBalance = lBalance
         }
 
         const qiWalletBalance: QiWalletBalance = {
@@ -630,7 +657,11 @@ export default class ChainService extends BaseService<Events> {
           network,
           assetAmount: {
             asset: QI,
-            amount: balance,
+            amount: spendableBalance,
+          },
+          lockedAmount: {
+            asset: QI,
+            amount: lockedBalance,
           },
           dataSource: "local",
           retrievedAt: Date.now(),
@@ -719,13 +750,19 @@ export default class ChainService extends BaseService<Events> {
     }
 
     let err = false
-    let balance: bigint | undefined = toBigInt(0)
-
+    let spendableBalance: bigint = BigInt(0)
+    let lockedBalance: bigint = BigInt(0)
     try {
       const { jsonRpcProvider } = this.providerFactory.getProvidersForNetwork(
         network.chainID
       )
-      balance = await jsonRpcProvider.getBalance(address, "latest")
+      const [sBalance, lBalance] = await Promise.all([
+        jsonRpcProvider.getBalance(address, "latest"),
+        jsonRpcProvider.getLockedBalance(address),
+      ])
+
+      spendableBalance = sBalance
+      lockedBalance = lBalance
     } catch (error) {
       if (error instanceof Error) {
         logger.error("Error getting balance for address", address, error)
@@ -762,7 +799,11 @@ export default class ChainService extends BaseService<Events> {
       network,
       assetAmount: {
         asset,
-        amount: balance ?? toBigInt(0),
+        amount: spendableBalance,
+      },
+      lockedAmount: {
+        asset,
+        amount: lockedBalance,
       },
       dataSource: "local",
       retrievedAt: Date.now(),

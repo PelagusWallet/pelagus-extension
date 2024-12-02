@@ -90,18 +90,75 @@ export function determineAssetDisplayAndVerify(
 
 const computeCombinedAssetAmountsData = (
   assetAmounts: AnyAssetAmount<AnyAsset>[],
+  lockedAssetAmounts: AnyAssetAmount<AnyAsset>[],
   assets: AssetsState,
   mainCurrencySymbol: string,
   hideDust: boolean,
   showUnverifiedAssets: boolean
 ): {
   allAssetAmounts: CompleteAssetAmount[]
+  lockedAssetAmounts: CompleteAssetAmount[]
   combinedAssetAmounts: CompleteAssetAmount[]
   unverifiedAssetAmounts: CompleteAssetAmount[]
   totalMainCurrencyAmount: number | undefined
+  totalLockedMainCurrencyAmount: number | undefined
 } => {
   // Derive account "assets"/assetAmount which include USD values using data from the assets slice
   const allAssetAmounts = assetAmounts
+    .map<CompleteAssetAmount>((assetAmount) => {
+      const assetPricePoint = selectAssetPricePoint(
+        assets,
+        assetAmount.asset,
+        mainCurrencySymbol
+      )
+
+      const mainCurrencyEnrichedAssetAmount =
+        enrichAssetAmountWithMainCurrencyValues(
+          assetAmount,
+          assetPricePoint,
+          desiredDecimals.default
+        )
+
+      const fullyEnrichedAssetAmount = enrichAssetAmountWithDecimalValues(
+        mainCurrencyEnrichedAssetAmount,
+        heuristicDesiredDecimalsForUnitPrice(
+          EXCEPTION_ASSETS_BY_SYMBOL.includes(
+            assetAmount.asset.symbol.toUpperCase()
+          )
+            ? desiredDecimals.greater
+            : desiredDecimals.default,
+          mainCurrencyEnrichedAssetAmount.unitPrice
+        )
+      )
+
+      return fullyEnrichedAssetAmount
+    })
+    .sort((asset1, asset2) => {
+      const leftIsBaseAsset = isNetworkBaseAsset(asset1.asset)
+      const rightIsBaseAsset = isNetworkBaseAsset(asset2.asset)
+
+      // Always sort base assets above non-base assets. This also sorts the
+      // current network base asset above the rest
+      if (leftIsBaseAsset !== rightIsBaseAsset) return leftIsBaseAsset ? -1 : 1
+
+      // If the assets are both base assets or neither is a base asset, compare
+      // by main currency amount.
+      if (
+        asset1.mainCurrencyAmount !== undefined &&
+        asset2.mainCurrencyAmount !== undefined
+      )
+        return asset2.mainCurrencyAmount - asset1.mainCurrencyAmount
+
+      if (asset1.mainCurrencyAmount === asset2.mainCurrencyAmount) {
+        // If both assets are missing a main currency amount, compare symbols lexicographically.
+        return asset1.asset.symbol.localeCompare(asset2.asset.symbol)
+      }
+
+      // If only one asset has a main currency amount, it wins.
+      return asset1.mainCurrencyAmount === undefined ? 1 : -1
+    })
+
+  const allLockedAssetAmounts = lockedAssetAmounts
     .map<CompleteAssetAmount>((assetAmount) => {
       const assetPricePoint = selectAssetPricePoint(
         assets,
@@ -187,11 +244,21 @@ const computeCombinedAssetAmountsData = (
     }
   })
 
+  let totalLockedMainCurrencyAmount: number | undefined
+  allLockedAssetAmounts.forEach((assetAmount) => {
+    if (typeof assetAmount.mainCurrencyAmount !== "undefined") {
+      totalLockedMainCurrencyAmount ??= 0 // initialize if needed
+      totalLockedMainCurrencyAmount += assetAmount.mainCurrencyAmount
+    }
+  })
+
   return {
     allAssetAmounts,
+    lockedAssetAmounts: allLockedAssetAmounts,
     combinedAssetAmounts,
     unverifiedAssetAmounts,
     totalMainCurrencyAmount,
+    totalLockedMainCurrencyAmount,
   }
 }
 
@@ -218,17 +285,31 @@ export const selectCurrentAccountBalances = createSelector(
     if (typeof currentAccount === "undefined" || currentAccount === "loading")
       return undefined
 
-    const assetAmounts = Object.values(currentAccount.balances).map(
-      (balance) => balance.assetAmount
-    )
+    const assetAmounts: AnyAssetAmount<AnyAsset>[] = []
+    const lockedAssetAmounts: AnyAssetAmount<AnyAsset>[] = []
+
+    Object.values(currentAccount.balances).forEach((balance) => {
+      const { assetAmount, lockedAmount } = balance
+
+      // Add spendable balance
+      assetAmounts.push(assetAmount)
+
+      // Add locked balance if it exists
+      if (lockedAmount) {
+        lockedAssetAmounts.push(lockedAmount)
+      }
+    })
 
     const {
       allAssetAmounts,
+      lockedAssetAmounts: allLockedAssetAmounts,
       combinedAssetAmounts,
       unverifiedAssetAmounts,
       totalMainCurrencyAmount,
+      totalLockedMainCurrencyAmount,
     } = computeCombinedAssetAmountsData(
       assetAmounts,
+      lockedAssetAmounts,
       assets,
       mainCurrencySymbol,
       hideDust,
@@ -262,12 +343,20 @@ export const selectCurrentAccountBalances = createSelector(
 
     return {
       allAssetAmounts,
+      lockedAssetAmounts: allLockedAssetAmounts,
       assetAmounts: combinedAssetAmounts,
       unverifiedAssetAmounts,
       totalMainCurrencyValue: totalMainCurrencyAmount
         ? formatCurrencyAmount(
             mainCurrencySymbol,
             totalMainCurrencyAmount,
+            desiredDecimals.default
+          )
+        : undefined,
+      totalLockedMainCurrencyValue: totalLockedMainCurrencyAmount
+        ? formatCurrencyAmount(
+            mainCurrencySymbol,
+            totalLockedMainCurrencyAmount,
             desiredDecimals.default
           )
         : undefined,

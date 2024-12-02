@@ -10,7 +10,7 @@ import {
 } from "../../accounts"
 import { NetworkBaseAsset } from "../../networks"
 import { FungibleAsset } from "../../assets"
-import { BASE_ASSETS } from "../../constants"
+import { BASE_ASSETS, QI, QUAI } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
@@ -105,6 +105,37 @@ export class ChainDatabase extends Dexie {
       qiWalletSyncInfo:
         "&[chainID+type],chainID,blockNumber,blockHash,timestamp,type",
     })
+
+    this.version(5)
+      .stores({
+        balances:
+          "[address+assetAmount.asset.symbol+network.chainID],address,assetAmount.amount,lockedAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
+        qiLedgerBalance:
+          "[paymentCode+assetAmount.asset.symbol+network.chainID],paymentCode,assetAmount.amount,lockedAmount.amount,assetAmount.asset.symbol,network.baseAsset.name,blockHeight,retrievedAt",
+      })
+      .upgrade(async (transaction) => {
+        // Add lockedAmount to balances
+        await transaction
+          .table("balances")
+          .toCollection()
+          .modify((balance) => {
+            balance.lockedAmount = {
+              asset: balance.assetAmount.asset,
+              amount: BigInt(0),
+            }
+          })
+
+        // Add lockedAmount to qiLedgerBalance
+        await transaction
+          .table("qiLedgerBalance")
+          .toCollection()
+          .modify((balance) => {
+            balance.lockedAmount = {
+              asset: balance.assetAmount.asset,
+              amount: BigInt(0),
+            }
+          })
+      })
   }
 
   async initialize(): Promise<void> {

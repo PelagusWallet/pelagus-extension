@@ -513,6 +513,7 @@ export default class Main extends BaseService<never> {
       for (const assetSymbol in balances) {
         const { asset, amount } = balances[assetSymbol].assetAmount
         let newBalance = amount ?? BigInt(0)
+        let newLockedBalance = BigInt(0)
         if (isSmartContractFungibleAsset(asset)) {
           if (
             getExtendedZoneForAddress(asset.contractAddress, false) !==
@@ -526,7 +527,13 @@ export default class Main extends BaseService<never> {
               asset.contractAddress
             )
           ).amount
-        } else if (!isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
+        } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
+          const balances = await this.chainService.getLatestBaseAccountBalance(
+            selectedAccount
+          )
+          newBalance = balances.assetAmount.amount
+          newLockedBalance = balances.lockedAmount?.amount ?? BigInt(0)
+        } else {
           logger.error(
             `Unknown asset type for balance checker, asset: ${asset.symbol}`
           )
@@ -541,6 +548,7 @@ export default class Main extends BaseService<never> {
             selectedAccount.address
           )
         }
+
         this.store.dispatch(
           updateAccountBalance({
             balances: [
@@ -548,6 +556,10 @@ export default class Main extends BaseService<never> {
                 address: selectedAccount.address,
                 assetAmount: {
                   amount: newBalance,
+                  asset,
+                },
+                lockedAmount: {
+                  amount: newLockedBalance,
                   asset,
                 },
                 network: selectedAccount.network,
@@ -576,53 +588,71 @@ export default class Main extends BaseService<never> {
     const { balances } = currentAccountState
     for (const assetSymbol in balances) {
       const { asset } = balances[assetSymbol].assetAmount
-      let newBalance = BigInt(0)
-      if (isSmartContractFungibleAsset(asset)) {
+      let newSpendableBalance = BigInt(0)
+      let newLockedBalance = BigInt(0)
+      const isSmartContractAsset = isSmartContractFungibleAsset(asset)
+      const isNativeAsset = isBuiltInNetworkBaseAsset(
+        asset,
+        selectedAccount.network
+      )
+
+      if (isSmartContractAsset) {
         if (
           getExtendedZoneForAddress(asset.contractAddress, false) !==
           getExtendedZoneForAddress(selectedAccount.address, false)
         ) {
           continue
         }
-        newBalance = (
+        newSpendableBalance = (
           await this.chainService.assetData.getTokenBalance(
             selectedAccount,
             asset.contractAddress
           )
         ).amount
-      } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
-        newBalance = (
-          await this.chainService.getLatestBaseAccountBalance(selectedAccount)
-        ).assetAmount.amount
+      } else if (isNativeAsset) {
+        const balances = await this.chainService.getLatestBaseAccountBalance(
+          selectedAccount
+        )
+        newSpendableBalance = balances.assetAmount.amount
+        newLockedBalance = balances.lockedAmount?.amount ?? BigInt(0)
       } else {
         logger.error(
           `Unknown asset type for balance checker, asset: ${asset.symbol}`
         )
         continue
       }
-      isSmartContractFungibleAsset(asset)
-        ? logger.info(
-            `Balance checker: ${asset.symbol} ${newBalance} ${asset.contractAddress}`
-          )
-        : logger.info(`Balance checker: ${asset.symbol} ${newBalance}`)
-      await this.store.dispatch(
+
+      // Create the updated balance object
+      const updatedBalance: AccountBalance = {
+        address: selectedAccount.address,
+        assetAmount: {
+          amount: newSpendableBalance,
+          asset,
+        },
+        network: selectedAccount.network,
+        retrievedAt: Date.now(),
+        dataSource: "local",
+      }
+
+      if (isNativeAsset) {
+        // Include lockedAmount only for native assets
+        updatedBalance.lockedAmount = {
+          amount: newLockedBalance,
+          asset,
+        }
+        logger.info(
+          `Balance checker: ${asset.symbol} ${newSpendableBalance} (spendable) ${newLockedBalance} (locked)`
+        )
+      } else if (isSmartContractAsset) {
+        logger.info(
+          `Balance checker: ${asset.symbol} ${newSpendableBalance} (spendable)`
+        )
+      }
+
+      this.store.dispatch(
         updateAccountBalance({
-          balances: [
-            {
-              address: selectedAccount.address,
-              assetAmount: {
-                amount: newBalance,
-                asset,
-              },
-              network: selectedAccount.network,
-              retrievedAt: Date.now(),
-              dataSource: "local",
-            },
-          ],
-          addressOnNetwork: {
-            address: selectedAccount.address,
-            network: selectedAccount.network,
-          },
+          balances: [updatedBalance],
+          addressOnNetwork: selectedAccount,
         })
       )
     }
@@ -1123,7 +1153,6 @@ export default class Main extends BaseService<never> {
             filteredBalancesToDispatch.push(balance)
           }
         })
-
         this.store.dispatch(
           updateAccountBalance({
             balances: filteredBalancesToDispatch,

@@ -47,10 +47,13 @@ export default function Wallet(): ReactElement {
   const selectedNetwork = useBackgroundSelector(selectCurrentNetwork)
   const showUnverifiedAssets = useBackgroundSelector(selectShowUnverifiedAssets)
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
-  const { assetAmounts, unverifiedAssetAmounts } = accountData ?? {
-    assetAmounts: [],
-    unverifiedAssetAmounts: [],
-    totalMainCurrencyValue: undefined,
+  const { assetAmounts, lockedAssetAmounts, unverifiedAssetAmounts } =
+    accountData ?? {
+      assetAmounts: [],
+      lockedAssetAmounts: [],
+      unverifiedAssetAmounts: [],
+      totalMainCurrencyValue: undefined,
+      totalLockedMainCurrencyValue: undefined,
   }
 
   const currentAccountActivities = useBackgroundSelector(
@@ -109,6 +112,18 @@ export default function Wallet(): ReactElement {
     )
   }, [assetAmounts])
 
+  const mainAssetLockedBalance = useMemo(() => {
+    if (!lockedAssetAmounts[0]) return "0"
+    if (!isFungibleAsset(lockedAssetAmounts[0].asset))
+      return lockedAssetAmounts[0].decimalAmount.toString() ?? "0"
+
+    return bigIntToDecimal(
+      lockedAssetAmounts[0].amount,
+      lockedAssetAmounts[0].asset.decimals,
+      4
+    )
+  }, [lockedAssetAmounts])
+
   return (
     <>
       <div className="page_content">
@@ -123,6 +138,7 @@ export default function Wallet(): ReactElement {
         <div className="section">
           <WalletAccountBalanceControl
             mainAssetBalance={mainAssetBalance}
+            mainAssetLockedBalance={mainAssetLockedBalance}
             initializationLoadingTimeExpired={initializationLoadingTimeExpired}
           />
         </div>

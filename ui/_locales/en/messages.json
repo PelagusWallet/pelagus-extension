@@ -464,7 +464,7 @@
       "addCustomAssetPrompt": "Can't find an asset?",
       "addCustomAssetAction": "Add custom asset"
     },
-    "totalAccountBalance": "Total account balance",
+    "totalAccountBalance": "Available Balance",
     "send": "Send",
     "swap": "Convert",
     "receive": "Receive",

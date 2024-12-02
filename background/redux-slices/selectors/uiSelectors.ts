@@ -71,9 +71,25 @@ export const selectCurrentUtxoAccount = createSelector(
 export const selectQiBalanceForCurrentUtxoAccountCyprus1 = createSelector(
   (state: RootState) => state.ui.selectedUtxoAccount?.balances,
   (balances) => {
-    const amount = balances?.[Zone.Cyprus1]?.assetAmount?.amount
-    return amount !== undefined && amount !== null && !isNaN(Number(amount))
-      ? formatQi(amount)
-      : null
+    const spendableAmount = balances?.[Zone.Cyprus1]?.assetAmount?.amount
+    const formattedSpendableAmount =
+      spendableAmount !== undefined &&
+      spendableAmount !== null &&
+      !isNaN(Number(spendableAmount))
+        ? formatQi(spendableAmount)
+        : null
+
+    const lockedAmount = balances?.[Zone.Cyprus1]?.lockedAmount?.amount
+    const formattedLockedAmount =
+      lockedAmount !== undefined &&
+      lockedAmount !== null &&
+      !isNaN(Number(lockedAmount))
+        ? formatQi(lockedAmount)
+        : null
+
+    return {
+      spendableAmount: formattedSpendableAmount,
+      lockedAmount: formattedLockedAmount,
+    }
   }
 )

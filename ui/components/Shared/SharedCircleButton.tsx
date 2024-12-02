@@ -58,7 +58,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             letter-spacing: 0.03em;
             color: ${textColor.color};
             transition: color 0.2s;
-            width: 100%;
+            width: 80%;
             display: flex;
             flex-direction: column;
             align-items: center;

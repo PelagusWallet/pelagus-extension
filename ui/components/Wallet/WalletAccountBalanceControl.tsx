@@ -16,9 +16,10 @@ import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import Receive from "../../pages/Receive"
 import ReadOnlyNotice from "../Shared/ReadOnlyNotice"
 import SharedCircleButton from "../Shared/SharedCircleButton"
-import BalanceReloader from '../BalanceReloader/BalanceReloader';
+import BalanceReloader from '../Balance/BalanceReloader';
 import humanNumber from "human-number"
 import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import LockedBalanceCard from "../Balance/LockedBalanceCard"
 
 type ActionButtonsProps = {
   onReceive: () => void
@@ -50,6 +51,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           await dispatch(resetQiSendSlice())
           history.push("/send-qi")
         }}
+        size={55}
         iconWidth="20"
         iconHeight="18"
       >
@@ -59,6 +61,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         icon="icons/s/receive.svg"
         ariaLabel={t("receive")}
         onClick={onReceive}
+        size={55}
         iconWidth="20"
         iconHeight="18"
       >
@@ -72,6 +75,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           await dispatch(resetConvertAssetsSlice())
           history.push("/convert")
         }}
+        size={55}
         iconWidth="20"
         iconHeight="18"
         disabled={!isQiWalletInit}
@@ -84,9 +88,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           .action_buttons_wrap {
             display: flex;
             justify-content: center;
-            //gap: 44px;
             gap: 24px;
-            margin: 24px 0;
+            margin: 12px 0;
           }
           .centered_tooltip {
             display: flex;
@@ -102,6 +105,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
 }
 interface Props {
   mainAssetBalance?: string
+  mainAssetLockedBalance?: string
   initializationLoadingTimeExpired: boolean
 }
 
@@ -111,7 +115,7 @@ export default function WalletAccountBalanceControl(
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet",
   })
-  const { mainAssetBalance, initializationLoadingTimeExpired } = props
+  const { mainAssetBalance, mainAssetLockedBalance, initializationLoadingTimeExpired } = props
   const [openReceiveMenu, setOpenReceiveMenu] = useState(false)
 
   // TODO When non-imported accounts are supported, generalize this.
@@ -125,7 +129,7 @@ export default function WalletAccountBalanceControl(
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
 
-  const utxoBalance = useBackgroundSelector(
+  const { spendableAmount: utxoBalance, lockedAmount: utxoLockedBalance } = useBackgroundSelector(
     selectQiBalanceForCurrentUtxoAccountCyprus1
   )
 
@@ -136,12 +140,20 @@ export default function WalletAccountBalanceControl(
   }
 
   const [formattedBalance, setFormattedBalance] = useState("")
+  const [formattedLockedBalance, setFormattedLockedBalance] = useState("")
 
   useEffect(() => {
     const balance = isUtxoSelected ? utxoBalance : mainAssetBalance
     const newFormattedBalance = formatBalance(balance || "0")
     setFormattedBalance(newFormattedBalance)
   }, [isUtxoSelected, utxoBalance, mainAssetBalance])
+
+  useEffect(() => {
+    const lockedBalance = isUtxoSelected ? utxoLockedBalance : mainAssetLockedBalance
+    const newFormattedLockedBalance = formatBalance(lockedBalance || "0")
+    setFormattedLockedBalance(newFormattedLockedBalance)
+
+  }, [isUtxoSelected, utxoLockedBalance, mainAssetLockedBalance])
 
   const shouldIndicateLoadingHandle = ({
     isActionsSkeleton,
@@ -167,7 +179,7 @@ export default function WalletAccountBalanceControl(
       <div className="wrap">
         <SharedSkeletonLoader
           height={78}
-          width={350}
+          width={250}
           borderRadius={14}
           customStyles={isUtxoSelected ? "" : "margin: 12px 0"}
           isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: false })}
@@ -187,6 +199,7 @@ export default function WalletAccountBalanceControl(
             </span>
           </span>
         </SharedSkeletonLoader>
+
         <SharedSkeletonLoader
           isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: true })}
           height={70}
@@ -213,6 +226,21 @@ export default function WalletAccountBalanceControl(
             </>
           )}
         </SharedSkeletonLoader>
+
+        <SharedSkeletonLoader
+          height={25}
+          width={200}
+          borderRadius={14}
+          isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: false })}
+          customStyles="margin-top: 10px;"
+        >
+          {formattedLockedBalance && Number(formattedLockedBalance) > 0 && (
+            <div className="locked_balance_card_wrap">
+              <LockedBalanceCard balance={formattedLockedBalance} assetSymbol={isUtxoSelected ? "QI" : "QUAI"}/>
+            </div>
+          )}
+        </SharedSkeletonLoader>
+        
       </div>
       <style jsx>
         {`
@@ -274,6 +302,9 @@ export default function WalletAccountBalanceControl(
             font-weight: 400;
             line-height: 24px;
             text-align: center;
+          }
+          .locked_balance_card_wrap {
+            margin-bottom: 12px;
           }
         `}
       </style>

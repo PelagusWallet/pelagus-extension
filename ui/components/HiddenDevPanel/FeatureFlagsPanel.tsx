@@ -7,7 +7,7 @@ import {
 import React, { ReactElement, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { setLocalStorageItem } from "../../hooks"
-import BalanceReloader from "../BalanceReloader/BalanceReloader"
+import BalanceReloader from "../Balance/BalanceReloader"
 import SharedPageHeader from "../Shared/SharedPageHeader"
 import SharedToggleButton from "../Shared/SharedToggleButton"
 

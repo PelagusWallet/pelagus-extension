@@ -52,7 +52,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           history.push("/send-qi")
         }}
         size={55}
-        iconWidth="20"
+        iconWidth="12"
         iconHeight="18"
       >
         {t("send")}
@@ -62,7 +62,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         ariaLabel={t("receive")}
         onClick={onReceive}
         size={55}
-        iconWidth="20"
+        iconWidth="12"
         iconHeight="18"
       >
         {t("receive")}

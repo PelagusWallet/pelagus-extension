@@ -36,8 +36,8 @@ export default function SettingsAddQiCoinbaseAddress(): ReactElement {
       await dispatch(addQiCoinbaseAddress({ zone: selectedZone }))
       setIsGenerating(false)
       history.goBack()
-    } catch (error) {
-      console.error("Error adding Qi mining address:", error)
+    } catch (error: any) {
+      console.error(`Error adding Qi mining address: ${error.message}`)
       setIsGenerating(false)
     }
   }

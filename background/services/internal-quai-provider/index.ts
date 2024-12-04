@@ -140,8 +140,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         logger.debug("internal response:", response)
 
         internalProviderPort.postResponse(response)
-      } catch (error) {
-        logger.debug("error processing request", event.id, error)
+      } catch (error: any) {
+        logger.debug(`Error processing request: ${event.id}`, error.message)
 
         internalProviderPort.postResponse({
           id: event.id,

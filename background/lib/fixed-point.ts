@@ -153,10 +153,10 @@ export function parseToFixedPointNumber(
       amount: BigInt([noThousandsSeparatorWhole, setDecimals].join("")),
       decimals: setDecimals.length,
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.debug(
       `Error parsing ${floatingPointString} to fixed-point number:`,
-      error
+      error.message
     )
     return undefined
   }

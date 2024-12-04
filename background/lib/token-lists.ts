@@ -46,8 +46,8 @@ export async function fetchAndValidateTokenList(
       tokenList: cleanedJSON as TokenList,
       url,
     }
-  } catch (error) {
-    throw new Error(`Error resolving token list at ${url}`)
+  } catch (error: any) {
+    throw new Error(`Error resolving token list at ${url}. ${error.message}`)
   }
 }
 

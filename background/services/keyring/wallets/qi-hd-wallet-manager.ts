@@ -55,9 +55,9 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
       notifications = await mailboxContract.getNotifications(
         thisQiWalletPaymentCode
       )
-    } catch (error) {
-      console.error(
-        "Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet."
+    } catch (error: any) {
+      logger.error(
+        `Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet: ${error.message}`
       )
     }
 

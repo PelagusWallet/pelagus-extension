@@ -127,8 +127,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
       await this.processQuaiTransactionResponse(transactionResponse)
       return transactionResponse
-    } catch (error) {
-      logger.error("Failed to sign and send Quai transaction", error)
+    } catch (error: any) {
+      logger.error(`Failed to sign and send Quai transaction: ${error.message}`)
       this.emitter.emit("transactionSendFailure")
       return null
     }
@@ -165,8 +165,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         signedTransaction
       )) as QuaiTransactionResponse
       await this.processQuaiTransactionResponse(transactionResponse)
-    } catch (error) {
-      logger.error("Failed to send Quai transaction", error)
+    } catch (error: any) {
+      logger.error(`Failed to send Quai transaction: ${error.message}`)
       this.emitter.emit("transactionSendFailure")
     }
   }
@@ -244,8 +244,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       ])
 
       NotificationsManager.createSendQiTxNotification()
-    } catch (error) {
-      logger.error("Failed to send Qi transaction", error)
+    } catch (error: any) {
+      logger.error(`Failed to send Qi transaction: ${error.message}`)
 
       const { chainID } = this.chainService.selectedNetwork
       const transaction = processFailedQiTransaction(
@@ -272,8 +272,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           minerTip
         )
       }
-    } catch (error) {
-      logger.error("Failed to notify Qi recipient", error)
+    } catch (error: any) {
+      logger.error(`Failed to notify Qi recipient: ${error.message}`)
     }
   }
 
@@ -452,8 +452,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         await this.db.addPaymentChannel(receiverPaymentCode)
         return true
       }
-    } catch (error) {
-      logger.error("Error checking if payment channel is established:", error)
+    } catch (error: any) {
+      logger.error(
+        `Error checking if payment channel is established: ${error.message}`
+      )
       throw error
     }
 
@@ -605,9 +607,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         // dropped / failed
         await this.handleQuaiTransactionFail(hash)
       }
-    } catch (error) {
+    } catch (error: any) {
       // dropped / failed
-      logger.error(error)
+      logger.error(`Error subscribing to Quai transaction: ${error.message}`)
       await this.handleQuaiTransactionFail(hash)
     }
   }
@@ -623,8 +625,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
       try {
         transaction = await jsonRpcProvider.getTransaction(hash)
-      } catch (error) {
-        logger.error("Error fetching qi transaction confirmation", error)
+      } catch (error: any) {
+        logger.error(
+          `Error fetching qi transaction confirmation: ${error.message}`
+        )
         break
       }
 
@@ -770,8 +774,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
       // add payment channel if the recipient has been notified
       await this.db.addPaymentChannel(receiverPaymentCode)
-    } catch (error) {
-      logger.error("Error occurs while notifying Qi recipient", error)
+    } catch (error: any) {
+      logger.error(
+        `Error occurs while notifying Qi recipient: ${error.message}`
+      )
     }
   }
 }

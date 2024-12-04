@@ -765,7 +765,7 @@ export default class ChainService extends BaseService<Events> {
       lockedBalance = lBalance
     } catch (error) {
       if (error instanceof Error) {
-        logger.error("Error getting balance for address", address, error)
+        logger.error(`Error getting balance for ${address}: ${error.message}`)
         err = true // only reset user-displayed error if there's no error at all
         if (error.message.includes("could not detect network")) {
           globalThis.main.SetNetworkError({

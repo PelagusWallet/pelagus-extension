@@ -408,7 +408,7 @@ export class ChainDatabase extends Dexie {
           )
         }
       })
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof Dexie.BulkError) {
         console.error(
           "Some QiOutpoints could not be added:",
@@ -416,7 +416,7 @@ export class ChainDatabase extends Dexie {
           "failures\n",
           error.failures,
           "\n",
-          error
+          error.message
         )
         logger.error(
           "Some QiOutpoints could not be added:",
@@ -424,7 +424,7 @@ export class ChainDatabase extends Dexie {
           "failures\n",
           error.failures,
           "\n",
-          error
+          error.message
         )
       } else {
         throw error

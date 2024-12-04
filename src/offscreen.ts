@@ -17,8 +17,8 @@ export async function addToOffscreenClipboardSensitiveData(
         reasons: [chrome.offscreen.Reason.CLIPBOARD],
         justification: "Write text to the clipboard.",
       })
-    } catch (error) {
-      console.error("Failed to create offscreen document:", error)
+    } catch (error: any) {
+      console.error(`Failed to create offscreen document: ${error.message}`)
       return
     }
   }

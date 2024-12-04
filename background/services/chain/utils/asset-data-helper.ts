@@ -76,10 +76,9 @@ export default class AssetDataHelper {
         smartContractAddresses || [],
         provider
       )
-    } catch (error) {
+    } catch (error: any) {
       logger.debug(
-        "Problem resolving asset balances; network may not support it.",
-        error
+        `Problem resolving asset balances; network may not support it: ${error.message}`
       )
     }
 

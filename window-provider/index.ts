@@ -176,6 +176,7 @@ export default class PelagusWindowProvider extends EventEmitter {
         break
       case "net_version":
       case "quai_chainId":
+      case "eth_chainId":
         if (
           typeof result === "string" &&
           Number(this.chainId) !== Number(result)
@@ -184,7 +185,9 @@ export default class PelagusWindowProvider extends EventEmitter {
         }
         break
       case "quai_accounts":
+      case "eth_accounts":
       case "quai_requestAccounts":
+      case "eth_requestAccounts":
         if (Array.isArray(result) && result.length !== 0) {
           this.emitAddressChange(result)
         }

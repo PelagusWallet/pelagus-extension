@@ -32,6 +32,7 @@ function contentScriptEventsListener(
     // if dapp wants to connect let's grab its details
     if (
       event.data.request.method === "quai_requestAccounts" ||
+      event.data.request.method === "eth_requestAccounts" ||
       event.data.request.method === "wallet_addEthereumChain"
     ) {
       const faviconElements: NodeListOf<HTMLLinkElement> =

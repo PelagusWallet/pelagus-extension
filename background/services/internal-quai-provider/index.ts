@@ -176,6 +176,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           typedData: JSON.parse(params[1] as string),
         })
       case "quai_chainId":
+      case "eth_chainId":
         // TODO Decide on a better way to track whether a particular chain is
         // allowed to have an RPC call made to it. Ideally this would be based
         // on a user's idea of a dApp connection rather than a network-specific
@@ -184,6 +185,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
         )
       case "quai_blockNumber":
+      case "eth_blockNumber":
         if (!params[0]) {
           return this.chainService.jsonRpcProvider.getBlockNumber(
             "0x00" as Shard
@@ -210,11 +212,13 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           params[0] as string
         )
       case "quai_getTransactionCount":
+      case "eth_getTransactionCount":
         return this.chainService.jsonRpcProvider.getTransactionCount(
           getAddress(params[0] as string),
           params[1] as quais.BlockTag
         )
-      case "quai_accounts": {
+      case "quai_accounts":
+      case "eth_accounts": {
         const { address } = await this.preferenceService.getSelectedAccount()
         return [address]
       }
@@ -279,6 +283,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           params[1] as BlockTag
         )
       case "quai_getBalance":
+      case "eth_getBalance":
         return this.chainService.jsonRpcProvider.getBalance(
           params[0] as AddressLike
         )
@@ -290,14 +295,17 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           params[0] as Filter | FilterByBlockHash
         )
       case "quai_call":
+      case "eth_call":
         return this.chainService.jsonRpcProvider.call(
           params[0] as QuaiTransactionRequest
         )
       case "quai_getCode":
+      case "eth_getCode":
         return this.chainService.jsonRpcProvider.getCode(
           params[0] as AddressLike
         )
       case "quai_getStorageAt":
+      case "eth_getStorageAt":
         return this.chainService.jsonRpcProvider.getStorage(
           params[0] as AddressLike,
           params[1] as BigNumberish

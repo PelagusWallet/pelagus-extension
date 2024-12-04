@@ -253,12 +253,13 @@ export default class ChainService extends BaseService<Events> {
   }
 
   public switchNetwork(network: NetworkInterface): void {
-    const { jsonRpcProvider, webSocketProvider } =
+    const { jsonRpcProvider, webSocketProvider, immediateJsonRpcProvider } =
       this.providerFactory.getProvidersForNetwork(network.chainID)
 
     this.selectedNetwork = network
     this.jsonRpcProvider = jsonRpcProvider
     this.webSocketProvider = webSocketProvider
+    this.immediateJsonRpcProvider = immediateJsonRpcProvider ?? jsonRpcProvider
 
     this.subscribedAccounts.map((item) =>
       this.getLatestBaseAccountBalance({ address: item.account, network })
@@ -391,10 +392,17 @@ export default class ChainService extends BaseService<Events> {
     const currentBalanceAmount =
       currentAccountState?.balances["QUAI"].assetAmount.amount
 
-    const lockedBalance = await this.jsonRpcProvider.getLockedBalance(address)
-    accountBalance.lockedAmount = {
-      asset,
-      amount: lockedBalance,
+    try {
+      const lockedBalance =
+        await this.immediateJsonRpcProvider.getLockedBalance(address)
+      accountBalance.lockedAmount = {
+        asset,
+        amount: lockedBalance,
+      }
+    } catch (error: any) {
+      logger.error(
+        `Error getting locked balance after balance update for ${address}: ${error.message}`
+      )
     }
 
     // show this is the current network is selected
@@ -753,19 +761,16 @@ export default class ChainService extends BaseService<Events> {
     let spendableBalance: bigint = BigInt(0)
     let lockedBalance: bigint = BigInt(0)
     try {
-      const { jsonRpcProvider } = this.providerFactory.getProvidersForNetwork(
-        network.chainID
-      )
       const [sBalance, lBalance] = await Promise.all([
-        jsonRpcProvider.getBalance(address, "latest"),
-        jsonRpcProvider.getLockedBalance(address),
+        this.immediateJsonRpcProvider!.getBalance(address, "latest"),
+        this.immediateJsonRpcProvider!.getLockedBalance(address),
       ])
 
       spendableBalance = sBalance
       lockedBalance = lBalance
-    } catch (error) {
+    } catch (error: any) {
+      logger.error(`Error getting balance for ${address}: ${error.message}`)
       if (error instanceof Error) {
-        logger.error(`Error getting balance for ${address}: ${error.message}`)
         err = true // only reset user-displayed error if there's no error at all
         if (error.message.includes("could not detect network")) {
           globalThis.main.SetNetworkError({
@@ -773,9 +778,6 @@ export default class ChainService extends BaseService<Events> {
             error: true,
           })
         }
-        logger.error(
-          `Global shard: ${globalThis.main.SelectedShard} Address shard: ${addrShard} Provider: ${this.jsonRpcProvider}`
-        )
       }
     } finally {
       if (!err) {

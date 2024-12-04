@@ -510,10 +510,16 @@ export default class ProviderBridgeService extends BaseService<Events> {
         case "quai_requestAccounts":
         case "quai_accounts":
           return [enablingPermission.accountAddress]
+
+        // allow quai and eth namespaces for signing typed data
         case "quai_signTypedData":
         case "quai_signTypedData_v1":
         case "quai_signTypedData_v3":
         case "quai_signTypedData_v4":
+        case "eth_signTypedData":
+        case "eth_signTypedData_v1":
+        case "eth_signTypedData_v3":
+        case "eth_signTypedData_v4":
           checkPermissionSignTypedData(
             params[0] as HexString,
             enablingPermission
@@ -526,6 +532,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
             showExtensionPopup(AllowedQueryParamPage.signData)
           )
         case "quai_sign":
+        case "eth_sign":
           checkPermissionSign(params[0] as HexString, enablingPermission)
 
           return await this.routeSafeRequest(
@@ -622,8 +629,8 @@ export default class ProviderBridgeService extends BaseService<Events> {
           )
         }
       }
-    } catch (error) {
-      logger.error("Error processing request", error)
+    } catch (error: any) {
+      logger.error("Error processing request", error.message)
       return handleRPCErrorResponse(error)
     }
   }

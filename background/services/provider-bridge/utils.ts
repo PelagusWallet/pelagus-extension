@@ -158,6 +158,7 @@ export function parseRPCRequestParams(
 ): RPCRequest["params"] {
   switch (method) {
     case "quai_sign":
+    case "eth_sign":
       return sameQuaiAddress(
         params[0] as HexString,
         enablingPermission.accountAddress

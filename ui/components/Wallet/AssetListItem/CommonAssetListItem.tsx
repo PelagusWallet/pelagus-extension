@@ -19,6 +19,7 @@ import SharedIconRouterLink from "../../Shared/SharedIconRouterLink"
 import { trimWithEllipsis } from "../../../utils/textUtils"
 import AssetVerifyToggler from "../UnverifiedAsset/AssetVerifyToggler"
 import SharedIcon from "../../Shared/SharedIcon"
+import humanNumber from "human-number"
 
 type CommonAssetListItemProps = {
   assetAmount: CompleteAssetAmount<SwappableAsset>
@@ -50,6 +51,18 @@ export default function CommonAssetListItem(
     }
   }
 
+  const formatBalance = (balance: CompleteAssetAmount<SwappableAsset>) => {
+    const decimalBalance = bigIntToDecimal(
+      balance.amount,
+      balance.asset.decimals,
+      4
+    )
+
+    if (Number(decimalBalance) < 1000) return decimalBalance
+    
+    return humanNumber(Number(decimalBalance), (n: number) => n.toFixed(4))
+  }
+
   return (
     <Link
       to={{
@@ -66,11 +79,7 @@ export default function CommonAssetListItem(
           <div className="asset_left_content">
             <div className="asset_amount">
               <span className="bold_amount_count">
-                {bigIntToDecimal(
-                  assetAmount.amount,
-                  assetAmount.asset.decimals,
-                  4
-                )}
+                {formatBalance(assetAmount)}
               </span>
               <span title={assetAmount.asset.symbol}>
                 {trimWithEllipsis(assetAmount.asset.symbol, MAX_SYMBOL_LENGTH)}

@@ -164,6 +164,10 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "quai_signTypedData_v1":
       case "quai_signTypedData_v3":
       case "quai_signTypedData_v4":
+      case "eth_signTypedData":
+      case "eth_signTypedData_v1":
+      case "eth_signTypedData_v3":
+      case "eth_signTypedData_v4":
         return this.signTypedData({
           account: {
             address: params[0] as string,
@@ -220,6 +224,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           origin
         ).then((transactionResponse) => transactionResponse.hash)
       case "quai_sign":
+      case "eth_sign":
         return this.signData(
           {
             input: params[1] as string,

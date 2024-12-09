@@ -1,5 +1,5 @@
 import { JsonRpcProvider, Shard, WebSocketProvider } from "quais"
-
+import { JsonRpcProvider as EthJsonRpcProvider } from "ethers"
 import BaseService from "../base"
 import { NetworkProviders } from "./types"
 import { ServiceCreatorFunction } from "../types"
@@ -82,10 +82,15 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
         }
       )
 
+      const ethRpcUrl = jsonRpcUrls[0]
+
+      const ethJsonRpcProvider = new EthJsonRpcProvider(ethRpcUrl)
+
       const networkProviders: NetworkProviders = {
         jsonRpcProvider,
         webSocketProvider,
         immediateJsonRpcProvider,
+        ethJsonRpcProvider,
       }
       this.providersForNetworks.set(chainID, networkProviders)
     })

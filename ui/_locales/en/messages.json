@@ -380,7 +380,16 @@
     "dappSignatureRequest": "A dapp is requesting your signature",
     "message": "Message",
     "signed": "Signed",
-    "type": "Type"
+    "type": "Type",
+    "EIP4361": {
+      "subtext1": "Wants you to sign in with your",
+      "subtext2": "Quai account:",
+      "statement": "Statement",
+      "nonce": "Nonce",
+      "version": "Version",
+      "chainID": "Chain ID",
+      "expiration": "Expiration"
+    }
   },
   "signTransaction": {
     "title": "Sign transaction",

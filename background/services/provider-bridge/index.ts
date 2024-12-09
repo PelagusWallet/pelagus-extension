@@ -302,10 +302,18 @@ export default class ProviderBridgeService extends BaseService<Events> {
     // TODO temporary solution, because port.postMessage can only send serialized data
     //  but in some cases quais returns data of type bigint, and the port does not allow sending them to dApp,
     //  so we mock it in such a way that at least some data is returned. Better to remove this in future
-    if (
-      event.request.method === "quai_getTransactionByHash" ||
-      event.request.method === "quai_getTransactionReceipt"
-    ) {
+    // check if the response contains a bigint
+    let containsBigInt = false
+    if (response.result) {
+      if (typeof response.result === "object") {
+        containsBigInt = Object.values(response.result).some(
+          (value) => typeof value === "bigint"
+        )
+      } else if (typeof response.result === "bigint") {
+        containsBigInt = true
+      }
+    }
+    if (containsBigInt) {
       response.result = JSON.parse(
         JSON.stringify(response?.result, (_, value) =>
           typeof value === "bigint" ? value.toString() : value

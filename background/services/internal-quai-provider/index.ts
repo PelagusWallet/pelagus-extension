@@ -14,6 +14,11 @@ import {
   Zone,
 } from "quais"
 import {
+  Filter as EthFilter,
+  FilterByBlockHash as EthFilterByBlockHash,
+  TransactionRequest as EthTransactionRequest,
+} from "ethers"
+import {
   EIP1193_ERROR_CODES,
   EIP1193Error,
   RPCRequest,
@@ -159,6 +164,18 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     origin: string
   ): Promise<unknown> {
     switch (method) {
+      case "quai_accounts":
+      case "eth_accounts": {
+        const { address } = await this.preferenceService.getSelectedAccount()
+        return [address]
+      }
+
+      case "quai_getBalance":
+      case "eth_getBalance":
+        return this.chainService.jsonRpcProvider.getBalance(
+          params[0] as AddressLike
+        )
+
       // supported methods
       case "quai_signTypedData":
       case "quai_signTypedData_v1":
@@ -175,15 +192,26 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           },
           typedData: JSON.parse(params[1] as string),
         })
-      case "quai_chainId":
-      case "eth_chainId":
-        // TODO Decide on a better way to track whether a particular chain is
-        // allowed to have an RPC call made to it. Ideally this would be based
-        // on a user's idea of a dApp connection rather than a network-specific
-        // modality, requiring it to be constantly "switched"
-        return toHexChainID(
-          (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
+
+      case "quai_sign":
+      case "eth_sign":
+        return this.signData(
+          {
+            input: params[1] as string,
+            account: params[0] as string,
+          },
+          origin
         )
+
+      case "personal_sign":
+        return this.signData(
+          {
+            input: params[0] as string,
+            account: params[1] as string,
+          },
+          origin
+        )
+
       case "quai_blockNumber":
       case "eth_blockNumber":
         if (!params[0]) {
@@ -195,55 +223,133 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
             params[0] as Shard
           )
         }
-      case "quai_estimateGas":
-        return this.chainService.jsonRpcProvider
-          .estimateGas(params[0] as TransactionRequest)
-          .then((estimatedGas) => estimatedGas.toString())
-      case "quai_createAccessList":
-        return this.chainService.jsonRpcProvider.createAccessList(
-          params[0] as TransactionRequest
+
+      case "quai_getBlockByHash":
+      case "quai_getBlockByNumber":
+        return this.chainService.jsonRpcProvider.getBlock(
+          params[0] as Shard,
+          params[1] as BlockTag,
+          params[2] as boolean
         )
+
+      case "eth_getBlockByHash":
+      case "eth_getBlockByNumber":
+        return this.chainService.ethJsonRpcProvider.getBlock(
+          params[0] as BlockTag,
+          params[1] as boolean
+        )
+
       case "quai_getTransactionReceipt":
         return this.chainService.jsonRpcProvider.getTransactionReceipt(
           params[0] as string
         )
+      case "eth_getTransactionReceipt":
+        return this.chainService.ethJsonRpcProvider.getTransactionReceipt(
+          params[0] as string
+        )
+
       case "quai_getTransactionByHash":
         return this.chainService.jsonRpcProvider.getTransaction(
           params[0] as string
         )
+      case "eth_getTransactionByHash":
+        return this.chainService.ethJsonRpcProvider.getTransaction(
+          params[0] as string
+        )
+
       case "quai_getTransactionCount":
       case "eth_getTransactionCount":
         return this.chainService.jsonRpcProvider.getTransactionCount(
           getAddress(params[0] as string),
           params[1] as quais.BlockTag
         )
-      case "quai_accounts":
-      case "eth_accounts": {
-        const { address } = await this.preferenceService.getSelectedAccount()
-        return [address]
-      }
+
+      case "quai_estimateGas":
+        return this.chainService.jsonRpcProvider
+          .estimateGas(params[0] as TransactionRequest)
+          .then((estimatedGas) => estimatedGas.toString())
+      case "eth_estimateGas":
+        return this.chainService.ethJsonRpcProvider
+          .estimateGas(params[0] as EthTransactionRequest)
+          .then((estimatedGas) => estimatedGas.toString())
+
+      case "quai_createAccessList":
+        return this.chainService.jsonRpcProvider.createAccessList(
+          params[0] as TransactionRequest
+        )
+
       case "quai_sendTransaction":
         return this.sendTransaction(
           params[0] as QuaiTransactionRequestWithAnnotation,
           origin
         ).then((transactionResponse) => transactionResponse.hash)
-      case "quai_sign":
-      case "eth_sign":
-        return this.signData(
-          {
-            input: params[1] as string,
-            account: params[0] as string,
-          },
-          origin
+      case "eth_sendTransaction":
+        throw new Error(
+          "eth_sendTransaction is not supported. You must use quai_sendTransaction instead."
         )
-      case "personal_sign":
-        return this.signData(
-          {
-            input: params[0] as string,
-            account: params[1] as string,
-          },
-          origin
+
+      case "quai_sendRawTransaction":
+        return this.chainService.jsonRpcProvider.broadcastTransaction(
+          params[0] as Zone,
+          params[1] as string
         )
+      case "eth_sendRawTransaction":
+        throw new Error(
+          "eth_sendRawTransaction is not supported. You must use quai_sendRawTransaction instead."
+        )
+
+      case "quai_gasPrice":
+        return this.chainService.jsonRpcProvider
+          .getFeeData()
+          .then((feeData) => feeData.gasPrice)
+      case "quai_minerTip":
+        return this.chainService.jsonRpcProvider
+          .getFeeData()
+          .then((feeData) => feeData.minerTip)
+
+      case "quai_call":
+      case "eth_call":
+        return this.chainService.jsonRpcProvider.call(
+          params[0] as QuaiTransactionRequest
+        )
+
+      case "quai_getLogs":
+      case "quai_getFilterLogs":
+        return this.chainService.jsonRpcProvider.getLogs(
+          params[0] as Filter | FilterByBlockHash
+        )
+      case "eth_getLogs":
+      case "eth_getFilterLogs":
+        return this.chainService.ethJsonRpcProvider.getLogs(
+          params[0] as EthFilter | EthFilterByBlockHash
+        )
+
+      case "quai_getCode":
+      case "eth_getCode":
+        return this.chainService.jsonRpcProvider.getCode(
+          params[0] as AddressLike
+        )
+
+      case "quai_getStorageAt":
+      case "eth_getStorageAt":
+        return this.chainService.jsonRpcProvider.getStorage(
+          params[0] as AddressLike,
+          params[1] as BigNumberish
+        )
+
+      case "quai_chainId":
+      case "eth_chainId":
+        // TODO Decide on a better way to track whether a particular chain is
+        // allowed to have an RPC call made to it. Ideally this would be based
+        // on a user's idea of a dApp connection rather than a network-specific
+        // modality, requiring it to be constantly "switched"
+        return toHexChainID(
+          (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
+        )
+
+      case "quai_nodeLocation":
+        return this.chainService.jsonRpcProvider.getRunningLocations()
+
       case "wallet_watchAsset": {
         const { type, options } = params[0]
           ? (params[0] as WatchAssetParameters)
@@ -276,45 +382,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         })
         return true
       }
-      case "quai_getBlockByHash":
-      case "quai_getBlockByNumber":
-        return this.chainService.jsonRpcProvider.getBlock(
-          params[0] as Shard,
-          params[1] as BlockTag
-        )
-      case "quai_getBalance":
-      case "eth_getBalance":
-        return this.chainService.jsonRpcProvider.getBalance(
-          params[0] as AddressLike
-        )
-      case "quai_nodeLocation":
-        return this.chainService.jsonRpcProvider.getRunningLocations()
-      case "quai_getLogs":
-      case "quai_getFilterLogs":
-        return this.chainService.jsonRpcProvider.getLogs(
-          params[0] as Filter | FilterByBlockHash
-        )
-      case "quai_call":
-      case "eth_call":
-        return this.chainService.jsonRpcProvider.call(
-          params[0] as QuaiTransactionRequest
-        )
-      case "quai_getCode":
-      case "eth_getCode":
-        return this.chainService.jsonRpcProvider.getCode(
-          params[0] as AddressLike
-        )
-      case "quai_getStorageAt":
-      case "eth_getStorageAt":
-        return this.chainService.jsonRpcProvider.getStorage(
-          params[0] as AddressLike,
-          params[1] as BigNumberish
-        )
-      case "quai_sendRawTransaction":
-        return this.chainService.jsonRpcProvider.broadcastTransaction(
-          params[0] as Zone,
-          params[1] as string
-        )
       // will just switch to a chain if we already support it - but not add a new one
       case "wallet_addEthereumChain": {
         const chainInfo = params[0] as ValidatedAddEthereumChainParameter
@@ -343,7 +410,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       }
 
       // just "proxying" requests to quais
-      case "quai_gasPrice":
       case "quai_feeHistory":
       case "quai_getBlockTransactionCountByHash":
       case "quai_getBlockTransactionCountByNumber":
@@ -355,13 +421,11 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "quai_getUncleByBlockNumberAndIndex":
       case "quai_getUncleCountByBlockHash":
       case "quai_getUncleCountByBlockNumber":
-      case "quai_maxPriorityFeePerGas":
       case "quai_newBlockFilter":
       case "quai_newFilter":
       case "quai_newPendingTransactionFilter":
       case "quai_protocolVersion":
       case "quai_subscribe":
-      case "quai_syncing":
       case "quai_uninstallFilter":
       case "quai_unsubscribe":
       case "net_listening":
@@ -371,8 +435,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.transactionsService.send(method, params)
 
       // unsupported methods
-      case "wallet_requestPermissions":
       case "net_peerCount":
+      case "wallet_requestPermissions":
       case "wallet_accountsChanged":
       case "wallet_registerOnboarding":
       default:

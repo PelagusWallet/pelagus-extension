@@ -12,6 +12,7 @@ import {
   NeuteredAddressInfo,
   Block,
 } from "quais"
+import { JsonRpcProvider as EthJsonRpcProvider } from "ethers"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
 import {
   QiAddressInfo,
@@ -123,6 +124,8 @@ export default class ChainService extends BaseService<Events> {
 
   public webSocketProvider: WebSocketProvider
 
+  public ethJsonRpcProvider: EthJsonRpcProvider
+
   public selectedNetwork: NetworkInterface
 
   public supportedNetworks = PELAGUS_NETWORKS
@@ -231,14 +234,19 @@ export default class ChainService extends BaseService<Events> {
     const { network: networkFromPreferences } =
       await this.preferenceService.getSelectedAccount()
 
-    const { jsonRpcProvider, webSocketProvider, immediateJsonRpcProvider } =
-      this.providerFactory.getProvidersForNetwork(
-        networkFromPreferences.chainID
-      )
+    const {
+      jsonRpcProvider,
+      webSocketProvider,
+      immediateJsonRpcProvider,
+      ethJsonRpcProvider,
+    } = this.providerFactory.getProvidersForNetwork(
+      networkFromPreferences.chainID
+    )
 
     this.jsonRpcProvider = jsonRpcProvider
     this.webSocketProvider = webSocketProvider
     this.immediateJsonRpcProvider = immediateJsonRpcProvider ?? jsonRpcProvider
+    this.ethJsonRpcProvider = ethJsonRpcProvider!
     this.selectedNetwork = networkFromPreferences
 
     this.assetData = new AssetDataHelper(jsonRpcProvider)

@@ -469,7 +469,9 @@ export default class Main extends BaseService<never> {
           })
         } catch (error: any) {
           logger.error(
-            `Error awaiting and dispatching redux store result: ${error.message}`
+            `Error awaiting and dispatching redux store result: ${
+              error?.message || error
+            }`
           )
           send({
             error: encodeJSON(error),
@@ -1988,7 +1990,10 @@ export default class Main extends BaseService<never> {
       return (await this.nameService.lookUpEthereumAddress(nameOnNetwork))
         ?.resolved?.addressOnNetwork
     } catch (error: any) {
-      logger.info("Error looking up Ethereum address: ", error.message)
+      logger.info(
+        "Error looking up Ethereum address: ",
+        error?.message || error
+      )
       return undefined
     }
   }

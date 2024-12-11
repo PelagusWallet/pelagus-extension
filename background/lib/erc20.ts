@@ -65,7 +65,9 @@ export async function getMetadata(
     logger.warn(
       `Invalid metadata for token: ${tokenSmartContract.contractAddress}`
     )
-    throw new Error(`Could not retrieve erc20 token metadata. ${error.message}`)
+    throw new Error(
+      `Could not retrieve erc20 token metadata. ${error?.message || error}`
+    )
   }
 }
 

@@ -47,7 +47,9 @@ export async function fetchAndValidateTokenList(
       url,
     }
   } catch (error: any) {
-    throw new Error(`Error resolving token list at ${url}. ${error.message}`)
+    throw new Error(
+      `Error resolving token list at ${url}. ${error?.message || error}`
+    )
   }
 }
 

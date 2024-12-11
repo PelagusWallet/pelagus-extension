@@ -371,7 +371,9 @@ export default class IndexingService extends BaseService<Events> {
         this.retrieveTokenBalances(addressOnNetwork, assets)
       })
     } catch (error: any) {
-      logger.error(`Error during accelerated token refresh: ${error.message}`)
+      logger.error(
+        `Error during accelerated token refresh: ${error?.message || error}`
+      )
     }
   }
 
@@ -610,7 +612,9 @@ export default class IndexingService extends BaseService<Events> {
       return true
     } catch (error: any) {
       logger.error(
-        `Error retrieving new custom token balances for ${asset.contractAddress}: ${error.message}`
+        `Error retrieving new custom token balances for ${
+          asset.contractAddress
+        }: ${error?.message || error}`
       )
       return false
     }

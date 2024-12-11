@@ -409,7 +409,9 @@ export default class ChainService extends BaseService<Events> {
       }
     } catch (error: any) {
       logger.error(
-        `Error getting locked balance after balance update for ${address}: ${error.message}`
+        `Error getting locked balance after balance update for ${address}: ${
+          error?.message || error
+        }`
       )
     }
 
@@ -604,7 +606,9 @@ export default class ChainService extends BaseService<Events> {
           notifications = notificationsValue
         } catch (error: any) {
           logger.error(
-            `Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet. Error: ${error.message}`
+            `Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet. Error: ${
+              error?.message || error
+            }`
           )
         }
 
@@ -777,7 +781,9 @@ export default class ChainService extends BaseService<Events> {
       spendableBalance = sBalance
       lockedBalance = lBalance
     } catch (error: any) {
-      logger.error(`Error getting balance for ${address}: ${error.message}`)
+      logger.error(
+        `Error getting balance for ${address}: ${error?.message || error}`
+      )
       if (error instanceof Error) {
         err = true // only reset user-displayed error if there's no error at all
         if (error.message.includes("could not detect network")) {

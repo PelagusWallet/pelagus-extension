@@ -92,7 +92,9 @@ export default class NameService extends BaseService<Events> {
           await this.lookUpName(addressOnNetwork)
         } catch (error: any) {
           logger.error(
-            `Error fetching name for ${addressOnNetwork.address}: ${error.message}`
+            `Error fetching name for ${addressOnNetwork.address}: ${
+              error?.message || error
+            }`
           )
         }
       }

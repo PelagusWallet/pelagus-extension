@@ -306,7 +306,7 @@ export const sendAsset = createBackgroundAsyncThunk(
     } catch (error: any) {
       return {
         success: false,
-        errorMessage: `Transfer failed: ${error.message}`,
+        errorMessage: `Transfer failed: ${error?.message || error}`,
       }
     }
   }
@@ -428,7 +428,9 @@ export const checkTokenContractDetails = createBackgroundAsyncThunk(
         network,
       })
     } catch (error: any) {
-      logger.error(`Error querying custom token details: ${error.message}`)
+      logger.error(
+        `Error querying custom token details: ${error?.message || error}`
+      )
       return null
     }
   }

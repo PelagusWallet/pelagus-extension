@@ -78,7 +78,9 @@ export default class AssetDataHelper {
       )
     } catch (error: any) {
       logger.debug(
-        `Problem resolving asset balances; network may not support it: ${error.message}`
+        `Problem resolving asset balances; network may not support it: ${
+          error?.message || error
+        }`
       )
     }
 

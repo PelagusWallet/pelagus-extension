@@ -82,8 +82,7 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
         }
       )
 
-      const ethRpcUrl = jsonRpcUrls[0]
-
+      const ethRpcUrl = `${jsonRpcUrls[0]}/cyprus1`
       const ethJsonRpcProvider = new EthJsonRpcProvider(ethRpcUrl)
 
       const networkProviders: NetworkProviders = {

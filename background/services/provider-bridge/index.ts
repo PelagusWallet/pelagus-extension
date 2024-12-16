@@ -568,6 +568,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
         case "quai_sendTransaction":
+        case "eth_sendTransaction":
           // TODO check this checkPermissionSignTransaction function in future
           checkPermissionSignTransaction(
             (params[0] as QuaiTransactionRequest).chainId,

@@ -50,6 +50,7 @@ import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
 import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
 import { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
+import { ProviderBridgeDatabase } from "../provider-bridge/db"
 
 export type SwitchEthereumChainParameter = {
   chainId: string
@@ -119,7 +120,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       await initializeInternalQuaiDatabase(),
       await chainService,
       await transactionService,
-      await preferenceService
+      await preferenceService,
+      new ProviderBridgeDatabase()
     )
   }
 
@@ -127,7 +129,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     private db: InternalQuaiProviderDatabase,
     private chainService: ChainService,
     private transactionsService: TransactionService,
-    private preferenceService: PreferenceService
+    private preferenceService: PreferenceService,
+    private providerBridgeDb: ProviderBridgeDatabase
   ) {
     super()
 
@@ -279,13 +282,13 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         )
 
       case "quai_sendTransaction":
-        return this.sendTransaction(
-          params[0] as QuaiTransactionRequestWithAnnotation,
-          origin
-        ).then((transactionResponse) => transactionResponse.hash)
       case "eth_sendTransaction":
-        throw new Error(
-          "eth_sendTransaction is not supported. You must use quai_sendTransaction instead."
+        const request = params[0] as QuaiTransactionRequestWithAnnotation & {
+          maxFeePerGas?: string
+          maxPriorityFeePerGas?: string
+        }
+        return this.sendTransaction(request, origin).then(
+          (transactionResponse) => transactionResponse.hash
         )
 
       case "quai_sendRawTransaction":
@@ -299,10 +302,13 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         )
 
       case "quai_gasPrice":
+      case "eth_gasPrice":
         return this.chainService.jsonRpcProvider
           .getFeeData()
           .then((feeData) => feeData.gasPrice)
       case "quai_minerTip":
+      case "eth_minerTip":
+      case "eth_maxPriorityFeePerGas":
         return this.chainService.jsonRpcProvider
           .getFeeData()
           .then((feeData) => feeData.minerTip)
@@ -435,8 +441,32 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.transactionsService.send(method, params)
 
       // unsupported methods
-      case "net_peerCount":
+
       case "wallet_requestPermissions":
+      case "wallet_getPermissions": {
+        const { address } = await this.preferenceService.getSelectedAccount()
+        const network = await this.getCurrentOrDefaultNetworkForOrigin(origin)
+
+        const permission = await this.providerBridgeDb.checkPermission(
+          origin,
+          address,
+          network.chainID
+        )
+
+        if (!permission) {
+          return []
+        }
+
+        // Format according to EIP-2255
+        return [
+          {
+            invoker: origin,
+            parentCapability: "eth_accounts",
+            caveats: [],
+          },
+        ]
+      }
+      case "net_peerCount":
       case "wallet_accountsChanged":
       case "wallet_registerOnboarding":
       default:
@@ -467,7 +497,11 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
   }
 
   private async sendTransaction(
-    transactionRequest: QuaiTransactionRequestWithAnnotation,
+    transactionRequest: QuaiTransactionRequestWithAnnotation & {
+      gas?: string
+      maxFeePerGas?: string
+      maxPriorityFeePerGas?: string
+    },
     origin: string
   ): Promise<QuaiTransactionResponse> {
     const annotation =
@@ -492,19 +526,54 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     await blockService.pollBlockPricesForNetwork({ network })
     await blockService.pollLatestBlock(network)
 
+    const payload: QuaiTransactionRequestWithAnnotation & {
+      gas?: string
+      maxFeePerGas?: string
+      maxPriorityFeePerGas?: string
+    } = {
+      to,
+      from,
+      type: transactionRequest.type || 2,
+      chainId: network.chainID,
+      data: transactionRequest.data,
+      value: transactionRequest.value,
+      network,
+      annotation,
+    }
+
+    // Quai specific fields
+    if ("gasLimit" in transactionRequest) {
+      payload.gasLimit = transactionRequest.gasLimit
+    }
+
+    if ("gasPrice" in transactionRequest) {
+      payload.gasPrice = transactionRequest.gasPrice
+    }
+
+    if ("minerTip" in transactionRequest) {
+      payload.minerTip = transactionRequest.minerTip
+    }
+
+    // // Ethereum specific fields
+    if ("gas" in transactionRequest) {
+      payload.gasLimit = transactionRequest.gas
+    }
+
+    if ("maxFeePerGas" in transactionRequest) {
+      payload.gasPrice = transactionRequest.maxFeePerGas
+    }
+
+    if ("maxPriorityFeePerGas" in transactionRequest) {
+      payload.minerTip = transactionRequest.maxPriorityFeePerGas
+    }
+
+    if (typeof transactionRequest.value === "undefined") {
+      delete payload.value
+    }
+
     return new Promise<QuaiTransactionResponse>((resolve, reject) => {
       this.emitter.emit("transactionSendRequest", {
-        payload: {
-          to,
-          from,
-          type: transactionRequest.type,
-          chainId: network.chainID,
-          data: transactionRequest.data,
-          value: transactionRequest.value,
-          gasLimit: transactionRequest.gasLimit,
-          network,
-          annotation,
-        },
+        payload,
         resolver: resolve,
         rejecter: reject,
       })

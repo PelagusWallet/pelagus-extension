@@ -8,7 +8,7 @@ const PELAGUS_OBJECT_PROPERTY = "pelagus"
 const ETHEREUM_OBJECT_PROPERTY = "ethereum"
 const WALLET_ROUTER_OBJECT_PROPERTY = "walletRouter"
 
-const DETECT_PROVIDER_INITIALIZATION_EVENT = "quai#initialized"
+const DETECT_PROVIDER_INITIALIZATION_EVENT = "pelagus#initialized"
 
 const pelagusWindowProvider: PelagusWindowProvider = new PelagusWindowProvider({
   postMessage: (data: WindowRequestEvent) =>
@@ -78,43 +78,49 @@ let cachedWindowEthereumProxy: WindowEthereum
 // default wallet is changed we are switching the underlying provider.
 let cachedCurrentProvider: WalletProvider
 
-Object.defineProperty(window, ETHEREUM_OBJECT_PROPERTY, {
-  get() {
-    if (!window.walletRouter) {
-      throw new Error(
-        `window.${WALLET_ROUTER_OBJECT_PROPERTY} is expected to be set to change the injected provider on window.${ETHEREUM_OBJECT_PROPERTY}.`
+if (!window.ethereum) {
+  Object.defineProperty(window, ETHEREUM_OBJECT_PROPERTY, {
+    get() {
+      if (!window.walletRouter) {
+        throw new Error(
+          `window.${WALLET_ROUTER_OBJECT_PROPERTY} is expected to be set to change the injected provider on window.${ETHEREUM_OBJECT_PROPERTY}.`
+        )
+      }
+
+      if (
+        cachedWindowEthereumProxy &&
+        cachedCurrentProvider === window.walletRouter.currentProvider
       )
-    }
+        return cachedWindowEthereumProxy
 
-    if (
-      cachedWindowEthereumProxy &&
-      cachedCurrentProvider === window.walletRouter.currentProvider
-    )
-      return cachedWindowEthereumProxy
+      cachedWindowEthereumProxy = new Proxy(
+        window.walletRouter.currentProvider,
+        {
+          get(target, prop, receiver) {
+            if (
+              window.walletRouter &&
+              !(prop in window.walletRouter.currentProvider) &&
+              prop in window.walletRouter
+            ) {
+              // let's publish the api of `window.walletRoute` also on `window.ethereum` for better discoverability
+              // @ts-expect-error ts accepts symbols as index only from 4.4
+              return window.walletRouter[prop]
+            }
 
-    cachedWindowEthereumProxy = new Proxy(window.walletRouter.currentProvider, {
-      get(target, prop, receiver) {
-        if (
-          window.walletRouter &&
-          !(prop in window.walletRouter.currentProvider) &&
-          prop in window.walletRouter
-        ) {
-          // let's publish the api of `window.walletRoute` also on `window.ethereum` for better discoverability
-          // @ts-expect-error ts accepts symbols as index only from 4.4
-          return window.walletRouter[prop]
+            return Reflect.get(target, prop, receiver)
+          },
         }
+      )
+      cachedCurrentProvider = window.walletRouter.currentProvider
 
-        return Reflect.get(target, prop, receiver)
-      },
-    })
-    cachedCurrentProvider = window.walletRouter.currentProvider
-
-    return cachedWindowEthereumProxy
-  },
-  set(newProvider) {
-    window.walletRouter?.addProvider(newProvider)
-  },
-  configurable: true,
-})
+      return cachedWindowEthereumProxy
+    },
+    set(newProvider) {
+      window.walletRouter?.addProvider(newProvider)
+    },
+    writable: true,
+    configurable: true,
+  })
+}
 
 window.dispatchEvent(new Event(DETECT_PROVIDER_INITIALIZATION_EVENT))

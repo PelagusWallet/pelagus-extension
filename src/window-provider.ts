@@ -118,7 +118,6 @@ if (!window.ethereum) {
     set(newProvider) {
       window.walletRouter?.addProvider(newProvider)
     },
-    writable: true,
     configurable: true,
   })
 }

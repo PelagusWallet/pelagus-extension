@@ -71,8 +71,7 @@ const estimateGweiAmount = (options: {
   transactionData?: QuaiTransactionRequestWithAnnotation
 }): string => {
   const { networkSettings, baseFeePerGas } = options
-  const estimatedSpendPerGas =
-    baseFeePerGas + networkSettings.values.minerTip
+  const estimatedSpendPerGas = baseFeePerGas + networkSettings.values.minerTip
 
   const desiredDecimals = 0
 
@@ -95,16 +94,15 @@ export default function FeeSettingsText({
   const estimatedFeesPerGas = useBackgroundSelector(selectEstimatedFeesPerGas)
   let networkSettings = useBackgroundSelector(selectDefaultNetworkFeeSettings)
   networkSettings = customNetworkSetting ?? networkSettings
-  const baseFeePerGas =
-    useBackgroundSelector((state) => {
-      return state.networks.blockInfo[selectedNetwork.chainID]?.baseFeePerGas
-    }) ??
-    networkSettings.values?.baseFeePerGas ??
-    0n
 
   const mainCurrencyPricePoint = useBackgroundSelector(
     selectTransactionMainCurrencyPricePoint
   )
+
+  const baseFeePerGas =
+    (networkSettings.values.gasPrice ?? 1n) +
+    (networkSettings.values.minerTip ?? 0n)
+
   const estimatedGweiAmount = estimateGweiAmount({
     baseFeePerGas,
     networkSettings,
@@ -113,9 +111,6 @@ export default function FeeSettingsText({
   })
 
   const gasLimit = networkSettings.gasLimit ?? networkSettings.suggestedGasLimit
-  const estimatedSpendPerGas =
-    (networkSettings.values.gasPrice ?? 1n) +
-    (networkSettings.values.minerTip ?? 0n)
 
   if (typeof estimatedFeesPerGas === "undefined")
     return <div>{t("networkFees.unknownFee")}</div>
@@ -129,7 +124,7 @@ export default function FeeSettingsText({
   const dollarValue = getFeeDollarValue(
     mainCurrencyPricePoint,
     gasLimit,
-    estimatedSpendPerGas,
+    baseFeePerGas,
     estimatedRollupFee
   )
 

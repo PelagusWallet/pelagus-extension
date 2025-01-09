@@ -127,7 +127,7 @@ export function NetworkSettingsSelectOptionButton({
         <div className="price">
           {`${
             option.type !== NetworkFeeTypeChosen.Auto
-              ? Number(option.minerTipGwei).toFixed(2)
+              ? Number(option.gasPriceGwei).toFixed(2)
               : "Auto"
           }`}
         </div>
@@ -153,10 +153,7 @@ export function NetworkSettingsSelectOptionButtonCustom({
   option: GasOption
   handleSelectGasOption: () => void
   isActive: boolean
-  updateCustomGas: (
-    customMinerTip: bigint,
-    customGasPrice: bigint
-  ) => void
+  updateCustomGas: (customMinerTip: bigint, customGasPrice: bigint) => void
 }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "networkFees" })
   const [warningMessage, setWarningMessage] = useState("")
@@ -186,7 +183,7 @@ export function NetworkSettingsSelectOptionButtonCustom({
           <span className="subtext_large r_label">{t("miner")}</span>
           <div className="input_wrap">
             <SharedInput
-              value={`${option.minerTip}`}
+              value={`${option.minerTipGwei}`}
               isSmall
               type="number"
               onChange={(value: string) => {
@@ -203,14 +200,14 @@ export function NetworkSettingsSelectOptionButtonCustom({
         <span className="subtext_large r_label">{t("maxBase")}</span>
         <div className="input_wrap">
           <SharedInput
-            value={`${option.gasPrice}`}
+            value={`${option.gasPriceGwei}`}
             isSmall
             type="number"
             onChange={(value: string) => {
               updateCustomGas(
                 BigInt(option.minerTip ?? 0n),
                 gweiToWei(parseFloat(value))
-              ) 
+              )
               if (baseGasFee && gweiToWei(parseFloat(value)) < baseGasFee) {
                 setWarningMessage(t("errors.lowGas"))
               } else {

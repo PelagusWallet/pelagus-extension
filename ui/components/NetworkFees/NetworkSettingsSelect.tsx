@@ -158,7 +158,7 @@ export default function NetworkSettingsSelect({
 
   const updateGasOptions = useCallback(() => {
     if (typeof estimatedFeesPerGas !== "undefined") {
-      const { regular, express, instant, custom } = estimatedFeesPerGas ?? {}
+      const { regular, instant, custom } = estimatedFeesPerGas ?? {}
       const gasLimit =
         networkSettings.gasLimit ?? networkSettings.suggestedGasLimit
 
@@ -167,7 +167,8 @@ export default function NetworkSettingsSelect({
           confidence: 1,
         } as BlockEstimate
 
-        const baseFees = [autoFee, regular, express, instant, custom]
+        // const baseFees = [autoFee, regular, express, instant, custom]
+        const baseFees = [autoFee, regular, custom]
 
         const updatedGasOptions: GasOption[] = []
 
@@ -229,10 +230,7 @@ export default function NetworkSettingsSelect({
     onNetworkSettingsChange({ ...networkSettings, gasLimit })
   }
 
-  function updateCustomGas(
-    customMinerTip: bigint,
-    customGasPrice: bigint
-  ) {
+  function updateCustomGas(customMinerTip: bigint, customGasPrice: bigint) {
     dispatch(
       setCustomGas({
         gasPrice: customGasPrice,

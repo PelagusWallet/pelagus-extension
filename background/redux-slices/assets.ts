@@ -225,6 +225,7 @@ export const sendAsset = createBackgroundAsyncThunk(
       gasLimit?: bigint
       gasPrice?: bigint
       accountSigner: AccountSigner
+      nonce?: number
     },
     { extra: { main } }
   ): Promise<{ success: boolean; errorMessage?: string }> => {
@@ -234,6 +235,7 @@ export const sendAsset = createBackgroundAsyncThunk(
       assetAmount,
       gasLimit,
       gasPrice,
+      nonce,
     } = transferDetails
 
     try {
@@ -277,12 +279,16 @@ export const sendAsset = createBackgroundAsyncThunk(
         value: transactionValue,
       }
 
+      if (nonce) {
+        request.nonce = nonce
+      }
+
       if (gasLimit) {
-        request.gasLimit = gasLimit * 10n
+        request.gasLimit = gasLimit
       }
 
       if (gasPrice) {
-        request.gasPrice = gasPrice * 10n
+        request.gasPrice = gasPrice
       }
 
       const isSignedAndSent = await main.signAndSendQuaiTransaction({

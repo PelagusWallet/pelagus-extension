@@ -35,7 +35,7 @@ import { useHistory, useLocation } from "react-router-dom"
 import classNames from "classnames"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
-import { toBigInt } from "quais"
+import { quais, toBigInt } from "quais"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import SharedAssetInput from "../components/Shared/SharedAssetInput"
@@ -74,11 +74,13 @@ export default function Send(): ReactElement {
 
   const [assetType, setAssetType] = useState<"token">("token")
 
-  const [gasPrice, setGasPrice] = useState(toBigInt(6000000000))
+  const [gasPrice, setGasPrice] = useState<string>("6")
   const [gasLimit, setGasLimit] = useState<number>(100000)
+  const [nonce, setNonce] = useState<number>(0)
 
   const [gasPriceChanged, setGasPriceChanged] = useState(false)
   const [gasLimitChanged, setGasLimitChanged] = useState(false)
+  const [nonceChanged, setNonceChanged] = useState(false)
 
   const [advancedVisible, setAdvancedVisible] = useState(false)
 
@@ -94,8 +96,8 @@ export default function Send(): ReactElement {
       )) as AsyncThunkFulfillmentType<typeof getGasPrice>
 
       const { gasPrice: gasPriceFromRedux } = response
-
-      setGasPrice(gasPriceFromRedux.valueOf())
+      let gweiGasPrice = quais.formatUnits(gasPriceFromRedux.valueOf(), "gwei")
+      setGasPrice(Number(gweiGasPrice).toFixed(4))
     }
 
     fetchFees()
@@ -189,11 +191,15 @@ export default function Send(): ReactElement {
       }
 
       if (gasPriceChanged) {
-        transferDetails.gasPrice = gasPrice
+        transferDetails.gasPrice = quais.parseUnits(gasPrice, "gwei")
       }
 
       if (gasLimitChanged) {
         transferDetails.gasLimit = BigInt(gasLimit)
+      }
+
+      if (nonceChanged) {
+        transferDetails.nonce = nonce
       }
 
       const { success } = (await dispatch(
@@ -214,6 +220,7 @@ export default function Send(): ReactElement {
     history,
     gasLimit,
     gasPrice,
+    nonce
   ])
 
   const copyAddress = useCallback(() => {
@@ -345,6 +352,23 @@ export default function Send(): ReactElement {
             )}
             {advancedVisible && (
               <div>
+                <label style={{ paddingTop: "5px" }} htmlFor="nonce">
+                  Nonce
+                </label>
+                <input
+                  id="send_address_alt"
+                  type="number"
+                  placeholder={nonce.toString()}
+                  spellCheck={false}
+                  onChange={(event) => {
+                    setNonce(parseInt(event.target.value))
+                    setNonceChanged(true)
+                  }}
+                  className={classNames({
+                    error: addressErrorMessage !== undefined,
+                    resolved_address: resolvedNameToAddress,
+                  })}
+                />
                 <label style={{ paddingTop: "5px" }} htmlFor="gasLimit">
                   Gas Limit
                 </label>
@@ -371,7 +395,7 @@ export default function Send(): ReactElement {
                   placeholder={gasPrice.toString()}
                   spellCheck={false}
                   onChange={(event) => {
-                    setGasPrice(toBigInt(event.target.value))
+                    setGasPrice(event.target.value)
                     setGasPriceChanged(true)
                   }}
                   className={classNames({

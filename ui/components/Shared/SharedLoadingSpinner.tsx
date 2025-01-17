@@ -3,7 +3,7 @@ import classNames from "classnames"
 import { assertUnreachable } from "@pelagus/pelagus-background/lib/utils/type-guards"
 
 type SharedLoadingSpinnerProps = {
-  size: "small" | "medium"
+  size: "small" | "medium" | "large"
   variant?: "hunter-green" | "dark-green" | "transparent" | "gray"
 }
 
@@ -63,6 +63,11 @@ export default function SharedLoadingSpinner(
           .small {
             width: 14px;
             height: 14px;
+            animation: spinner 0.8s linear infinite;
+          }
+          .large {
+            width: 32px;
+            height: 32px;
             animation: spinner 0.8s linear infinite;
           }
         `}

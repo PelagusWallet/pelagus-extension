@@ -5,6 +5,7 @@ import { useHistory } from "react-router-dom"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import KeyringSetPassword from "../../../Keyring/KeyringSetPassword"
 import KeyringUnlock from "../../../Keyring/KeyringUnlock"
+import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
 
 type SignerKeyringSigningProps = {
   signActionCreator: () => AnyAction
@@ -19,16 +20,26 @@ export default function SignerKeyringSigning({
   const history = useHistory()
   const keyringStatus = useBackgroundSelector(selectKeyringStatus)
   const [signingInitiated, setSigningInitiated] = useState(false)
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false)
 
   // Initiate signing once keyring is ready.
   useEffect(() => {
     if (!signingInitiated && keyringStatus === "unlocked") {
+      setShowLoadingScreen(true)
+
+      const timer = setTimeout(() => {
+        setShowLoadingScreen(false)
+      }, 10000) // 10 seconds timeout
+
       dispatch(signActionCreator()).finally(() => {
-        // Redirect to activity page after submitting
+        clearTimeout(timer)
+        setShowLoadingScreen(false)
+
         if (redirectToActivityPage) {
           history.push("/", { goTo: "activity-page" })
         }
       })
+
       setSigningInitiated(true)
     }
   }, [
@@ -48,6 +59,46 @@ export default function SignerKeyringSigning({
   }
   if (keyringStatus === "locked") {
     return <KeyringUnlock />
+  }
+
+  if (showLoadingScreen) {
+    return (
+      <div>
+        <div className="loading-screen">
+          <div style={{ padding: "5px 0" }}>
+            <SharedLoadingSpinner size="large" />
+          </div>
+          <p>Signing in progress</p>
+        </div>
+        <div className="loading-screen-text">
+          Please do not close this window
+        </div>
+        <style jsx>
+          {`
+            .loading-screen {
+              margin-top: 30px;
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              justify-content: center;
+              height: 200px;
+            }
+
+            .loading-screen p {
+              font-size: 22px;
+              margin-left: 10px;
+            }
+
+            .loading-screen-text {
+              margin-top: 10px;
+              font-size: 18px;
+              color: var(--secondary-text);
+              text-align: center;
+            }
+          `}
+        </style>
+      </div>
+    )
   }
 
   // If the keyring is ready, we don't render anything as signing should be

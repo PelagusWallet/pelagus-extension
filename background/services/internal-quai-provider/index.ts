@@ -215,6 +215,16 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           origin
         )
 
+      case "qi_signAll":
+        return this.signData(
+          {
+            input: params[0] as string,
+            account: params[1] as string,
+            coin: "qi",
+          },
+          origin
+        )
+
       case "quai_blockNumber":
       case "eth_blockNumber":
         if (!params[0]) {
@@ -622,9 +632,11 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     {
       input,
       account,
+      coin,
     }: {
       input: string
       account: string
+      coin?: "quai" | "qi"
     },
     origin: string
   ) {
@@ -643,6 +655,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
             address: account,
             network: currentNetwork,
           },
+          coin: coin || "quai",
           rawSigningData: hexInput,
           ...typeAndData,
         },

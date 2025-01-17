@@ -249,7 +249,8 @@ export default class SigningService extends BaseService<Events> {
   async signData(
     addressOnNetwork: AddressOnNetwork,
     hexDataToSign: HexString,
-    accountSigner: AccountSigner
+    accountSigner: AccountSigner,
+    coin?: "quai" | "qi"
   ): Promise<string> {
     if (!hexDataToSign.startsWith("0x")) {
       throw new Error("Signing service can only sign hex data.")
@@ -260,18 +261,26 @@ export default class SigningService extends BaseService<Events> {
       switch (accountSigner.type) {
         case "private-key":
         case "keyring": {
-          const signerWithType = await this.keyringService.getSigner(
-            addressOnNetwork.address
-          )
-
           const messageBytes = getBytes(hexDataToSign)
-          const { address: formatedAddress } = signerWithType
-          signedData = isSignerPrivateKeyType(signerWithType)
-            ? await signerWithType.signer.signMessage(messageBytes)
-            : await signerWithType.signer.signMessage(
+          if (coin === "qi") {
+            await this.chainService.syncQiWallet()
+            signedData =
+              await this.keyringService.signMessageWithAllQiAddresses(
+                messageBytes
+              )
+          } else {
+            const signerWithType = await this.keyringService.getSigner(
+              addressOnNetwork.address
+            )
+
+            const { address: formatedAddress } = signerWithType
+            signedData = isSignerPrivateKeyType(signerWithType)
+              ? await signerWithType.signer.signMessage(messageBytes)
+              : await signerWithType.signer.signMessage(
                 formatedAddress,
                 messageBytes
               )
+          }
 
           break
         }

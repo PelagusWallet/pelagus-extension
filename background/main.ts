@@ -1032,11 +1032,12 @@ export default class Main extends BaseService<never> {
     )
     signingSliceEmitter.on(
       "requestSignData",
-      async ({ rawSigningData, account, accountSigner }) => {
+      async ({ rawSigningData, account, accountSigner, coin }) => {
         const signedData = await this.signingService.signData(
           account,
           rawSigningData,
-          accountSigner
+          accountSigner,
+          coin
         )
         this.store.dispatch(signedDataAction(signedData))
       }

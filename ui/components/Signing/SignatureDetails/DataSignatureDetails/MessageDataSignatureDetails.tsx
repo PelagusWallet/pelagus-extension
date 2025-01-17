@@ -4,6 +4,9 @@ import React, { ReactElement } from "react"
 import EIP191Info from "../../../SignData/EIP191Info"
 import DataSignatureDetails from "."
 import EIP4361Info from "../../../SignData/EIP4361Info"
+import EIP191InfoQiAddresses, {
+  DataQiSignatureDetails,
+} from "../../../SignData/EIP191InfoQiAddresses"
 
 export type MessageDataSignatureDetailsProps = {
   messageRequest: MessageSigningRequest
@@ -14,6 +17,18 @@ export default function MessageDataSignatureDetails({
 }: MessageDataSignatureDetailsProps): ReactElement {
   switch (messageRequest.messageType) {
     case "eip191":
+      if (messageRequest.coin === "qi") {
+        return (
+          <DataQiSignatureDetails>
+            <EIP191InfoQiAddresses
+              account={messageRequest.account.address}
+              internal={false}
+              excludeHeader
+              signingData={messageRequest.signingData}
+            />
+          </DataQiSignatureDetails>
+        )
+      }
       return (
         <DataSignatureDetails>
           <EIP191Info
@@ -24,7 +39,7 @@ export default function MessageDataSignatureDetails({
           />
         </DataSignatureDetails>
       )
-      case "eip4361":
+    case "eip4361":
       return (
         <DataSignatureDetails
           requestingSource={messageRequest.signingData.domain}

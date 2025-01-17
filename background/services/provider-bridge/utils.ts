@@ -36,9 +36,9 @@ export const keyPermissionsByChainIdAddressOrigin = (
 
 export function parsedRPCErrorResponse(error: { body: string }):
   | {
-      code: number
-      message: string
-    }
+    code: number
+    message: string
+  }
   | undefined {
   try {
     const parsedError = JSON.parse(error.body).error
@@ -172,7 +172,15 @@ export function parseRPCRequestParams(
         enablingPermission.accountAddress
       )
         ? params
-        : [params[1], params[0]]
+        : [params[1], params[0], params[2]]
+
+    case "qi_signAll":
+      return sameQuaiAddress(
+        params[1] as HexString,
+        enablingPermission.accountAddress
+      )
+        ? params
+        : [params[0], params[1], params[2]]
 
     default:
       return params

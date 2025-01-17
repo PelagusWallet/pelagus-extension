@@ -567,6 +567,15 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
+        case "qi_signAll":
+          checkPermissionSign(params[1] as HexString, enablingPermission)
+
+          return await this.routeSafeRequest(
+            method,
+            params,
+            origin,
+            showExtensionPopup(AllowedQueryParamPage.personalSignData)
+          )
         case "quai_sendTransaction":
         case "eth_sendTransaction":
           // TODO check this checkPermissionSignTransaction function in future

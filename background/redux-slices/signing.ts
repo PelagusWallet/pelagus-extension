@@ -79,6 +79,7 @@ export const signData = createBackgroundAsyncThunk(
     await signingSliceEmitter.emit("requestSignData", {
       ...request,
       accountSigner,
+      coin: request.coin,
     })
   }
 )

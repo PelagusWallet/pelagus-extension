@@ -42,6 +42,7 @@ export type MessageSigningRequest<
 > = T & {
   account: AddressOnNetwork
   rawSigningData: string
+  coin?: "quai" | "qi"
 }
 
 type EIP2612Message = {

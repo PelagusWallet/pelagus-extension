@@ -1,4 +1,4 @@
-import { QiHDWallet } from "quais"
+import { QiHDWallet, Wallet } from "quais"
 import logger from "../../lib/logger"
 import { ServiceCreatorFunction } from "../types"
 import { getEncryptedVaults } from "./utils/storage"
@@ -288,6 +288,36 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       return qiHDWallet.getPrivateKey(address)
     }
 
+    return ""
+  }
+
+  public async signMessageWithAllQiAddresses(
+    message: string | Uint8Array
+  ): Promise<string> {
+    this.verifyKeyringIsUnlocked()
+    try {
+      const qiHDWallet = await this.walletManager.getQiHDWallet()
+      if (qiHDWallet) {
+        const serializedWallet = qiHDWallet.serialize()
+        const allAddresses = serializedWallet.addresses
+        const privateKeys = allAddresses.map((address) =>
+          qiHDWallet.getPrivateKey(address.address)
+        )
+
+        const signedMessages = await Promise.all(
+          privateKeys.map((privateKey) =>
+            new Wallet(privateKey).signMessage(message)
+          )
+        )
+
+        return signedMessages.join(",")
+      }
+    } catch (error: any) {
+      logger.error(
+        "Error signing message with all Qi addresses",
+        error?.message || error
+      )
+    }
     return ""
   }
 

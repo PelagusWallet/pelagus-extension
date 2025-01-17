@@ -11,6 +11,7 @@ export type SignerFrameProps<T extends SignOperationType> =
   ResolvedSignatureDetails & {
     request: T
     signer: AccountSigner
+    coin?: "quai" | "qi"
     /**
      * The children a signer frame should render to present the user with
      * additional information about the data being signed.

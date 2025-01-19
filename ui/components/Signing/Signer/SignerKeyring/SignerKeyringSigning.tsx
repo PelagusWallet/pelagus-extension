@@ -22,6 +22,16 @@ export default function SignerKeyringSigning({
   const [signingInitiated, setSigningInitiated] = useState(false)
   const [showLoadingScreen, setShowLoadingScreen] = useState(false)
 
+  // Uncomment this to prevent window from closing for testing
+  // useEffect(() => {
+  //   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  //     e.preventDefault()
+  //     return ""
+  //   }
+  //   window.addEventListener("beforeunload", handleBeforeUnload)
+  //   return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  // }, [])
+
   // Initiate signing once keyring is ready.
   useEffect(() => {
     if (!signingInitiated && keyringStatus === "unlocked") {

@@ -296,12 +296,29 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
   ): Promise<string> {
     this.verifyKeyringIsUnlocked()
     try {
+      const { jsonRpcProvider } = globalThis.main.chainService
+
       const qiHDWallet = await this.walletManager.getQiHDWallet()
       if (qiHDWallet) {
         const serializedWallet = qiHDWallet.serialize()
-        const allAddresses = serializedWallet.addresses
-        const privateKeys = allAddresses.map((address) =>
-          qiHDWallet.getPrivateKey(address.address)
+        const uniqueAddresses = Array.from(
+          new Set(serializedWallet.addresses.map((address) => address.address))
+        )
+
+        const addressesToSignFor: string[] = []
+
+        // check balance of each address and only keep one with balance
+        await Promise.all(
+          uniqueAddresses.map(async (address) => {
+            const balance = await jsonRpcProvider.getBalance(address)
+            if (balance > 0n) {
+              addressesToSignFor.push(address)
+            }
+          })
+        )
+
+        const privateKeys = addressesToSignFor.map((address) =>
+          qiHDWallet.getPrivateKey(address)
         )
 
         const signedMessages = await Promise.all(

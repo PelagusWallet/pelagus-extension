@@ -266,7 +266,7 @@ export default class SigningService extends BaseService<Events> {
             await this.chainService.syncQiWallet()
             signedData =
               await this.keyringService.signMessageWithAllQiAddresses(
-                messageBytes
+                hexDataToSign
               )
           } else {
             const signerWithType = await this.keyringService.getSigner(
@@ -277,9 +277,9 @@ export default class SigningService extends BaseService<Events> {
             signedData = isSignerPrivateKeyType(signerWithType)
               ? await signerWithType.signer.signMessage(messageBytes)
               : await signerWithType.signer.signMessage(
-                formatedAddress,
-                messageBytes
-              )
+                  formatedAddress,
+                  messageBytes
+                )
           }
 
           break

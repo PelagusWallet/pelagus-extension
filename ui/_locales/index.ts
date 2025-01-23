@@ -2,6 +2,7 @@ import EN from "./en/messages.json"
 import zhHant from "./zh_Hant/messages.json"
 import ptBR from "./pt_BR/messages.json"
 import es from "./es/messages.json"
+import ID from "./id/messages.json";
 
 type Lang = {
   title: string
@@ -19,6 +20,9 @@ const SUPPORT_LANGUAGES: { [id: string]: Lang } = {
   },
   es: {
     title: "Español",
+  },
+  id: {
+    title: "Bahasa Indonesia",
   },
 }
 
@@ -48,6 +52,9 @@ const resources = {
   },
   es: {
     translation: es,
+  },
+   id: {
+   translation: ID,
   },
 } as const
 

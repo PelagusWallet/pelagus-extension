@@ -1,0 +1,576 @@
+{
+  "accounts": {
+    "accountItem": {
+      "noNameError": "Nama diperlukan",
+      "editName": "Edit nama",
+      "saveName": "Simpan nama",
+      "typeNewName": "Ketik nama baru",
+      "cancel": "Batal",
+      "regularWarning": "Menghapus alamat ini tidak menghapus frase pemulihan Anda atau kunci pribadi lainnya. Sebaliknya, itu hanya menyembunyikannya dari ekstensi dan Anda tidak akan dapat menggunakannya sampai Anda menambahkannya kembali.",
+      "loudWarningTitle": "Menghapus alamat ini akan menghapus akun terkait dari antarmuka.",
+      "loudWarningBody": "Apakah Anda yakin ingin melanjutkan?",
+      "lastAccountWarningTitle": "Setelah akun ini dihapus, Anda tidak akan dapat menggunakan dompet hingga Anda menyelesaikan onboarding lagi.",
+      "lastAccountWarningBody": "Apakah Anda yakin ingin melanjutkan?",
+      "removeAddress": "Hapus alamat",
+      "copyAddress": "Salin alamat",
+      "exportAccount": "Ekspor kunci pribadi",
+      "removeConfirm": "Ya, saya ingin menghapusnya",
+      "clearHistory": "Hapus riwayat transaksi",
+      "clearConfirm": "Ya, saya ingin menghapusnya",
+      "clearHistoryWarning": "Menghapus riwayat dompet Anda di ekstensi ini tidak menghapus catatan transaksi dari blockchain. Riwayat transaksi Anda tetap terlihat publik di blockchain dan dapat dilihat menggunakan penjelajah blok.",
+      "moveUp": "Pindah ke atas",
+      "moveDown": "Pindah ke bawah"
+    },
+    "notificationPanel": {
+      "addWallet": "Tambahkan Dompet",
+      "addAddress": "Tambahkan Alamat",
+      "resetOrder": "Atur Ulang Urutan",
+      "readOnly": "Hanya-baca",
+      "privateKey": "Kunci pribadi",
+      "import": "Impor",
+      "internal": "Pelagus",
+      "category": {
+        "readOnly": "Prabaca",
+        "others": "Diimpor & dihasilkan"
+      },
+      "signing": {
+        "lock": "Kunci penandatanganan",
+        "unlock": "Buka kunci penandatanganan"
+      },
+      "snackbar": "Penandatanganan terkunci"
+    },
+    "noResults": "Tidak ada hasil ditemukan"
+  },
+  "viewAddressOnBlockExplorer": "Lihat alamat di {{blockExplorer}}",
+  "assets": {
+    "viewAsset": "Lihat aset di {{siteTitle}}",
+    "openNetworkExplorer": "Buka penjelajah jaringan",
+    "verifyAsset": "Verifikasi aset",
+    "unverifiedAsset": "Aset tidak terverifikasi",
+    "verifiedByUser": "Diverifikasi oleh Anda"
+  },
+  "assetInput": {
+    "search": "Cari berdasarkan nama atau alamat",
+    "selectToken": "Pilih token",
+    "error": {
+      "invalidAmount": "Jumlah tidak valid",
+      "insufficientBalance": "Saldo tidak cukup"
+    }
+  },
+  "priceDetails": {
+    "priceImpactTooltip": {
+      "firstLine": "Dampak harga antara aset tinggi.",
+      "secondLine": "Ini disebabkan oleh likuiditas rendah dari pasangan swap."
+    },
+    "noAssetPrice": "Tidak ada informasi harga",
+    "noAssetPriceTooltip": {
+      "firstLine": "Kami tidak dapat menerima harga untuk aset ini saat ini.",
+      "secondLine": "Melanjutkan tanpa informasi harga dapat menyebabkan kehilangan nilai."
+    }
+  },
+  "dappConnection": {
+    "connectToDapp": "Sambungkan ke dApp",
+    "dappPermissionListTitle": "dApp akan mendapatkan izin untuk:",
+    "viewAddressPermission": "Lihat alamat akun yang terhubung",
+    "createTransactionPermission": "Buat tetapi tidak tanda tangani transaksi untuk Anda",
+    "rejectConnection": "Tolak",
+    "acceptConnection": "Sambungkan"
+  },
+  "genericPages": {
+    "pageDoesNotExist": "Halaman ini tidak ada. Itu saja yang kami tahu.",
+    "errorPageTitle": "Kesalahan Tak Terduga",
+    "returnHome": "Kembali ke Beranda"
+  },
+  "keyring": {
+    "setPassword": {
+      "title": "Atur kata sandi untuk membuka kunci penandatanganan",
+      "subtitleFirstLine": "Anda akan diminta untuk memasukkan ini",
+      "subtitleSecondLine": "kata sandi untuk membuka kunci transaksi penandatanganan.",
+      "password": "Kata sandi",
+      "repeatPassword": "Ulangi kata sandi",
+      "restorePassword": "Memulihkan akun?",
+      "submitBtn": "Lepaskan!",
+      "error": {
+        "characterCount": "Harus setidaknya 8 karakter",
+        "noMatch": "Kata sandi tidak cocok",
+        "invalidCharacters": "Kata sandi hanya boleh mengandung huruf, angka, dan karakter khusus"
+      }
+    },
+    "unlock": {
+      "title": "Buka kunci penandatanganan",
+      "subtitle": "Masukkan kata sandi penandatanganan Anda untuk melanjutkan",
+      "submitBtn": "Buka Kunci",
+      "signingPassword": "Kata sandi penandatanganan",
+      "error": {
+        "incorrect": "Kata sandi salah"
+      },
+      "snackbar": "Penandatanganan dibuka kuncinya"
+    }
+  },
+  "networkFees": {
+    "unknownFee": "Tidak diketahui",
+    "toBeDetermined": "TBD",
+    "settingsTitle": "Biaya jaringan (Gwei)",
+    "gasLimit": "Batas gas",
+    "settingsDisabledOne": "Rantai tidak mendukung",
+    "settingsDisabledTwo": "pengaturan gas",
+    "estimatedNetworkFee": "Perkiraan biaya jaringan",
+    "insufficientBaseAsset": "Tidak cukup {{symbol}} untuk biaya jaringan",
+    "totalMax": "Total Maksimum",
+    "saveSettings": "Simpan pengaturan",
+    "errors": {
+      "limitTooLow": "Batas Gas harus lebih tinggi dari 21000",
+      "invalidLimit": "Batas Gas harus berupa angka",
+      "lowGas": "Rendah"
+    },
+    "miner": "Penambang:",
+    "maxBase": "Maks Base:",
+    "speeds": {
+      "0": "-",
+      "70": "~5 menit",
+      "95": "~1 menit",
+      "99": "~30 detik"
+    },
+    "types": {
+      "regular": "Reguler",
+      "express": "Ekspres",
+      "instant": "Instan",
+      "custom": "Kustom"
+    }
+  },
+  "onboarding": {
+    "tabbed": {
+      "routeBasedContent": {
+        "newSeed": {
+          "tip": "Jika Anda ingin cara yang mudah untuk melihat Pelagus, Anda dapat mulai dengan menambahkan akun hanya-baca.",
+          "action": "Tambahkan akun prabaca"
+        },
+        "addWallet": {
+          "tip": "Beberapa fitur paling populer dari Pelagus dikembangkan oleh komunitas kami."
+        },
+        "viewOnly": {
+          "tip": "Cara baik untuk melihat apa yang ditawarkan Pelagus."
+        },
+        "importSeed": {
+          "tip": "Pelagus menawarkan kemungkinan menambahkan beberapa frase pemulihan."
+        },
+        "default": {
+          "fact1": "Pelagus Wallet, dompet web pertama untuk Quai Network segera hadir."
+        }
+      },
+      "intro": {
+        "title": "Mari kita siapkan Anda!",
+        "useExisting": "Gunakan dompet yang ada",
+        "createNew": "Buat dompet baru"
+      },
+      "addWallet": {
+        "title": "Gunakan dompet yang ada",
+        "titleExisting": "Tambahkan akun",
+        "tip": "Anda selalu dapat menambahkan lebih banyak dompet nanti.",
+        "existingListTitle": "Akun yang ada",
+        "newWalletTitle": "Dompet baru",
+        "options": {
+          "importSeed": "Impor frase pemulihan",
+          "importPrivateKey": "Impor kunci pribadi",
+          "readOnly": "Alamat hanya-baca",
+          "createNew": "Buat dompet baru"
+        },
+        "importSeed": {
+          "title": "Impor frase pemulihan rahasia",
+          "subtitle": "Tempel atau ketik frase pemulihan rahasia Anda yang terdiri dari 12 hingga 24 kata di bawah ini.",
+          "inputLabel": "Masukkan frase pemulihan",
+          "submit": "Impor akun",
+          "errors": {
+            "phraseLengthError": "Harus berupa frase pemulihan 12 atau 24 kata",
+            "invalidPhraseError": "Frase pemulihan tidak valid"
+          }
+        },
+        "importPrivateKey": {
+          "title": "Impor kunci pribadi",
+          "subtitle": "Mengimpor kunci pribadi tidak mengaitkannya dengan frase pemulihan rahasia, tetapi masih dilindungi oleh kata sandi yang sama",
+          "inputLabel": "Tempel string kunci pribadi",
+          "submit": "Impor akun",
+          "errorImport": "Mengimpor kunci pribadi gagal"
+        },
+        "viewOnly": {
+          "title": "Alamat hanya-baca",
+          "subtitle": "Tambahkan alamat QUAI untuk melihat dompet yang ada di Pelagus",
+          "submit": "Prabaca Pelagus",
+          "tip": "Anda dapat meningkatkan dompet hanya-baca nanti."
+        }
+      },
+      "newWalletIntro": {
+        "title": "Sebelum kita mulai",
+        "warning": "Penting untuk mencatat frase pemulihan rahasia Anda dan menyimpannya di tempat yang aman.<br /><br />Ini adalah satu-satunya cara untuk memulihkan akun dan dana Anda.<br /><br /><u>Anda tidak akan dapat mengekspor frase pemulihan Anda nanti.</u>",
+        "submit": "Buat frase pemulihan",
+        "tip": "Anda dapat meningkatkan dompet hanya-baca nanti."
+      },
+      "unlockWallet": {
+        "title": "Kata sandi diperlukan",
+        "passwordInput": "Kata sandi penandatanganan",
+        "submit": "Konfirmasi"
+      },
+      "newWalletReview": {
+        "title": "Simpan dan simpan frase pemulihan Anda",
+        "submit": "Saya sudah menulisnya",
+        "copyAddressAction": "Salin frase ke clipboard"
+      },
+      "newWalletVerify": {
+        "title": "Verifikasi frase pemulihan",
+        "subtitle": "Klik pada setiap kata sesuai urutan yang diminta",
+        "validState": "Terverifikasi",
+        "invalidState": "Urutan Salah",
+        "invalidStateMsg": "Verifikasi urutan dan hapus yang tidak berada di posisi yang benar.",
+        "verifyValidState": "Verifikasi frase pemulihan",
+        "submit": "Selesaikan",
+        "tip": "Jika Anda tidak menuliskannya, Anda dapat <url>mulai dengan frase baru.</url>"
+      },
+      "complete": {
+        "title": "Selamat datang di Pelagus",
+        "titleExisting": "Akun ditambahkan ke Pelagus!",
+        "subtitle": "Untuk menghindari konflik dengan dompet lain, kami sarankan Anda mematikan semua ekstensi dompet lainnya.",
+        "animationAlt": "Sematkan dompet"
+      }
+    },
+    "setPassword": {
+      "title": "Pertama, mari kita lindungi<br /> dompet Anda",
+      "setAsDefault": "Atur Pelagus sebagai dompet default",
+      "submit": "Lepaskan!"
+    },
+    "steps": {
+      "create": "Buat",
+      "save": "Simpan",
+      "verify": "Verifikasi"
+    },
+    "seedVerification": {
+      "seedIsInWrongOrder": "Urutan Salah",
+      "seedMismatchExplainer": "Kami mohon maaf, frase pemulihan yang Anda masukkan tidak cocok. Anda dapat mencoba mengurutkannya kembali, tetapi pastikan Anda telah menuliskannya.",
+      "createNewWallet": "Jika Anda mau, Anda dapat <1><0>membuat dompet baru.<0></1>",
+      "retryVerification": "Coba lagi",
+      "verifySeedPrompt": "Verifikasi frase pemulihan",
+      "successMessage": "Selamat!",
+      "successExplainer": "Frase pemulihan rahasia benar dan Anda sekarang dapat mulai menggunakan dompet baru Anda.",
+      "successButton": "Bawa saya ke dompet saya"
+    }
+  },
+  "passwordStrength": {
+    "weak": "Lemah",
+    "average": "Rata-rata",
+    "strong": "Kuat",
+    "strength": "Kekuatan",
+    "hintDesc": "Untuk kata sandi yang kuat, pertimbangkan campuran huruf kecil dan besar, simbol, dan angka. Kata sandi harus lebih dari 8 karakter."
+  },
+  "readOnly": "Hanya-baca",
+  "readOnlyNotice": "Mode hanya-baca",
+  "settings": {
+    "group": {
+      "general": "Umum",
+      "walletOptions": "Jaringan & Aset",
+      "helpCenter": "Pusat bantuan"
+    },
+    "mainMenu": "Pengaturan",
+    "setAsDefault": "Gunakan Pelagus sebagai dompet default",
+    "language": "Bahasa",
+    "bugReport": "Laporan bug",
+    "connectedWebsites": "Situs yang terhubung",
+    "addCustomAsset": "Aset kustom",
+    "needHelp": "Butuh bantuan?",
+    "showBanners": "Tampilkan banner pencapaian",
+    "versionLabel": "Versi {{version}}",
+    "unknownVersionOrCommit": "<tidak diketahui>",
+    "exportLogs": {
+      "title": "Laporan bug",
+      "discordTitle": "1. Bergabunglah dengan #bug-reports di Discord",
+      "discordDesc": "Kunjungi saluran Discord kami, dan laporkan bug Anda di sana. Pastikan untuk menyertakan log.",
+      "discordBtn": "Bergabung dengan Discord",
+      "logTitle": "2. Ekspor log",
+      "logDesc": "Untuk memahami bug Anda dengan lebih baik, kami perlu Anda mengekspor log Anda.",
+      "logBtn": "Ekspor log",
+      "ariaLabel": "Buka laporan bug"
+    },
+    "analyticsSetUp": {
+      "title": "Analitik",
+      "toggleTitleOn": "Analitik aktif",
+      "toggleTitleOff": "Analitik mati",
+      "toggleDesc": "Analitik membantu kami memahami kebutuhan Anda dan memberdayakan kami untuk membangun dompet yang lebih baik untuk Anda.",
+      "recordTitle": "Info yang kami kumpulkan",
+      "recordItemTrends": "Tren pengguna secara keseluruhan",
+      "recordItemUsage": "Penggunaan fitur",
+      "noRecordTitle": "Kami tidak pernah mengumpulkan",
+      "noRecordItemSeed": "Frase pemulihan",
+      "noRecordItemInfo": "Informasi Pribadi",
+      "noRecordItemBalances": "Alamat, saldo, atau transaksi",
+      "policyBtn": "Kebijakan privasi",
+      "deleteBtn": "Hapus data saya",
+      "analyticsOffSlideUpMenu": {
+        "title": "Matikan Analitik?",
+        "desc": "Apakah Anda yakin ingin mematikan analitik?",
+        "submitBtn": "Ya, matikan",
+        "snackbar": "Analitik dimatikan, dapat diaktifkan kembali kapan saja"
+      },
+      "deleteSlideUpMenu": {
+        "title": "Hapus data Anda?",
+        "desc": "Apakah Anda yakin ingin menghapus data Anda?",
+        "submitBtn": "Ya, hapus data",
+        "snackbar": "Data pribadi akan segera dihapus"
+      }
+    },
+    "connectedWebsitesSettings": {
+      "title": "Situs yang terhubung",
+      "disconnected": "Situs terputus",
+      "ariaLabel": "Kelola situs yang terhubung",
+      "emptyList": "Tidak terhubung ke situs mana pun"
+    },
+    "addCustomAssetSettings": {
+      "title": "Tambahkan aset kustom",
+      "input.contractAddress.label": "Alamat kontrak",
+      "input.tooltip": "Temukan aset di penjelajah blok favorit Anda, lalu salin alamat kontrak di sini.<br><br>Belum pernah melakukan ini sebelumnya? Cek <url>Pusat Pengetahuan</url> terlebih dahulu.",
+      "asset.label.balance": "Saldo",
+      "asset.label.symbol": "Nama",
+      "warning.alreadyExists.title": "Aset sudah ada, Anda akan melihatnya setelah saldo Anda lebih dari 0",
+      "warning.dust.title": "Saldo aset di bawah <$2, Anda akan melihatnya setelah saldo Anda lebih dari $2",
+      "error.invalidToken": "Alamat kontrak tidak valid",
+      "submit": "Tambahkan aset",
+      "snackbar.success": "Aset berhasil ditambahkan",
+      "snackbar.failed": "Gagal mencari detail token",
+      "footer.hint": "Cara menambahkan aset kustom"
+    }
+  },
+  "send": {
+    "balance": "Saldo: {{amount}}"
+  },
+  "shared": {
+    "pelagus": "Pelagus",
+    "metaMask": "MetaMask",
+    "injected": "Disuntikkan",
+    "cancelBtn": "Batal",
+    "gwei": "Gwei",
+    "send": "Kirim",
+    "showPasswordHint": "Tampilkan Kata Sandi",
+    "hidePasswordHint": "Sembunyikan Kata Sandi",
+    "close": "Tutup",
+    "modalClose": "Tutup latar belakang",
+    "accountItemSummary": {
+      "connectedStatus": "Terhubung"
+    },
+    "selectToken": "Pilih token",
+    "backButtonText": "Kembali",
+    "saveBtn": "Simpan",
+    "closeWindow": "Tutup jendela",
+    "copyTextSnackbar": "Disalin ke clipboard"
+  },
+  "signing": {
+    "signatureRequired": "Tanda tangan Anda diperlukan",
+    "dappSignatureRequest": "Sebuah dapp meminta tanda tangan Anda",
+    "message": "Pesan",
+    "signed": "Tanda tangan,",
+    "type": "Tipe"
+  },
+  "signTransaction": {
+    "title": "Tandatangani transaksi",
+    "reject": "Tolak",
+    "unknownNetwork": "Jaringan Tidak Dikenal",
+    "rawDataCopyMsg": "Data mentah disalin ke clipboard",
+    "copyRawData": "Salin hex",
+    "confirmButtonLabel": "Tandatangani",
+    "unsavedChangesTooltip": "Anda memiliki perubahan yang belum disimpan",
+    "spendApproval": {
+      "title": "Setujui pengeluaran aset",
+      "approveSpender": "Setujui <spenderAddress></spenderAddress>",
+      "spendAmount": "Keluarkan token {{assetSymbol}}",
+      "spendLimit": "Batas pengeluaran",
+      "tooltip1": "Batas pengeluaran adalah jumlah dana dari aset tertentu yang Anda izinkan kontrak untuk dibelanjakan.",
+      "tooltip2": "Transaksi tanpa batas memiliki kelemahan bahwa jika kontrak berbahaya, itu dapat mencuri semua dana Anda.",
+      "changeLimit": "Ubah batas",
+      "invalidAmount": "Jumlah tidak valid"
+    },
+    "assetTransfer": {
+      "title": "Transfer",
+      "sendTo": "Kirim ke",
+      "spendAmountLabel": "Jumlah yang dikeluarkan"
+    },
+    "contractInteraction": {
+      "title": "Interaksi kontrak",
+      "interactingWithLabel": "Berinteraksi dengan",
+      "newlyCreatedContract": "Kontrak yang baru dibuat"
+    },
+    "signTypedData": {
+      "confirmButtonLabel": "Konfirmasi"
+    }
+  },
+  "switchWallet": {
+    "title": "Ingin menggunakan dompet lain?",
+    "tooltip": "Anda melihat ini karena Pelagus diatur sebagai dompet default, Anda dapat mengubah opsi ini di menu utama.",
+    "confirmSwitchWallet": "Ya, ganti dompet"
+  },
+  "topMenu": {
+    "showCurrentDappConnection": "Tampilkan koneksi dApp saat ini",
+    "accountSelect": "Pilih akun",
+    "addQuaiaccount": "Tambahkan akun Quai",
+    "connectToWebsiteUsing": "Sambungkan ke situs menggunakan:",
+    "setPelagusAsDefault": "Atur Pelagus sebagai default",
+    "setOtherAsDefault": "Atur MetaMask/dompet lain sebagai default",
+    "copyAddressTooltip": "Salin alamat",
+    "addressCopiedMsg": "Alamat disalin ke clipboard",
+    "connectedDappInfo": {
+      "dAppTitle": "Akun terhubung ke",
+      "dappConnections": "Koneksi dApp",
+      "guideline": {
+        "title": "Cara terhubung ke dapps",
+        "step1": "Atur Pelagus sebagai default",
+        "step2": "Klik “sambungkan ke dompet” di dapp",
+        "step3": "Pilih salah satu yang mirip dengan ini"
+      }
+    }
+  },
+  "wallet": {
+    "activities": {
+      "defaultHistoricalActivityExplainer": "Semua transaksi baru Anda akan muncul di sini.",
+      "endOfList": "Anda telah mencapai akhir daftar aktivitas.",
+      "moreHistory": "Untuk lebih banyak riwayat, kunjungi",
+      "tokenApproved": "Persetujuan token",
+      "contractInteraction": "Interaksi Kontrak",
+      "externalReceived": "Terima Eksternal",
+      "externalSend": "Kirim Eksternal",
+      "tokenReceived": "Diterima",
+      "tokenSent": "Kirim",
+      "infiniteApproval": "Tanpa batas",
+      "transactionFailed": "Gagal",
+      "transactionDropped": "Dibuang",
+      "transactionPending": "Memproses...",
+      "transactionApproved": "Disetujui",
+      "transactionSettled": "Diselesaikan",
+      "contractCreation": "(Pembuatan kontrak)",
+      "transactionTo": "Ke:",
+      "loadingActivities": "Menggali lebih dalam...",
+      "addCustomAssetPrompt": "Tidak dapat menemukan aset?",
+      "addCustomAssetAction": "Tambahkan aset kustom"
+    },
+    "totalAccountBalance": "Total saldo akun",
+    "send": "Kirim",
+    "swap": "Konversi",
+    "swapDisabledOne": "Konversi segera hadir",
+    "receive": "Terima",
+    "secureSeed": "Pertama, amankan seed pemulihan Anda",
+    "sendAsset": "Kirim Aset",
+    "assetAmount": "Aset / Jumlah",
+    "sendTo": "Kirim Ke:",
+    "sendButton": "Kirim",
+    "receiveAddress": "Alamat penerimaan",
+    "sendToContractWarning": "Ini adalah alamat kontrak, mengirim aset dapat menyebabkan kehilangan dana.",
+    "pages": {
+      "assets": "Aset",
+      "activity": "Aktivitas"
+    },
+    "defaultToggle": {
+      "snackbar": "Anda dapat mengubah ini di Pengaturan nanti",
+      "isDefault": "sekarang adalah dompet default Anda",
+      "notDefault": "bukan dompet default Anda",
+      "tooltip": "Mengatur Pelagus sebagai dompet default Anda berarti bahwa setiap kali Anda terhubung ke dApp, Pelagus akan terbuka alih-alih MetaMask atau dompet lainnya."
+    },
+    "analyticsNotification": {
+      "title": "Analitik diaktifkan",
+      "description": "Mereka membantu kami meningkatkan dompet. Anda dapat menonaktifkannya kapan saja",
+      "settingsLink": "Ubah pengaturan"
+    },
+    "unverifiedAssets": {
+      "stateOfHiddenAssets1": "Sembunyikan",
+      "stateOfHiddenAssets2": "Lihat",
+      "hiddenAssets": "{{stateOfHiddenAssets}} aset tidak terverifikasi ({{amount}})",
+      "verifyAsset": "Verifikasi aset"
+    },
+    "verifiedAssets": {
+      "assetImported": "Aset otomatis diimpor",
+      "symbol": "Simbol",
+      "contract": "Alamat kontrak",
+      "discoveryTxHash": "Ditambahkan dari transaksi",
+      "dontShow": "Jangan tampilkan",
+      "addToAssetList": "Tambahkan ke daftar aset",
+      "verifyAssetSnackbar": "Aset ditambahkan ke daftar",
+      "removeAssetSnackbar": "Aset dihapus dari daftar",
+      "banner": {
+        "titleUnverified": "Aset tidak terverifikasi",
+        "titleVerified": "Aset diverifikasi oleh Anda",
+        "description": "Waspadai aset penipuan dan spam, hanya berinteraksi dengan aset yang Anda percayai.",
+        "oldDescription": "Hanya transaksi dengan aset yang Anda percayai."
+      }
+    }
+  },
+  "dAppConnect": {
+    "switchWallet": {
+      "title": "Pelagus bukan Default",
+      "descFirstPart": "Kami menonaktifkan Pelagus sebagai dompet default untuk Anda. Anda selalu dapat mengaktifkannya kembali dari Pengaturan",
+      "descSecondPart": "kapan saja.",
+      "toggleTitle": "Gunakan Pelagus sebagai dompet default"
+    },
+    "defaultConnectionPopover": {
+      "title": "Menghubungkan dengan Pelagus",
+      "activeWallet": "Dompet aktif Anda adalah Pelagus.",
+      "activeWalletMeaning": "Ini berarti bahwa Anda akan menghubungkan ke situs web dengan Pelagus bahkan ketika memilih MetaMask.",
+      "metaMaskHeading": "Ingin beralih ke MetaMask?",
+      "toggleLabel": "Gunakan toggle di atas untuk terhubung dengan MetaMask atau dompet lain."
+    }
+  },
+  "globalError": {
+    "title": "Ups, tidak ada yang bisa dilihat di sini",
+    "desc": "Sepertinya Anda mengalami mangkuk kosong, coba muat ulang halaman untuk melihat apakah sesuatu muncul",
+    "submitBtn": "Muat ulang halaman"
+  },
+  "globalModal": {
+    "title": "Halo Dunia. Kenalan dengan Pelagus Alpha.",
+    "description1": "Bantu kami membuat produk ini lebih baik dengan melaporkan masalah di situs dukungan kami: ",
+    "description2": "",
+    "description3": "",
+    "button": "Baca lebih lanjut"
+  },
+  "devPanel": {
+    "title": "Panel Pengembang",
+    "featureFlags": {
+      "title": "Bendera fitur",
+      "flags": {
+        "USE_MAINNET_FORK": "Gunakan fork mainnet",
+        "HIDE_IMPORT_DERIVATION_PATH": "Sembunyikan jalur derivasi impor",
+        "USE_UPDATED_SIGNING_UI": "Gunakan UI penandatanganan yang diperbarui",
+        "SUPPORT_MULTIPLE_LANGUAGES": "Aktifkan pilihan bahasa",
+        "SUPPORT_ACHIEVEMENTS_BANNER": "Aktifkan banner pencapaian",
+        "SUPPORT_CUSTOM_RPCS": "Aktifkan penambahan RPC kustom",
+        "SUPPORT_UNVERIFIED_ASSET": "Aktifkan verifikasi aset"
+      }
+    }
+  },
+  "tabs": {
+    "wallet": "Dompet",
+    "settings": "Pengaturan"
+  },
+  "drawers": {
+    "selectNetwork": {
+      "title": "Pilih jaringan",
+      "toggleShowTestNetworks": "Tampilkan lingkungan pengembang",
+      "disabledToggleMessage": "Beralih ke jaringan utama untuk menonaktifkan lingkungan pengembangan",
+      "unavailableTestNetworks": "Jalankan node lokal untuk menggunakan jaringan ini atau nyalakan/matikan saklar"
+    },
+    "dAppConnection": {
+      "title": "Koneksi dApp",
+      "disconnectButtonText": "Putuskan semua akun",
+      "youHave": "Anda memiliki",
+      "oneConnectedAccount": "akun",
+      "multipleConnectedAccounts": "akun-akun",
+      "accountsConnected": "terhubung ke situs ini",
+      "switchAccountBtnText": "Beralih ke akun ini",
+      "disconnectAccountBtnText": "Putuskan"
+    },
+    "accountSearchBar": {
+      "placeholder": "Cari akun"
+    },
+    "transactionConfirmation": {
+      "viewTransaction": "Lihat Transaksi",
+      "send": {
+        "headerTitle": "{{network}} Terkirim!",
+        "title": "Transaksi Anda telah berhasil diajukan",
+        "errorHeadline": "Uh oh!",
+        "errorTitle": "Terjadi kesalahan saat mengajukan transaksi Anda",
+        "errorSubtitle": "Pastikan transaksi yang Anda ajukan valid dan coba lagi"
+      }
+    }
+  }
+}

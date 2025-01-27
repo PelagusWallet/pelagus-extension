@@ -227,7 +227,6 @@ export const createBlockPrices = (
   estimatedPrices: [
     {
       confidence: 99,
-      minerTip: 0n,
       gasPrice: 1001550n,
     },
   ],

@@ -137,7 +137,6 @@ export default class BlockService extends BaseService<Events> {
     }
 
     const gasPrice = feeData?.gasPrice || 10000000n
-    const minerTip = feeData?.minerTip || 0n
 
     return {
       network,
@@ -146,17 +145,14 @@ export default class BlockService extends BaseService<Events> {
       estimatedPrices: [
         {
           confidence: 99,
-          minerTip: minerTip * 2n,
           gasPrice,
         },
         {
           confidence: 95,
-          minerTip: (minerTip * 3n) / 2n,
           gasPrice,
         },
         {
           confidence: 70,
-          minerTip,
           gasPrice,
         },
       ],

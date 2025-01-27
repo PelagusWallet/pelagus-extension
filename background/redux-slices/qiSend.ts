@@ -10,7 +10,6 @@ export type QiSendState = {
   senderQuaiAccount: AccountTotal | null
   receiverPaymentCode: string
   amount: string
-  minerTip: string
   channelExists: boolean
 }
 
@@ -19,7 +18,6 @@ const initialState: QiSendState = {
   receiverPaymentCode: "",
   amount: "",
   senderQuaiAccount: null,
-  minerTip: "",
   channelExists: false,
 }
 
@@ -29,9 +27,6 @@ const qiSendSlice = createSlice({
   reducers: {
     setQiSendAmount: (immerState, { payload }: { payload: string }) => {
       immerState.amount = payload
-    },
-    setQiSendMinerTip: (immerState, { payload }: { payload: string }) => {
-      immerState.minerTip = payload
     },
     setQiSendReceiverPaymentCode: (
       immerState,
@@ -59,7 +54,6 @@ const qiSendSlice = createSlice({
       immerState.senderQuaiAccount = null
       immerState.amount = ""
       immerState.receiverPaymentCode = ""
-      immerState.minerTip = ""
       immerState.channelExists = false
     },
   },
@@ -70,7 +64,6 @@ export const {
   setQiSendAcc,
   setQiSendAmount,
   setQiSendReceiverPaymentCode,
-  setQiSendMinerTip,
   setQiChannelExists,
   resetQiSendSlice,
 } = qiSendSlice.actions
@@ -82,27 +75,20 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
   async (_, { getState, dispatch }) => {
     const { qiSend } = getState() as RootState
 
-    const {
-      amount,
-      senderQuaiAccount,
-      senderQiAccount,
-      receiverPaymentCode,
-      minerTip,
-    } = qiSend
+    const { amount, senderQuaiAccount, senderQiAccount, receiverPaymentCode } =
+      qiSend
 
     const { address: quaiAddress = "" } = senderQuaiAccount || {}
     const { paymentCode: senderPaymentCode } =
       senderQiAccount as UtxoAccountData
 
     const parsedAmount = parseQi(amount)
-    const minerTipBigInt = minerTip !== "" ? BigInt(minerTip) : null
 
     await main.transactionService.sendQiTransaction(
       parsedAmount,
       quaiAddress,
       senderPaymentCode,
-      receiverPaymentCode,
-      minerTipBigInt
+      receiverPaymentCode
     )
 
     dispatch(resetQiSendSlice())

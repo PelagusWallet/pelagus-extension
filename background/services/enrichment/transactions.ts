@@ -256,11 +256,9 @@ export default async function resolveTransactionAnnotation(
     network,
   })
 
-  const { gasLimit, minerTip, gasPrice, blockHash } = transaction
+  const { gasLimit, gasPrice, blockHash } = transaction
 
-  const gasFee: bigint =
-    (toBigInt(gasPrice ?? 0n) + toBigInt(minerTip ?? 0n)) *
-    toBigInt(gasLimit ?? 0n)
+  const gasFee: bigint = toBigInt(gasPrice ?? 0n) * toBigInt(gasLimit ?? 0n)
 
   txAnnotation.warnings ??= []
 

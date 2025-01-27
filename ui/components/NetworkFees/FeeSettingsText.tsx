@@ -70,8 +70,8 @@ const estimateGweiAmount = (options: {
   network: NetworkInterface
   transactionData?: QuaiTransactionRequestWithAnnotation
 }): string => {
-  const { networkSettings, baseFeePerGas } = options
-  const estimatedSpendPerGas = baseFeePerGas + networkSettings.values.minerTip
+  const { baseFeePerGas } = options
+  const estimatedSpendPerGas = baseFeePerGas
 
   const desiredDecimals = 0
 
@@ -99,9 +99,7 @@ export default function FeeSettingsText({
     selectTransactionMainCurrencyPricePoint
   )
 
-  const baseFeePerGas =
-    (networkSettings.values.gasPrice ?? 1n) +
-    (networkSettings.values.minerTip ?? 0n)
+  const baseFeePerGas = networkSettings.values.gasPrice ?? 1n
 
   const estimatedGweiAmount = estimateGweiAmount({
     baseFeePerGas,

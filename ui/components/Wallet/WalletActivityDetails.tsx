@@ -58,8 +58,6 @@ export default function WalletActivityDetails(
   const gas = details.find((detail) => detail.label === "Gas")?.value || loader
   const gasPrice =
     details.find((detail) => detail.label === "Gas Price")?.value || loader
-  const minerTip =
-    details.find((detail) => detail.label === "Miner Tip")?.value || loader
   const amount =
     details.find((detail) => detail.label === "Amount")?.value || loader
 
@@ -107,10 +105,6 @@ export default function WalletActivityDetails(
         <div className="activity-info-wrapper">
           <h5 className="activity-info-title">Amount</h5>
           <h5 className="activity-info-value">{amount}</h5>
-        </div>
-        <div className="activity-info-wrapper">
-          <h5 className="activity-info-title">Miner Tip</h5>
-          <h5 className="activity-info-value">{minerTip}</h5>
         </div>
         <div className="activity-info-wrapper">
           <h5 className="activity-info-title">Gas Price</h5>

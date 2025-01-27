@@ -1,30 +1,11 @@
 import React, { useState } from "react"
-import { setQiSendMinerTip } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
+import { useBackgroundSelector } from "../../../../hooks"
 
 const FeeSettings = () => {
-  const dispatch = useBackgroundDispatch()
   const { channelExists } = useBackgroundSelector((state) => state.qiSend)
 
   const [isShowAdvancedSettings, setIsShowAdvancedSettings] = useState(false)
 
-  const [tipValue, setTipValue] = useState("")
-  const [tipPlaceholder, setTipPlaceholder] = useState("Enter WEI")
-
-  const handleInput = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target
-    const regex = /^[0-9]*\.?[0-9]*$/
-    if (value === "" || regex.test(value)) {
-      setTipValue(value)
-      await dispatch(setQiSendMinerTip(value))
-    }
-  }
-
-  const onAutoTips = async () => {
-    setTipValue("")
-    await dispatch(setQiSendMinerTip(""))
-    setTipPlaceholder("Auto-calculated tip will be applied")
-  }
   return (
     <>
       <div>
@@ -49,24 +30,6 @@ const FeeSettings = () => {
           >
             Advanced Settings
           </button>
-        )}
-
-        {isShowAdvancedSettings && (
-          <>
-            <h3 className="tip-label">Miner Tip</h3>
-            <div className="tip-wrapper">
-              <input
-                type="text"
-                className="tip-input"
-                placeholder={tipPlaceholder}
-                value={tipValue}
-                onChange={handleInput}
-              />
-              <button type="button" className="tip-button" onClick={onAutoTips}>
-                Auto
-              </button>
-            </div>
-          </>
         )}
       </div>
       <style jsx>{`

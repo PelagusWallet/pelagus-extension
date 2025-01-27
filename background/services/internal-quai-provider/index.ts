@@ -316,12 +316,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.chainService.jsonRpcProvider
           .getFeeData()
           .then((feeData) => feeData.gasPrice)
-      case "quai_minerTip":
-      case "eth_minerTip":
-      case "eth_maxPriorityFeePerGas":
-        return this.chainService.jsonRpcProvider
-          .getFeeData()
-          .then((feeData) => feeData.minerTip)
 
       case "quai_call":
       case "eth_call":
@@ -560,10 +554,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       payload.gasPrice = transactionRequest.gasPrice
     }
 
-    if ("minerTip" in transactionRequest) {
-      payload.minerTip = transactionRequest.minerTip
-    }
-
     // // Ethereum specific fields
     if ("gas" in transactionRequest) {
       payload.gasLimit = transactionRequest.gas
@@ -571,10 +561,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
 
     if ("maxFeePerGas" in transactionRequest) {
       payload.gasPrice = transactionRequest.maxFeePerGas
-    }
-
-    if ("maxPriorityFeePerGas" in transactionRequest) {
-      payload.minerTip = transactionRequest.maxPriorityFeePerGas
     }
 
     if (typeof transactionRequest.value === "undefined") {

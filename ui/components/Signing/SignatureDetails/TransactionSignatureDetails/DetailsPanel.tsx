@@ -6,7 +6,7 @@ import {
 import { updateTransactionData } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { useTranslation } from "react-i18next"
 import classNames from "classnames"
-import { getMaxFeeAndMinerTip } from "@pelagus/pelagus-background/redux-slices/assets"
+import { getGasPrice } from "@pelagus/pelagus-background/redux-slices/assets"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
@@ -55,21 +55,17 @@ export default function DetailPanel({
         transactionDetails.from &&
         transactionDetails.network
       ) {
-        const { gasPrice, minerTip } = (await dispatch(
-          getMaxFeeAndMinerTip()
-        )) as unknown as AsyncThunkFulfillmentType<
-          typeof getMaxFeeAndMinerTip
-        >
+        const { gasPrice } = (await dispatch(
+          getGasPrice()
+        )) as unknown as AsyncThunkFulfillmentType<typeof getGasPrice>
 
         if (!estimatedFeesPerGas) return
 
         if (estimatedFeesPerGas.regular) {
           estimatedFeesPerGas.regular.gasPrice = gasPrice
-          estimatedFeesPerGas.regular.minerTip = minerTip
         }
 
         estimatedFeesPerGas.gasPrice = gasPrice
-        estimatedFeesPerGas.minerTip = minerTip
       }
     }
 

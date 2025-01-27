@@ -24,7 +24,6 @@ export type QuaiTransactionDB = {
   gasUsed?: bigint | null
   gasLimit: BigNumberish | null
   gasPrice: BigNumberish | null
-  minerTip: BigNumberish | null
 
   index: bigint
   value: BigNumberish | null

@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Shard, WebSocketProvider } from "quais"
+import { JsonRpcProvider, WebSocketProvider } from "quais"
 import { JsonRpcProvider as EthJsonRpcProvider } from "ethers"
 import BaseService from "../base"
 import { NetworkProviders } from "./types"
@@ -117,56 +117,81 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
 
   // --------------------------------- local node methods ---------------------------------
   private initializeLocalNodeProviders(): void {
-    // TODO temporary solution due to absence of timeout in providers, uncomment
-    // if (this.isLocalNodeNetworkProvidersInitialized) return
-
-    const { chainID, jsonRpcUrls, webSocketRpcUrls } = QuaiLocalNodeNetwork
-
-    // TODO temp solution, delete after provider fix
-    this.providersForNetworks.delete(chainID)
-
-    const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls)
-    const webSocketProvider = new WebSocketProvider(webSocketRpcUrls)
-
-    const localNodeNetworkProviders: NetworkProviders = {
-      jsonRpcProvider,
-      webSocketProvider,
-    }
-    this.providersForNetworks.set(chainID, localNodeNetworkProviders)
-
-    this.isLocalNodeNetworkProvidersInitialized = true
-    this.lastLocalNodeStatus = null
-
-    // slight improvement to check local node status immediately after toggle click
-    // optional: we can wait DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS delay or force check
-    this.checkLocalNodeStatus()
-  }
-
-  private async checkLocalNodeStatus(): Promise<void> {
     try {
-      const providersForLocalNodeNetwork = this.providersForNetworks.get(
-        QuaiLocalNodeNetwork.chainID
+      // TODO temporary solution due to absence of timeout in providers, uncomment
+      // if (this.isLocalNodeNetworkProvidersInitialized) return
+
+      const { chainID, jsonRpcUrls, webSocketRpcUrls } = QuaiLocalNodeNetwork
+
+      // TODO temp solution, delete after provider fix
+      this.providersForNetworks.delete(chainID)
+
+      const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, undefined, {
+        usePathing: false,
+      })
+      const webSocketProvider = new WebSocketProvider(
+        webSocketRpcUrls,
+        undefined,
+        { usePathing: false }
       )
 
+      const localNodeNetworkProviders: NetworkProviders = {
+        jsonRpcProvider,
+        webSocketProvider,
+      }
+      this.providersForNetworks.set(chainID, localNodeNetworkProviders)
+
+      this.isLocalNodeNetworkProvidersInitialized = true
+      this.lastLocalNodeStatus = null
+
+      // slight improvement to check local node status immediately after toggle click
+      // optional: we can wait DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS delay or force check
+      this.checkLocalNodeStatus()
+    } catch (error) {
+      console.error("Error initializing local node providers", error)
+    }
+  }
+
+  private async checkLocalNodeStatus(): Promise<boolean> {
+    const fetchLocalBlockHash = async () => {
+      try {
+        const response = await fetch("http://localhost:9001", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "quai_getBlockByNumber",
+            params: ["latest", false],
+          }),
+        })
+
+        const data = await response.json()
+        return data.result.hash
+      } catch (error) {
+        return null
+      }
+    }
+
+    try {
       const timeout = (ms: number) =>
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error("Timeout")), ms)
         )
 
-      const blockNumber = await Promise.race([
-        providersForLocalNodeNetwork?.jsonRpcProvider.getBlockNumber(
-          Shard.Cyprus1
-        ),
+      const blockHash = await Promise.race([
+        fetchLocalBlockHash(),
         timeout(DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS),
       ])
 
-      if (!blockNumber) {
-        this.emitLocalNodeStatusEvent(true)
-      } else {
-        this.emitLocalNodeStatusEvent(false)
-      }
+      const isDisabled = !blockHash
+      this.emitLocalNodeStatusEvent(isDisabled)
+      return !isDisabled
     } catch (error) {
       this.emitLocalNodeStatusEvent(true)
+      return false
     }
   }
 
@@ -186,18 +211,19 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
   ): void {
     if (this.localNodeCheckerInterval) return
 
-    // TODO temporary solution due to absence of timeout in providers
-    // delete
-    this.initializeLocalNodeProviders()
-    // uncomment
-    // if (!this.isLocalNodeNetworkProvidersInitialized) {
-    //   this.initializeProvidersForLocalNodeNetwork()
-    // }
+    // Check immediately and only initialize providers if node is available
+    this.checkLocalNodeStatus().then((nodeAvailable) => {
+      if (nodeAvailable) {
+        this.initializeLocalNodeProviders()
+      }
+    })
 
-    this.localNodeCheckerInterval = setInterval(
-      () => this.checkLocalNodeStatus(),
-      intervalMs
-    )
+    this.localNodeCheckerInterval = setInterval(async () => {
+      const nodeAvailable = await this.checkLocalNodeStatus()
+      if (nodeAvailable && !this.isLocalNodeNetworkProvidersInitialized) {
+        this.initializeLocalNodeProviders()
+      }
+    }, intervalMs)
   }
 
   private stopLocalNodeCheckingInterval(): void {

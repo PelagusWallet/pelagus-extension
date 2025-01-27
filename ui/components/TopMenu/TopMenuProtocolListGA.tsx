@@ -21,6 +21,7 @@ export default function TopMenuProtocolListGA({
     .sort((a, b) =>
       (a.isTestNetwork === b.isTestNetwork ? 0 : a.isTestNetwork) ? 1 : -1
     )
+    .sort((a, b) => (Number(a.chainID) > Number(b.chainID) ? 1 : -1)) // sort by chainID to make local network last
 
   return (
     <div className="networks-list">

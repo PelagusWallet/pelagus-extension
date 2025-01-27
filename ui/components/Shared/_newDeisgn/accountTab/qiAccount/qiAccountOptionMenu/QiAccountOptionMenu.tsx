@@ -1,16 +1,23 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import {
   setShowingAccountsModal,
   setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import SharedDropdown from "../../../../SharedDropDown"
-import { useBackgroundDispatch } from "../../../../../../hooks"
+import SharedDropdown, { DropdownOption } from "../../../../SharedDropDown"
+import {
+  useBackgroundDispatch,
+  useBackgroundSelector,
+} from "../../../../../../hooks"
+import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
+  const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
+
+  const [options, setOptions] = useState<DropdownOption[]>([])
 
   const onCopyData = async ({
     data = "",
@@ -22,6 +29,48 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
     await navigator.clipboard.writeText(data)
     await dispatch(setSnackbarConfig({ message: notificationMessage }))
   }
+
+  useEffect(() => {
+    if (currentSelectedAccount.network.chainID === "9000") {
+      setOptions([
+        {
+          key: "copy",
+          icon: "icons/s/copy.svg",
+          label: "Copy payment code",
+          onClick: async () => {
+            await onCopyData({
+              data: paymentCode,
+              notificationMessage: "Payment code copied to clipboard",
+            })
+          },
+        },
+      ])
+    } else {
+      setOptions([
+        {
+          key: "send",
+          icon: "icons/s/arrow-up.svg",
+          label: "Send asset",
+          onClick: async () => {
+            await dispatch(resetQiSendSlice())
+            history.push("/send-qi")
+            await dispatch(setShowingAccountsModal(false))
+          },
+        },
+        {
+          key: "copy",
+          icon: "icons/s/copy.svg",
+          label: "Copy payment code",
+          onClick: async () => {
+            await onCopyData({
+              data: paymentCode,
+              notificationMessage: "Payment code copied to clipboard",
+            })
+          },
+        },
+      ])
+    }
+  }, [currentSelectedAccount])
 
   return (
     <div className="options_menu_wrap">
@@ -35,29 +84,7 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
             tabIndex={0}
           />
         )}
-        options={[
-          {
-            key: "send",
-            icon: "icons/s/arrow-up.svg",
-            label: "Send asset",
-            onClick: async () => {
-              await dispatch(resetQiSendSlice())
-              history.push("/send-qi")
-              await dispatch(setShowingAccountsModal(false))
-            },
-          },
-          {
-            key: "copy",
-            icon: "icons/s/copy.svg",
-            label: "Copy payment code",
-            onClick: async () => {
-              await onCopyData({
-                data: paymentCode,
-                notificationMessage: "Payment code copied to clipboard",
-              })
-            },
-          },
-        ]}
+        options={options}
       />
 
       <style jsx>

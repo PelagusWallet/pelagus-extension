@@ -22,7 +22,6 @@ import { convertFixedPoint } from "../lib/fixed-point"
 import { removeAssetReferences, updateAssetReferences } from "./accounts"
 import type { RootState } from "."
 import { AccountSigner } from "../services/signing"
-import { setSnackbarConfig } from "./ui"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import logger from "../lib/logger"
 
@@ -182,11 +181,10 @@ export const removeAssetData = createBackgroundAsyncThunk(
   }
 )
 
-export const getMaxFeeAndMinerTip = createBackgroundAsyncThunk(
+export const getGasPrice = createBackgroundAsyncThunk(
   "assets/getAccountGasPrice",
   async (): Promise<{
     gasPrice: bigint
-    minerTip: bigint
   }> => {
     const { jsonRpcProvider } = globalThis.main.chainService
 
@@ -194,13 +192,9 @@ export const getMaxFeeAndMinerTip = createBackgroundAsyncThunk(
       const feeData = await jsonRpcProvider.getFeeData(Zone.Cyprus1)
       const baseFeeSettings = {
         gasPrice: toBigInt(6000000000),
-        minerTip: toBigInt(2000000000),
       }
       if (feeData?.gasPrice) {
         baseFeeSettings.gasPrice = feeData.gasPrice
-      }
-      if (feeData?.minerTip) {
-        baseFeeSettings.minerTip = feeData.minerTip
       }
 
       return baseFeeSettings
@@ -209,7 +203,6 @@ export const getMaxFeeAndMinerTip = createBackgroundAsyncThunk(
 
       return {
         gasPrice: toBigInt(6000000000),
-        minerTip: toBigInt(2000000000),
       }
     }
   }
@@ -230,7 +223,6 @@ export const sendAsset = createBackgroundAsyncThunk(
       toAddressNetwork: AddressOnNetwork
       assetAmount: AnyAssetAmount
       gasLimit?: bigint
-      minerTip?: bigint
       gasPrice?: bigint
       accountSigner: AccountSigner
     },
@@ -241,7 +233,6 @@ export const sendAsset = createBackgroundAsyncThunk(
       toAddressNetwork: { address: toAddress, network: toNetwork },
       assetAmount,
       gasLimit,
-      minerTip,
       gasPrice,
     } = transferDetails
 
@@ -288,10 +279,6 @@ export const sendAsset = createBackgroundAsyncThunk(
 
       if (gasLimit) {
         request.gasLimit = gasLimit * 10n
-      }
-
-      if (minerTip) {
-        request.minerTip = minerTip * 10n
       }
 
       if (gasPrice) {

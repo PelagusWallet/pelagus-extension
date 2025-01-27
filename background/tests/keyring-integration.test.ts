@@ -51,7 +51,6 @@ const validTransactionRequests: {
     nonce: 0,
     type: 2,
     value: 0n,
-    minerTip: 0n,
     gasPrice: 0n,
     gasLimit: 0n,
     chainId: "0",

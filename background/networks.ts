@@ -117,10 +117,6 @@ export type BlockEstimate = {
    * The gas price that results in the above likelihood of inclusion.
    */
   gasPrice?: bigint
-  /**
-   * The miner tip that results in the above likelihood of inclusion.
-   */
-  minerTip?: bigint
 }
 
 /**

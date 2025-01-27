@@ -22,7 +22,7 @@ import {
   parseToFixedPointNumber,
 } from "@pelagus/pelagus-background/lib/fixed-point"
 import {
-  getMaxFeeAndMinerTip,
+  getGasPrice,
   selectAssetPricePoint,
   sendAsset,
 } from "@pelagus/pelagus-background/redux-slices/assets"
@@ -75,11 +75,9 @@ export default function Send(): ReactElement {
   const [assetType, setAssetType] = useState<"token">("token")
 
   const [gasPrice, setGasPrice] = useState(toBigInt(6000000000))
-  const [minerTip, setMinerTip] = useState(toBigInt(2000000000))
   const [gasLimit, setGasLimit] = useState<number>(100000)
 
   const [gasPriceChanged, setGasPriceChanged] = useState(false)
-  const [minerTipChanged, setMinerTipChanged] = useState(false)
   const [gasLimitChanged, setGasLimitChanged] = useState(false)
 
   const [advancedVisible, setAdvancedVisible] = useState(false)
@@ -92,16 +90,12 @@ export default function Send(): ReactElement {
   useEffect(() => {
     const fetchFees = async () => {
       const response = (await dispatch(
-        getMaxFeeAndMinerTip()
-      )) as AsyncThunkFulfillmentType<typeof getMaxFeeAndMinerTip>
+        getGasPrice()
+      )) as AsyncThunkFulfillmentType<typeof getGasPrice>
 
-      const {
-        gasPrice: gasPriceFromRedux,
-        minerTip: minerTipFromRedux,
-      } = response
+      const { gasPrice: gasPriceFromRedux } = response
 
       setGasPrice(gasPriceFromRedux.valueOf())
-      setMinerTip(minerTipFromRedux.valueOf())
     }
 
     fetchFees()
@@ -198,10 +192,6 @@ export default function Send(): ReactElement {
         transferDetails.gasPrice = gasPrice
       }
 
-      if (minerTipChanged) {
-        transferDetails.minerTip = minerTip
-      }
-
       if (gasLimitChanged) {
         transferDetails.gasLimit = BigInt(gasLimit)
       }
@@ -216,7 +206,15 @@ export default function Send(): ReactElement {
       setIsSendingTransactionRequest(false)
       setIsOpenConfirmationModal(true)
     }
-  }, [assetAmount, currentAccount, destinationAddress, dispatch, history, gasLimit, gasPrice, minerTip])
+  }, [
+    assetAmount,
+    currentAccount,
+    destinationAddress,
+    dispatch,
+    history,
+    gasLimit,
+    gasPrice,
+  ])
 
   const copyAddress = useCallback(() => {
     if (destinationAddress === undefined) {
@@ -375,23 +373,6 @@ export default function Send(): ReactElement {
                   onChange={(event) => {
                     setGasPrice(toBigInt(event.target.value))
                     setGasPriceChanged(true)
-                  }}
-                  className={classNames({
-                    error: addressErrorMessage !== undefined,
-                    resolved_address: resolvedNameToAddress,
-                  })}
-                />
-                <label style={{ paddingTop: "5px" }} htmlFor="minerTip">
-                  Miner Tip
-                </label>
-                <input
-                  id="send_address_alt"
-                  type="number"
-                  placeholder={minerTip.toString()}
-                  spellCheck={false}
-                  onChange={(event) => {
-                    setMinerTip(toBigInt(event.target.value))
-                    setMinerTipChanged(true)
                   }}
                   className={classNames({
                     error: addressErrorMessage !== undefined,

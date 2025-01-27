@@ -21,7 +21,6 @@ export type NetworkFeeSettings = {
   gasLimit: bigint | undefined
   suggestedGasLimit: bigint | undefined
   values: {
-    minerTip: bigint
     gasPrice: bigint
     baseFeePerGas?: bigint
   }
@@ -49,7 +48,6 @@ export type TransactionConstruction = {
 export type EstimatedFeesPerGas = {
   baseFeePerGas?: bigint
   gasPrice?: bigint
-  minerTip?: bigint
   auto?: BlockEstimate
   instant?: BlockEstimate
   express?: BlockEstimate
@@ -59,7 +57,6 @@ export type EstimatedFeesPerGas = {
 
 const defaultCustomGas = {
   gasPrice: 0n,
-  minerTip: 0n,
   confidence: 0,
 }
 
@@ -83,11 +80,9 @@ export type GasOption = {
   estimatedSpeed: string
   type: NetworkFeeTypeChosen
   estimatedGwei: string
-  minerTipGwei: string
   gasPriceGwei: string
   dollarValue: string
   gasPrice?: string
-  minerTip?: string
   estimatedFeePerGas: bigint // wei
 }
 
@@ -106,14 +101,8 @@ const makeBlockEstimate = (
     gasPrice = estimatedFeesPerGas.baseFeePerGas
   }
 
-  // Exaggerate differences between options
-  const minerTip =
-    estimatedFeesPerGas.estimatedPrices.find((el) => el.confidence === type)
-      ?.minerTip ?? 0n
-
   return {
     gasPrice,
-    minerTip,
     confidence: type,
   }
 }
@@ -154,7 +143,6 @@ export const sendTransaction = createBackgroundAsyncThunk(
       to,
       from,
       gasLimit,
-      minerTip: selectedFeesPerGas?.minerTip,
       gasPrice: selectedFeesPerGas?.gasPrice,
       data,
       value,
@@ -265,16 +253,14 @@ const transactionSlice = createSlice({
     setCustomGas: (
       immerState,
       {
-        payload: { minerTip, gasPrice },
+        payload: { gasPrice },
       }: {
         payload: {
-          minerTip: bigint
           gasPrice: bigint
         }
       }
     ) => {
       immerState.customFeesPerGas = {
-        minerTip,
         gasPrice,
         confidence: 0,
       }

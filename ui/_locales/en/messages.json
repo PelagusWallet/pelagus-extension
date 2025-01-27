@@ -124,7 +124,6 @@
       "invalidLimit": "Gas Limit must be a number",
       "lowGas": "Low"
     },
-    "miner": "Miner Tip:",
     "maxBase": "Gas Price:",
     "speeds": {
       "0": "-",

@@ -179,8 +179,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     amount: bigint,
     quaiAddress: string,
     senderPaymentCode: string,
-    receiverPaymentCode: string,
-    minerTip: bigint | null
+    receiverPaymentCode: string
   ): Promise<void> {
     try {
       const { jsonRpcProvider } = this.chainService
@@ -272,8 +271,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         await this.notifyQiRecipient(
           quaiAddress,
           senderPaymentCode,
-          receiverPaymentCode,
-          minerTip
+          receiverPaymentCode
         )
       }
     } catch (error: any) {
@@ -754,8 +752,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async notifyQiRecipient(
     quaiAddress: string,
     senderPaymentCode: string,
-    receiverPaymentCode: string,
-    minerTip: bigint | null
+    receiverPaymentCode: string
   ): Promise<void> {
     try {
       const { jsonRpcProvider } = this.chainService
@@ -774,11 +771,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         MAILBOX_INTERFACE,
         wallet
       )
-      const gasOptions = minerTip ? { minerTip } : {}
       const tx = await mailboxContract.notify(
         senderPaymentCode,
-        receiverPaymentCode,
-        gasOptions
+        receiverPaymentCode
       )
       await tx.wait()
 

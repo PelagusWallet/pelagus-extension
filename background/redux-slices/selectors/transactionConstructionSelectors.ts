@@ -41,7 +41,6 @@ export const selectDefaultNetworkFeeSettings = createSelector(
         transactionConstruction.transactionRequest?.gasLimit ?? 0
       ),
       values: {
-        minerTip: selectedFeesPerGas?.minerTip ?? 0n,
         gasPrice: selectedFeesPerGas?.gasPrice ?? 1000000000n,
         baseFeePerGas:
           networks.blockInfo[currentNetwork.chainID]?.baseFeePerGas ??

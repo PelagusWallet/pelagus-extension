@@ -262,21 +262,13 @@ export async function getActivityDetails(
           })
           .filter(isDefined)
 
-  const {
-    minerTip = null,
-    gasPrice = null,
-    nonce = null,
-    hash,
-    gasUsed,
-    blockNumber,
-  } = tx
+  const { gasPrice = null, nonce = null, hash, gasUsed, blockNumber } = tx
   return [
     {
       label: "Block Height",
       value: blockNumber ? blockNumber.toString() : "(Unknown)",
     },
     { label: "Amount", value: getAmount(tx) ?? "" },
-    { label: "Miner Tip", value: getGweiPrice(minerTip) },
     { label: "Gas Price", value: getGweiPrice(gasPrice) },
     { label: "Gas", value: gasUsed ? gasUsed.toString() : "" },
     { label: "Nonce", value: String(nonce) },

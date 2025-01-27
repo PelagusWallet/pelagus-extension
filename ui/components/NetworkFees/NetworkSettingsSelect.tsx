@@ -40,7 +40,7 @@ const gasOptionFromEstimate = (
   mainCurrencyPricePoint: PricePoint | undefined,
   baseFeePerGas: bigint,
   gasLimit: bigint | undefined,
-  { confidence, gasPrice, minerTip }: BlockEstimate
+  { confidence, gasPrice }: BlockEstimate
 ): GasOption => {
   const feeOptionData: {
     [confidence: number]: NetworkFeeTypeChosen
@@ -59,7 +59,6 @@ const gasOptionFromEstimate = (
       estimatedSpeed: "",
       type: feeOptionData[confidence],
       estimatedGwei: "",
-      minerTipGwei: "",
       gasPriceGwei: "",
       dollarValue: "-",
       estimatedFeePerGas: 0n,
@@ -77,7 +76,6 @@ const gasOptionFromEstimate = (
     estimatedGwei: weiToGwei(
       (baseFeePerGas * ESTIMATED_FEE_MULTIPLIERS[confidence]) / 10n
     ).split(".")[0],
-    minerTipGwei: minerTip ? weiToGwei(minerTip) : "",
     gasPriceGwei: gasPrice ? weiToGwei(gasPrice).split(".")[0] : "",
     dollarValue: "-",
     estimatedFeePerGas:
@@ -127,7 +125,6 @@ export default function NetworkSettingsSelect({
       onNetworkSettingsChange({
         feeType: gasOptions[activeFeeIndex].type,
         values: {
-          minerTip: BigInt(gasOptions[activeFeeIndex].minerTip ?? 0n),
           gasPrice: BigInt(gasOptions[activeFeeIndex].gasPrice ?? 0n),
         },
         gasLimit: networkSettings.gasLimit,
@@ -148,7 +145,6 @@ export default function NetworkSettingsSelect({
     onNetworkSettingsChange({
       feeType: gasOptions[index].type,
       values: {
-        minerTip: BigInt(gasOptions[index].minerTip ?? 0n),
         gasPrice: BigInt(gasOptions[index].gasPrice ?? 0n),
       },
       gasLimit: networkSettings.gasLimit,
@@ -230,11 +226,10 @@ export default function NetworkSettingsSelect({
     onNetworkSettingsChange({ ...networkSettings, gasLimit })
   }
 
-  function updateCustomGas(customMinerTip: bigint, customGasPrice: bigint) {
+  function updateCustomGas(customGasPrice: bigint) {
     dispatch(
       setCustomGas({
         gasPrice: customGasPrice,
-        minerTip: customMinerTip,
       })
     )
   }
@@ -253,10 +248,7 @@ export default function NetworkSettingsSelect({
                 option={option}
                 isActive={i === activeFeeIndex}
                 handleSelectGasOption={() => handleSelectGasOption(i)}
-                updateCustomGas={(
-                  customMinerTip: bigint,
-                  customGasPrice: bigint
-                ) => updateCustomGas(customMinerTip, customGasPrice)}
+                updateCustomGas={updateCustomGas}
               />
             ) : (
               <NetworkSettingsSelectOptionButton

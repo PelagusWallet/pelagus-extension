@@ -24,7 +24,6 @@ export const quaiTransactionFromResponse = (
     data: transactionResponse.data,
     gasLimit: transactionResponse.gasLimit,
     gasPrice: transactionResponse.gasPrice,
-    minerTip: transactionResponse.minerTip,
     nonce: transactionResponse.nonce,
     status,
     type: transactionResponse.type,

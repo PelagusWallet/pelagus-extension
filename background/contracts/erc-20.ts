@@ -21,7 +21,7 @@ export const ERC20_FUNCTIONS = {
     "transferFrom(address from, address to, uint256 amount) returns (bool)"
   ),
   crossChainTransfer: FunctionFragment.from(
-    "crossChainTransfer(address to, uint256 amount, uint256 gasLimit, uint256 minerTip, uint256 baseFee)"
+    "crossChainTransfer(address to, uint256 amount, uint256 gasLimit, uint256 baseFee)"
   ),
 }
 

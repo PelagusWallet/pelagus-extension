@@ -113,16 +113,6 @@ export function NetworkSettingsSelectOptionButton({
       </div>
 
       <div className="network_option_right">
-        <div className="miner_wrap">
-          <span className="subtext_large miner">
-            <span className="r_label">{t("miner")}</span>
-            {`${
-              option.type !== NetworkFeeTypeChosen.Auto
-                ? Number(option.minerTipGwei).toFixed(2)
-                : "Auto"
-            }`}
-          </span>
-        </div>
         <span className="subtext_large large r_label">{t("maxBase")} </span>
         <div className="price">
           {`${
@@ -153,7 +143,7 @@ export function NetworkSettingsSelectOptionButtonCustom({
   option: GasOption
   handleSelectGasOption: () => void
   isActive: boolean
-  updateCustomGas: (customMinerTip: bigint, customGasPrice: bigint) => void
+  updateCustomGas: (customGasPrice: bigint) => void
 }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "networkFees" })
   const [warningMessage, setWarningMessage] = useState("")
@@ -179,24 +169,6 @@ export function NetworkSettingsSelectOptionButtonCustom({
       </div>
 
       <div className="network_option_right">
-        <div className="miner_wrap">
-          <span className="subtext_large r_label">{t("miner")}</span>
-          <div className="input_wrap">
-            <SharedInput
-              value={`${option.minerTipGwei}`}
-              isSmall
-              type="number"
-              onChange={(value: string) => {
-                updateCustomGas(
-                  gweiToWei(parseFloat(value)),
-                  BigInt(option.gasPrice ?? 0n)
-                )
-              }}
-              maxLength={4}
-            />
-          </div>
-        </div>
-
         <span className="subtext_large r_label">{t("maxBase")}</span>
         <div className="input_wrap">
           <SharedInput
@@ -204,10 +176,7 @@ export function NetworkSettingsSelectOptionButtonCustom({
             isSmall
             type="number"
             onChange={(value: string) => {
-              updateCustomGas(
-                BigInt(option.minerTip ?? 0n),
-                gweiToWei(parseFloat(value))
-              )
+              updateCustomGas(gweiToWei(parseFloat(value)))
               if (baseGasFee && gweiToWei(parseFloat(value)) < baseGasFee) {
                 setWarningMessage(t("errors.lowGas"))
               } else {

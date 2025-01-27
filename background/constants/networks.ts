@@ -9,7 +9,7 @@ import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { NetworkInterface } from "./networks/networkTypes"
 
 export const QUAI_SCAN_URL = "https://quaiscan.io"
-export const ORCHARD_QUAI_SCAN_URL = "https://sandbox.quaiscan.io"
+export const ORCHARD_QUAI_SCAN_URL = "https://orchard.quaiscan.io"
 
 export const HTTPS_RPC_URL = "https://rpc.quai.network"
 export const WSS_RPC_URL = "wss://rpc.quai.network"
@@ -84,63 +84,63 @@ export const DEFAULT_QUAI_LOCAL = {
     {
       name: "Cyprus One",
       shard: "cyprus-1",
-      rpc: "http://localhost:8610",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0x15b6351eDEcd7142ac4c6fE54948b603D4566862",
     },
     {
       name: "Cyprus Two",
       shard: "cyprus-2",
-      rpc: "http://localhost:8542",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0x2F3e12280232410e9454254E6152814ce677475B",
     },
     {
       name: "Cyprus Three",
       shard: "cyprus-3",
-      rpc: "http://localhost:8674",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0x3E4CE31D864BD3CC05E57F6f2a8967e6EF53039b",
     },
     {
       name: "Paxos One",
       shard: "paxos-1",
-      rpc: "http://localhost:8512",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0x729f4724eA02904086b8ce2889959d4aC96127ef",
     },
     {
       name: "Paxos Two",
       shard: "paxos-2",
-      rpc: "http://localhost:8544",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0x84FA6Abf2E7a743719f59E6EF82248cD1C53e621",
     },
     {
       name: "Paxos Three",
       shard: "paxos-3",
-      rpc: "http://localhost:8576",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0x9b05beAA009A7418EC6825452269E7Dfc82777Ce",
     },
     {
       name: "Hydra One",
       shard: "hydra-1",
-      rpc: "http://localhost:8614",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0xc256fc8DA480034E0339A6AC9c38913cC018A505",
     },
     {
       name: "Hydra Two",
       shard: "hydra-2",
-      rpc: "http://localhost:8646",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0xCb9fe98f7c8739B7272d27259747320096610569",
     },
     {
       name: "Hydra Three",
       shard: "hydra-3",
-      rpc: "http://localhost:8678",
+      rpc: "http://localhost",
       blockExplorerUrl: QUAI_SCAN_URL,
       multicall: "0xFB17d5ea1a7e1132E2b12FA7B03cABcb144CDb9d",
     },
@@ -153,7 +153,7 @@ export const QUAI_NETWORK: EVMNetwork = {
   chainID: "9000",
   family: "EVM",
   chains: DEFAULT_QUAI_TESTNET.chains,
-  derivationPath: "m/44'/1'/0'/0",
+  derivationPath: "m/44'/994'/0'/0",
   isQuai: true,
 }
 
@@ -163,7 +163,7 @@ export const QUAI_NETWORK_ORCHARD: EVMNetwork = {
   chainID: "15000",
   family: "EVM",
   chains: DEFAULT_QUAI_ORCHARD.chains,
-  derivationPath: "m/44'/1'/0'/0",
+  derivationPath: "m/44'/994'/0'/0",
   isQuai: true,
 }
 
@@ -173,7 +173,7 @@ export const QUAI_NETWORK_LOCAL: EVMNetwork = {
   chainID: "17000",
   family: "EVM",
   chains: DEFAULT_QUAI_LOCAL.chains,
-  derivationPath: "m/44'/1'/0'/0",
+  derivationPath: "m/44'/994'/0'/0",
   isQuai: true,
 }
 

@@ -1,6 +1,7 @@
 import React, { ReactElement, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
+  selectCurrentAccount,
   selectCurrentAccountSigner,
   selectIsQiWalletInit,
   selectIsUtxoSelected,
@@ -16,7 +17,7 @@ import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import Receive from "../../pages/Receive"
 import ReadOnlyNotice from "../Shared/ReadOnlyNotice"
 import SharedCircleButton from "../Shared/SharedCircleButton"
-import BalanceReloader from '../Balance/BalanceReloader';
+import BalanceReloader from "../Balance/BalanceReloader"
 import humanNumber from "human-number"
 import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import LockedBalanceCard from "../Balance/LockedBalanceCard"
@@ -33,6 +34,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
   const history = useHistory()
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+  const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
 
   const isQiWalletInit = useBackgroundSelector(selectIsQiWalletInit)
   const dispatch = useBackgroundDispatch()
@@ -54,6 +56,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         size={55}
         iconWidth="12"
         iconHeight="18"
+        disabled={currentSelectedAccount.network.chainID === "9000"}
       >
         {t("send")}
       </SharedCircleButton>
@@ -78,7 +81,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         size={55}
         iconWidth="20"
         iconHeight="18"
-        disabled={!isQiWalletInit}
+        disabled={
+          !isQiWalletInit || currentSelectedAccount.network.chainID === "9000"
+        }
       >
         {t("swap")}
       </SharedCircleButton>
@@ -115,7 +120,11 @@ export default function WalletAccountBalanceControl(
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet",
   })
-  const { mainAssetBalance, mainAssetLockedBalance, initializationLoadingTimeExpired } = props
+  const {
+    mainAssetBalance,
+    mainAssetLockedBalance,
+    initializationLoadingTimeExpired,
+  } = props
   const [openReceiveMenu, setOpenReceiveMenu] = useState(false)
 
   // TODO When non-imported accounts are supported, generalize this.
@@ -129,9 +138,8 @@ export default function WalletAccountBalanceControl(
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
 
-  const { spendableAmount: utxoBalance, lockedAmount: utxoLockedBalance } = useBackgroundSelector(
-    selectQiBalanceForCurrentUtxoAccountCyprus1
-  )
+  const { spendableAmount: utxoBalance, lockedAmount: utxoLockedBalance } =
+    useBackgroundSelector(selectQiBalanceForCurrentUtxoAccountCyprus1)
 
   const formatBalance = (balance: string) => {
     return Number(balance) < 1000
@@ -149,10 +157,11 @@ export default function WalletAccountBalanceControl(
   }, [isUtxoSelected, utxoBalance, mainAssetBalance])
 
   useEffect(() => {
-    const lockedBalance = isUtxoSelected ? utxoLockedBalance : mainAssetLockedBalance
+    const lockedBalance = isUtxoSelected
+      ? utxoLockedBalance
+      : mainAssetLockedBalance
     const newFormattedLockedBalance = formatBalance(lockedBalance || "0")
     setFormattedLockedBalance(newFormattedLockedBalance)
-
   }, [isUtxoSelected, utxoLockedBalance, mainAssetLockedBalance])
 
   const shouldIndicateLoadingHandle = ({
@@ -190,9 +199,7 @@ export default function WalletAccountBalanceControl(
               <div className="balance_update_button">
                 <BalanceReloader />
               </div>
-              <span className="balance_text">
-                {formattedBalance}
-              </span>
+              <span className="balance_text">{formattedBalance}</span>
               <div className="dollar_sign">
                 {isUtxoSelected ? "QI" : "QUAI"}
               </div>
@@ -236,16 +243,18 @@ export default function WalletAccountBalanceControl(
         >
           {formattedLockedBalance && Number(formattedLockedBalance) > 0 && (
             <div className="locked_balance_card_wrap">
-              <LockedBalanceCard balance={formattedLockedBalance} assetSymbol={isUtxoSelected ? "QI" : "QUAI"}/>
+              <LockedBalanceCard
+                balance={formattedLockedBalance}
+                assetSymbol={isUtxoSelected ? "QI" : "QUAI"}
+              />
             </div>
           )}
         </SharedSkeletonLoader>
-        
       </div>
       <style jsx>
         {`
           .wrap {
-            width: 100%;  
+            width: 100%;
             display: flex;
             flex-grow: 1;
             justify-contnet: space-between;
@@ -288,7 +297,7 @@ export default function WalletAccountBalanceControl(
             justify-content: center;
             width: 32px;
             height: 32px;
-            background-color: #EFEFEF;
+            background-color: #efefef;
             border-radius: 8px;
           }
           .save_seed_button_wrap {

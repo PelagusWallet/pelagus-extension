@@ -131,7 +131,7 @@ function DropdownContent({ children }: ContentProps): ReactElement {
   )
 }
 
-type DropdownOption = {
+export type DropdownOption = {
   key: string
   onClick?: (e: React.MouseEvent) => void
   icon: string

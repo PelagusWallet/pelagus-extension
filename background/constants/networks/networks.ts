@@ -8,8 +8,8 @@ export const QuaiGoldenAgeTestnet: NetworkInterface = {
   isDisabled: false,
   isTestNetwork: false,
   isLocalNode: false,
-  jsonRpcUrls: ["https://rpc.quai.network"],
-  webSocketRpcUrls: ["wss://rpc.quai.network"],
+  jsonRpcUrls: ["https://goldenage.rpc.quai.network"],
+  webSocketRpcUrls: ["wss://goldenage.rpc.quai.network"],
   blockExplorerURL: QUAI_SCAN_URL,
   chains: [
     {
@@ -28,8 +28,8 @@ export const QuaiOrchardTestnet: NetworkInterface = {
   isDisabled: false,
   isTestNetwork: true,
   isLocalNode: false,
-  jsonRpcUrls: ["https://rpc.orchard.quai.network"],
-  webSocketRpcUrls: ["wss://rpc.orchard.quai.network"],
+  jsonRpcUrls: ["https://orchard.rpc.quai.network"],
+  webSocketRpcUrls: ["wss://orchard.rpc.quai.network"],
   blockExplorerURL: ORCHARD_QUAI_SCAN_URL,
   chains: [
     {

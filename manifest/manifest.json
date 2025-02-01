@@ -1,6 +1,6 @@
 {
   "name": "Pelagus",
-  "version": "1.0.32",
+  "version": "1.0.33",
   "description": "The community owned and operated Quai Web3 wallet.",
   "homepage_url": "https://pelaguswallet.io",
   "author": "https://pelaguswallet.io",
@@ -11,8 +11,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["window-provider.js"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "window-provider.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "content_scripts": [
@@ -23,7 +27,9 @@
         "http://127.0.0.1/*",
         "https://*/*"
       ],
-      "js": ["provider-bridge.js"],
+      "js": [
+        "provider-bridge.js"
+      ],
       "run_at": "document_start",
       "all_frames": true
     }

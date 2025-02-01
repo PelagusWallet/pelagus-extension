@@ -125,10 +125,11 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
       - name: Upload build asset
         if: ${{ inputs.update_version }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: extension-builds-${{ github.event.number || github.event.head_commit.id }}
           path: dist/*.zip
+          retention-days: 90
       - name: Create Release and Upload Artifacts
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5 # v1
         if: ${{ inputs.update_version }}

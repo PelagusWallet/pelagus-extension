@@ -1,29 +1,38 @@
 import {
   QUAI_NETWORK_ORCHARD,
   QUAI_NETWORK_LOCAL,
+  QUAI_NETWORK_GOLDEN_AGE,
+  QUAI_NETWORK,
 } from "@pelagus/pelagus-background/constants"
 import { NetworkFeeTypeChosen } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
-import { QuaiGoldenAgeTestnet } from "@pelagus/pelagus-background/constants/networks/networks"
 import { i18n } from "../_locales/i18n"
 
 export const blockExplorer = {
-  [QuaiGoldenAgeTestnet.chainID]: {
-    title: "Quai Blockscout",
-    url: QuaiGoldenAgeTestnet?.chains
-      ? QuaiGoldenAgeTestnet.chains[0].blockExplorerUrl
-      : "",
+  [QUAI_NETWORK.chainID]: {
+    title: "Quaiscan",
+    url:
+      QUAI_NETWORK.chains !== undefined
+        ? QUAI_NETWORK.chains[0].blockExplorerUrl
+        : "",
+  },
+  [QUAI_NETWORK_GOLDEN_AGE.chainID]: {
+    title: "Quaiscan",
+    url:
+      QUAI_NETWORK_GOLDEN_AGE.chains !== undefined
+        ? QUAI_NETWORK_GOLDEN_AGE.chains[0].blockExplorerUrl
+        : "",
   },
   [QUAI_NETWORK_ORCHARD.chainID]: {
-    title: "Orchard Quai Blockscout",
+    title: "Quaiscan Orchard",
     url:
-      QUAI_NETWORK_ORCHARD.chains != undefined
+      QUAI_NETWORK_ORCHARD.chains !== undefined
         ? QUAI_NETWORK_ORCHARD.chains[0].blockExplorerUrl
         : "",
   },
   [QUAI_NETWORK_LOCAL.chainID]: {
-    title: "Quai Blockscout",
+    title: "Quaiscan",
     url:
-      QUAI_NETWORK_LOCAL.chains != undefined
+      QUAI_NETWORK_LOCAL.chains !== undefined
         ? QUAI_NETWORK_LOCAL.chains[0].blockExplorerUrl
         : "", // Do we want this to be colosseum explorer?
   },

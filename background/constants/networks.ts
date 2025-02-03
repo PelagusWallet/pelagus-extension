@@ -11,8 +11,15 @@ import { NetworkInterface } from "./networks/networkTypes"
 export const QUAI_SCAN_URL = "https://quaiscan.io"
 export const ORCHARD_QUAI_SCAN_URL = "https://orchard.quaiscan.io"
 
-export const HTTPS_RPC_URL = "https://goldenage.rpc.quai.network"
-export const WSS_RPC_URL = "wss://goldenage.rpc.quai.network"
+// Mainnet
+export const HTTPS_RPC_URL = "https://rpc.quai.network"
+export const WSS_RPC_URL = "wss://rpc.quai.network"
+
+// Golden Age
+export const GOLDEN_AGE_HTTPS_RPC_URL = "https://goldenage.rpc.quai.network"
+export const GOLDEN_AGE_WSS_RPC_URL = "wss://goldenage.rpc.quai.network"
+
+// Orchard
 export const ORCHARD_HTTPS_RPC_URL = "https://orchard.rpc.quai.network"
 export const ORCHARD_WSS_RPC_URL = "wss://orchard.rpc.quai.network"
 
@@ -45,8 +52,8 @@ export const VALID_ZONES_NAMES: Array<string> = [
   "Hydra 3",
 ]
 
-export const DEFAULT_QUAI_TESTNET = {
-  name: "Colosseum",
+export const DEFAULT_QUAI_MAINNET = {
+  name: "Quai Network",
   chainCode: 994,
   chainID: 9000,
   isCustom: false,
@@ -55,6 +62,21 @@ export const DEFAULT_QUAI_TESTNET = {
       name: "Cyprus One",
       shard: "cyprus-1",
       rpc: HTTPS_RPC_URL,
+      blockExplorerUrl: QUAI_SCAN_URL,
+    },
+  ],
+} as Network
+
+export const DEFAULT_QUAI_GOLDEN_AGE = {
+  name: "Golden Age",
+  chainCode: 994,
+  chainID: 13000,
+  isCustom: false,
+  chains: [
+    {
+      name: "Cyprus One",
+      shard: "cyprus-1",
+      rpc: GOLDEN_AGE_HTTPS_RPC_URL,
       blockExplorerUrl: QUAI_SCAN_URL,
     },
   ],
@@ -152,13 +174,23 @@ export const QUAI_NETWORK: EVMNetwork = {
   baseAsset: QUAI,
   chainID: "9000",
   family: "EVM",
-  chains: DEFAULT_QUAI_TESTNET.chains,
+  chains: DEFAULT_QUAI_MAINNET.chains,
+  derivationPath: "m/44'/994'/0'/0",
+  isQuai: true,
+}
+
+export const QUAI_NETWORK_GOLDEN_AGE: EVMNetwork = {
+  name: "Golden Age Testnet",
+  baseAsset: QUAI,
+  chainID: "13000",
+  family: "EVM",
+  chains: DEFAULT_QUAI_GOLDEN_AGE.chains,
   derivationPath: "m/44'/994'/0'/0",
   isQuai: true,
 }
 
 export const QUAI_NETWORK_ORCHARD: EVMNetwork = {
-  name: "Quai Network Orchard",
+  name: "Orchard Testnet",
   baseAsset: QUAI,
   chainID: "15000",
   family: "EVM",
@@ -168,9 +200,9 @@ export const QUAI_NETWORK_ORCHARD: EVMNetwork = {
 }
 
 export const QUAI_NETWORK_LOCAL: EVMNetwork = {
-  name: "Quai Network Local",
+  name: "Local Node",
   baseAsset: QUAI_LOCAL,
-  chainID: "17000",
+  chainID: "1337",
   family: "EVM",
   chains: DEFAULT_QUAI_LOCAL.chains,
   derivationPath: "m/44'/994'/0'/0",
@@ -181,6 +213,7 @@ export const DEFAULT_TEST_NETWORKS = [QUAI_NETWORK_ORCHARD, QUAI_NETWORK_LOCAL]
 
 export const NETWORK_BY_CHAIN_ID = {
   [QUAI_NETWORK.chainID]: QUAI_NETWORK,
+  [QUAI_NETWORK_GOLDEN_AGE.chainID]: QUAI_NETWORK_GOLDEN_AGE,
   [QUAI_NETWORK_ORCHARD.chainID]: QUAI_NETWORK_ORCHARD,
   [QUAI_NETWORK_LOCAL.chainID]: QUAI_NETWORK_LOCAL,
 }

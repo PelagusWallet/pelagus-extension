@@ -38,9 +38,16 @@ export const getBlockExplorerURL = (
   network: NetworkInterface,
   address: string
 ): string | undefined => {
-  return PELAGUS_NETWORKS.find((net) => net.chainID === network.chainID)
-    ? isQuaiHandle(network)
-      ? CurrentShardToExplorer(network, address)
-      : blockExplorer[network.chainID].url
-    : network.blockExplorerURL
+  const matchingNetwork = PELAGUS_NETWORKS.find(
+    (net) => net.chainID === network.chainID
+  )
+  if (!matchingNetwork) {
+    return network.blockExplorerURL
+  }
+
+  if (isQuaiHandle(network)) {
+    return CurrentShardToExplorer(network, address)
+  }
+
+  return blockExplorer[network.chainID].url
 }

@@ -1,9 +1,29 @@
 import { QUAI_SCAN_URL, ORCHARD_QUAI_SCAN_URL } from "../networks"
 import { NetworkInterface } from "./networkTypes"
 
-export const QuaiGoldenAgeTestnet: NetworkInterface = {
+export const QuaiMainnet: NetworkInterface = {
   chainID: "9000",
   baseAsset: { name: "Quai Network", symbol: "QUAI", decimals: 18 },
+  family: "EVM",
+  isDisabled: false,
+  isTestNetwork: false,
+  isLocalNode: false,
+  jsonRpcUrls: ["https://rpc.quai.network"],
+  webSocketRpcUrls: ["wss://rpc.quai.network"],
+  blockExplorerURL: QUAI_SCAN_URL,
+  chains: [
+    {
+      name: "Cyprus One",
+      shard: "cyprus-1",
+      blockExplorerUrl: QUAI_SCAN_URL,
+      multicall: "",
+    },
+  ],
+}
+
+export const QuaiGoldenAgeTestnet: NetworkInterface = {
+  chainID: "13000",
+  baseAsset: { name: "Golden Age Testnet", symbol: "QUAI", decimals: 18 },
   family: "EVM",
   isDisabled: false,
   isTestNetwork: false,
@@ -23,7 +43,7 @@ export const QuaiGoldenAgeTestnet: NetworkInterface = {
 
 export const QuaiOrchardTestnet: NetworkInterface = {
   chainID: "15000",
-  baseAsset: { name: "Quai Network Orchard", symbol: "QUAI", decimals: 18 },
+  baseAsset: { name: "Orchard Testnet", symbol: "QUAI", decimals: 18 },
   family: "EVM",
   isDisabled: false,
   isTestNetwork: true,
@@ -112,6 +132,7 @@ export const QuaiLocalNodeNetwork: NetworkInterface = {
 export const DEFAULT_PELAGUS_NETWORK = QuaiGoldenAgeTestnet
 
 export const PELAGUS_NETWORKS = [
+  QuaiMainnet,
   QuaiGoldenAgeTestnet,
   QuaiOrchardTestnet,
   QuaiLocalNodeNetwork,

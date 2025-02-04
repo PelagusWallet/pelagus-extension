@@ -40,73 +40,119 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
   const dispatch = useBackgroundDispatch()
 
   return (
-    <div className="action_buttons_wrap">
-      <SharedCircleButton
-        icon="icons/s/send.svg"
-        ariaLabel={t("send")}
-        onClick={async () => {
-          if (!isUtxoSelected) {
-            history.push("/send")
-            return
+    <div className="action_buttons_container">
+      <div className="action_buttons_wrap">
+        <SharedCircleButton
+          icon="icons/s/send.svg"
+          ariaLabel={t("send")}
+          onClick={async () => {
+            if (
+              currentSelectedAccount.network.chainID === "9" ||
+              currentSelectedAccount.network.chainID === "9000"
+            ) {
+              return
+            }
+
+            if (!isUtxoSelected) {
+              history.push("/send")
+              return
+            }
+
+            await dispatch(resetQiSendSlice())
+            history.push("/send-qi")
+          }}
+          size={55}
+          iconWidth="12"
+          iconHeight="18"
+          disabled={
+            currentSelectedAccount.network.chainID === "9" ||
+            currentSelectedAccount.network.chainID === "9000"
           }
+        >
+          {t("send")}
+        </SharedCircleButton>
+        <SharedCircleButton
+          icon="icons/s/receive.svg"
+          ariaLabel={t("receive")}
+          onClick={onReceive}
+          size={55}
+          iconWidth="12"
+          iconHeight="18"
+        >
+          {t("receive")}
+        </SharedCircleButton>
 
-          await dispatch(resetQiSendSlice())
-          history.push("/send-qi")
-        }}
-        size={55}
-        iconWidth="12"
-        iconHeight="18"
-        disabled={
-          currentSelectedAccount.network.chainID === "9" ||
-          currentSelectedAccount.network.chainID === "9000"
-        }
-      >
-        {t("send")}
-      </SharedCircleButton>
-      <SharedCircleButton
-        icon="icons/s/receive.svg"
-        ariaLabel={t("receive")}
-        onClick={onReceive}
-        size={55}
-        iconWidth="12"
-        iconHeight="18"
-      >
-        {t("receive")}
-      </SharedCircleButton>
+        <SharedCircleButton
+          icon="icons/s/convert.svg"
+          ariaLabel={t("swap")}
+          onClick={async () => {
+            if (
+              currentSelectedAccount.network.chainID === "9" ||
+              currentSelectedAccount.network.chainID === "9000"
+            ) {
+              return
+            }
 
-      <SharedCircleButton
-        icon="icons/s/convert.svg"
-        ariaLabel={t("swap")}
-        onClick={async () => {
-          await dispatch(resetConvertAssetsSlice())
-          history.push("/convert")
-        }}
-        size={55}
-        iconWidth="20"
-        iconHeight="18"
-        disabled={
-          !isQiWalletInit ||
-          currentSelectedAccount.network.chainID === "9" ||
-          currentSelectedAccount.network.chainID === "9000"
-        }
-      >
-        {t("swap")}
-      </SharedCircleButton>
+            await dispatch(resetConvertAssetsSlice())
+            history.push("/convert")
+          }}
+          size={55}
+          iconWidth="20"
+          iconHeight="18"
+          disabled={
+            !isQiWalletInit ||
+            currentSelectedAccount.network.chainID === "9" ||
+            currentSelectedAccount.network.chainID === "9000"
+          }
+        >
+          {t("swap")}
+        </SharedCircleButton>
+      </div>
+
+      {currentSelectedAccount.network.chainID === "9" && (
+        <div className="info_banner">
+          <span className="info_text">
+            Transactions available starting 02.19.2025.
+          </span>
+        </div>
+      )}
+
+      {currentSelectedAccount.network.chainID === "9000" && (
+        <div className="info_banner">
+          <span className="info_text">
+            Testnet ended, so transactions are disabled.
+          </span>
+        </div>
+      )}
 
       <style jsx>
         {`
+          .action_buttons_container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 12px 0;
+          }
           .action_buttons_wrap {
             display: flex;
             justify-content: center;
             gap: 24px;
-            margin: 12px 0;
+            margin-bottom: 12px;
           }
-          .centered_tooltip {
+          .info_banner {
             display: flex;
-            font-size: 14px;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            background-color: var(--green-5);
+            border-radius: 8px;
+            margin-top: 8px;
+            color: white;
+          }
+          .info_text {
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
           }
         `}
       </style>
@@ -237,6 +283,7 @@ export default function WalletAccountBalanceControl(
               )}
             </>
           )}
+          {}
         </SharedSkeletonLoader>
 
         <SharedSkeletonLoader

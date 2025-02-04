@@ -31,7 +31,11 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
   }
 
   useEffect(() => {
-    if (currentSelectedAccount.network.chainID === "9000") {
+    // Only show copy option for mainnet and Golden Age
+    if (
+      currentSelectedAccount.network.chainID === "9" ||
+      currentSelectedAccount.network.chainID === "9000"
+    ) {
       setOptions([
         {
           key: "copy",

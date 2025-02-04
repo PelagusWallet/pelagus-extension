@@ -55,7 +55,7 @@ export const VALID_ZONES_NAMES: Array<string> = [
 export const DEFAULT_QUAI_MAINNET = {
   name: "Quai Network",
   chainCode: 994,
-  chainID: 9000,
+  chainID: 9,
   isCustom: false,
   chains: [
     {
@@ -70,7 +70,7 @@ export const DEFAULT_QUAI_MAINNET = {
 export const DEFAULT_QUAI_GOLDEN_AGE = {
   name: "Golden Age",
   chainCode: 994,
-  chainID: 13000,
+  chainID: 9000,
   isCustom: false,
   chains: [
     {
@@ -172,7 +172,7 @@ export const DEFAULT_QUAI_LOCAL = {
 export const QUAI_NETWORK: EVMNetwork = {
   name: "Quai Network",
   baseAsset: QUAI,
-  chainID: "9000",
+  chainID: "9",
   family: "EVM",
   chains: DEFAULT_QUAI_MAINNET.chains,
   derivationPath: "m/44'/994'/0'/0",
@@ -182,7 +182,7 @@ export const QUAI_NETWORK: EVMNetwork = {
 export const QUAI_NETWORK_GOLDEN_AGE: EVMNetwork = {
   name: "Golden Age Testnet",
   baseAsset: QUAI,
-  chainID: "13000",
+  chainID: "9000",
   family: "EVM",
   chains: DEFAULT_QUAI_GOLDEN_AGE.chains,
   derivationPath: "m/44'/994'/0'/0",

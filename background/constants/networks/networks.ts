@@ -2,7 +2,7 @@ import { QUAI_SCAN_URL, ORCHARD_QUAI_SCAN_URL } from "../networks"
 import { NetworkInterface } from "./networkTypes"
 
 export const QuaiMainnet: NetworkInterface = {
-  chainID: "9000",
+  chainID: "9",
   baseAsset: { name: "Quai Network", symbol: "QUAI", decimals: 18 },
   family: "EVM",
   isDisabled: false,
@@ -22,7 +22,7 @@ export const QuaiMainnet: NetworkInterface = {
 }
 
 export const QuaiGoldenAgeTestnet: NetworkInterface = {
-  chainID: "13000",
+  chainID: "9000",
   baseAsset: { name: "Golden Age Testnet", symbol: "QUAI", decimals: 18 },
   family: "EVM",
   isDisabled: false,

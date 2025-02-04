@@ -2,7 +2,7 @@ import { NetworkBaseAsset } from "../networks"
 import { COIN_TYPES_BY_ASSET_SYMBOL } from "./coin-types"
 
 export const QI: NetworkBaseAsset = {
-  chainID: "9000",
+  chainID: "9",
   name: "Quai Network",
   symbol: "Qi",
   decimals: 3,
@@ -13,7 +13,7 @@ export const QI: NetworkBaseAsset = {
   },
 }
 export const QUAI: NetworkBaseAsset = {
-  chainID: "9000",
+  chainID: "9",
   name: "Quai Network",
   symbol: "QUAI",
   decimals: 18,
@@ -24,8 +24,20 @@ export const QUAI: NetworkBaseAsset = {
   },
 }
 
+export const QI_GOLDEN_AGE: NetworkBaseAsset = {
+  chainID: "9000",
+  name: "Quai Network Golden Age",
+  symbol: "QI",
+  decimals: 3,
+  coinType: COIN_TYPES_BY_ASSET_SYMBOL.QI,
+  metadata: {
+    tokenLists: [],
+    websiteURL: "https://qu.ai/",
+  },
+}
+
 export const QUAI_GOLDEN_AGE: NetworkBaseAsset = {
-  chainID: "13000",
+  chainID: "9000",
   name: "Quai Network Golden Age",
   symbol: "QUAI",
   decimals: 18,

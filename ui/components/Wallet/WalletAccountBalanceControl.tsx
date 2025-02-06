@@ -293,7 +293,7 @@ export default function WalletAccountBalanceControl(
           isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: false })}
           customStyles="margin-top: 10px;"
         >
-          {formattedLockedBalance && Number(formattedLockedBalance) > 0 && (
+          {formattedLockedBalance && formattedLockedBalance != "0" && formattedLockedBalance != "0.00" && formattedLockedBalance != "0.000" && (
             <div className="locked_balance_card_wrap">
               <LockedBalanceCard
                 balance={formattedLockedBalance}

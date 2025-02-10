@@ -2,7 +2,7 @@ import Dexie from "dexie"
 
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
-import { QuaiGoldenAgeTestnet } from "../../constants/networks/networks"
+import { QuaiGoldenAgeTestnet, QuaiOrchardTestnet } from "../../constants/networks/networks"
 
 type NetworkForOrigin = {
   origin: string
@@ -21,7 +21,7 @@ export class InternalQuaiProviderDatabase extends Dexie {
     this.on("populate", (tx) => {
       return tx.db
         .table("currentNetwork")
-        .add({ origin: PELAGUS_INTERNAL_ORIGIN, network: QuaiGoldenAgeTestnet })
+        .add({ origin: PELAGUS_INTERNAL_ORIGIN, network: QuaiOrchardTestnet })
     })
   }
 
@@ -36,6 +36,13 @@ export class InternalQuaiProviderDatabase extends Dexie {
     origin: string
   ): Promise<NetworkInterface | undefined> {
     const currentNetwork = await this.currentNetwork.get({ origin })
+    if(currentNetwork?.network.chainID == "9000") { // invalid stored chainID from golden age testnet
+      let internalNetwork = await this.currentNetwork.get({ origin: PELAGUS_INTERNAL_ORIGIN })
+      if(internalNetwork) {
+        await this.currentNetwork.put({ origin, network: internalNetwork.network })
+        return internalNetwork.network
+      }
+    }
     return currentNetwork?.network
   }
 

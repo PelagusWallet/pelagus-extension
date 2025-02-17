@@ -9,8 +9,10 @@ import { blockFromProviderBlock } from "./utils"
 import ChainService from "../chain"
 import { BlockDatabase, initializeBlockDatabase } from "./db"
 import { getExtendedZoneForAddress } from "../chain/utils"
+import { blockSeen } from "../../redux-slices/networks"
 
-const GAS_POLLS_PER_PERIOD = 1 // 1 time per 5 minutes
+const GAS_POLLS_PER_PERIOD = 1 // 1 time per 1 minute
+const BLOCK_POLL_INTERVAL = 1 // 1 time per 1 minute
 
 interface Events extends ServiceLifecycleEvents {
   block: AnyEVMBlock
@@ -45,6 +47,15 @@ export default class BlockService extends BaseService<Events> {
           this.pollBlockPrices()
         },
       },
+      blockNumber: {
+        runAtStart: true,
+        schedule: {
+          periodInMinutes: BLOCK_POLL_INTERVAL,
+        },
+        handler: () => {
+          this.pollBlockNumber()
+        },
+      },
     })
   }
 
@@ -64,6 +75,35 @@ export default class BlockService extends BaseService<Events> {
     } catch (e) {
       logger.error(e)
       throw new Error("Failed get block number")
+    }
+  }
+
+  private async pollBlockNumber(): Promise<void> {
+    try {
+      // Only poll block number if keyring is unlocked
+      const { status } = globalThis.main.store.getState().keyrings
+      if (status !== "unlocked") return
+
+      const { network } = await this.preferenceService.getSelectedAccount()
+      const { jsonRpcProvider } = this.chainService
+
+      const blockNumber = await jsonRpcProvider.getBlockNumber(Shard.Cyprus1)
+
+      if (blockNumber) {
+        const block: AnyEVMBlock = {
+          hash: "",
+          parentHash: "",
+          blockHeight: blockNumber,
+          difficulty: 0n,
+          timestamp: Date.now(),
+          baseFeePerGas: 0n,
+          network,
+        }
+
+        globalThis.main.store.dispatch(blockSeen(block))
+      }
+    } catch (e) {
+      logger.error("Error getting block number", e)
     }
   }
 

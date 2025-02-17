@@ -38,18 +38,27 @@ const networksSlice = createSlice({
       const block = blockPayload as Block
 
       if (!(block.network.chainID in immerState.blockInfo)) {
+        const blockHeight = block.blockHeight || null
+        const baseFeePerGas = block.baseFeePerGas || null
+
         immerState.blockInfo[block.network.chainID] = {
-          blockHeight: block.blockHeight,
-          baseFeePerGas: block?.baseFeePerGas ?? null,
+          blockHeight,
+          baseFeePerGas,
         }
       } else if (
         block.blockHeight >
         (immerState.blockInfo[block.network.chainID].blockHeight || 0)
       ) {
-        immerState.blockInfo[block.network.chainID].blockHeight =
-          block.blockHeight
-        immerState.blockInfo[block.network.chainID].baseFeePerGas =
-          block?.baseFeePerGas ?? null
+        const blockHeight = block.blockHeight || null
+        const baseFeePerGas = block.baseFeePerGas || null
+
+        if (blockHeight !== null) {
+          immerState.blockInfo[block.network.chainID].blockHeight = blockHeight
+        }
+        if (baseFeePerGas !== null) {
+          immerState.blockInfo[block.network.chainID].baseFeePerGas =
+            baseFeePerGas
+        }
       }
     },
     setEVMNetworks: (

@@ -1,5 +1,7 @@
 import React, { ReactElement, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useHistory } from "react-router-dom"
+import humanNumber from "human-number"
 import {
   selectCurrentAccount,
   selectCurrentAccountSigner,
@@ -8,8 +10,9 @@ import {
   selectQiBalanceForCurrentUtxoAccountCyprus1,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
-import { useHistory } from "react-router-dom"
 import { resetConvertAssetsSlice } from "@pelagus/pelagus-background/redux-slices/convertAssets"
+import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { NetworksState } from "@pelagus/pelagus-background/redux-slices/networks"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
@@ -18,19 +21,19 @@ import Receive from "../../pages/Receive"
 import ReadOnlyNotice from "../Shared/ReadOnlyNotice"
 import SharedCircleButton from "../Shared/SharedCircleButton"
 import BalanceReloader from "../Balance/BalanceReloader"
-import humanNumber from "human-number"
-import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import LockedBalanceCard from "../Balance/LockedBalanceCard"
+import { MAINNET_GAS_ENABLED_BLOCK_HEIGHT } from "../../utils/constants"
 
 type ActionButtonsProps = {
   onReceive: () => void
+  blockHeight: number | null
 }
 
 function ActionButtons(props: ActionButtonsProps): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet",
   })
-  const { onReceive } = props
+  const { onReceive, blockHeight } = props
   const history = useHistory()
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
@@ -47,7 +50,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           ariaLabel={t("send")}
           onClick={async () => {
             if (
-              currentSelectedAccount.network.chainID === "9" ||
+              (currentSelectedAccount.network.chainID === "9" &&
+                (!blockHeight ||
+                  blockHeight < MAINNET_GAS_ENABLED_BLOCK_HEIGHT)) ||
               currentSelectedAccount.network.chainID === "9000"
             ) {
               return
@@ -65,7 +70,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           iconWidth="12"
           iconHeight="18"
           disabled={
-            currentSelectedAccount.network.chainID === "9" ||
+            (currentSelectedAccount.network.chainID === "9" &&
+              (!blockHeight ||
+                blockHeight < MAINNET_GAS_ENABLED_BLOCK_HEIGHT)) ||
             currentSelectedAccount.network.chainID === "9000"
           }
         >
@@ -109,13 +116,14 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         </SharedCircleButton>
       </div>
 
-      {currentSelectedAccount.network.chainID === "9" && (
-        <div className="info_banner">
-          <span className="info_text">
-            Transactions available starting 02.19.2025.
-          </span>
-        </div>
-      )}
+      {currentSelectedAccount.network.chainID === "9" &&
+        (!blockHeight || blockHeight < MAINNET_GAS_ENABLED_BLOCK_HEIGHT) && (
+          <div className="info_banner">
+            <span className="info_text">
+              Transactions available starting 02.19.2025.
+            </span>
+          </div>
+        )}
 
       {currentSelectedAccount.network.chainID === "9000" && (
         <div className="info_banner">
@@ -231,6 +239,13 @@ export default function WalletAccountBalanceControl(
     )
   }
 
+  const currentAccount = useBackgroundSelector(selectCurrentAccount)
+  const blockHeight = useBackgroundSelector(
+    (state: { networks: NetworksState }) =>
+      state.networks.blockInfo[currentAccount.network.chainID]?.blockHeight ??
+      null
+  )
+
   return (
     <>
       <SharedSlideUpMenu isOpen={openReceiveMenu} close={handleClick}>
@@ -268,7 +283,10 @@ export default function WalletAccountBalanceControl(
           {currentAccountSigner !== ReadOnlyAccountSigner && (
             <>
               {hasSavedSeed ? (
-                <ActionButtons onReceive={handleClick} />
+                <ActionButtons
+                  onReceive={handleClick}
+                  blockHeight={blockHeight}
+                />
               ) : (
                 <div className="save_seed_button_wrap">
                   <SharedButton
@@ -293,14 +311,17 @@ export default function WalletAccountBalanceControl(
           isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: false })}
           customStyles="margin-top: 10px;"
         >
-          {formattedLockedBalance && formattedLockedBalance != "0" && formattedLockedBalance != "0.00" && formattedLockedBalance != "0.000" && (
-            <div className="locked_balance_card_wrap">
-              <LockedBalanceCard
-                balance={formattedLockedBalance}
-                assetSymbol={isUtxoSelected ? "QI" : "QUAI"}
-              />
-            </div>
-          )}
+          {formattedLockedBalance &&
+            formattedLockedBalance !== "0" &&
+            formattedLockedBalance !== "0.00" &&
+            formattedLockedBalance !== "0.000" && (
+              <div className="locked_balance_card_wrap">
+                <LockedBalanceCard
+                  balance={formattedLockedBalance}
+                  assetSymbol={isUtxoSelected ? "QI" : "QUAI"}
+                />
+              </div>
+            )}
         </SharedSkeletonLoader>
       </div>
       <style jsx>

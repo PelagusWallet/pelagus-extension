@@ -120,8 +120,16 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         (!blockHeight || blockHeight < MAINNET_GAS_ENABLED_BLOCK_HEIGHT) && (
           <div className="info_banner">
             <span className="info_text">
-              Transactions available starting 02.19.2025.
+              Transactions starting at block{"  "}
             </span>
+            <a
+              href="https://quaiscan.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link"
+            >
+              {MAINNET_GAS_ENABLED_BLOCK_HEIGHT}
+            </a>
           </div>
         )}
 
@@ -161,6 +169,11 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             font-size: 14px;
             font-weight: 500;
             color: white;
+          }
+          .link {
+            color: white;
+            text-decoration: underline;
+            margin-left: 4px;
           }
         `}
       </style>

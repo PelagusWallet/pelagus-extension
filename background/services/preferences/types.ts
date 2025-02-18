@@ -17,6 +17,8 @@ export interface Preferences {
     hasDefaultOnBeenTurnedOn: boolean
   }
   showDefaultWalletBanner: boolean
+  showAlphaWalletBanner: boolean
+  alphaBannerVersion: number
   showTestNetworks: boolean
   showPelagusNotifications: boolean
   showPaymentChannelModal: boolean

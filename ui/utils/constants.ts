@@ -57,3 +57,5 @@ export const NETWORK_FEE_CHOSEN_TYPE_TO_HUMAN_READABLE_TYPE: {
   [NetworkFeeTypeChosen.Instant]: i18n.t("networkFees.types.instant"),
   [NetworkFeeTypeChosen.Custom]: i18n.t("networkFees.types.custom"),
 }
+
+export const CURRENT_BANNER_VERSION = 1

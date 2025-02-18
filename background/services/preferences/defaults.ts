@@ -19,6 +19,8 @@ const defaultPreferences: Preferences = {
     hasDefaultOnBeenTurnedOn: false,
   },
   showDefaultWalletBanner: true,
+  showAlphaWalletBanner: true,
+  alphaBannerVersion: 1,
   showTestNetworks: false,
   showPelagusNotifications: true,
   showPaymentChannelModal: true,

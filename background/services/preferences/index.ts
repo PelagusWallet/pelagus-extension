@@ -16,6 +16,7 @@ import BaseService from "../base"
 import { sameNetwork } from "../../networks"
 import { HexString } from "../../types"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
+import { CURRENT_BANNER_VERSION } from "@pelagus/pelagus-ui/utils/constants"
 
 type AddressBookEntry = {
   network: NetworkInterface
@@ -37,6 +38,7 @@ interface Events extends ServiceLifecycleEvents {
   updatedSignerSettings: AccountSignerSettings[]
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
+  alphaBannerVersion: number
   showTestNetworks: boolean
   showPaymentChannelModal: boolean
 }
@@ -64,6 +66,9 @@ export default class PreferenceService extends BaseService<Events> {
 
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService()
+    const prefs = await this.db.getPreferences()
+
+    // Initialize all preferences
     this.emitter.emit("initializeDefaultWallet", await this.getDefaultWallet())
     this.emitter.emit(
       "initializeSelectedAccount",
@@ -73,6 +78,15 @@ export default class PreferenceService extends BaseService<Events> {
       "updateAnalyticsPreferences",
       await this.getAnalyticsPreferences()
     )
+
+    // Check if we need to show the alpha banner based on version
+    const shouldShowBanner =
+      prefs.showAlphaWalletBanner ||
+      prefs.alphaBannerVersion < CURRENT_BANNER_VERSION
+
+    // Emit the alpha wallet banner state with proper version check
+    this.emitter.emit("showAlphaWalletBanner", shouldShowBanner)
+
     this.emitter.emit("showTestNetworks", await this.getShowTestNetworks())
     this.emitter.emit(
       "showPaymentChannelModal",
@@ -199,7 +213,10 @@ export default class PreferenceService extends BaseService<Events> {
   }
 
   async setShowAlphaWalletBanner(newValue: boolean): Promise<void> {
-    await this.db.setShowAlphaWalletBanner(newValue)
+    await this.db.setShowAlphaWalletBanner({
+      show: newValue,
+      version: CURRENT_BANNER_VERSION,
+    })
     await this.emitter.emit("showAlphaWalletBanner", newValue)
   }
 

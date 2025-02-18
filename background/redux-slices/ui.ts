@@ -29,6 +29,7 @@ export const defaultSettings = {
   hideBanners: false,
   showDefaultWalletBanner: true,
   showAlphaWalletBanner: true,
+  alphaBannerVersion: 1,
   showPelagusNotifications: true,
 }
 
@@ -46,7 +47,6 @@ export type UIState = {
     category: AccountCategoriesEnum
   }
   initializationLoadingTimeExpired: boolean
-  // FIXME: Move these settings to preferences service db
   settings: {
     hideDust: boolean
     defaultWallet: boolean
@@ -60,6 +60,7 @@ export type UIState = {
     hideBanners: boolean
     showDefaultWalletBanner: boolean
     showAlphaWalletBanner: boolean
+    alphaBannerVersion: number
   }
   snackbarConfig: {
     message: string
@@ -338,7 +339,10 @@ const uiSlice = createSlice({
     setShowAlphaWalletBanner: (state, { payload }: { payload: boolean }) => {
       return {
         ...state,
-        settings: { ...state.settings, showAlphaWalletBanner: payload },
+        settings: {
+          ...state.settings,
+          showAlphaWalletBanner: payload,
+        },
       }
     },
   },
@@ -658,4 +662,9 @@ export const selectShowDefaultWalletBanner = createSelector(
 export const selectShowAlphaWalletBanner = createSelector(
   selectSettings,
   (settings) => settings.showAlphaWalletBanner
+)
+
+export const selectAlphaBannerVersion = createSelector(
+  selectSettings,
+  (settings) => settings.alphaBannerVersion
 )

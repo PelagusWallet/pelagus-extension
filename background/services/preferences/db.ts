@@ -42,6 +42,7 @@ export interface Preferences {
   }
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
+  alphaBannerVersion: number
   showTestNetworks: boolean
   showPelagusNotifications: boolean
   showPaymentChannelModal: boolean
@@ -103,6 +104,15 @@ export class PreferenceDatabase extends Dexie {
           preferences.showPaymentChannelModal = true
         })
     })
+    this.version(3).upgrade((tx) => {
+      return tx
+        .table("preferences")
+        .toCollection()
+        .modify((preferences: Preferences) => {
+          preferences.showAlphaWalletBanner = true
+          preferences.alphaBannerVersion = 1
+        })
+    })
 
     this.on("populate", (tx: Transaction) => {
       tx.table("preferences").add(DEFAULT_PREFERENCES)
@@ -127,12 +137,16 @@ export class PreferenceDatabase extends Dexie {
       })
   }
 
-  async setShowAlphaWalletBanner(newValue: boolean): Promise<void> {
+  async setShowAlphaWalletBanner(payload: {
+    show: boolean
+    version: number
+  }): Promise<void> {
     await this.preferences
       .toCollection()
       .modify((storedPreferences: Preferences) => {
         const update: Partial<Preferences> = {
-          showAlphaWalletBanner: newValue,
+          showAlphaWalletBanner: payload.show,
+          alphaBannerVersion: payload.version,
         }
 
         Object.assign(storedPreferences, update)

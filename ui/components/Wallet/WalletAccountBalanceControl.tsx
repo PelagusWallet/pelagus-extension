@@ -49,12 +49,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           icon="icons/s/send.svg"
           ariaLabel={t("send")}
           onClick={async () => {
-            if (
-              (currentSelectedAccount.network.chainID === "9" &&
-                (!blockHeight ||
-                  blockHeight < MAINNET_GAS_ENABLED_BLOCK_HEIGHT)) ||
-              currentSelectedAccount.network.chainID === "9000"
-            ) {
+            if (currentSelectedAccount.network.chainID === "9000") {
               return
             }
 
@@ -69,12 +64,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           size={55}
           iconWidth="12"
           iconHeight="18"
-          disabled={
-            (currentSelectedAccount.network.chainID === "9" &&
-              (!blockHeight ||
-                blockHeight < MAINNET_GAS_ENABLED_BLOCK_HEIGHT)) ||
-            currentSelectedAccount.network.chainID === "9000"
-          }
+          disabled={currentSelectedAccount.network.chainID === "9000"}
         >
           {t("send")}
         </SharedCircleButton>
@@ -115,23 +105,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           {t("swap")}
         </SharedCircleButton>
       </div>
-
-      {currentSelectedAccount.network.chainID === "9" &&
-        (!blockHeight || blockHeight < MAINNET_GAS_ENABLED_BLOCK_HEIGHT) && (
-          <div className="info_banner">
-            <span className="info_text">
-              Transactions starting at block{"  "}
-            </span>
-            <a
-              href="https://quaiscan.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link"
-            >
-              {MAINNET_GAS_ENABLED_BLOCK_HEIGHT}
-            </a>
-          </div>
-        )}
 
       {currentSelectedAccount.network.chainID === "9000" && (
         <div className="info_banner">

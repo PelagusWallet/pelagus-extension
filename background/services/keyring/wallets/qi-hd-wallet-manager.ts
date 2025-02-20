@@ -92,6 +92,10 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
   }
 
   private async subscribeToContractEvents(): Promise<void> {
+    if (globalThis.main.chainService.selectedNetwork.chainID === "9") {
+      return
+    }
+
     const { qiHDWallet } = await this.vaultManager.get()
     if (!qiHDWallet) return
 

@@ -579,6 +579,11 @@ export default class ChainService extends BaseService<Events> {
       return
     }
 
+    if (this.selectedNetwork.chainID === "9") {
+      // Qi is not supported on Mainnet yet so skip sync
+      return
+    }
+
     this.qiWalletSyncInProgress = true
     setTimeout(async () => {
       try {

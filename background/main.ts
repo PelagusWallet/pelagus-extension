@@ -1511,6 +1511,7 @@ export default class Main extends BaseService<never> {
               ...permission,
               chainID: network.chainID,
             })
+            await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(permission.origin)
           })
         )
       }
@@ -1527,6 +1528,7 @@ export default class Main extends BaseService<never> {
                   ...permission,
                   chainID: network.chainID,
                 })
+                await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(permission.origin)
               })
             )
           })
@@ -1546,6 +1548,7 @@ export default class Main extends BaseService<never> {
               },
               accountAddress
             )
+            await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(permission.origin)
           })
         )
       }

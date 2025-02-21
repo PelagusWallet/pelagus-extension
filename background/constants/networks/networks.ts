@@ -129,7 +129,7 @@ export const QuaiLocalNodeNetwork: NetworkInterface = {
   ],
 }
 
-export const DEFAULT_PELAGUS_NETWORK = QuaiGoldenAgeTestnet
+export const DEFAULT_PELAGUS_NETWORK = QuaiMainnet
 
 export const PELAGUS_NETWORKS = [
   QuaiMainnet,

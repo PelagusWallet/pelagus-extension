@@ -496,6 +496,10 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     return currentNetwork
   }
 
+  async deleteCurrentChainIdForOrigin(origin: string): Promise<void> {
+    await this.db.deleteCurrentChainIdForOrigin(origin)
+  }
+
   async removePrefererencesForChain(chainId: string): Promise<void> {
     await this.db.removeStoredPreferencesForChain(chainId)
   }

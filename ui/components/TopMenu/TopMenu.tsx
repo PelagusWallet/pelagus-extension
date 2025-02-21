@@ -53,7 +53,7 @@ export default function TopMenu(): ReactElement {
     const { url } = await browser.tabs
       .query({
         active: true,
-        lastFocusedWindow: true,
+        currentWindow: true,
       })
       .then((tabs) =>
         tabs[0] ? tabs[0] : { url: "", favIconUrl: "", title: "" }
@@ -67,8 +67,7 @@ export default function TopMenu(): ReactElement {
     )
     const dAppAccounts = allowedPages.filter(
       (permission) =>
-        permission.origin === origin &&
-        permission.chainID === currentNetwork.chainID
+        permission.origin === origin
     )
 
     if (dAppInfo) {

@@ -32,6 +32,12 @@ export class InternalQuaiProviderDatabase extends Dexie {
     return this.currentNetwork.put({ origin, network })
   }
 
+  async deleteCurrentChainIdForOrigin(
+    origin: string
+  ): Promise<number> {
+    return this.currentNetwork.where({ origin }).delete()
+  }
+  
   async getCurrentNetworkForOrigin(
     origin: string
   ): Promise<NetworkInterface | undefined> {

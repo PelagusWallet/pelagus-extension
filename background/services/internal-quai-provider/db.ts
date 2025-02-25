@@ -2,7 +2,7 @@ import Dexie from "dexie"
 
 import { PELAGUS_INTERNAL_ORIGIN } from "./constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
-import { QuaiGoldenAgeTestnet, QuaiOrchardTestnet } from "../../constants/networks/networks"
+import { QuaiMainnet } from "../../constants/networks/networks"
 
 type NetworkForOrigin = {
   origin: string
@@ -21,7 +21,7 @@ export class InternalQuaiProviderDatabase extends Dexie {
     this.on("populate", (tx) => {
       return tx.db
         .table("currentNetwork")
-        .add({ origin: PELAGUS_INTERNAL_ORIGIN, network: QuaiOrchardTestnet })
+        .add({ origin: PELAGUS_INTERNAL_ORIGIN, network: QuaiMainnet })
     })
   }
 

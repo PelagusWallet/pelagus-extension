@@ -37,10 +37,7 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
     return QiHDWallet.deserialize(qiHDWallet)
   }
 
-  public async syncQiWalletPaymentCodes(
-    qiWallet: QiHDWallet,
-    isRestored = false
-  ): Promise<void> {
+  public async syncQiWalletPaymentCodes(qiWallet: QiHDWallet): Promise<void> {
     const { jsonRpcProvider } = globalThis.main.chainService
     const thisQiWalletPaymentCode = qiWallet.getPaymentCode()
 
@@ -92,10 +89,6 @@ export default class QiHDWalletManager implements IQiHDWalletManager {
   }
 
   private async subscribeToContractEvents(): Promise<void> {
-    if (globalThis.main.chainService.selectedNetwork.chainID === "9") {
-      return
-    }
-
     const { qiHDWallet } = await this.vaultManager.get()
     if (!qiHDWallet) return
 

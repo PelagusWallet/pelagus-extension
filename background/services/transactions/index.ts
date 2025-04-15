@@ -200,9 +200,14 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             outpoint: outpoint.outpoint,
             address: outpoint.address,
             zone: Zone.Cyprus1,
+            derivationPath: outpoint.derivationPath,
           }))
 
           qiWallet.importOutpoints(outpointInfos)
+
+          if (!qiWallet.channelIsOpen(receiverPaymentCode)) {
+            qiWallet.openChannel(receiverPaymentCode)
+          }
 
           const tx = (await qiWallet.sendTransaction(
             receiverPaymentCode,
@@ -380,6 +385,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             outpoint: outpoint.outpoint,
             address: outpoint.address,
             zone: Zone.Cyprus1,
+            derivationPath: outpoint.derivationPath,
           }))
 
           qiWallet.importOutpoints(outpointInfos)

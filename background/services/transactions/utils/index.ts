@@ -3,7 +3,7 @@ import {
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
 import { formatQi } from "quais"
-import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
+import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet"
 import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
 import {
   QiTransactionDB,

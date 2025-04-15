@@ -24,7 +24,7 @@ export const ORCHARD_HTTPS_RPC_URL = "https://orchard.rpc.quai.network"
 export const ORCHARD_WSS_RPC_URL = "wss://orchard.rpc.quai.network"
 
 export const MAILBOX_CONTRACT_ADDRESS =
-  "0x007889567f912CBE063224A4C81CBBC9Aec68a9c"
+  "0x004C82298b3ED69a949008d7037918B13A4260c5"
 
 export const VALID_ZONES: Array<Zone> = [
   Zone.Cyprus1,

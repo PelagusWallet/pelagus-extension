@@ -5,16 +5,9 @@ import { configureStore, isPlain, Middleware } from "@reduxjs/toolkit"
 import { devToolsEnhancer } from "@redux-devtools/remote"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
-import {
-  formatUnits,
-  JsonRpcProvider,
-  QiHDWallet,
-  WebSocketProvider,
-  Zone,
-} from "quais"
+import { formatUnits, JsonRpcProvider, WebSocketProvider, Zone } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
-import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet/hdwallet"
-import { OutpointInfo } from "quais/lib/commonjs/wallet/qi-hdwallet"
+import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
 import {
   AnalyticsService,
@@ -1511,7 +1504,9 @@ export default class Main extends BaseService<never> {
               ...permission,
               chainID: network.chainID,
             })
-            await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(permission.origin)
+            await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(
+              permission.origin
+            )
           })
         )
       }
@@ -1528,7 +1523,9 @@ export default class Main extends BaseService<never> {
                   ...permission,
                   chainID: network.chainID,
                 })
-                await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(permission.origin)
+                await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(
+                  permission.origin
+                )
               })
             )
           })
@@ -1548,7 +1545,9 @@ export default class Main extends BaseService<never> {
               },
               accountAddress
             )
-            await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(permission.origin)
+            await this.internalQuaiProviderService.deleteCurrentChainIdForOrigin(
+              permission.origin
+            )
           })
         )
       }

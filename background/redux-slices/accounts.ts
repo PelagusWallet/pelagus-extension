@@ -279,31 +279,6 @@ const accountSlice = createSlice({
         [address]: "loading",
       }
     },
-    loadUtxoAccount: (
-      immerState,
-      {
-        payload: { qiWallet, network },
-      }: { payload: { qiWallet: QiWallet | null; network: NetworkInterface } }
-    ) => {
-      if (!qiWallet) return
-
-      const { paymentCode, id, addresses } = qiWallet
-
-      if (immerState.accountsData.utxo[network.chainID]?.[paymentCode]) return
-
-      immerState.accountsData.utxo[network.chainID] = {
-        ...immerState.accountsData.utxo[network.chainID],
-        [paymentCode]: {
-          paymentCode,
-          network,
-          balances: {},
-          defaultName: "Cyprus 1",
-          defaultAvatar: "./images/avatars/compass@2x.png",
-          id,
-          addresses,
-        },
-      }
-    },
     deleteAccount: (
       immerState,
       { payload: address }: { payload: HexString }
@@ -326,6 +301,61 @@ const accountSlice = createSlice({
       })
 
       updateCombinedData(immerState)
+    },
+    loadUtxoAccount: (
+      immerState,
+      {
+        payload: { qiWallet, network },
+      }: { payload: { qiWallet: QiWallet | null; network: NetworkInterface } }
+    ) => {
+      if (!qiWallet) return
+
+      const { paymentCode, id, addresses } = qiWallet
+
+      // Get all existing UTXO accounts for this chain
+      const existingAccounts =
+        immerState.accountsData.utxo[network.chainID] || {}
+      const existingPaymentCodes = Object.keys(existingAccounts)
+
+      // If there are any accounts different from the one we're loading,
+      // delete them from all chains. This is logic is here to account for the fact that
+      // payment codes changes in quais v1.0.0-alpha.42 because of corrected BIP47
+      // derivation path.
+      existingPaymentCodes.forEach((existingCode) => {
+        if (existingCode !== paymentCode) {
+          // Find the account in immerState and delete it using our utility
+          const { [existingCode]: removedAccount, ...remainingAccounts } =
+            existingAccounts
+          immerState.accountsData.utxo[network.chainID] = remainingAccounts
+
+          // Delete from other chains too
+          Object.keys(immerState.accountsData.utxo)
+            .filter((chainId) => chainId !== network.chainID)
+            .forEach((chainId) => {
+              if (immerState.accountsData.utxo[chainId]?.[existingCode]) {
+                const {
+                  [existingCode]: removedFromChain,
+                  ...withoutEntryToRemove
+                } = immerState.accountsData.utxo[chainId]
+                immerState.accountsData.utxo[chainId] = withoutEntryToRemove
+              }
+            })
+        }
+      })
+
+      // Add the new account
+      immerState.accountsData.utxo[network.chainID] = {
+        ...immerState.accountsData.utxo[network.chainID],
+        [paymentCode]: {
+          paymentCode,
+          network,
+          balances: {},
+          defaultName: "Cyprus 1",
+          defaultAvatar: "./images/avatars/compass@2x.png",
+          id,
+          addresses,
+        },
+      }
     },
     updateUtxoAccountBalance: (
       immerState,
@@ -606,7 +636,7 @@ export const triggerManualBalanceUpdate = createBackgroundAsyncThunk(
   async (_, { getState, extra: { main } }) => {
     const state = getState() as RootState
     const uiState = state.ui
-    const isUtxoSelected = uiState.isUtxoSelected
+    const { isUtxoSelected } = uiState
     if (isUtxoSelected) {
       await main.chainService.syncQiWallet()
     } else {

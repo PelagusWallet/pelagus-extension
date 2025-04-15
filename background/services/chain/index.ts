@@ -10,7 +10,7 @@ import {
   Zone,
   denominations,
   NeuteredAddressInfo,
-  Block,
+  OutpointInfo,
 } from "quais"
 import { JsonRpcProvider as EthJsonRpcProvider } from "ethers"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
@@ -541,16 +541,17 @@ export default class ChainService extends BaseService<Events> {
   }
 
   private async handleOutpointsCreated(outpoints: {
-    [address: string]: Outpoint[]
+    [address: string]: OutpointInfo[]
   }): Promise<void> {
     // Flatten the outpoints array and map each outpoint to include its address
     const qiOutpoints = Object.entries(outpoints).flatMap(
-      ([address, outpoints]) =>
-        outpoints.map((outpoint) => ({
-          outpoint,
+      ([address, outpointInfos]) =>
+        outpointInfos.map((outpointInfo) => ({
+          outpoint: outpointInfo.outpoint,
           address,
           chainID: this.selectedNetwork.chainID,
-          value: denominations[outpoint.denomination],
+          value: denominations[outpointInfo.outpoint.denomination],
+          derivationPath: outpointInfo.derivationPath,
         }))
     )
 
@@ -558,16 +559,17 @@ export default class ChainService extends BaseService<Events> {
   }
 
   private async handleOutpointsDeleted(outpoints: {
-    [address: string]: Outpoint[]
+    [address: string]: OutpointInfo[]
   }): Promise<void> {
     // Flatten the outpoints array and map each outpoint to include its address
     const qiOutpoints = Object.entries(outpoints).flatMap(
-      ([address, outpoints]) =>
-        outpoints.map((outpoint) => ({
-          outpoint,
+      ([address, outpointInfos]) =>
+        outpointInfos.map((outpointInfo) => ({
+          outpoint: outpointInfo.outpoint,
           address,
           chainID: this.selectedNetwork.chainID,
-          value: denominations[outpoint.denomination],
+          value: denominations[outpointInfo.outpoint.denomination],
+          derivationPath: outpointInfo.derivationPath,
         }))
     )
     await this.db.removeQiOutpoints(qiOutpoints)
@@ -576,11 +578,6 @@ export default class ChainService extends BaseService<Events> {
   async syncQiWallet(): Promise<void> {
     if (this.qiWalletSyncInProgress) {
       // A sync is already in progress. Silently return.
-      return
-    }
-
-    if (this.selectedNetwork.chainID === "9") {
-      // Qi is not supported on Mainnet yet so skip sync
       return
     }
 
@@ -616,7 +613,6 @@ export default class ChainService extends BaseService<Events> {
             }`
           )
         }
-
         qiWallet.connect(this.jsonRpcProvider)
         notifications.forEach((paymentCode) => {
           // if the channel is already open, it will be ignored
@@ -629,8 +625,8 @@ export default class ChainService extends BaseService<Events> {
         )
 
         let storeOutpoints = false
-        let spendableBalance: bigint = BigInt(0)
-        let lockedBalance: bigint = BigInt(0)
+        let spendableBalance = 0n
+        let lockedBalance = 0n
 
         if (forceFullScan) {
           // use immediateJsonRpcProvider to avoid race condition
@@ -642,16 +638,16 @@ export default class ChainService extends BaseService<Events> {
           storeOutpoints = true
 
           // calculate spendable balance for the current block using in memory outpoints
-          spendableBalance = await qiWallet.getSpendableBalanceForZone(
+          spendableBalance = await qiWallet.getSpendableBalance(
             Zone.Cyprus1,
             currentBlock?.woHeader.number,
             true
           )
-          lockedBalance = await qiWallet.getLockedBalanceForZone(
-            Zone.Cyprus1,
-            currentBlock?.woHeader.number,
-            true
-          )
+          // lockedBalance = await qiWallet.getLockedBalance(
+          //   Zone.Cyprus1,
+          //   currentBlock?.woHeader.number,
+          //   true
+          // )
         } else {
           await qiWallet.sync(
             Zone.Cyprus1,
@@ -659,22 +655,24 @@ export default class ChainService extends BaseService<Events> {
             this.handleOutpointsCreated.bind(this),
             this.handleOutpointsDeleted.bind(this)
           )
-
           // fetch spendable balance for the current block using getBalance RPC
-          const [sBalance, lBalance] = await Promise.all([
-            qiWallet.getSpendableBalanceForZone(
-              Zone.Cyprus1,
-              currentBlock?.woHeader.number,
-              false
-            ),
-            qiWallet.getLockedBalanceForZone(
-              Zone.Cyprus1,
-              currentBlock?.woHeader.number,
-              false
-            ),
-          ])
-          spendableBalance = sBalance
-          lockedBalance = lBalance
+          // const [sBalance, lBalance] = await Promise.all([
+          //   qiWallet.getSpendableBalance(
+          //     Zone.Cyprus1,
+          //     currentBlock?.woHeader.number,
+          //     false
+          //   ),
+          //   qiWallet.getLockedBalance(
+          //     Zone.Cyprus1,
+          //     currentBlock?.woHeader.number,
+          //     false
+          //   ),
+          // ])
+          spendableBalance = await qiWallet.getSpendableBalance(
+            Zone.Cyprus1,
+            currentBlock?.woHeader.number,
+            false
+          )
         }
 
         const qiWalletBalance: QiWalletBalance = {
@@ -691,7 +689,6 @@ export default class ChainService extends BaseService<Events> {
           dataSource: "local",
           retrievedAt: Date.now(),
         }
-
         this.emitter.emit("updatedQiLedgerBalance", {
           balances: [qiWalletBalance],
           addressOnNetwork: {
@@ -711,6 +708,7 @@ export default class ChainService extends BaseService<Events> {
                 address: outpointInfo.address,
                 chainID: network.chainID,
                 value: denominations[outpointInfo.outpoint.denomination],
+                derivationPath: outpointInfo.derivationPath,
               }))
               await this.db.addQiOutpoints(qiOutpoints)
             }

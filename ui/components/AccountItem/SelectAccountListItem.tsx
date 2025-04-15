@@ -1,9 +1,9 @@
 import React, { ReactElement } from "react"
 import classNames from "classnames"
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 import SharedIconGA from "../Shared/SharedIconGA"
 import SharedLoadingSpinner from "../Shared/SharedLoadingSpinner"
-import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
 
 interface SelectAccountListItemProps {
   account: AccountTotal

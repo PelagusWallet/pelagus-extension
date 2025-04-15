@@ -1,5 +1,8 @@
-import React, { useState } from "react"
-import { setConvertAmount } from "@pelagus/pelagus-background/redux-slices/convertAssets"
+import React, { useEffect, useState } from "react"
+import {
+  setConvertAmount,
+  setConvertExpectedResultHandle,
+} from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import { formatQi, Zone } from "quais"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
@@ -15,6 +18,10 @@ const ConvertFromAmount = () => {
   const amount = useBackgroundSelector((state) => state.convertAssets.amount)
 
   const [inputValue, setInputValue] = useState(amount)
+
+  useEffect(() => {
+    dispatch(setConvertExpectedResultHandle())
+  }, [amount, dispatch])
 
   const tokenLabelHandle = () => {
     if (convertFromAccount && isUtxoAccountTypeGuard(convertFromAccount)) {

@@ -20,7 +20,7 @@ const ConvertSlippage = () => {
 
   if (
     !amount ||
-    (expectedSlippage && Number(expectedSlippage.toFixed(2)) === 0)
+    (expectedSlippage && Number((expectedSlippage ?? 0).toFixed(2)) === 0)
   ) {
     return <></>
   }

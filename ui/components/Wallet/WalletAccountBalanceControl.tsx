@@ -12,7 +12,6 @@ import {
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { resetConvertAssetsSlice } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import { NetworksState } from "@pelagus/pelagus-background/redux-slices/networks"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
@@ -22,18 +21,16 @@ import ReadOnlyNotice from "../Shared/ReadOnlyNotice"
 import SharedCircleButton from "../Shared/SharedCircleButton"
 import BalanceReloader from "../Balance/BalanceReloader"
 import LockedBalanceCard from "../Balance/LockedBalanceCard"
-import { MAINNET_GAS_ENABLED_BLOCK_HEIGHT } from "../../utils/constants"
 
 type ActionButtonsProps = {
   onReceive: () => void
-  blockHeight: number | null
 }
 
 function ActionButtons(props: ActionButtonsProps): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet",
   })
-  const { onReceive, blockHeight } = props
+  const { onReceive } = props
   const history = useHistory()
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
@@ -53,6 +50,13 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               return
             }
 
+            if (
+              isUtxoSelected &&
+              currentSelectedAccount.network.chainID === "9"
+            ) {
+              return
+            }
+
             if (!isUtxoSelected) {
               history.push("/send")
               return
@@ -64,7 +68,10 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           size={55}
           iconWidth="12"
           iconHeight="18"
-          disabled={currentSelectedAccount.network.chainID === "9000"}
+          disabled={
+            currentSelectedAccount.network.chainID === "9000" ||
+            (isUtxoSelected && currentSelectedAccount.network.chainID === "9")
+          }
         >
           {t("send")}
         </SharedCircleButton>
@@ -80,12 +87,27 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         </SharedCircleButton>
 
         <SharedCircleButton
-          icon="icons/s/convert.svg"
+          icon="icons/s/swap.svg"
           ariaLabel={t("swap")}
+          size={55}
+          iconWidth="20"
+          iconHeight="18"
+          disabled
+        >
+          {t("swap")}
+        </SharedCircleButton>
+
+        <SharedCircleButton
+          icon="icons/s/convert.svg"
+          ariaLabel={t("convert")}
           onClick={async () => {
+            if (currentSelectedAccount.network.chainID === "9000") {
+              return
+            }
+
             if (
-              currentSelectedAccount.network.chainID === "9" ||
-              currentSelectedAccount.network.chainID === "9000"
+              isUtxoSelected &&
+              currentSelectedAccount.network.chainID === "9"
             ) {
               return
             }
@@ -98,11 +120,11 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           iconHeight="18"
           disabled={
             !isQiWalletInit ||
-            currentSelectedAccount.network.chainID === "9" ||
-            currentSelectedAccount.network.chainID === "9000"
+            currentSelectedAccount.network.chainID === "9000" ||
+            (isUtxoSelected && currentSelectedAccount.network.chainID === "9")
           }
         >
-          {t("swap")}
+          {t("convert")}
         </SharedCircleButton>
       </div>
 
@@ -225,13 +247,6 @@ export default function WalletAccountBalanceControl(
     )
   }
 
-  const currentAccount = useBackgroundSelector(selectCurrentAccount)
-  const blockHeight = useBackgroundSelector(
-    (state: { networks: NetworksState }) =>
-      state.networks.blockInfo[currentAccount.network.chainID]?.blockHeight ??
-      null
-  )
-
   return (
     <>
       <SharedSlideUpMenu isOpen={openReceiveMenu} close={handleClick}>
@@ -269,10 +284,7 @@ export default function WalletAccountBalanceControl(
           {currentAccountSigner !== ReadOnlyAccountSigner && (
             <>
               {hasSavedSeed ? (
-                <ActionButtons
-                  onReceive={handleClick}
-                  blockHeight={blockHeight}
-                />
+                <ActionButtons onReceive={handleClick} />
               ) : (
                 <div className="save_seed_button_wrap">
                   <SharedButton

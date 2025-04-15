@@ -21,7 +21,7 @@ export default class QuaiHDWalletManager implements IQuaiHDWalletManager {
     const mnemonicFromPhrase = Mnemonic.fromPhrase(mnemonic)
     const quaiHDWallet = QuaiHDWallet.fromMnemonic(mnemonicFromPhrase)
 
-    const existingQuaiHDWallet = await this.getByXPub(quaiHDWallet.xPub)
+    const existingQuaiHDWallet = await this.getByXPub(quaiHDWallet.xPub())
     if (existingQuaiHDWallet) {
       throw new Error("Quai HD Wallet already in use", {
         cause: applicationError,
@@ -44,7 +44,7 @@ export default class QuaiHDWalletManager implements IQuaiHDWalletManager {
     )
 
     return deserializedHDWallets.find(
-      (HDWallet: QuaiHDWallet) => HDWallet.xPub === xPub
+      (HDWallet: QuaiHDWallet) => HDWallet.xPub() === xPub
     )
   }
 

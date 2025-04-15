@@ -11,6 +11,8 @@ export type ConvertAssetsState = {
   to: UtxoAccountData | AccountTotal | null
   amount: string
   rate: number
+  expectedResult: number
+  expectedSlippage: number
 }
 
 const initialState: ConvertAssetsState = {
@@ -18,6 +20,8 @@ const initialState: ConvertAssetsState = {
   to: null,
   amount: "",
   rate: 0,
+  expectedResult: 0,
+  expectedSlippage: 0,
 }
 
 const convertAssetsSlice = createSlice({
@@ -41,6 +45,18 @@ const convertAssetsSlice = createSlice({
     },
     setConvertRate: (immerState, { payload }: { payload: number }) => {
       immerState.rate = payload
+    },
+    setConvertExpectedResult: (
+      immerState,
+      { payload }: { payload: number }
+    ) => {
+      immerState.expectedResult = payload
+    },
+    setConvertExpectedSlippage: (
+      immerState,
+      { payload }: { payload: number }
+    ) => {
+      immerState.expectedSlippage = payload
     },
     updateQuaiAccountInConversionDestination: (
       immerState,
@@ -69,6 +85,8 @@ export const {
   updateQuaiAccountInConversionDestination,
   resetConvertAssetsSlice,
   setConvertRate,
+  setConvertExpectedResult,
+  setConvertExpectedSlippage,
 } = convertAssetsSlice.actions
 
 export default convertAssetsSlice.reducer
@@ -82,13 +100,58 @@ export const setConvertRateHandle = createBackgroundAsyncThunk(
     const convertingFromUtxoAccount =
       convertAssets?.from && isUtxoAccountTypeGuard(convertAssets?.from)
     if (convertingFromUtxoAccount) {
-      rate = await jsonRpcProvider.getLatestQiRate(Zone.Cyprus1, parseQi("1"))
+      rate = await jsonRpcProvider.getLatestQiToQuaiRate(
+        Zone.Cyprus1,
+        parseQi("1")
+      )
       dispatch(setConvertRate(Number(formatQuai(rate))))
       return
     }
 
-    rate = await jsonRpcProvider.getLatestQuaiRate(Zone.Cyprus1, parseQuai("1"))
+    rate = await jsonRpcProvider.getLatestQuaiToQiRate(
+      Zone.Cyprus1,
+      parseQuai("1")
+    )
     dispatch(setConvertRate(Number(formatQi(rate))))
+  }
+)
+
+const mockQiAddress = "0x0090000000000000000000000000000000000000"
+const mockQuaiAddress = "0x0010000000000000000000000000000000000000"
+export const setConvertExpectedResultHandle = createBackgroundAsyncThunk(
+  "convertAssets/setConvertExpectedResultHandle",
+  async (_, { getState, dispatch }) => {
+    const { convertAssets } = getState() as RootState
+    const { jsonRpcProvider } = globalThis.main.chainService
+    const convertingFromUtxoAccount =
+      convertAssets?.from && isUtxoAccountTypeGuard(convertAssets?.from)
+
+    let expectedAmount = 0n
+    let parsedAmount = 0n
+    let formattedAmount = 0
+    if (convertingFromUtxoAccount) {
+      parsedAmount = parseQi(convertAssets?.amount)
+      expectedAmount = await jsonRpcProvider.calculateConversionAmount({
+        from: mockQiAddress,
+        to: mockQuaiAddress,
+        value: parsedAmount.toString(),
+      })
+      formattedAmount = Number(formatQuai(expectedAmount))
+    } else {
+      parsedAmount = parseQuai(convertAssets?.amount)
+      expectedAmount = await jsonRpcProvider.calculateConversionAmount({
+        from: mockQuaiAddress,
+        to: mockQiAddress,
+        value: parsedAmount.toString(),
+      })
+      formattedAmount = Number(formatQi(expectedAmount))
+    }
+    dispatch(setConvertExpectedResult(formattedAmount))
+    if (!convertAssets?.rate || !convertAssets?.amount) return
+    if (Number(convertAssets?.amount) === 0) return
+    const calculatedAmount = convertAssets?.rate * Number(convertAssets?.amount)
+    const slip = (calculatedAmount - formattedAmount) / calculatedAmount
+    dispatch(setConvertExpectedSlippage(slip))
   }
 )
 

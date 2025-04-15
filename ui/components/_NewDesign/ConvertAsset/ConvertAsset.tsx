@@ -4,6 +4,7 @@ import ConvertTo from "./ConvertTo/ConvertTo"
 import ConvertFromAmount from "./ConvertFromAmount/ConvertFromAmount"
 import ConvertToAmount from "./ConvertToAmount/ConvertToAmount"
 import ConvertRate from "./ConvertRate/ConvertRate"
+import ConvertSlippage from "./ConvertSlippage/ConvertSlippage"
 
 const ConvertAsset = () => {
   return (
@@ -13,6 +14,7 @@ const ConvertAsset = () => {
       <ConvertTo />
       <ConvertToAmount />
       <ConvertRate />
+      <ConvertSlippage />
     </>
   )
 }

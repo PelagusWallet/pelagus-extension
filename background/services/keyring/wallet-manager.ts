@@ -94,7 +94,7 @@ export default class WalletManager {
             this.qiHDWalletManager.qiHDWalletAccountIndex
           )
           return {
-            id: deserializedQiHDWallet.xPub,
+            id: deserializedQiHDWallet.xPub(),
             path: null,
             type: KeyringTypes.mnemonicBIP47,
             addresses: [],
@@ -118,7 +118,7 @@ export default class WalletManager {
                   .filter(({ address }) => !hiddenAccounts[address])
                   .map(({ address }) => address),
               ],
-              id: deserializedQuaiHDWallet.xPub,
+              id: deserializedQuaiHDWallet.xPub(),
               path: null,
             }
           })
@@ -256,7 +256,7 @@ export default class WalletManager {
     }
 
     this.quaiHDWallets = this.quaiHDWallets.map((HDWallet) => {
-      return HDWallet?.id === quaiHDWallet.xPub
+      return HDWallet?.id === quaiHDWallet.xPub()
         ? {
             ...HDWallet,
             addresses: [...HDWallet.addresses, address],
@@ -318,14 +318,14 @@ export default class WalletManager {
 
     const { qiHDWallet: wallet } = await this.qiHDWalletManager.create(mnemonic)
 
-    this.keyringMetadata[wallet.xPub] = {
+    this.keyringMetadata[wallet.xPub()] = {
       source: SignerImportSource.internal,
     }
     const paymentCode = wallet.getPaymentCode(
       this.qiHDWalletManager.qiHDWalletAccountIndex
     )
     this.qiHDWallet = {
-      id: wallet.xPub,
+      id: wallet.xPub(),
       path: null,
       type: KeyringTypes.mnemonicBIP47,
       addresses: [],
@@ -334,7 +334,7 @@ export default class WalletManager {
     await this.vault.add(
       {
         qiHDWallet: wallet.serialize(),
-        metadata: { [wallet.xPub]: { source: SignerImportSource.internal } },
+        metadata: { [wallet.xPub()]: { source: SignerImportSource.internal } },
       },
       {}
     )
@@ -379,11 +379,11 @@ export default class WalletManager {
       {
         type: KeyringTypes.mnemonicBIP39S256,
         addresses: [address],
-        id: quaiHDWallet.xPub,
+        id: quaiHDWallet.xPub(),
         path: null,
       },
     ]
-    this.keyringMetadata[quaiHDWallet.xPub] = {
+    this.keyringMetadata[quaiHDWallet.xPub()] = {
       source,
     }
 
@@ -391,7 +391,7 @@ export default class WalletManager {
     await this.vault.add(
       {
         quaiHDWallets: [serializedQuaiHDWallet],
-        metadata: { [quaiHDWallet.xPub]: { source } },
+        metadata: { [quaiHDWallet.xPub()]: { source } },
       },
       {}
     )
@@ -443,7 +443,7 @@ export default class WalletManager {
       })
 
     this.quaiHDWallets = this.quaiHDWallets.filter(
-      (HDWallet) => HDWallet.id !== foundedHDWallet.xPub
+      (HDWallet) => HDWallet.id !== foundedHDWallet.xPub()
     )
 
     await this.vault.delete({

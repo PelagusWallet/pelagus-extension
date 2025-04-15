@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react"
 import { setConvertRateHandle } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
-import { formatQuai, formatQi, parseQi, parseQuai } from "quais"
 
 const ConvertRate = () => {
   const dispatch = useBackgroundDispatch()
@@ -26,16 +25,14 @@ const ConvertRate = () => {
       setFromAsset("QI")
       setToAsset("QUAI")
       setFormattedRate(rate.toFixed(4))
-      return
     } else {
       setFromAsset("QUAI")
       setToAsset("QI")
       setFormattedRate(rate.toFixed(3))
     }
-  }, [rate])
+  }, [rate, convertFromAccount])
 
   if (!convertFromAccount) return <></>
-
 
   return (
     <>

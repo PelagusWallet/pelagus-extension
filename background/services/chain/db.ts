@@ -10,7 +10,7 @@ import {
 } from "../../accounts"
 import { NetworkBaseAsset } from "../../networks"
 import { FungibleAsset } from "../../assets"
-import { BASE_ASSETS, QI, QUAI } from "../../constants"
+import { BASE_ASSETS } from "../../constants"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import { Outpoint } from "quais/lib/commonjs/transaction/utxo"
@@ -30,6 +30,7 @@ export type QiOutpoint = {
   value: bigint // value in qits
   address: string
   chainID: string
+  derivationPath: string
 }
 
 // TODO keep track of blocks invalidated by a reorg
@@ -135,6 +136,17 @@ export class ChainDatabase extends Dexie {
               amount: BigInt(0),
             }
           })
+      })
+
+    this.version(6)
+      .stores({
+        qiOutpoints:
+          "&[chainID+outpoint.txhash+outpoint.index],[chainID+address+outpoint.txhash],[chainID+outpoint.lock],address,value,outpoint.txhash,outpoint.index,outpoint.denomination,outpoint.lock,derivationPath",
+      })
+      .upgrade(async (transaction) => {
+        // Delete all qiOutpoints and qiWalletSyncInfo to force a full rescan
+        await transaction.table("qiOutpoints").toCollection().delete()
+        await transaction.table("qiWalletSyncInfo").toCollection().delete()
       })
   }
 

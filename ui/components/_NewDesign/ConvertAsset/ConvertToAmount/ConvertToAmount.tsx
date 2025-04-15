@@ -8,11 +8,13 @@ const ConvertToAmount = () => {
     (state) => state.convertAssets.to
   )
 
-  const amount = useBackgroundSelector((state) => state.convertAssets.amount)
-  const rate = useBackgroundSelector((state) => state.convertAssets.rate)
+  const expectedResult = useBackgroundSelector(
+    (state) => state.convertAssets.expectedResult
+  )
 
   const tokenLabelHandle = () => {
-    const convertingToUtxoAccount = convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
+    const convertingToUtxoAccount =
+      convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
     if (convertingToUtxoAccount) {
       return "QI"
     }
@@ -20,21 +22,22 @@ const ConvertToAmount = () => {
   }
 
   const receiveAmountHandle = () => {
-    if (!rate || isNaN(Number(amount))) {
+    if (!expectedResult || Number.isNaN(Number(expectedResult))) {
       return <SharedLoadingSpinner size="small" />
     }
 
-    const convertingToUtxoAccount = convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
+    const convertingToUtxoAccount =
+      convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
     if (convertingToUtxoAccount) {
-      return (Number(amount) * rate).toFixed(3)
+      return expectedResult.toFixed(3)
     }
-    return (Number(amount) * rate).toFixed(4)
+    return expectedResult.toFixed(4)
   }
 
   return (
     <>
       <div className="receive-wrapper">
-        <h3 className="receive-value">{receiveAmountHandle()} </h3>
+        <h3 className="receive-value">{receiveAmountHandle()}</h3>
         <h3 className="receive-token">{tokenLabelHandle()}</h3>
       </div>
 

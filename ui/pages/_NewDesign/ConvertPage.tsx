@@ -45,6 +45,9 @@ const ConvertPage = () => {
     <>
       <main className="convert-wrapper">
         <SharedGoBackPageHeader title="Convert Assets" linkTo="/" />
+        <div className="disclaimer">
+          Native convertions are meant for market makers.
+        </div>
         <ConvertAsset />
         <SharedActionButtons
           title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
@@ -68,6 +71,16 @@ const ConvertPage = () => {
           height: 100%;
           box-sizing: border-box;
           padding: 16px;
+        }
+
+        .disclaimer {
+          margin: -15px 0 5px 0;
+          padding: 8px;
+          background-color: rgba(255, 246, 214, 0.5);
+          border-radius: 8px;
+          font-size: 14px;
+          text-align: center;
+          color: #896404;
         }
       `}</style>
     </>

@@ -8,6 +8,9 @@ import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
 import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
 
+// Reserve 0.01 QUAI for transaction fees
+const TRANSACTION_FEE_RESERVE = 0.01
+
 const ConvertFromAmount = () => {
   const dispatch = useBackgroundDispatch()
 
@@ -44,32 +47,51 @@ const ConvertFromAmount = () => {
     if (
       convertFromAccount &&
       isUtxoAccountTypeGuard(convertFromAccount) &&
-      convertFromAccount?.balances[Zone.Cyprus1]
+      convertFromAccount?.balances[Zone.Cyprus1] &&
+      convertFromAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
     ) {
-      const qiMaxamount = `${Number(
+      const qiMaxAmount = Number(
         formatQi(
           convertFromAccount?.balances[Zone.Cyprus1]?.assetAmount?.amount
         )
-      )?.toFixed(3)}`
+      )
 
-      setInputValue(qiMaxamount)
-      await dispatch(setConvertAmount(qiMaxamount))
-      return
+      // Ensure we have a valid number
+      if (!Number.isNaN(qiMaxAmount) && qiMaxAmount > 0) {
+        const formattedAmount = qiMaxAmount.toFixed(3)
+        setInputValue(formattedAmount)
+        await dispatch(setConvertAmount(formattedAmount))
+        return
+      }
     }
 
     if (
       convertFromAccount &&
       !isUtxoAccountTypeGuard(convertFromAccount) &&
-      convertFromAccount?.localizedTotalMainCurrencyAmount
+      convertFromAccount?.balance
     ) {
-      const quaiMaxAmount = convertFromAccount?.localizedTotalMainCurrencyAmount
-      setInputValue(quaiMaxAmount)
-      await dispatch(setConvertAmount(quaiMaxAmount))
+      // Extract the numeric part from the balance string (e.g., "93.3690 QUAI")
+      const balanceString = convertFromAccount.balance
+      const numericPart = balanceString.split(" ")[0] // Get the first part before the space
+      const numericAmount = parseFloat(numericPart)
 
-      return
+      // Ensure we have a valid number and reserve for transaction fee
+      if (
+        !Number.isNaN(numericAmount) &&
+        numericAmount > TRANSACTION_FEE_RESERVE
+      ) {
+        const adjustedAmount = (
+          numericAmount - TRANSACTION_FEE_RESERVE
+        ).toFixed(4)
+        setInputValue(adjustedAmount)
+        await dispatch(setConvertAmount(adjustedAmount))
+        return
+      }
     }
 
+    // Default fallback if no valid balance is found
     setInputValue("0.00")
+    await dispatch(setConvertAmount("0.00"))
   }
 
   const balanceHandle = () => {
@@ -92,7 +114,22 @@ const ConvertFromAmount = () => {
       !isUtxoAccountTypeGuard(convertFromAccount) &&
       convertFromAccount?.balance
     ) {
-      return convertFromAccount?.balance
+      // Show available balance minus transaction fee reserve for QUAI accounts
+      const balanceString = convertFromAccount.balance
+      const parts = balanceString.split(" ")
+      const numericAmount = parseFloat(parts[0])
+
+      if (
+        !Number.isNaN(numericAmount) &&
+        numericAmount > TRANSACTION_FEE_RESERVE
+      ) {
+        const availableAmount = (
+          numericAmount - TRANSACTION_FEE_RESERVE
+        ).toFixed(4)
+        return `${availableAmount} ${parts[1] || "QUAI"}`
+      }
+
+      return convertFromAccount.balance
     }
 
     return <SharedLoadingSpinner size="small" />

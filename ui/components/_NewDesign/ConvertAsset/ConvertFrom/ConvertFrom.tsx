@@ -32,7 +32,7 @@ const ConvertFrom = () => {
     if (selectedQuaiAccount) {
       dispatch(setConvertFrom(selectedQuaiAccount))
     }
-  }, [])
+  }, [dispatch, isUtxoSelected, selectedQiAccount, selectedQuaiAccount])
 
   if (!convertFromAccount)
     return (

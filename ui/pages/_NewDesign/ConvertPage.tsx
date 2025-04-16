@@ -44,19 +44,27 @@ const ConvertPage = () => {
   return (
     <>
       <main className="convert-wrapper">
-        <SharedGoBackPageHeader title="Convert Assets" linkTo="/" />
-        <div className="disclaimer">
-          Native convertions are meant for market makers.
+        <div className="header-area">
+          <SharedGoBackPageHeader title="Convert Assets" linkTo="/" />
+          <div className="disclaimer">
+            Native convertions are meant for market makers.
+          </div>
         </div>
-        <ConvertAsset />
-        <SharedActionButtons
-          title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
-          onClick={{
-            onConfirm: () => handleConfirm(),
-            onCancel: () => history.push("/"),
-          }}
-          isConfirmDisabled={isDisabledHandle()}
-        />
+
+        <div className="scrollable-content">
+          <ConvertAsset />
+        </div>
+
+        <div className="footer-area">
+          <SharedActionButtons
+            title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
+            onClick={{
+              onConfirm: () => handleConfirm(),
+              onCancel: () => history.push("/"),
+            }}
+            isConfirmDisabled={isDisabledHandle()}
+          />
+        </div>
       </main>
 
       <AccountsNotificationPanel
@@ -70,7 +78,33 @@ const ConvertPage = () => {
           width: 100%;
           height: 100%;
           box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .header-area {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          background: var(--primary-bg);
+          padding: 16px 16px 0;
+        }
+
+        .scrollable-content {
+          flex: 1;
+          overflow-y: auto;
+          padding: 0 16px;
+          margin-bottom: 80px; /* Space for the buttons */
+        }
+
+        .footer-area {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: var(--primary-bg);
           padding: 16px;
+          z-index: 10;
         }
 
         .disclaimer {

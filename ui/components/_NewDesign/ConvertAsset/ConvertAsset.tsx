@@ -5,6 +5,7 @@ import ConvertFromAmount from "./ConvertFromAmount/ConvertFromAmount"
 import ConvertToAmount from "./ConvertToAmount/ConvertToAmount"
 import ConvertRate from "./ConvertRate/ConvertRate"
 import ConvertSlippage from "./ConvertSlippage/ConvertSlippage"
+import MaxSlippageSelector from "./MaxSlippageSelector/MaxSlippageSelector"
 
 const ConvertAsset = () => {
   return (
@@ -15,6 +16,7 @@ const ConvertAsset = () => {
       <ConvertToAmount />
       <ConvertRate />
       <ConvertSlippage />
+      <MaxSlippageSelector />
     </>
   )
 }

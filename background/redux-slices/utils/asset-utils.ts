@@ -63,8 +63,7 @@ export function isBuiltInNetworkBaseAsset(
   return (
     isNetworkBaseAsset(asset) &&
     asset.symbol === network.baseAsset.symbol &&
-    asset.chainID === network.chainID &&
-    asset.name === network.baseAsset.name
+    asset.chainID === network.chainID
   )
 }
 

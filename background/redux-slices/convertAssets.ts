@@ -13,6 +13,7 @@ export type ConvertAssetsState = {
   rate: number
   expectedResult: number
   expectedSlippage: number
+  maxSlippage: number
 }
 
 const initialState: ConvertAssetsState = {
@@ -22,6 +23,7 @@ const initialState: ConvertAssetsState = {
   rate: 0,
   expectedResult: 0,
   expectedSlippage: 0,
+  maxSlippage: 100, // Default 1% (in basis points)
 }
 
 const convertAssetsSlice = createSlice({
@@ -58,6 +60,9 @@ const convertAssetsSlice = createSlice({
     ) => {
       immerState.expectedSlippage = payload
     },
+    setMaxSlippage: (immerState, { payload }: { payload: number }) => {
+      immerState.maxSlippage = payload
+    },
     updateQuaiAccountInConversionDestination: (
       immerState,
       { payload }: { payload: AccountTotal }
@@ -74,6 +79,7 @@ const convertAssetsSlice = createSlice({
       immerState.to = null
       immerState.amount = ""
       immerState.rate = 0
+      immerState.maxSlippage = 100 // Reset to default 1%
     },
   },
 })
@@ -87,6 +93,7 @@ export const {
   setConvertRate,
   setConvertExpectedResult,
   setConvertExpectedSlippage,
+  setMaxSlippage,
 } = convertAssetsSlice.actions
 
 export default convertAssetsSlice.reducer
@@ -160,18 +167,21 @@ export const convertAssetsHandle = createBackgroundAsyncThunk(
   async (_, { getState, dispatch, extra: { main } }) => {
     const { convertAssets } = getState() as RootState
 
-    const { from, to, amount = "0" } = convertAssets
+    const { from, to, amount = "0", maxSlippage = 100 } = convertAssets
 
     if (!from || !to) return
 
     if (!isUtxoAccountTypeGuard(to)) {
       await main.transactionService.convertQiToQuai(to.address, amount)
-      dispatch(resetConvertAssetsSlice())
-      return
+    } else if (!isUtxoAccountTypeGuard(from)) {
+      await main.transactionService.convertQuaiToQi(
+        from.address,
+        amount,
+        maxSlippage
+      )
     }
-
-    if (!isUtxoAccountTypeGuard(from))
-      await main.transactionService.convertQuaiToQi(from.address, amount)
-    dispatch(resetConvertAssetsSlice())
+    setTimeout(() => {
+      dispatch(resetConvertAssetsSlice())
+    }, 2000)
   }
 )

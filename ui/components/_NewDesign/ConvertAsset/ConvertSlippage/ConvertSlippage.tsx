@@ -15,26 +15,39 @@ const ConvertSlippage = () => {
   useEffect(() => {
     if (!convertFromAccount || !amount) return
     if (Number(amount) === 0) return
-    setFormattedSlippage(expectedSlippage.toFixed(2))
+    setFormattedSlippage((expectedSlippage * 100).toFixed(2))
   }, [expectedSlippage, amount, convertFromAccount])
 
   if (
     !amount ||
-    (expectedSlippage && Number((expectedSlippage ?? 0).toFixed(2)) === 0)
+    (expectedSlippage && Number((expectedSlippage * 100).toFixed(2)) === 0)
   ) {
     return <></>
   }
 
   return (
     <>
-      <h5 className="rate">{formattedSlippage}% slippage</h5>
+      <div className="slippage-container">
+        <span className="slippage-label">Estimated slippage</span>
+        <span className="slippage-value">{formattedSlippage}%</span>
+      </div>
       <style jsx>{`
-        .rate {
-          margin: 0;
+        .slippage-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin: 12px 0;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
-          text-align: center;
+          color: var(--secondary-text);
+        }
+
+        .slippage-label {
+          color: var(--secondary-text);
+        }
+
+        .slippage-value {
           color: var(--secondary-text);
         }
       `}</style>

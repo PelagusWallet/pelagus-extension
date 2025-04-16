@@ -8,6 +8,7 @@ const ConvertToAmount = () => {
     (state) => state.convertAssets.to
   )
 
+  const amount = useBackgroundSelector((state) => state.convertAssets.amount)
   const expectedResult = useBackgroundSelector(
     (state) => state.convertAssets.expectedResult
   )
@@ -22,16 +23,22 @@ const ConvertToAmount = () => {
   }
 
   const receiveAmountHandle = () => {
+    const convertingToUtxoAccount =
+      convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
+
+    if (!amount) {
+      return convertingToUtxoAccount ? "0.000" : "0.0000"
+    }
     if (!expectedResult || Number.isNaN(Number(expectedResult))) {
       return <SharedLoadingSpinner size="small" />
     }
 
-    const convertingToUtxoAccount =
-      convertToAccount && isUtxoAccountTypeGuard(convertToAccount)
     if (convertingToUtxoAccount) {
       return expectedResult.toFixed(3)
     }
-    return expectedResult.toFixed(4)
+    return convertingToUtxoAccount
+      ? expectedResult.toFixed(3)
+      : expectedResult.toFixed(4)
   }
 
   return (

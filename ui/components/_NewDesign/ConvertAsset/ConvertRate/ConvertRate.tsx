@@ -36,16 +36,29 @@ const ConvertRate = () => {
 
   return (
     <>
-      <h5 className="rate">
-        1 {fromAsset} ≈ {formattedRate} {toAsset}
-      </h5>
+      <div className="rate-container">
+        <span className="rate-label">Market rate</span>
+        <span className="rate-value">
+          1 {fromAsset} ≈ {formattedRate} {toAsset}
+        </span>
+      </div>
       <style jsx>{`
-        .rate {
-          margin: 0;
+        .rate-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin: 12px 0;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
-          text-align: center;
+          color: var(--secondary-text);
+        }
+
+        .rate-label {
+          color: var(--secondary-text);
+        }
+
+        .rate-value {
           color: var(--secondary-text);
         }
       `}</style>

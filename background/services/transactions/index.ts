@@ -316,7 +316,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return this.chainService.jsonRpcProvider.send(method, params)
   }
 
-  public async convertQuaiToQi(from: string, value: string): Promise<void> {
+  public async convertQuaiToQi(
+    from: string,
+    value: string,
+    maxSlippage: number
+  ): Promise<void> {
     const amount = parseQuai(value)
     const qiWallet = await this.keyringService.getQiHDWallet()
     const gapAddresses = qiWallet.getGapAddressesForZone(Zone.Cyprus1)
@@ -355,11 +359,26 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
     }
 
+    // Encode the slippage value in the transaction data
+    let slippageData: Uint8Array
+    if (maxSlippage <= 255) {
+      slippageData = new Uint8Array([0, maxSlippage])
+    } else {
+      slippageData = new Uint8Array([
+        Math.floor(maxSlippage / 256),
+        maxSlippage % 256,
+      ])
+    }
+
+    // Convert to hex string format for the transaction
+    const slippageDataHex = "0x" + Buffer.from(slippageData).toString("hex")
+
     const convertTxRequest = {
       to: unusedAddress,
       from,
       value: amount,
-      gasLimit: 1000000,
+      gasLimit: 1000000, // use 1M gas limit to avoid running out of gas when creating outpoints
+      data: slippageDataHex,
     }
     await this.signAndSendQuaiTransaction(convertTxRequest)
   }

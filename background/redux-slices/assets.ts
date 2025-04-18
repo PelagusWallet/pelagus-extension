@@ -101,10 +101,27 @@ const assetsSlice = createSlice({
     ) => {
       return immerState.filter((asset) => !isSameAsset(asset, removedAsset))
     },
+    updateAssetPrice: (
+      immerState,
+      {
+        payload: { asset, pricePoint },
+      }: { payload: { asset: AnyAsset; pricePoint: PricePoint } }
+    ) => {
+      const targetAssetIndex = immerState.findIndex((existingAsset) =>
+        isSameAsset(existingAsset, asset)
+      )
+
+      if (targetAssetIndex !== -1) {
+        const secondAsset = pricePoint.pair[1]
+        immerState[targetAssetIndex].recentPrices[secondAsset.symbol] =
+          pricePoint
+      }
+    },
   },
 })
 
-export const { assetsLoaded, removeAsset } = assetsSlice.actions
+export const { assetsLoaded, removeAsset, updateAssetPrice } =
+  assetsSlice.actions
 
 export default assetsSlice.reducer
 

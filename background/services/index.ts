@@ -16,3 +16,4 @@ export { default as InternalQuaiProviderService } from "./internal-quai-provider
 export { default as TelemetryService } from "./telemetry"
 export { default as SigningService } from "./signing"
 export { default as AnalyticsService } from "./analytics"
+export { default as PriceService } from "./price"

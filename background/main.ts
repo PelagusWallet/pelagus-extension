@@ -23,6 +23,7 @@ import {
   ServiceCreatorFunction,
   SigningService,
   TelemetryService,
+  PriceService,
 } from "./services"
 import { HexString } from "./types"
 import { ChainIdWithError } from "./networks"
@@ -48,6 +49,7 @@ import {
   assetsLoaded,
   refreshAsset,
   removeAssetData,
+  updateAssetPrice,
 } from "./redux-slices/assets"
 import {
   emitter as keyringSliceEmitter,
@@ -322,6 +324,7 @@ export default class Main extends BaseService<never> {
       transactionService
     )
     const analyticsService = AnalyticsService.create(preferenceService)
+    const priceService = PriceService.create(preferenceService)
 
     let savedReduxState = {}
     // Setting READ_REDUX_CACHE to false will start the extension with an empty
@@ -366,7 +369,8 @@ export default class Main extends BaseService<never> {
       await signingService,
       await analyticsService,
       await blockService,
-      await transactionService
+      await transactionService,
+      await priceService
     )
   }
 
@@ -435,7 +439,13 @@ export default class Main extends BaseService<never> {
 
     public blockService: BlockService,
 
-    public transactionService: TransactionService
+    public transactionService: TransactionService,
+
+    /**
+     * A promise to the price service which will be responsible for fetching
+     * and updating asset prices
+     */
+    public priceService: PriceService
   ) {
     super({
       initialLoadWaitExpired: {
@@ -672,6 +682,7 @@ export default class Main extends BaseService<never> {
       this.signingService.startService(),
       this.analyticsService.startService(),
       this.startBalanceChecker(),
+      this.connectPriceService(),
     ]
     await Promise.all(independentServices)
 
@@ -2078,5 +2089,20 @@ export default class Main extends BaseService<never> {
   private onPopupDisconnected() {
     this.store.dispatch(rejectSendTransaction())
     this.store.dispatch(rejectDataSignature())
+  }
+
+  async connectPriceService(): Promise<void> {
+    await this.priceService.startService()
+
+    // Connect to the price service events
+    this.priceService.emitter.on("priceUpdated", async ({ pricePoint }) => {
+      // Update the QUAI asset's price in the store
+      this.store.dispatch(
+        updateAssetPrice({
+          asset: pricePoint.pair[0],
+          pricePoint,
+        })
+      )
+    })
   }
 }

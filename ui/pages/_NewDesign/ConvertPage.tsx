@@ -1,5 +1,6 @@
-import React from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { useHistory } from "react-router-dom"
+import { FaTriangleExclamation, FaCircleExclamation } from "react-icons/fa6"
 
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { parseQi, Zone } from "quais"
@@ -13,14 +14,21 @@ import { isUtxoAccountTypeGuard } from "../../utils/accounts"
 const ConvertPage = () => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
+  const [showSlippageWarning, setShowSlippageWarning] = useState(false)
+  const scrollableContentRef = useRef<HTMLDivElement>(null)
 
-  const handleConfirm = () => {
-    history.push("/convert/confirmation")
-  }
+  const { from, to, amount, expectedSlippage, maxSlippage } =
+    useBackgroundSelector((state) => state.convertAssets)
 
-  const { from, to, amount } = useBackgroundSelector(
-    (state) => state.convertAssets
-  )
+  // Check if expected slippage exceeds max slippage
+  // Convert to the same units (percentage with 2 decimal places) before comparing
+  const expectedSlippagePercentage = Math.round(expectedSlippage * 10000) / 100
+  const maxSlippagePercentage = maxSlippage / 100
+
+  const hasSlippageWarning =
+    expectedSlippage > 0 &&
+    maxSlippage > 0 &&
+    expectedSlippagePercentage > maxSlippagePercentage
 
   const isDisabledHandle = () => {
     if (!from || !to || !amount) return true
@@ -36,10 +44,31 @@ const ConvertPage = () => {
     const quaiBalance = from?.balance?.split(" ")[0]
     return (
       !quaiBalance ||
-      Number(amount) < 10 ||
+      Number(amount) < 100 ||
       Number(quaiBalance) < Number(amount)
     )
   }
+
+  const handleConfirm = () => {
+    if (hasSlippageWarning) {
+      setShowSlippageWarning(true)
+      // Do not navigate if warning is shown
+      return
+    }
+
+    // Only navigate if no slippage warning
+    history.push("/convert/confirmation")
+  }
+
+  // Effect to scroll to the bottom when the warning is shown
+  useEffect(() => {
+    if (showSlippageWarning && scrollableContentRef.current) {
+      scrollableContentRef.current.scrollTo({
+        top: scrollableContentRef.current.scrollHeight,
+        behavior: "smooth",
+      })
+    }
+  }, [showSlippageWarning])
 
   return (
     <>
@@ -47,12 +76,24 @@ const ConvertPage = () => {
         <div className="header-area">
           <SharedGoBackPageHeader title="Convert Assets" linkTo="/" />
           <div className="disclaimer">
-            Native convertions are meant for market makers.
+            <FaTriangleExclamation className="warning-icon" /> Native
+            conversions are meant for market makers.
           </div>
         </div>
 
-        <div className="scrollable-content">
+        <div className="scrollable-content" ref={scrollableContentRef}>
           <ConvertAsset />
+          {/* Add warning at the bottom of scrollable content */}
+          {showSlippageWarning && hasSlippageWarning && (
+            <div className="slippage-warning">
+              <FaCircleExclamation className="error-icon" />
+              <span>
+                Increase max slippage to at least{" "}
+                {expectedSlippagePercentage.toFixed(2)}% to ensure transaction
+                success.
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="footer-area">
@@ -60,7 +101,10 @@ const ConvertPage = () => {
             title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
             onClick={{
               onConfirm: () => handleConfirm(),
-              onCancel: () => history.push("/"),
+              onCancel: () => {
+                setShowSlippageWarning(false)
+                history.push("/")
+              },
             }}
             isConfirmDisabled={isDisabledHandle()}
           />
@@ -95,6 +139,21 @@ const ConvertPage = () => {
           overflow-y: auto;
           padding: 0 16px;
           margin-bottom: 80px; /* Space for the buttons */
+          scrollbar-width: thin;
+          scrollbar-color: var(--secondary-text) transparent;
+        }
+
+        .scrollable-content::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .scrollable-content::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .scrollable-content::-webkit-scrollbar-thumb {
+          background-color: var(--secondary-text);
+          border-radius: 3px;
         }
 
         .footer-area {
@@ -115,6 +174,33 @@ const ConvertPage = () => {
           font-size: 14px;
           text-align: center;
           color: #896404;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+        }
+
+        .warning-icon {
+          color: #896404;
+          font-size: 16px;
+        }
+
+        .slippage-warning {
+          margin: 16px 0;
+          padding: 8px 12px;
+          background-color: #ffebee;
+          border-radius: 8px;
+          font-size: 14px;
+          color: #f44336;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .error-icon {
+          color: #f44336;
+          font-size: 18px;
+          flex-shrink: 0;
         }
       `}</style>
     </>

@@ -62,7 +62,7 @@ export default class PriceService extends BaseService<PriceServiceEvents> {
     return {
       [QUAI_USD_PRICE_ALARM]: {
         // Schedule to run every 5 minutes
-        schedule: { periodInMinutes: 0.1 },
+        schedule: { periodInMinutes: 2 },
         handler: async () => {
           // The actual handler is implemented in handleAlarm
         },

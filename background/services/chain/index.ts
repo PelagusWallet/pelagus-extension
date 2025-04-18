@@ -643,11 +643,11 @@ export default class ChainService extends BaseService<Events> {
             currentBlock?.woHeader.number,
             true
           )
-          // lockedBalance = await qiWallet.getLockedBalance(
-          //   Zone.Cyprus1,
-          //   currentBlock?.woHeader.number,
-          //   true
-          // )
+          lockedBalance = await qiWallet.getLockedBalance(
+            Zone.Cyprus1,
+            currentBlock?.woHeader.number,
+            true
+          )
         } else {
           await qiWallet.sync(
             Zone.Cyprus1,
@@ -656,23 +656,20 @@ export default class ChainService extends BaseService<Events> {
             this.handleOutpointsDeleted.bind(this)
           )
           // fetch spendable balance for the current block using getBalance RPC
-          // const [sBalance, lBalance] = await Promise.all([
-          //   qiWallet.getSpendableBalance(
-          //     Zone.Cyprus1,
-          //     currentBlock?.woHeader.number,
-          //     false
-          //   ),
-          //   qiWallet.getLockedBalance(
-          //     Zone.Cyprus1,
-          //     currentBlock?.woHeader.number,
-          //     false
-          //   ),
-          // ])
-          spendableBalance = await qiWallet.getSpendableBalance(
-            Zone.Cyprus1,
-            currentBlock?.woHeader.number,
-            false
-          )
+          const [sBalance, lBalance] = await Promise.all([
+            qiWallet.getSpendableBalance(
+              Zone.Cyprus1,
+              currentBlock?.woHeader.number,
+              false
+            ),
+            qiWallet.getLockedBalance(
+              Zone.Cyprus1,
+              currentBlock?.woHeader.number,
+              false
+            ),
+          ])
+          spendableBalance = sBalance
+          lockedBalance = lBalance
         }
 
         const qiWalletBalance: QiWalletBalance = {

@@ -9,6 +9,8 @@ import {
   fetchSelectedActivityDetails,
 } from "@pelagus/pelagus-background/redux-slices/activities"
 import { utxoActivityTimestampHandle } from "@pelagus/pelagus-background/redux-slices/utils/utxo-activities-utils"
+import { selectAssetPricePoint } from "@pelagus/pelagus-background/redux-slices/assets"
+import { QUAI } from "@pelagus/pelagus-background/constants"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { getBlockExplorerURL } from "../../utils/networks"
 import WalletActivityListItem from "./WalletActivityListItem"
@@ -31,9 +33,11 @@ export default function WalletActivityDetails(
   const network = useBackgroundSelector(selectCurrentNetwork)
   const account = useBackgroundSelector(selectCurrentAccount)
   const blockExplorerUrl = getBlockExplorerURL(network, account.address)
+  const quaiUsdPricePoint = useBackgroundSelector((state) =>
+    selectAssetPricePoint(state.assets, QUAI, "USD")
+  )
 
-  const { hash, blockTimestamp, from, to, value, assetSymbol, nonce } =
-    activityItem
+  const { hash, blockTimestamp, from, to, nonce } = activityItem
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -54,10 +58,71 @@ export default function WalletActivityDetails(
     </div>
   )
 
-  // Extract Gas, Gas Price, Amount and Miner Tip from details
-  const gas = details.find((detail) => detail.label === "Gas")?.value || loader
-  const gasPrice =
-    details.find((detail) => detail.label === "Gas Price")?.value || loader
+  // Custom formatter to handle decimal places with proper trailing zero removal
+  const formatDecimal = (
+    value: number,
+    minDecimals: number,
+    maxDecimals: number
+  ): string => {
+    if (value === 0) return "0"
+
+    // Format with maximum decimals
+    const formatted = value.toFixed(maxDecimals)
+
+    // Remove trailing zeros beyond minimum decimal places
+    const regex = new RegExp(
+      `\\.\\d{${minDecimals}}0+$|(\\.\\d{${minDecimals},})0+$`
+    )
+    return formatted.replace(regex, "$1")
+  }
+
+  // Extract Gas and Gas Price from details
+  const gasDetail = details.find((detail) => detail.label === "Gas")
+  const gasPriceDetail = details.find((detail) => detail.label === "Gas Price")
+
+  // Parse gas and gasPrice values (remove formatting to get numeric values)
+  let gasValue = 0
+  let gasPriceValue = 0
+
+  if (gasDetail?.value && typeof gasDetail.value === "string") {
+    const gasMatch = gasDetail.value.match(/[\d,]+/)
+    if (gasMatch) {
+      gasValue = parseInt(gasMatch[0].replace(/,/g, ""), 10)
+    }
+  }
+
+  if (gasPriceDetail?.value && typeof gasPriceDetail.value === "string") {
+    const gasPriceMatch = gasPriceDetail.value.match(/([\d.]+)/)
+    if (gasPriceMatch) {
+      gasPriceValue = parseFloat(gasPriceMatch[1])
+    }
+  }
+
+  // Calculate fee in QUAI and USD
+  const feeInQuai = (gasValue * gasPriceValue) / 1e9 // Converting from Gwei to QUAI
+
+  // Get QUAI to USD conversion rate
+  let quaiUsdRate = 0
+  if (quaiUsdPricePoint && quaiUsdPricePoint.amounts[1] > 0) {
+    // The price point represents the USD value of 1 QUAI
+    // amounts[0] is 1 QUAI in wei (10^18)
+    // amounts[1] is the USD value with 5 decimal places (10^5)
+    const usdAmount = Number(quaiUsdPricePoint.amounts[1]) / 100000 // Convert from 5 decimal places to USD
+    quaiUsdRate = usdAmount // Direct rate as USD per QUAI
+  }
+
+  const feeInUsd = feeInQuai * quaiUsdRate
+
+  // Format fee values with custom decimal rules
+  const formattedFeeQuai = feeInQuai
+    ? `${formatDecimal(feeInQuai, 2, 6)} QUAI`
+    : loader
+
+  const formattedFeeUsd = feeInUsd
+    ? `$${formatDecimal(feeInUsd, 2, 5)}`
+    : loader
+
+  // Extract Amount from details
   const amount =
     details.find((detail) => detail.label === "Amount")?.value || loader
 
@@ -107,12 +172,12 @@ export default function WalletActivityDetails(
           <h5 className="activity-info-value">{amount}</h5>
         </div>
         <div className="activity-info-wrapper">
-          <h5 className="activity-info-title">Gas Price</h5>
-          <h5 className="activity-info-value">{gasPrice}</h5>
+          <h5 className="activity-info-title">Fee (USD)</h5>
+          <h5 className="activity-info-value">{formattedFeeUsd}</h5>
         </div>
         <div className="activity-info-wrapper">
-          <h5 className="activity-info-title">Gas</h5>
-          <h5 className="activity-info-value">{gas}</h5>
+          <h5 className="activity-info-title">Fee (QUAI)</h5>
+          <h5 className="activity-info-value">{formattedFeeQuai}</h5>
         </div>
         <div className="activity-info-wrapper">
           <h5 className="activity-info-title">Nonce</h5>

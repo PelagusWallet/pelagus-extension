@@ -5,7 +5,7 @@ import { useBackgroundSelector } from "../../../../hooks"
 import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
 
 const ConfirmConversionDetails = () => {
-  const { from, to, amount, rate } = useBackgroundSelector(
+  const { from, to, amount, expectedResult } = useBackgroundSelector(
     (state) => state.convertAssets
   )
 
@@ -23,11 +23,15 @@ const ConfirmConversionDetails = () => {
   }
 
   const receiveAmountHandle = () => {
-    if (!rate || isNaN(Number(amount))) {
+    if (!expectedResult || Number.isNaN(Number(amount))) {
       return ""
     }
 
-    return (Number(amount) * rate).toFixed(4)
+    if (to && isUtxoAccountTypeGuard(to)) {
+      return expectedResult.toFixed(3)
+    }
+
+    return expectedResult.toFixed(4)
   }
 
   return (

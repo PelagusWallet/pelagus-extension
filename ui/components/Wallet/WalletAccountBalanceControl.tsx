@@ -101,6 +101,10 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           icon="icons/s/convert.svg"
           ariaLabel={t("convert")}
           onClick={async () => {
+            if (!isQiWalletInit) {
+              return
+            }
+
             if (currentSelectedAccount.network.chainID === "9000") {
               return
             }

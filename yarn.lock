@@ -1143,6 +1143,19 @@
   optionalDependencies:
     fsevents "2.3.3"
 
+"@ethereum-sourcify/bytecode-utils@^1.3.4":
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/@ethereum-sourcify/bytecode-utils/-/bytecode-utils-1.3.4.tgz#c50f0eda6ea5d8f139aee2c362ce0a1e3954b5a8"
+  integrity sha512-N41B2ol/7FZb49spAv46Hh9fTk1LStcRChk6T+FZ6BdgJaBGaJaW1QcMrNmt1alTpVvYBcVsjhWeI/NwJxDWXA==
+  dependencies:
+    "@ethersproject/bytes" "5.8.0"
+    base-x "4.0.1"
+    bs58 "5.0.0"
+    cbor-x "1.6.0"
+    semver "7.7.1"
+  optionalDependencies:
+    fsevents "2.3.3"
+
 "@ethersproject/bytes@5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/bytes/-/bytes-5.7.0.tgz#a00f6ea8d7e7534d6d87f47188af1148d71f155d"
@@ -1150,7 +1163,7 @@
   dependencies:
     "@ethersproject/logger" "^5.7.0"
 
-"@ethersproject/bytes@^5.7.0":
+"@ethersproject/bytes@5.8.0", "@ethersproject/bytes@^5.7.0":
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/bytes/-/bytes-5.8.0.tgz#9074820e1cac7507a34372cadeb035461463be34"
   integrity sha512-vTkeohgJVCPVHu5c25XWaWQOZ4v+DkGoC42/TS2ond+PARCxTJvgTFUNDZovyQ/uAQ4EcpqqowKydcdmRKjg7A==
@@ -3105,7 +3118,7 @@ base-x@4.0.0:
   resolved "https://registry.yarnpkg.com/base-x/-/base-x-4.0.0.tgz#d0e3b7753450c73f8ad2389b5c018a4af7b2224a"
   integrity sha512-FuwxlW4H5kh37X/oW59pwTzzTKRzfrrQwhmyspRM7swOEZcHtDZSCt45U6oKgtuFE+WYPblePMVIPR4RZrh/hw==
 
-base-x@^4.0.0:
+base-x@4.0.1, base-x@^4.0.0:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/base-x/-/base-x-4.0.1.tgz#817fb7b57143c501f649805cb247617ad016a885"
   integrity sha512-uAZ8x6r6S3aUM9rbHGVOIsR15U/ZSc82b3ymnCPsT45Gk1DDvhDPdIgB5MrhirZWt+5K0EEPQH985kNqZgNPFw==

@@ -1,7 +1,8 @@
-import { Contract, getAddress, toBigInt, Zone } from "quais"
-import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
+import { AddressLike, Contract, getAddress, Interface, InterfaceAbi, toBigInt, Zone } from "quais"
+import { QuaiTransactionRequest, TransactionRequest } from "quais/lib/commonjs/providers"
 import { createSelector, createSlice } from "@reduxjs/toolkit"
 import { QRC20_INTERFACE } from "../contracts/qrc-20"
+
 
 import {
   AnyAsset,
@@ -16,7 +17,7 @@ import {
 import { AddressOnNetwork } from "../accounts"
 import { createBackgroundAsyncThunk } from "./utils"
 import { isBuiltInNetworkBaseAsset, isSameAsset } from "./utils/asset-utils"
-import { getProvider } from "./utils/contract-utils"
+import { getProvider, decodeMultipleMetadataSections } from "./utils/contract-utils"
 import { sameNetwork } from "../networks"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { removeAssetReferences, updateAssetReferences } from "./accounts"
@@ -224,6 +225,51 @@ export const getGasPrice = createBackgroundAsyncThunk(
     }
   }
 )
+
+export const getABIFromAddress = createBackgroundAsyncThunk(
+  "assets/getABIFromAddress",
+  async ({ address, ipfsUrl }: { address: AddressLike, ipfsUrl?: string | undefined }): Promise<Interface | InterfaceAbi | undefined> => {
+    const { jsonRpcProvider } = globalThis.main.chainService
+    ipfsUrl = ipfsUrl || 'https://ipfs.qu.ai';
+    try {
+      const resolvedAddress = await jsonRpcProvider._getAddress(address)
+      const bytecode = await jsonRpcProvider.getCode(resolvedAddress);
+      if (bytecode === '0x' || bytecode === '0x0' || bytecode.length === 0) throw new Error('No contract found at this address');
+      const metadataSections = await decodeMultipleMetadataSections(bytecode);
+      if (metadataSections.length > 1) {
+        logger.info(`Found ${metadataSections.length} metadata sections for address ${address}, using the first one`);
+      } else if (metadataSections.length === 0) {
+        throw new Error('No metadata found in bytecode');
+      }
+      const ipfsCid = metadataSections[0]?.ipfs;
+      if (!ipfsCid) throw new Error('No IPFS metadata found in bytecode');
+      // Fetch ABI from IPFS
+      const url = `${ipfsUrl}/ipfs/${ipfsCid}`
+      const response = await fetch(url);
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(`Failed to fetch metadata: ${response.statusText} (Status: ${response.status})`);
+      }
+      const metadata = await response.json();
+      return metadata.output.abi; // Return the ABI
+    } catch (e) {
+      logger.error(e)
+    }
+  }
+)
+
+export const estimateGas = createBackgroundAsyncThunk(
+  "assets/estimateGas",
+  async (transactionRequest: TransactionRequest): Promise<bigint> => {
+    const { jsonRpcProvider } = globalThis.main.chainService
+    try {
+      return await jsonRpcProvider.estimateGas(transactionRequest)
+    } catch (e) {
+      logger.error(e)
+      return 0n
+    }
+  }
+)
+
 
 /**
  * Executes an asset transfer between two addresses, for a set amount. Supports

@@ -41,7 +41,7 @@ export function TransferSummaryBase({
     mainCurrencySymbol
   )
   const localizedMainCurrencyAmount =
-    enrichAssetAmountWithMainCurrencyValues(assetAmount, assetPricePoint, 2)
+    enrichAssetAmountWithMainCurrencyValues(assetAmount, assetPricePoint, 3)
       .localizedMainCurrencyAmount ?? "-"
 
   return (
@@ -60,7 +60,7 @@ export function TransferSummaryBase({
           <span className="spend_amount">
             {assetAmount.localizedDecimalAmount} {assetAmount.asset.symbol}
           </span>
-          <span className="label">${`${localizedMainCurrencyAmount}`}</span>
+          <span className="label">~${`${localizedMainCurrencyAmount}`}</span>
         </div>
 
         <style jsx>

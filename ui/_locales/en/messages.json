@@ -420,7 +420,8 @@
     },
     "signTypedData": {
       "confirmButtonLabel": "Confirm"
-    }
+    },
+    "callingFunction": "function"
   },
   "switchWallet": {
     "title": "Want to use another wallet instead?",

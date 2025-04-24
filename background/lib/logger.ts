@@ -332,7 +332,7 @@ class Logger {
 
 const contextId = "BG"
 const enableConsoleLogging = isEnabled(FeatureFlags.ENABLE_CONSOLE_LOGGING)
-const logger = new Logger(contextId, enableConsoleLogging)
+const logger = new Logger(contextId, true)
 
 export const serializeLogs = logger.serializeLogs.bind(logger)
 export default logger

@@ -241,18 +241,21 @@ const initializeStore = (preloadedState: object, main: Main) =>
       return middleware
     },
     devTools: false,
-    enhancers:
-      process.env.NODE_ENV === "development"
-        ? [
-            devToolsEnhancer({
-              hostname: "localhost",
-              port: 8000,
-              realtime: true,
-              actionSanitizer: devToolsSanitizer,
-              stateSanitizer: devToolsSanitizer,
-            }),
-          ]
-        : [],
+    enhancers: (defaultEnhancers) => {
+      if (process.env.NODE_ENV === "development") {
+        return [
+          ...defaultEnhancers,
+          devToolsEnhancer({
+            hostname: "localhost",
+            port: 8000,
+            realtime: true,
+            actionSanitizer: devToolsSanitizer,
+            stateSanitizer: devToolsSanitizer,
+          }),
+        ]
+      }
+      return defaultEnhancers
+    },
   })
 
 type ReduxStoreType = ReturnType<typeof initializeStore>

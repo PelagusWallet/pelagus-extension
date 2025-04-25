@@ -1741,6 +1741,10 @@ export default class Main extends BaseService<never> {
     return this.keyringService.exportWalletPrivateKey(address)
   }
 
+  async exportPrivKeyEncryptedJSON(password: string, address: string): Promise<string> {
+    return this.keyringService.exportWalletPrivateKeyEncryptedJSON(password, address)
+  }
+
   async exportQiCoinbaseAddress(address: string): Promise<string> {
     return this.keyringService.exportQiCoinbaseAddress(address)
   }

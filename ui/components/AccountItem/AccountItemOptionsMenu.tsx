@@ -3,7 +3,7 @@ import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
-import { exportPrivKey } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { exportPrivKey, exportPrivKeyEncryptedJSON } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
@@ -44,6 +44,10 @@ export default function AccountItemOptionsMenu({
   const [showExportPrivateKey, setShowExportPrivateKey] = useState(false)
   const [showEditName, setShowEditName] = useState(false)
   const [showClearTXHistory, setShowClearTXHistory] = useState(false)
+  const [showExportOptions, setShowExportOptions] = useState(false)
+  const [encryptPassword, setEncryptPassword] = useState("")
+  const [showEncryptPasswordModal, setShowEncryptPasswordModal] = useState(false)
+  
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
     dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
@@ -57,6 +61,43 @@ export default function AccountItemOptionsMenu({
   const onClosePrivateKeyModal = () => {
     setKey("")
     setShowExportPrivateKey(false)
+  }
+
+  const handleExportPlaintext = async () => {
+    setShowExportOptions(false)
+    const { key: keyFromRedux } = (await dispatch(
+      exportPrivKey(address)
+    )) as AsyncThunkFulfillmentType<typeof exportPrivKey>
+    setKey(keyFromRedux)
+    setShowExportPrivateKey(true)
+  }
+
+  const handleExportEncrypted = async () => {
+    setShowExportOptions(false)
+    setShowEncryptPasswordModal(true)
+  }
+
+  const handleEncryptPasswordSubmit = async () => {
+    if (!encryptPassword) return
+    
+    const { key: encryptedKey } = (await dispatch(
+      exportPrivKeyEncryptedJSON({ password: encryptPassword, address })
+    )) as AsyncThunkFulfillmentType<typeof exportPrivKeyEncryptedJSON>
+    
+    // Create a download link for the encrypted JSON
+    const blob = new Blob([encryptedKey], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `account-${address.substring(0, 8)}-encrypted.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    setEncryptPassword("")
+    setShowEncryptPasswordModal(false)
+    dispatch(setSnackbarConfig({ message: "Encrypted key file downloaded", duration: 5000 }))
   }
 
   return (
@@ -166,6 +207,128 @@ export default function AccountItemOptionsMenu({
           </SharedBanner>
         </li>
       </SharedSlideUpMenu>
+      
+      {/* Export Options Modal */}
+      <SharedSlideUpMenu
+        size="custom"
+        customSize="200px"
+        isOpen={showExportOptions}
+        close={(e) => {
+          e?.stopPropagation()
+          setShowExportOptions(false)
+        }}
+      >
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          style={{ cursor: "default" }}
+        >
+          <li className="account_container">
+            <div className="item-summary">
+              <div className="address_name">Export Account</div>
+              <div className="export_options">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleExportPlaintext()
+                  }}
+                  className="export_option_button"
+                >
+                  <AccountitemOptionLabel
+                    icon="icons/s/key.svg"
+                    label="Export as Plaintext"
+                    hoverable
+                    color="var(--green-20)"
+                    hoverColor="white"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleExportEncrypted()
+                  }}
+                  className="export_option_button"
+                >
+                  <AccountitemOptionLabel
+                    icon="icons/s/lock.svg"
+                    label="Export as Encrypted JSON"
+                    hoverable
+                    color="var(--green-20)"
+                    hoverColor="white"
+                  />
+                </button>
+              </div>
+            </div>
+          </li>
+        </div>
+      </SharedSlideUpMenu>
+      
+      {/* Encrypt Password Modal */}
+      <SharedSlideUpMenu
+        size="custom"
+        customSize="200px"
+        isOpen={showEncryptPasswordModal}
+        close={(e) => {
+          e?.stopPropagation()
+          setShowEncryptPasswordModal(false)
+          setEncryptPassword("")
+        }}
+      >
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          style={{ cursor: "default" }}
+        >
+          <li className="account_container">
+            <div className="item-summary">
+              <div className="address_name">Encrypt Private Key</div>
+              <div className="password_input_container">
+                <input
+                  type="password"
+                  placeholder="Enter password to encrypt"
+                  value={encryptPassword}
+                  onChange={(e) => setEncryptPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && encryptPassword) {
+                      e.preventDefault()
+                      handleEncryptPasswordSubmit()
+                    }
+                  }}
+                  className="password_input"
+                />
+              </div>
+              <div className="button_container">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowEncryptPasswordModal(false)
+                    setEncryptPassword("")
+                    setShowExportOptions(true)
+                  }}
+                  className="cancel_button"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleEncryptPasswordSubmit()
+                  }}
+                  className="submit_button"
+                  disabled={!encryptPassword}
+                >
+                  Export
+                </button>
+              </div>
+            </div>
+          </li>
+        </div>
+      </SharedSlideUpMenu>
+      
       <SharedDropdown
         toggler={(toggle) => (
           <button
@@ -199,11 +362,7 @@ export default function AccountItemOptionsMenu({
             label: t("exportAccount"),
             onClick: async () => {
               if (areKeyringsUnlocked) {
-                const { key: keyFromRedux } = (await dispatch(
-                  exportPrivKey(address)
-                )) as AsyncThunkFulfillmentType<typeof exportPrivKey>
-                setKey(keyFromRedux)
-                setShowExportPrivateKey(true)
+                setShowExportOptions(true)
               } else {
                 history.push("/keyring/unlock")
               }
@@ -269,7 +428,6 @@ export default function AccountItemOptionsMenu({
             align-items: flex-start;
             margin: 0 auto;
             min-width: 0; // Allow collapsing if account name is too long.
-            overflow: auto;
             padding: 2px;
           }
           li {
@@ -291,6 +449,69 @@ export default function AccountItemOptionsMenu({
             line-height: 16px;
             font-weight: 500;
             color: var(--hunter-green);
+          }
+          .export_options {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+            margin-top: 20px;
+          }
+          .export_option_button {
+            width: 100%;
+            background-color: var(--green-95);
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+          }
+          .export_option_button:hover {
+            background-color: var(--green-80);
+          }
+          /* Ensure text color changes when hovering anywhere on the button */
+          .export_option_button:hover :global(.option_label) {
+            color: white !important;
+          }
+          .export_option_button:hover :global(.option_label .icon) {
+            background-color: white !important;
+          }
+          .password_input_container {
+            width: 100%;
+            margin-top: 20px;
+          }
+          .password_input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--green-40);
+            background-color: var(--hunter-green);
+            color: var(--white);
+          }
+          .button_container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+          }
+          .cancel_button, .submit_button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+          }
+          .cancel_button {
+            background-color: var(--green-40);
+            color: white;
+          }
+          .submit_button {
+            background-color: var(--green-20);
+            color: white;
+          }
+          .submit_button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
           }
         `}
       </style>

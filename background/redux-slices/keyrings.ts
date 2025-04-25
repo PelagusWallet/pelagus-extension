@@ -194,6 +194,13 @@ export const exportPrivKey = createBackgroundAsyncThunk(
   }
 )
 
+export const exportPrivKeyEncryptedJSON = createBackgroundAsyncThunk(
+  "keyrings/exportPrivKeyEncryptedJSON",
+  async ({ password, address }: { password: string; address: string }, { extra: { main } }) => {
+    return { key: await main.exportPrivKeyEncryptedJSON(password, address) }
+  }
+)
+
 export const exportQiCoinbaseAddress = createBackgroundAsyncThunk(
   "keyrings/exportQiCoinbaseAddress",
   async (address: string) => {

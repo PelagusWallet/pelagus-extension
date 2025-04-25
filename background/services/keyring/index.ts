@@ -280,6 +280,26 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     return privateKey ?? "Not found"
   }
 
+  public async exportWalletPrivateKeyEncryptedJSON(password: string, address: string): Promise<string> {
+    this.verifyKeyringIsUnlocked()
+
+    const signerWithType = await this.walletManager.findSigner(address)
+    if (!signerWithType) {
+      logger.error(`Export private key for address ${address} failed`)
+      return "Not found"
+    }
+
+    if (isSignerPrivateKeyType(signerWithType)) {
+      const jsonKeystore = await signerWithType.signer.encrypt(password)
+      return jsonKeystore
+    }
+    
+    // export private key from HDWallet address
+    const jsonKeystore = await new Wallet(signerWithType.signer.getPrivateKey(address)).encrypt(password)
+    return jsonKeystore ?? "Not found"
+    
+  }
+
   public async exportQiCoinbaseAddress(address: string): Promise<string> {
     this.verifyKeyringIsUnlocked()
 

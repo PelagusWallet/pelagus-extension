@@ -50,9 +50,8 @@ const ConvertPage = () => {
   }
 
   const handleConfirm = () => {
-    if (hasSlippageWarning) {
+    if (hasSlippageWarning && !showSlippageWarning) {
       setShowSlippageWarning(true)
-      // Do not navigate if warning is shown
       return
     }
 

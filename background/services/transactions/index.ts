@@ -360,15 +360,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
 
     // Encode the slippage value in the transaction data
-    let slippageData: Uint8Array
-    if (maxSlippage <= 255) {
-      slippageData = new Uint8Array([0, maxSlippage])
-    } else {
-      slippageData = new Uint8Array([
-        Math.floor(maxSlippage / 256),
-        maxSlippage % 256,
-      ])
-    }
+    let slippageData = encodeTwoBytesBigEndian(maxSlippage)
 
     // Convert to hex string format for the transaction
     const slippageDataHex = "0x" + Buffer.from(slippageData).toString("hex")
@@ -383,7 +375,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await this.signAndSendQuaiTransaction(convertTxRequest)
   }
 
-  public async convertQiToQuai(to: string, value: string): Promise<void> {
+  public async convertQiToQuai(to: string, value: string, maxSlippage: number): Promise<void> {
     const amount = parseQi(value)
     const { jsonRpcProvider } = this.chainService
     let qiWallet = await this.keyringService.getQiHDWallet()
@@ -406,17 +398,30 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             zone: Zone.Cyprus1,
             derivationPath: outpoint.derivationPath,
           }))
-
+          
           qiWallet.importOutpoints(outpointInfos)
 
-          const tx = await qiWallet.convertToQuai(to, amount)
+          let slippageData = encodeTwoBytesBigEndian(maxSlippage)
+
+          const refundAddress = qiWallet.getNextAddressSync(0, Zone.Cyprus1).address
+          const refundAddressBytes = Buffer.from(refundAddress.replace('0x', ''), 'hex');
+
+          const combinedData = new Uint8Array(slippageData.length + refundAddressBytes.length);
+          combinedData.set(slippageData);
+          // Copy refund address data after slippage data
+          combinedData.set(refundAddressBytes, slippageData.length);
+
+          const tx = await qiWallet.convertToQuai(to, amount, {
+            data: combinedData,
+          })
 
           const senderPaymentCode = qiWallet.getPaymentCode(0)
+
           transaction = processConvertQiTransaction(
             senderPaymentCode,
             to,
             tx as QiTransactionResponse,
-            amount
+            amount,
           )
           break
         } catch (error: any) {
@@ -810,4 +815,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       )
     }
   }
+}
+
+function encodeTwoBytesBigEndian(value: number): Uint8Array {
+  const buffer = new ArrayBuffer(2);
+  const view = new DataView(buffer);
+  view.setUint16(0, value, false); // false for big-endian
+  return new Uint8Array(buffer);
 }

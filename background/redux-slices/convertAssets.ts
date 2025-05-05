@@ -172,7 +172,7 @@ export const convertAssetsHandle = createBackgroundAsyncThunk(
     if (!from || !to) return
 
     if (!isUtxoAccountTypeGuard(to)) {
-      await main.transactionService.convertQiToQuai(to.address, amount)
+      await main.transactionService.convertQiToQuai(to.address, amount, maxSlippage)
     } else if (!isUtxoAccountTypeGuard(from)) {
       await main.transactionService.convertQuaiToQi(
         from.address,

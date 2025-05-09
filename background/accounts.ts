@@ -79,6 +79,7 @@ export type QiWalletSyncInfo = {
   blockHash: string
   timestamp: number
   type: "sync" | "scan"
+  version: string
 }
 
 export type QiCoinbaseAddressBalance = {

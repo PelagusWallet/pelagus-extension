@@ -65,7 +65,7 @@ export default function DetailPanel({
     const fetchABI = async () => {
       if (transactionRequest?.to) {
         const fetchedAbi = await dispatch(getABIFromAddress({ address: transactionRequest.to }))
-        setABI(fetchedAbi as Interface)
+        setABI(Interface.from(fetchedAbi as any))
       }
     }
     
@@ -76,10 +76,9 @@ export default function DetailPanel({
     if (!abi || !transactionRequest?.data) return;
   
     try {
-      const iface = Interface.from(abi);
   
       // parseTransaction works even if the tx has a `value`
-      const parsed = iface.parseTransaction({
+      const parsed = abi.parseTransaction({
         data: transactionRequest.data,
       });
       if (!parsed) throw new Error("Could not parse transaction")

@@ -644,3 +644,10 @@ export const triggerManualBalanceUpdate = createBackgroundAsyncThunk(
     }
   }
 )
+
+export const forceQiWalletFullRescan = createBackgroundAsyncThunk(
+  "account/forceQiWalletFullRescan",
+  async (_, { extra: { main } }) => {
+    await main.chainService.syncQiWallet(true)
+  }
+)

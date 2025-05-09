@@ -17,7 +17,7 @@ import {
 import { AddressOnNetwork } from "../accounts"
 import { createBackgroundAsyncThunk } from "./utils"
 import { isBuiltInNetworkBaseAsset, isSameAsset } from "./utils/asset-utils"
-import { getProvider, decodeMultipleMetadataSections } from "./utils/contract-utils"
+import { getProvider, getABIFromAddressAndIPFS } from "./utils/contract-utils"
 import { sameNetwork } from "../networks"
 import { convertFixedPoint } from "../lib/fixed-point"
 import { removeAssetReferences, updateAssetReferences } from "./accounts"
@@ -228,29 +228,12 @@ export const getGasPrice = createBackgroundAsyncThunk(
 
 export const getABIFromAddress = createBackgroundAsyncThunk(
   "assets/getABIFromAddress",
-  async ({ address, ipfsUrl }: { address: AddressLike, ipfsUrl?: string | undefined }): Promise<Interface | InterfaceAbi | undefined> => {
+  async ({ address, ipfsUrl }: { address: AddressLike, ipfsUrl?: string | undefined }): Promise<Array<any> | undefined> => {
     const { jsonRpcProvider } = globalThis.main.chainService
     ipfsUrl = ipfsUrl || 'https://ipfs.qu.ai';
     try {
-      const resolvedAddress = await jsonRpcProvider._getAddress(address)
-      const bytecode = await jsonRpcProvider.getCode(resolvedAddress);
-      if (bytecode === '0x' || bytecode === '0x0' || bytecode.length === 0) throw new Error('No contract found at this address');
-      const metadataSections = await decodeMultipleMetadataSections(bytecode);
-      if (metadataSections.length > 1) {
-        logger.info(`Found ${metadataSections.length} metadata sections for address ${address}, using the first one`);
-      } else if (metadataSections.length === 0) {
-        throw new Error('No metadata found in bytecode');
-      }
-      const ipfsCid = metadataSections[0]?.ipfs;
-      if (!ipfsCid) throw new Error('No IPFS metadata found in bytecode');
-      // Fetch ABI from IPFS
-      const url = `${ipfsUrl}/ipfs/${ipfsCid}`
-      const response = await fetch(url);
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error(`Failed to fetch metadata: ${response.statusText} (Status: ${response.status})`);
-      }
-      const metadata = await response.json();
-      return metadata.output.abi; // Return the ABI
+      const addr = await jsonRpcProvider._getAddress(address) // possibly unneeded
+      return await getABIFromAddressAndIPFS(addr, ipfsUrl, jsonRpcProvider)
     } catch (e) {
       logger.error(e)
     }

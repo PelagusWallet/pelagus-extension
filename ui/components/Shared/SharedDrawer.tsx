@@ -24,6 +24,7 @@ interface SharedDrawerProps {
   customStyles?: React.CSSProperties & Record<string, string>
   fillAvailable?: boolean
   titleWithoutSidePaddings?: boolean
+  gap?: number
 }
 
 export default function SharedDrawer({
@@ -39,6 +40,7 @@ export default function SharedDrawer({
   customStyles = {},
   fillAvailable = false,
   titleWithoutSidePaddings = false,
+  gap = 24,
 }: SharedDrawerProps) {
   const handleOverlayClick = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -145,7 +147,7 @@ export default function SharedDrawer({
           align-items: center;
           flex-direction: column;
           justify-content: start;
-          gap: 24px;
+          gap: ${gap}px;
           margin: 10px;
           padding: 24px 16px;
           border-radius: 16px;

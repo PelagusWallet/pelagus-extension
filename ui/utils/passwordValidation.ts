@@ -16,12 +16,12 @@ export const validatePassword = (
     )
     return false
   }
-  if (!PASSWORD_REGEX.test(password)) {
+  /*if (!PASSWORD_REGEX.test(password)) {
     setPasswordErrorMessage(
       i18next.t("keyring.setPassword.error.invalidCharacters")
     )
     return false
-  }
+  }*/
   if (password !== passwordConfirmation) {
     setPasswordErrorMessage(i18next.t("keyring.setPassword.error.noMatch"))
     return false

@@ -23,6 +23,7 @@ import SettingButton from "./Settings/SettingButton"
 import SharedIcon from "../components/Shared/SharedIcon"
 import SharedDrawer from "../components/Shared/SharedDrawer"
 import SharedToggleButtonGA from "../components/Shared/SharedToggleButtonGA"
+import { forceQiWalletFullRescan } from "@pelagus/pelagus-background/redux-slices/accounts"
 
 const NUMBER_OF_CLICKS_FOR_DEV_PANEL = 15
 const FAQ_URL = "https://pelaguswallet.io"
@@ -125,6 +126,9 @@ export default function Settings(): ReactElement {
   const hideBanners = useSelector(selectHideBanners)
   const defaultWallet = useSelector(selectDefaultWallet)
   const showPelagusNotifications = useSelector(selectShowPelagusNotifications)
+  const [showRescanConfirm, setShowRescanConfirm] = useState(false)
+
+
   const toggleDefaultWallet = (defaultWalletValue: boolean) => {
     dispatch(setNewDefaultWalletValue(defaultWalletValue))
   }
@@ -232,6 +236,94 @@ export default function Settings(): ReactElement {
     ),
   }
 
+  const forceQiWalletRescan = {
+    title: "",
+    component: () => (
+      <>
+        <SettingButton
+          label={t("settings.forceQiWalletRescan")}
+          ariaLabel={t("settings.forceQiWalletRescan")}
+          icon="continue"
+          onClick={() => setShowRescanConfirm(true)}
+        />
+        <SharedDrawer
+          title={t("settings.forceQiWalletRescan")}
+          isOpen={showRescanConfirm}
+          close={() => setShowRescanConfirm(false)}
+          gap={0}
+        >
+          <div className="confirm_rescan">
+            <p>{t("settings.forceQiWalletRescanConfirm")}</p>
+            <div className="button_container">
+              <button
+                type="button"
+                className="cancel"
+                onClick={() => setShowRescanConfirm(false)}
+              >
+                {t("settings.cancel")}
+              </button>
+              <button
+                type="button"
+                className="confirm"
+                onClick={() => {
+                  dispatch(forceQiWalletFullRescan())
+                  setShowRescanConfirm(false)
+                }}
+              >
+                {t("settings.confirm")}
+              </button>
+            </div>
+          </div>
+          <style jsx>
+            {`
+              .confirm_rescan {
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                min-height: 140px;
+              }
+              p {
+                color: var(--white);
+                font-size: 16px;
+                line-height: 24px;
+                margin: 0;
+              }
+              .button_container {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: auto;
+              }
+              button {
+                padding: 8px 24px;
+                border-radius: 4px;
+                font-size: 16px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+              }
+              .cancel {
+                background: transparent;
+                border: 1px solid var(--green-40);
+                color: var(--green-40);
+              }
+              .cancel:hover {
+                background: var(--green-120);
+              }
+              .confirm {
+                background: var(--green-40);
+                border: none;
+                color: var(--hunter-green);
+              }
+              .confirm:hover {
+                background: var(--green-20);
+              }
+            `}
+          </style>
+        </SharedDrawer>
+      </>
+    ),
+  }
+
   const notificationBanner = {
     title: t("settings.showBanners"),
     component: () => (
@@ -262,7 +354,7 @@ export default function Settings(): ReactElement {
     },
     walletOptions: {
       title: t("settings.group.walletOptions"),
-      items: [addCustomAsset],
+      items: [addCustomAsset, forceQiWalletRescan],
     },
     helpCenter: {
       title: t("settings.group.helpCenter"),

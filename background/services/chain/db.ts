@@ -104,7 +104,7 @@ export class ChainDatabase extends Dexie {
       qiOutpoints:
         "&[chainID+outpoint.txhash+outpoint.index],[chainID+address+outpoint.txhash],[chainID+outpoint.lock],address,value,outpoint.txhash,outpoint.index,outpoint.denomination,outpoint.lock",
       qiWalletSyncInfo:
-        "&[chainID+type],chainID,blockNumber,blockHash,timestamp,type",
+        "&[chainID+type],chainID,blockNumber,blockHash,timestamp,type,version",
     })
 
     this.version(5)
@@ -368,7 +368,8 @@ export class ChainDatabase extends Dexie {
   async setQiLastFullScan(
     chainID: string,
     blockNumber: number,
-    blockHash: string
+    blockHash: string,
+    version: string
   ): Promise<void> {
     await this.qiWalletSyncInfo.put({
       chainID,
@@ -376,6 +377,7 @@ export class ChainDatabase extends Dexie {
       blockHash,
       timestamp: Date.now(),
       type: "scan",
+      version: version,
     })
   }
 
@@ -388,7 +390,8 @@ export class ChainDatabase extends Dexie {
   async setQiLastSync(
     chainID: string,
     blockNumber: number,
-    blockHash: string
+    blockHash: string,
+    version: string
   ): Promise<void> {
     await this.qiWalletSyncInfo.put({
       chainID,
@@ -396,6 +399,7 @@ export class ChainDatabase extends Dexie {
       blockHash,
       timestamp: Date.now(),
       type: "sync",
+      version: version,
     })
   }
 
@@ -424,7 +428,7 @@ export class ChainDatabase extends Dexie {
       if (error instanceof Dexie.BulkError) {
         console.error(
           "Some QiOutpoints could not be added:",
-          error.failures.length,
+          Object.keys(error.failures).length,
           "failures\n",
           error.failures,
           "\n",
@@ -432,7 +436,7 @@ export class ChainDatabase extends Dexie {
         )
         logger.error(
           "Some QiOutpoints could not be added:",
-          error.failures.length,
+          Object.keys(error.failures).length,
           "failures\n",
           error.failures,
           "\n",
@@ -449,7 +453,7 @@ export class ChainDatabase extends Dexie {
       outpoint.chainID,
       outpoint.outpoint.txhash,
       outpoint.outpoint.index,
-    ])
+    ]) as [string, string, number][]
 
     await this.qiOutpoints.bulkDelete(keys)
   }
@@ -592,6 +596,14 @@ export class ChainDatabase extends Dexie {
     )
 
     return Array.from(addressesSet)
+  }
+
+  async clearQiOutpoints(): Promise<void> {
+    await this.qiOutpoints.clear()
+  }
+
+  async clearQiWalletSyncInfo(): Promise<void> {
+    await this.qiWalletSyncInfo.clear()
   }
 }
 

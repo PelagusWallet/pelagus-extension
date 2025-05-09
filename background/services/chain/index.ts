@@ -68,6 +68,8 @@ const BLOCKS_TO_SKIP_FOR_TRANSACTION_HISTORY = 20
 // Add a little bit of wiggle room
 const NETWORK_POLLING_TIMEOUT = MINUTE * 2.05
 
+const currentVersion = "45" // Update this when wallet version changes
+
 interface Events extends ServiceLifecycleEvents {
   newAccountToTrack: {
     addressOnNetwork: AddressOnNetwork
@@ -289,7 +291,7 @@ export default class ChainService extends BaseService<Events> {
     const categories: AddressCategory[] = [
       {
         addresses: qiMiningAddresses,
-        callback: this.syncQiWallet,
+        callback: this.handleQiWalletBalanceUpdate,
       },
       {
         addresses: quaiAddresses,
@@ -334,7 +336,7 @@ export default class ChainService extends BaseService<Events> {
         webSocketProvider.on(
           { type: "balance", address },
           async (balance: bigint) => {
-            await callback.bind(this)(network, address, balance)
+            await callback(network, address, balance)
           }
         )
       })
@@ -359,7 +361,7 @@ export default class ChainService extends BaseService<Events> {
     const categories: AddressCategory[] = [
       {
         addresses: qiAddresses,
-        callback: this.syncQiWallet,
+        callback: this.handleQiWalletBalanceUpdate,
       },
     ]
     await this.subscribeToAddressBalances(selectedNetwork, categories)
@@ -440,6 +442,10 @@ export default class ChainService extends BaseService<Events> {
     await this.db.addBalance(accountBalance)
   }
 
+  private async handleQiWalletBalanceUpdate(): Promise<void> {
+    await this.syncQiWallet()
+  }
+
   private isNetworkSubscribed(network: NetworkInterface): boolean {
     return this.activeSubscriptions.has(network.chainID)
   }
@@ -450,7 +456,7 @@ export default class ChainService extends BaseService<Events> {
     await this.subscribeToAddressBalances(this.selectedNetwork, [
       {
         addresses: [qiCoinbaseAddress],
-        callback: this.syncQiWallet,
+        callback: this.handleQiWalletBalanceUpdate,
       },
     ])
     this.trackActiveSubscriptions(this.selectedNetwork, [qiCoinbaseAddress])
@@ -468,8 +474,7 @@ export default class ChainService extends BaseService<Events> {
       this.subscribeToAddressBalances(network, [
         {
           addresses: [newAccount],
-          callback: (network, address, balance) =>
-            this.handleQuaiAddressBalanceUpdate(network, address, balance),
+          callback: this.handleQuaiAddressBalanceUpdate,
         },
       ])
       subscribedAccountsOnNetwork.push(newAccount.address)
@@ -575,7 +580,7 @@ export default class ChainService extends BaseService<Events> {
     await this.db.removeQiOutpoints(qiOutpoints)
   }
 
-  async syncQiWallet(): Promise<void> {
+  async syncQiWallet(forceFullScan_ = false): Promise<void> {
     if (this.qiWalletSyncInProgress) {
       // A sync is already in progress. Silently return.
       return
@@ -586,7 +591,15 @@ export default class ChainService extends BaseService<Events> {
       try {
         const network = this.selectedNetwork
         const lastScan = await this.db.getQiLastFullScan(network.chainID)
-        const forceFullScan = lastScan ? false : true
+        
+        const forceFullScan = !lastScan || lastScan.version !== currentVersion || forceFullScan_
+
+        if (forceFullScan) {
+          // Clear outpoints and sync info for fresh scan
+          await this.db.clearQiOutpoints()
+          await this.db.clearQiWalletSyncInfo()
+        }
+
         const qiWallet = await this.keyringService.getQiHDWallet()
         if (!qiWallet) {
           // it's possible that the wallet does not exist (quai private key was imported)
@@ -696,7 +709,6 @@ export default class ChainService extends BaseService<Events> {
         await Promise.all([
           this.subscribeToQiAddresses(),
           this.db.addQiLedgerBalance(qiWalletBalance),
-          // globalThis.main.transactionService.checkReceivedQiTransactions(),
           new Promise<void>(async (resolve): Promise<void> => {
             if (storeOutpoints) {
               const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
@@ -716,13 +728,15 @@ export default class ChainService extends BaseService<Events> {
               await this.db.setQiLastFullScan(
                 this.selectedNetwork.chainID,
                 currentBlock?.woHeader.number!,
-                currentBlock?.hash!
+                currentBlock?.hash!,
+                currentVersion
               )
             } else {
               await this.db.setQiLastSync(
                 this.selectedNetwork.chainID,
                 currentBlock?.woHeader.number!,
-                currentBlock?.hash!
+                currentBlock?.hash!,
+                currentVersion
               )
             }
             resolve()

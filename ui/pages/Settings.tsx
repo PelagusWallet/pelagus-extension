@@ -8,6 +8,8 @@ import {
   selectHideBanners,
   selectShowPelagusNotifications,
   setNewPelagusNotificationsValue,
+  selectAutoLockInterval,
+  setAutoLockInterval,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import {
@@ -126,6 +128,7 @@ export default function Settings(): ReactElement {
   const hideBanners = useSelector(selectHideBanners)
   const defaultWallet = useSelector(selectDefaultWallet)
   const showPelagusNotifications = useSelector(selectShowPelagusNotifications)
+  const autoLockInterval = useSelector(selectAutoLockInterval)
   const [showRescanConfirm, setShowRescanConfirm] = useState(false)
 
 
@@ -334,6 +337,28 @@ export default function Settings(): ReactElement {
     ),
   }
 
+  const autoLockSetting = {
+    title: t("settings.autoLockInterval"),
+    component: () => (
+      <SharedSelect
+        width={194}
+        options={[
+          { value: "5", label: "5 minutes" },
+          { value: "10", label: "10 minutes" },
+          { value: "15", label: "15 minutes" },
+          { value: "30", label: "30 minutes" },
+          { value: "60", label: "1 hour" },
+        ]}
+        onChange={(value) => dispatch(setAutoLockInterval(Number(value)))}
+        defaultIndex={(() => {
+          const interval = autoLockInterval || 10
+          const index = [5, 10, 15, 30, 60].indexOf(interval)
+          return index >= 0 ? index : 1 // Default to 10 minutes if value not found
+        })()}
+      />
+    ),
+  }
+
   const settings = Object.values({
     general: {
       title: t("settings.group.general"),
@@ -345,6 +370,7 @@ export default function Settings(): ReactElement {
         dAppsSettings,
         qiCoinbaseAddress,
         pelagusNotifications,
+        autoLockSetting,
         ...wrapIfEnabled(FeatureFlags.SUPPORT_MULTIPLE_LANGUAGES, languages),
         ...wrapIfEnabled(
           FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER,

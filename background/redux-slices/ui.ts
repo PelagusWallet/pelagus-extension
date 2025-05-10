@@ -31,6 +31,7 @@ export const defaultSettings = {
   showAlphaWalletBanner: true,
   alphaBannerVersion: 1,
   showPelagusNotifications: true,
+  autoLockInterval: 10, // in minutes
 }
 
 const defaultSnackbarDuration = 2500
@@ -61,6 +62,7 @@ export type UIState = {
     showDefaultWalletBanner: boolean
     showAlphaWalletBanner: boolean
     alphaBannerVersion: number
+    autoLockInterval: number
   }
   snackbarConfig: {
     message: string
@@ -345,6 +347,16 @@ const uiSlice = createSlice({
         },
       }
     },
+    setAutoLockInterval: (
+      state,
+      { payload: autoLockInterval }: { payload: number }
+    ) => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        autoLockInterval,
+      },
+    }),
   },
 })
 
@@ -375,6 +387,7 @@ export const {
   setSelectedUtxoAccount,
   setIsUtxoSelected,
   updateSelectedUtxoAccountBalance,
+  setAutoLockInterval,
 } = uiSlice.actions
 
 export default uiSlice.reducer
@@ -667,4 +680,9 @@ export const selectShowAlphaWalletBanner = createSelector(
 export const selectAlphaBannerVersion = createSelector(
   selectSettings,
   (settings) => settings.alphaBannerVersion
+)
+
+export const selectAutoLockInterval = createSelector(
+  selectSettings,
+  (settings) => settings?.autoLockInterval
 )

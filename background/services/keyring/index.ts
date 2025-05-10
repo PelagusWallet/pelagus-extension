@@ -147,6 +147,11 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     chrome.runtime.reload()
   }
 
+  private getAutoLockInterval(): number {
+    const state = globalThis.main.store.getState()
+    return (state.ui.settings.autoLockInterval || 10) * MINUTE
+  }
+
   // Locks the keyring if the time since last keyring or outside activity exceeds preset levels.
   private serviceAutoLockHandler(): void {
     if (!this.lastInternalWalletActivity || !this.lastExternalWalletActivity) {
@@ -159,10 +164,11 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     const now = Date.now()
     const timeSinceLastKeyringActivity = now - this.lastInternalWalletActivity
     const timeSinceLastOutsideActivity = now - this.lastExternalWalletActivity
+    const autoLockInterval = this.getAutoLockInterval()
 
     if (
-      timeSinceLastKeyringActivity >= MAX_KEYRING_IDLE_TIME ||
-      timeSinceLastOutsideActivity >= MAX_OUTSIDE_IDLE_TIME
+      timeSinceLastKeyringActivity >= autoLockInterval ||
+      timeSinceLastOutsideActivity >= autoLockInterval
     ) {
       this.notifyUIWithUpdates()
         .then(() => this.walletManager.clearState())

@@ -107,7 +107,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    */
   public async signAndSendQuaiTransaction(
     request: QuaiTransactionRequest
-  ): Promise<QuaiTransactionResponse | null> {
+  ): Promise<{
+    transactionResponse: QuaiTransactionResponse | null
+    errorMessage: string | null
+  }> {
     try {
       const { jsonRpcProvider } = this.chainService
       let transactionResponse: QuaiTransactionResponse
@@ -126,13 +129,16 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         )) as QuaiTransactionResponse
       }
       await this.processQuaiTransactionResponse(transactionResponse)
-      return transactionResponse
+      return { transactionResponse, errorMessage: null }
     } catch (error: any) {
       logger.error(
         `Failed to sign and send Quai transaction: ${error?.message || error}`
       )
       this.emitter.emit("transactionSendFailure")
-      return null
+      return {
+        transactionResponse: null,
+        errorMessage: error?.message || error,
+      }
     }
   }
 

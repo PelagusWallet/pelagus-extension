@@ -61,7 +61,7 @@ export function handleRPCErrorResponse(error: unknown): unknown {
   let response
   if (typeof error === "object" && error !== null) {
     /**
-     * Get error per the RPC method’s specification
+     * Get error per the RPC method's specification
      */
     if ("eip1193Error" in error) {
       const { eip1193Error } = error as {
@@ -81,6 +81,17 @@ export function handleRPCErrorResponse(error: unknown): unknown {
       response = parsedRPCErrorResponse(
         (error as { error: { body: string } }).error
       )
+    } else if (error instanceof Error && error.message) {
+      response = {
+        code: 4001,
+        message: error.message,
+      }
+    }
+  } else if (typeof error === "string") {
+    // Handle string errors (e.g., propagated error messages)
+    response = {
+      code: 4001,
+      message: error,
     }
   }
   /**

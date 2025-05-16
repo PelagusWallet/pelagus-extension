@@ -14,10 +14,9 @@ import { KeyringAccountSigner, PrivateKeyAccountSigner } from "../keyring/types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import TransactionService from "../transactions"
 
-type SigningErrorReason = "userRejected" | "genericError"
 type ErrorResponse = {
   type: "error"
-  reason: SigningErrorReason
+  reason: string
 }
 
 export type SendTransactionResponse =
@@ -64,8 +63,10 @@ type AddressHandler = {
   signer: SignerType
 }
 
-function getSigningErrorReason(err: unknown): SigningErrorReason {
-  return "genericError"
+function getSigningErrorReason(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  return "Unknown signing error";
 }
 
 /**
@@ -146,14 +147,18 @@ export default class SigningService extends BaseService<Events> {
     accountSigner: AccountSigner
   ): Promise<QuaiTransactionResponse> {
     try {
-      let transactionResponse: QuaiTransactionResponse | null
+      let txResponse: QuaiTransactionResponse | null
       switch (accountSigner.type) {
         case "private-key":
         case "keyring": {
-          transactionResponse =
+          const { transactionResponse, errorMessage } =
             await this.transactionService.signAndSendQuaiTransaction(
               transactionRequest
             )
+          txResponse = transactionResponse
+          if (errorMessage) {
+            throw new Error(errorMessage)
+          }
           break
         }
         case "read-only":
@@ -162,16 +167,16 @@ export default class SigningService extends BaseService<Events> {
           return assertUnreachable(accountSigner)
       }
 
-      if (!transactionResponse) {
+      if (!txResponse) {
         throw new Error("Transaction response is null.")
       }
 
       await this.emitter.emit("sendTransactionResponse", {
         type: "success-tx",
-        signedTx: transactionResponse,
+        signedTx: txResponse,
       })
 
-      return transactionResponse
+      return txResponse
     } catch (err) {
       await this.emitter.emit("sendTransactionResponse", {
         type: "error",

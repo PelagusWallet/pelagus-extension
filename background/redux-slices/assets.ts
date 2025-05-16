@@ -354,11 +354,11 @@ export const sendAsset = createBackgroundAsyncThunk(
         request.gasPrice = gasPrice
       }
 
-      const isSignedAndSent = await main.signAndSendQuaiTransaction({
+      const { success, errorMessage } = await main.signAndSendQuaiTransaction({
         request,
       })
 
-      return { success: isSignedAndSent }
+      return { success, errorMessage: errorMessage ?? undefined }
     } catch (error: any) {
       return {
         success: false,

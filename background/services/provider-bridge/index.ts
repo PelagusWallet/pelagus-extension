@@ -657,8 +657,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
         }
       }
     } catch (error: any) {
-      console.error(`Error processing request: ${error?.message || error}`)
-      logger.error(`Error processing request: ${error?.message || error}`)
       return handleRPCErrorResponse(error)
     }
   }

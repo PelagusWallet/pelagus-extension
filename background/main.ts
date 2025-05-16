@@ -885,11 +885,11 @@ export default class Main extends BaseService<never> {
     request,
   }: {
     request: QuaiTransactionRequest
-  }): Promise<boolean> {
+  }): Promise<{ success: boolean; errorMessage: string | null }> {
     try {
-      const transactionResponse =
+      const { transactionResponse, errorMessage } =
         await this.transactionService.signAndSendQuaiTransaction(request)
-      if (!transactionResponse) return false
+      if (!transactionResponse) return { success: false, errorMessage }
 
       await this.analyticsService.sendAnalyticsEvent(
         AnalyticsEvent.TRANSACTION_SIGNED,
@@ -899,12 +899,15 @@ export default class Main extends BaseService<never> {
       )
 
       this.store.dispatch(quaiTransactionResponse(transactionResponse))
-      return true
+      return { success: true, errorMessage: null }
     } catch (exception) {
       this.store.dispatch(
         clearTransactionState(TransactionConstructionStatus.Idle)
       )
-      return false
+      return {
+        success: false,
+        errorMessage: exception instanceof Error ? exception.message : "Unknown error",
+      }
     }
   }
 
@@ -1273,7 +1276,7 @@ export default class Main extends BaseService<never> {
   async connectInternalQuaiProviderService(): Promise<void> {
     this.internalQuaiProviderService.emitter.on(
       "transactionSendRequest",
-      async ({ payload, resolver, rejecter }) => {
+      async ({ payload, resolver, rejecter }: { payload: any, resolver: (result: any) => void, rejecter: (err?: any) => void }) => {
         this.store.dispatch(
           clearTransactionState(TransactionConstructionStatus.Pending)
         )
@@ -1302,7 +1305,8 @@ export default class Main extends BaseService<never> {
               resolver(response.signedTx)
               break
             default:
-              rejecter()
+              // Pass the error reason if available
+              rejecter(response.reason || undefined)
               break
           }
         }

@@ -84,6 +84,8 @@ export default function Send(): ReactElement {
 
   const [advancedVisible, setAdvancedVisible] = useState(false)
 
+  const [transactionErrorMessage, setTransactionErrorMessage] = useState<string | undefined>(undefined);
+
   const handleAssetSelect = (asset: FungibleAsset) => {
     setSelectedAsset(asset)
     setAssetType("token")
@@ -202,10 +204,11 @@ export default function Send(): ReactElement {
         transferDetails.nonce = nonce
       }
 
-      const { success } = (await dispatch(
+      const { success, errorMessage } = (await dispatch(
         sendAsset(transferDetails)
       )) as AsyncThunkFulfillmentType<typeof sendAsset>
       setIsTransactionError(!success)
+      setTransactionErrorMessage(errorMessage)
     } catch (e) {
       setIsTransactionError(true)
     } finally {
@@ -257,7 +260,7 @@ export default function Send(): ReactElement {
     const confirmationModalProps = isTransactionError
       ? {
           headerTitle: confirmationLocales("send.errorHeadline"),
-          subtitle: confirmationLocales("send.errorSubtitle"),
+          subtitle: transactionErrorMessage || confirmationLocales("send.errorSubtitle"),
           title: `${confirmationLocales("send.errorTitle")}!`,
           icon: {
             src: "icons/s/notif-wrong.svg",

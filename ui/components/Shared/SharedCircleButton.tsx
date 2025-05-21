@@ -22,6 +22,7 @@ type Props = {
   ariaLabel?: string
   children: React.ReactNode
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
+  width?: string
 }
 
 export default function SharedCircleButton(props: Props): ReactElement {
@@ -36,6 +37,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
     children,
     disabled,
     onClick,
+    width,
   } = props
 
   return (
@@ -58,7 +60,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             letter-spacing: 0.03em;
             color: ${textColor.color};
             transition: color 0.2s;
-            width: 80%;
+            width: ${width ?? "80%"};
             display: flex;
             flex-direction: column;
             align-items: center;

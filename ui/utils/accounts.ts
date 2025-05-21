@@ -36,3 +36,9 @@ export const isUtxoAccountTypeGuard = (
 ): account is UtxoAccountData => {
   return (account as UtxoAccountData)?.paymentCode !== undefined
 }
+
+export const isAccountTotalTypeGuard = (
+  account: UtxoAccountData | AccountTotal
+): account is AccountTotal => {
+  return (account as AccountTotal)?.address !== undefined
+}

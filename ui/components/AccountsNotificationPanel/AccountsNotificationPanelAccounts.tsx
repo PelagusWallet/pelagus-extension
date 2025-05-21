@@ -190,6 +190,10 @@ export default function AccountsNotificationPanelAccounts({
           dispatch(updateQuaiAccountInConversionDestination(accountTotal))
           dispatch(setShowingAccountsModal(false))
           return
+        case "/wrap":
+          dispatch(updateQuaiAccountInConversionDestination(accountTotal))
+          dispatch(setShowingAccountsModal(false))
+          return
         default:
           dispatch(setShowingAccountsModal(false))
           return

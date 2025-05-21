@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
-import { Zone, formatQi, formatQuai, parseQi, parseQuai } from "quais"
+import { Zone, formatQi, formatQuai, parseQi, parseQuai, quais } from "quais"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
@@ -14,6 +14,7 @@ export type ConvertAssetsState = {
   expectedResult: number
   expectedSlippage: number
   maxSlippage: number
+  wrappedQiDeposit: bigint
 }
 
 const initialState: ConvertAssetsState = {
@@ -24,6 +25,7 @@ const initialState: ConvertAssetsState = {
   expectedResult: 0,
   expectedSlippage: 0,
   maxSlippage: 100, // Default 1% (in basis points)
+  wrappedQiDeposit: BigInt(0)
 }
 
 const convertAssetsSlice = createSlice({
@@ -74,12 +76,16 @@ const convertAssetsSlice = createSlice({
 
       immerState.to = payload
     },
+    setWrappedQiDeposit: (immerState, { payload }: { payload: bigint }) => {
+      immerState.wrappedQiDeposit = payload
+    },
     resetConvertAssetsSlice: (immerState) => {
       immerState.from = null
       immerState.to = null
       immerState.amount = ""
       immerState.rate = 0
       immerState.maxSlippage = 100 // Reset to default 1%
+      immerState.wrappedQiDeposit = BigInt(0)
     },
   },
 })
@@ -94,6 +100,7 @@ export const {
   setConvertExpectedResult,
   setConvertExpectedSlippage,
   setMaxSlippage,
+  setWrappedQiDeposit,
 } = convertAssetsSlice.actions
 
 export default convertAssetsSlice.reducer
@@ -183,5 +190,36 @@ export const convertAssetsHandle = createBackgroundAsyncThunk(
     setTimeout(() => {
       dispatch(resetConvertAssetsSlice())
     }, 2000)
+  }
+)
+
+export const wrapQiHandle = createBackgroundAsyncThunk(
+  "convertAssets/wrapQiHandle",
+  async ({from, amount, to}: {from: UtxoAccountData, amount: string, to: string}, { extra: { main }, dispatch }) => {
+    if (!isUtxoAccountTypeGuard(from)) {
+      throw new Error("From account must be a UTXO account")
+    }
+    if (quais.isQuaiAddress(to)) {
+      await main.transactionService.wrapQi(amount, to)
+      dispatch(resetConvertAssetsSlice())
+    } else {
+      throw new Error("Qi address provided to wrapQiHandle but Quai address expected")
+    }
+  }
+)
+
+export const claimWrappedQiDepositHandle = createBackgroundAsyncThunk(
+  "convertAssets/claimWrappedQiDepositHandle",
+  async ({from}: {from: string}, { extra: { main } }) => {
+    await main.transactionService.claimWrappedQiDeposit(from)
+  }
+)
+
+export const getWrappedQiDepositHandle = createBackgroundAsyncThunk(
+  "convertAssets/getWrappedQiDepositHandle",
+  async ({from}: {from: string}, { extra: { main }, dispatch }) => {
+    const deposit = await main.transactionService.getWrappedQiDeposit(from)
+    dispatch(setWrappedQiDeposit(deposit))
+    return deposit
   }
 )

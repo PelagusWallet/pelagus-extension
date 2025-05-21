@@ -21,6 +21,8 @@ import SettingsQiCoinbaseAddress from "../pages/Settings/SettingsQiCoinbaseAddre
 import SettingsAddQiCoinbaseAddress from "../pages/Settings/SettingsAddQiCoinbaseAddress"
 import ConvertPage from "../pages/_NewDesign/ConvertPage"
 import ConfirmConversionPage from "../pages/_NewDesign/ConfirmConversionPage"
+import WrapPage from "../pages/_NewDesign/WrapPage"
+import ConfirmWrapPage from "../pages/_NewDesign/ConfirmWrapPage"
 
 type PageList = {
   path: string
@@ -120,6 +122,16 @@ const pageList: PageList[] = [
   {
     path: "/convert",
     Component: ConvertPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/wrap/confirmation",
+    Component: ConfirmWrapPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/wrap",
+    Component: WrapPage,
     hasTopBar: false,
   },
   {

@@ -44,6 +44,9 @@ const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
 
+const WrappedQiContractAddress = "0x002b2596EcF05C93a31ff916E8b456DF6C77c750"
+const WrappedQiContractAddressBytes = new Uint8Array(Buffer.from(WrappedQiContractAddress.replace("0x", ""), "hex"))
+
 /**
  * The `TransactionService` class is responsible for handling user transactions, including sending,
  * tracking, and updating transaction statuses. This service uses a database to save and
@@ -369,10 +372,96 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       to: unusedAddress,
       from,
       value: amount,
-      gasLimit: 1000000, // use 1M gas limit to avoid running out of gas when creating outpoints
+      gasLimit: 100000, // use 1M gas limit to avoid running out of gas when creating outpoints
       data: slippageDataHex,
     }
     await this.signAndSendQuaiTransaction(convertTxRequest)
+  }
+
+  public async wrapQi(value: string, to: string): Promise<void> {
+    const { jsonRpcProvider } = this.chainService
+    let qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+    const amount = parseQi(value)
+    console.log("amount", amount)
+    console.log("to", to)
+    let transaction: QiTransactionDB | null = null
+      const maxAttempts = 3
+      let attempts = 0
+      let bufferPercentage = 10
+      while (attempts < maxAttempts) {
+        try {
+          const qiOutpoints = await this.chainService.getOutpointsForSending(
+            amount,
+            bufferPercentage
+          )
+          const outpointInfos = qiOutpoints.map((outpoint) => ({
+            outpoint: outpoint.outpoint,
+            address: outpoint.address,
+            zone: Zone.Cyprus1,
+            derivationPath: outpoint.derivationPath,
+          }))
+          
+          qiWallet.importOutpoints(outpointInfos)
+          const tx = await qiWallet.convertToQuai(to, amount, { // This doesn't actually convert to Quai, it just sends a Qi transaction to the provided Quai address
+            data: WrappedQiContractAddressBytes,
+          })
+          console.log("wrapping tx", tx)
+          transaction = processConvertQiTransaction(
+            qiWallet.getPaymentCode(0),
+            to, 
+            tx as QiTransactionResponse,
+            amount,
+          )
+          break
+      } catch (error: any) {
+        logger.error("Failed to wrap Qi", error.message)
+        if (
+          error instanceof Error &&
+          error.message.includes("Insufficient funds")
+        ) {
+          bufferPercentage += 10
+        } else if (error instanceof Error && error.message.includes("non-existent UTXO")) {
+          await this.chainService.syncQiWallet(true)
+          qiWallet = await this.keyringService.getQiHDWallet()
+          qiWallet.connect(jsonRpcProvider)
+        } else {
+          await this.chainService.syncQiWallet()
+          qiWallet = await this.keyringService.getQiHDWallet()
+          qiWallet.connect(jsonRpcProvider)
+        }
+        attempts++
+      }
+    }
+    if (!transaction) {
+      throw new Error("Failed to wrap Qi")
+    }
+    await this.saveQiTransaction(transaction)
+    await Promise.all([
+      this.subscribeToQiTransaction(transaction.hash),
+      this.chainService.syncQiWallet(),
+    ])
+    
+  }
+
+  public async getWrappedQiDeposit(from: string): Promise<bigint> {
+    const { jsonRpcProvider } = this.chainService
+    
+    try {
+      const result = await jsonRpcProvider.send("quai_getWrappedQiDeposit", [
+        WrappedQiContractAddress,
+        from,
+        "latest"
+      ], Shard.Cyprus1)
+      console.log(result)
+      return result
+    } catch (error: any) {
+      if (error.message.includes("no wrapped Qi balance")) {
+        return BigInt(0)
+      }
+      logger.error("Failed to get wrapped Qi deposit", error.message)
+      throw error
+    }
   }
 
   public async convertQiToQuai(to: string, value: string, maxSlippage: number): Promise<void> {
@@ -540,6 +629,55 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         }
       })
     )
+  }
+
+
+  public async claimWrappedQiDeposit(from: string): Promise<void> {
+    try {
+      const { jsonRpcProvider } = this.chainService
+      const signerWithType = await this.keyringService.getSigner(from)
+      signerWithType.signer.connect(jsonRpcProvider)
+
+      let tx: QuaiTransactionResponse | null = null
+      if (isSignerPrivateKeyType(signerWithType)) {
+        const contract = new Contract(
+          WrappedQiContractAddress,
+          ["function claimDeposit() external returns (uint256)"],
+          signerWithType.signer
+        )
+        tx = await contract.claimDeposit()
+      } else {
+        // For HD Wallet signers, we need to construct the transaction request
+        const contract = new Contract(
+          WrappedQiContractAddress,
+          ["function claimDeposit() external returns (uint256)"],
+          jsonRpcProvider
+        )
+        
+        // Get the encoded function data
+        const data = contract.interface.encodeFunctionData("claimDeposit")
+        
+        // Construct the transaction request
+        const request = {
+          to: WrappedQiContractAddress,
+          from,
+          data,
+        }
+        
+        tx = (await signerWithType.signer.sendTransaction(
+          request
+        )) as QuaiTransactionResponse
+      }
+
+      if (!tx) {
+        throw new Error("Failed to send claim transaction")
+      }
+      console.log("claim tx", tx)
+      await this.processQuaiTransactionResponse(tx)
+    } catch (error: any) {
+      logger.error("Failed to claim wrapped Qi deposit for account", error.message)
+      throw error
+    }
   }
 
   // ------------------------------------ private methods ------------------------------------

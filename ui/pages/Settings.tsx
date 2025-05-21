@@ -298,7 +298,7 @@ export default function Settings(): ReactElement {
               button {
                 padding: 8px 24px;
                 border-radius: 4px;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 500;
                 cursor: pointer;
                 transition: all 0.2s;

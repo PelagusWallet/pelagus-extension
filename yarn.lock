@@ -7591,6 +7591,26 @@ quais@^1.0.0-alpha.48:
     tslib "^2.6.2"
     ws "^8.17.1"
 
+quais@^1.0.0-alpha.49:
+  version "1.0.0-alpha.49"
+  resolved "https://registry.yarnpkg.com/quais/-/quais-1.0.0-alpha.49.tgz#27607e57d4d4f73f0f4807f1c12ea916ab1e756a"
+  integrity sha512-B1gdvH+pF7S1MshPFXkeC9XCJsdPjqyhkt67He/j22ZdHO9v69HZLE7qbqVZAWMpLP7lnEvYnV1hOymwiWORVQ==
+  dependencies:
+    "@bitcoinerlab/secp256k1" "^1.1.1"
+    "@brandonblack/musig" "^0.0.1-alpha.1"
+    "@ethereum-sourcify/bytecode-utils" "1.3.1"
+    "@ethersproject/bytes" "^5.7.0"
+    "@noble/curves" "1.2.0"
+    "@noble/hashes" "1.3.2"
+    "@scure/base" "^1.1.9"
+    aes-js "4.0.0-beta.5"
+    bs58 "^6.0.0"
+    cbor-x "^1.6.0"
+    dotenv "^16.4.1"
+    google-protobuf "^3.21.4"
+    tslib "^2.6.2"
+    ws "^8.17.1"
+
 querystring@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"

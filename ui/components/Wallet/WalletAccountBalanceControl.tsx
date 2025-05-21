@@ -50,13 +50,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               return
             }
 
-            if (
-              isUtxoSelected &&
-              currentSelectedAccount.network.chainID === "9"
-            ) {
-              return
-            }
-
             if (!isUtxoSelected) {
               history.push("/send")
               return
@@ -86,16 +79,37 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           {t("receive")}
         </SharedCircleButton>
 
-        <SharedCircleButton
-          icon="icons/s/swap.svg"
-          ariaLabel={t("swap")}
-          size={55}
-          iconWidth="20"
-          iconHeight="18"
-          disabled
-        >
-          {t("swap")}
-        </SharedCircleButton>
+        {isUtxoSelected ? (
+
+          <SharedCircleButton
+            icon="icons/s/convert.svg"
+            ariaLabel={t("wrap")}
+            onClick={async () => {
+              if (!isQiWalletInit) {
+                return
+              }
+
+              history.push("/wrap")
+            }}
+            size={55}
+            iconWidth="20"
+            iconHeight="18"
+            disabled={!isQiWalletInit}
+            width="100%"
+            >
+              {t("wrap")}
+          </SharedCircleButton>
+        ) : (
+          <SharedCircleButton
+            icon="icons/s/swap.svg"
+            ariaLabel={t("swap")}
+            size={55}
+            iconWidth="20"
+            iconHeight="18"
+          >
+            {t("swap")}
+          </SharedCircleButton>
+        )}
 
         <SharedCircleButton
           icon="icons/s/convert.svg"

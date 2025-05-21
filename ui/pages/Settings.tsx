@@ -280,14 +280,13 @@ export default function Settings(): ReactElement {
           <style jsx>
             {`
               .confirm_rescan {
-                padding: 20px;
                 display: flex;
                 flex-direction: column;
-                min-height: 140px;
+                min-height: 100px;
               }
               p {
                 color: var(--white);
-                font-size: 16px;
+                font-size: 14px;
                 line-height: 24px;
                 margin: 0;
               }
@@ -299,7 +298,7 @@ export default function Settings(): ReactElement {
               button {
                 padding: 8px 24px;
                 border-radius: 4px;
-                font-size: 16px;
+                font-size: 12px;
                 font-weight: 500;
                 cursor: pointer;
                 transition: all 0.2s;
@@ -308,6 +307,7 @@ export default function Settings(): ReactElement {
                 background: transparent;
                 border: 1px solid var(--green-40);
                 color: var(--green-40);
+                margin-right: 10%;
               }
               .cancel:hover {
                 background: var(--green-120);

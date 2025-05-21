@@ -1,6 +1,9 @@
 import React from "react"
 import { utxoActivityTimestampHandle } from "@pelagus/pelagus-background/redux-slices/utils/utxo-activities-utils"
 import { QUAI_SCAN_URL } from "@pelagus/pelagus-background/constants"
+import { getBlockExplorerURL } from "../../../../../utils/networks"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { useBackgroundSelector } from "../../../../../hooks"
 
 const UtxoActivityDateAndBlock = ({
   hash,
@@ -9,6 +12,9 @@ const UtxoActivityDateAndBlock = ({
   hash: string
   timestamp: number
 }) => {
+  const network = useBackgroundSelector(selectCurrentNetwork)
+  const blockExplorerUrl = network.blockExplorerURL
+
   return (
     <>
       <div className="activity-timestamp-block">
@@ -16,7 +22,7 @@ const UtxoActivityDateAndBlock = ({
           {utxoActivityTimestampHandle(timestamp)}
         </h5>
         <a
-          href={`${QUAI_SCAN_URL}/tx/${hash}`}
+          href={`${blockExplorerUrl}/tx/${hash}`}
           target="_blank"
           rel="noopener noreferrer"
           className="activity-block-explorer"

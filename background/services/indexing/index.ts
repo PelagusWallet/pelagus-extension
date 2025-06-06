@@ -16,7 +16,7 @@ import {
   SmartContractAmount,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MINUTE, NETWORK_BY_CHAIN_ID } from "../../constants"
+import { HOUR, MINUTE, NETWORK_BY_CHAIN_ID, WRAPPED_QI_CONTRACT_ADDRESS } from "../../constants"
 import {
   fetchAndValidateTokenList,
   mergeAssets,
@@ -150,6 +150,26 @@ export default class IndexingService extends BaseService<Events> {
         // we will not load balances on initial balance query
       ).then(() => tokenListLoad.then(() => this.loadAccountBalances()))
     })
+    setTimeout(() => {
+      PELAGUS_NETWORKS.forEach(async (network) => {
+        const exists = this.getKnownSmartContractAsset(network, WRAPPED_QI_CONTRACT_ADDRESS)
+        if (!exists) {
+              console.log("Adding Wrapped Qi to network ", network.chainID)
+              const wrappedQiAsset: SmartContractFungibleAsset = {
+                name: "Wrapped Qi",
+                symbol: "WQI",
+                decimals: 18,
+                contractAddress: WRAPPED_QI_CONTRACT_ADDRESS,
+                homeNetwork: network,
+                metadata: {
+                  verified: true,
+                  logoURL: "./images/wqi.svg",
+                },
+          }
+          await this.importCustomToken(wrappedQiAsset)
+          }
+        })
+    }, 2000)
   }
 
   /**
@@ -222,8 +242,22 @@ export default class IndexingService extends BaseService<Events> {
       await this.preferenceService.getTokenListPreferences()
     const tokenLists = await this.db.getLatestTokenLists(tokenListPrefs.urls)
 
+    // Add Wrapped Qi token to the list of assets
+    const wrappedQiAsset: SmartContractFungibleAsset = {
+      name: "Wrapped Qi",
+      symbol: "WQI",
+      decimals: 18,
+      contractAddress: WRAPPED_QI_CONTRACT_ADDRESS,
+      homeNetwork: network,
+      metadata: {
+        verified: true,
+        logoURL: "./images/wqi.svg",
+      },
+    }
+
     this.cachedAssets[network.chainID] = mergeAssets<FungibleAsset>(
       [network.baseAsset],
+      [wrappedQiAsset],
       customAssets,
       networkAssetsFromLists(network, tokenLists)
     )
@@ -542,6 +576,21 @@ export default class IndexingService extends BaseService<Events> {
       },
       []
     )
+    const accountBalancesHasWQI = accountBalances.find(balance => balance.assetAmount.asset.symbol === "WQI")
+    if(!accountBalancesHasWQI) {
+      const wQi = this.getKnownSmartContractAsset(addressNetwork.network, WRAPPED_QI_CONTRACT_ADDRESS)
+      if(wQi) {
+        accountBalances.push({
+          ...addressNetwork,
+          assetAmount: {
+            asset: wQi,
+            amount: BigInt(0),
+          },
+          retrievedAt: Date.now(),
+          dataSource: "local",
+        })
+      }
+    }
 
     await this.db.addBalances(accountBalances)
     this.emitter.emit("accountsWithBalances", {

@@ -62,8 +62,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           iconWidth="12"
           iconHeight="18"
           disabled={
-            currentSelectedAccount.network.chainID === "9000" ||
-            (isUtxoSelected && currentSelectedAccount.network.chainID === "9")
+            currentSelectedAccount.network.chainID === "9000"
           }
         >
           {t("send")}
@@ -123,13 +122,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               return
             }
 
-            if (
-              isUtxoSelected &&
-              currentSelectedAccount.network.chainID === "9"
-            ) {
-              return
-            }
-
             await dispatch(resetConvertAssetsSlice())
             history.push("/convert")
           }}
@@ -138,8 +130,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           iconHeight="18"
           disabled={
             !isQiWalletInit ||
-            currentSelectedAccount.network.chainID === "9000" ||
-            (isUtxoSelected && currentSelectedAccount.network.chainID === "9")
+            currentSelectedAccount.network.chainID === "9000"
           }
         >
           {t("convert")}

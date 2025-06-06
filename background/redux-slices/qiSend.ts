@@ -84,14 +84,24 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
 
     const parsedAmount = parseQi(amount)
 
-    await main.transactionService.sendQiTransaction(
-      parsedAmount,
-      quaiAddress,
-      senderPaymentCode,
-      receiverPaymentCode
-    )
+    try {
+      const txHash = await main.transactionService.sendQiTransaction(
+        parsedAmount,
+        quaiAddress,
+        senderPaymentCode,
+        receiverPaymentCode
+      )
 
-    dispatch(resetQiSendSlice())
+      dispatch(resetQiSendSlice())
+      return { txHash }
+    } catch (error: any) {
+      console.log("error in sendQiTransaction", error)
+      return {
+        error: {
+          message: typeof error === 'string' ? error : error?.message
+        }
+      }
+    }
   }
 )
 

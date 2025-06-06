@@ -23,7 +23,7 @@ import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import ProviderFactory from "../provider-factory/provider-factory"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
-import { HexString, UNIXTime } from "../../types"
+import { HexString } from "../../types"
 import {
   AccountBalance,
   AddressOnNetwork,
@@ -50,6 +50,7 @@ import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
 import NotificationsManager from "../notifications"
 import { bigIntToDecimal } from "../../redux-slices/utils/asset-utils"
 import { AddressCategory } from "./types"
+import { setQiWalletSyncInProgress } from "../../redux-slices/ui"
 
 // The number of blocks to query at a time for historic asset transfers.
 // Unfortunately there's no "right" answer here that works well across different
@@ -146,16 +147,6 @@ export default class ChainService extends BaseService<Events> {
     provider: JsonRpcProvider
   }[]
 
-  private lastUserActivityOnNetwork: {
-    [chainID: string]: UNIXTime
-  } = Object.fromEntries(
-    PELAGUS_NETWORKS.map((network) => [network.chainID, 0])
-  )
-
-  private lastUserActivityOnAddress: {
-    [address: HexString]: UNIXTime
-  } = {}
-
   static create: ServiceCreatorFunction<
     Events,
     ChainService,
@@ -226,6 +217,7 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedAccounts = []
     this.subscribedNetworks = []
     this.providerFactory = providerFactoryService
+    this.handleQiWalletBalanceUpdate = this.handleQiWalletBalanceUpdate.bind(this)
   }
 
   override async internalStartService(): Promise<void> {
@@ -587,7 +579,10 @@ export default class ChainService extends BaseService<Events> {
     }
 
     this.qiWalletSyncInProgress = true
+    main.store.dispatch(setQiWalletSyncInProgress(true))
+
     setTimeout(async () => {
+      let start = Date.now()
       try {
         const network = this.selectedNetwork
         const lastScan = await this.db.getQiLastFullScan(network.chainID)
@@ -746,11 +741,13 @@ export default class ChainService extends BaseService<Events> {
         // save the wallet to the vault
         const serializedQiWallet = { qiHDWallet: qiWallet.serialize() }
         await this.keyringService.vaultManager.add(serializedQiWallet, {})
+        console.log("Completed syncQiWallet. Balance: ", spendableBalance, "Took ", (Date.now() - start) / 1000, "seconds", "ForceFullScan: ", forceFullScan)
       } catch (error: any) {
         logger.error("Error occurred during Qi wallet sync", error.message)
       } finally {
         // Reset the flag regardless of success or failure
         this.qiWalletSyncInProgress = false
+        main.store.dispatch(setQiWalletSyncInProgress(false))
       }
     }, 0)
   }
@@ -1017,17 +1014,11 @@ export default class ChainService extends BaseService<Events> {
   }
 
   private isCurrentlyActiveChainID(chainID: string): boolean {
-    return (
-      Date.now() <
-      this.lastUserActivityOnNetwork[chainID] + NETWORK_POLLING_TIMEOUT
-    )
+    return Date.now() < globalThis.main.store.getState().ui.lastUserActivityOnNetwork[chainID] + NETWORK_POLLING_TIMEOUT
   }
 
   private isCurrentlyActiveAddress(address: HexString): boolean {
-    return (
-      Date.now() <
-      this.lastUserActivityOnAddress[address] + NETWORK_POLLING_TIMEOUT
-    )
+    return Date.now() < globalThis.main.store.getState().ui.lastUserActivityOnAddress[address] + NETWORK_POLLING_TIMEOUT
   }
 
   /**

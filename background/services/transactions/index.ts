@@ -22,7 +22,7 @@ import ChainService from "../chain"
 import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
-import { MAILBOX_CONTRACT_ADDRESS, MINUTE, SECOND } from "../../constants"
+import { MAILBOX_CONTRACT_ADDRESS, MINUTE, SECOND, WRAPPED_QI_CONTRACT_ADDRESS, WRAPPED_QI_CONTRACT_ADDRESS_BYTES } from "../../constants"
 import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
@@ -43,9 +43,6 @@ import IndexingService from "../indexing"
 const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
-
-const WrappedQiContractAddress = "0x002b2596EcF05C93a31ff916E8b456DF6C77c750"
-const WrappedQiContractAddressBytes = new Uint8Array(Buffer.from(WrappedQiContractAddress.replace("0x", ""), "hex"))
 
 /**
  * The `TransactionService` class is responsible for handling user transactions, including sending,
@@ -183,7 +180,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     quaiAddress: string,
     senderPaymentCode: string,
     receiverPaymentCode: string
-  ): Promise<void> {
+  ): Promise<string | undefined> {
+    let txHash: string | undefined = undefined
+    let err: any | undefined = undefined
     try {
       const { jsonRpcProvider } = this.chainService
       let qiWallet = await this.keyringService.getQiHDWallet()
@@ -218,7 +217,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             Zone.Cyprus1,
             Zone.Cyprus1
           )) as QiTransactionResponse
-
+          txHash = tx?.hash
           const senderPaymentCode = qiWallet.getPaymentCode(0)
 
           transaction = processSentQiTransaction(
@@ -229,6 +228,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           )
           break
         } catch (error) {
+          err = error
           if (
             error instanceof Error &&
             error.message.includes("Insufficient funds")
@@ -244,7 +244,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
 
       if (!transaction) {
-        throw new Error("Failed to send Qi transaction")
+        if (err) {
+          throw err
+        } else {
+          throw new Error("Failed to send Qi transaction")
+        }
       }
 
       // Wait for the transaction to be included in a block
@@ -267,6 +271,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       )
       await this.saveQiTransaction(transaction)
       NotificationsManager.createFailedQiTxNotification()
+      throw error
     }
 
     try {
@@ -285,6 +290,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     } catch (error: any) {
       logger.error(`Failed to notify Qi recipient: ${error?.message || error}`)
     }
+    return txHash
   }
 
   /**
@@ -378,7 +384,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await this.signAndSendQuaiTransaction(convertTxRequest)
   }
 
-  public async wrapQi(value: string, to: string): Promise<void> {
+  public async wrapQi(value: string, to: string): Promise<string | undefined> {
     const { jsonRpcProvider } = this.chainService
     let qiWallet = await this.keyringService.getQiHDWallet()
     qiWallet.connect(jsonRpcProvider)
@@ -386,6 +392,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     console.log("amount", amount)
     console.log("to", to)
     let transaction: QiTransactionDB | null = null
+    let err: any | undefined = undefined
       const maxAttempts = 3
       let attempts = 0
       let bufferPercentage = 10
@@ -404,7 +411,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           
           qiWallet.importOutpoints(outpointInfos)
           const tx = await qiWallet.convertToQuai(to, amount, { // This doesn't actually convert to Quai, it just sends a Qi transaction to the provided Quai address
-            data: WrappedQiContractAddressBytes,
+            data: WRAPPED_QI_CONTRACT_ADDRESS_BYTES,
           })
           console.log("wrapping tx", tx)
           transaction = processConvertQiTransaction(
@@ -415,6 +422,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           )
           break
       } catch (error: any) {
+        err = error
         logger.error("Failed to wrap Qi", error.message)
         if (
           error instanceof Error &&
@@ -434,14 +442,18 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
     }
     if (!transaction) {
-      throw new Error("Failed to wrap Qi")
+      if (err) {
+        throw err
+      } else {
+        throw new Error("Failed to wrap Qi")
+      }
     }
     await this.saveQiTransaction(transaction)
     await Promise.all([
       this.subscribeToQiTransaction(transaction.hash),
       this.chainService.syncQiWallet(),
     ])
-    
+    return transaction.hash
   }
 
   public async getWrappedQiDeposit(from: string): Promise<bigint> {
@@ -449,7 +461,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     
     try {
       const result = await jsonRpcProvider.send("quai_getWrappedQiDeposit", [
-        WrappedQiContractAddress,
+        WRAPPED_QI_CONTRACT_ADDRESS,
         from,
         "latest"
       ], Shard.Cyprus1)
@@ -641,7 +653,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       let tx: QuaiTransactionResponse | null = null
       if (isSignerPrivateKeyType(signerWithType)) {
         const contract = new Contract(
-          WrappedQiContractAddress,
+          WRAPPED_QI_CONTRACT_ADDRESS,
           ["function claimDeposit() external returns (uint256)"],
           signerWithType.signer
         )
@@ -649,7 +661,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       } else {
         // For HD Wallet signers, we need to construct the transaction request
         const contract = new Contract(
-          WrappedQiContractAddress,
+          WRAPPED_QI_CONTRACT_ADDRESS,
           ["function claimDeposit() external returns (uint256)"],
           jsonRpcProvider
         )
@@ -659,7 +671,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         
         // Construct the transaction request
         const request = {
-          to: WrappedQiContractAddress,
+          to: WRAPPED_QI_CONTRACT_ADDRESS,
           from,
           data,
         }

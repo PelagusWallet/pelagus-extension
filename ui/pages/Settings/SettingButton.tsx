@@ -8,11 +8,12 @@ export default function SettingButton(props: {
   icon: string
   link?: string
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
+  isLoading?: boolean
 }): ReactElement {
-  const { link, ariaLabel, label, icon, onClick } = props
+  const { link, ariaLabel, label, icon, onClick, isLoading } = props
 
   return (
-    <SharedButton type="unstyled" size="medium" linkTo={link} onClick={onClick}>
+    <SharedButton type="unstyled" size="medium" linkTo={link} onClick={onClick} isLoading={isLoading}>
       <div className="button_row">
         <div className="action_name">{label}</div>
         <SharedIcon

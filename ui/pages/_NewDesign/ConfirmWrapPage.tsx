@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
-import { useDispatch } from "react-redux"
 import { useTranslation } from "react-i18next"
 import { useBackgroundSelector } from "../../hooks"
 import { wrapQiHandle } from "@pelagus/pelagus-background/redux-slices/convertAssets"
@@ -9,13 +8,29 @@ import SharedConfirmationModal from "../../components/Shared/SharedConfirmationM
 import SharedButton from "../../components/Shared/SharedButton"
 import { isUtxoAccountTypeGuard, isAccountTotalTypeGuard } from "../../utils/accounts"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
+import { useBackgroundDispatch } from "../../hooks"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+
+interface AsyncThunkResult {
+  txHash?: string
+  error?: { message: string }
+}
 
 const ConfirmWrapPage = () => {
   const { t } = useTranslation("translation", { keyPrefix: "wallet" })
+
+  const { t: confirmationLocales } = useTranslation("translation", {
+    keyPrefix: "drawers.transactionConfirmation",
+  })
   const history = useHistory()
-  const dispatch = useDispatch()
+  const dispatch = useBackgroundDispatch()
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [isTransactionError, setIsTransactionError] = useState(false)
+  const [transactionHash, setTransactionHash] = useState("")
+  const network = useBackgroundSelector(selectCurrentNetwork)
+  const blockExplorerUrl = network.blockExplorerURL
 
   const { from, amount, to } = useBackgroundSelector((state) => state.convertAssets)
 
@@ -30,14 +45,51 @@ const ConfirmWrapPage = () => {
 
     try {
       setIsLoading(true)
-      dispatch(wrapQiHandle({ from, amount, to: to.address }))
+      const result = await dispatch(wrapQiHandle()) as AsyncThunkResult
+      console.log("result", result)
+      if (result?.txHash) {
+        setTransactionHash(result.txHash)
+      } else {
+        if (result?.error) {
+          setErrorMessage(result.error.message)
+        }
+        setIsTransactionError(true)
+      }
       setIsModalOpen(true)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to wrap Qi:", error)
+      setErrorMessage(error?.message || "Failed to wrap Qi")
+      setIsTransactionError(true)
     } finally {
       setIsLoading(false)
     }
   }
+
+  const confirmationModalProps = isTransactionError
+    ? {
+        headerTitle: confirmationLocales("send.errorHeadline"),
+        subtitle: errorMessage || confirmationLocales("send.errorSubtitle"),
+        title: `${confirmationLocales("send.errorTitle")}!`,
+        icon: {
+          src: "icons/s/notif-wrong.svg",
+          height: "43",
+          width: "43",
+          color: "var(--error-color)",
+          padding: "32px",
+        },
+        isOpen: isModalOpen,
+        onClose: () => history.push("/"),
+      }
+    : {
+        headerTitle: t("wrapSuccess"),
+        title: `Qi wrapped successfully`,
+        link: {
+          text: confirmationLocales("viewTransaction"),
+          url: `${blockExplorerUrl}/tx/${transactionHash}`,
+        },
+        isOpen: isModalOpen,
+        onClose: () => history.push("/wrap", { sentWrap: true }),
+      }
 
   return (
     <main>
@@ -61,13 +113,13 @@ const ConfirmWrapPage = () => {
       </div>
 
       <SharedConfirmationModal
-        isOpen={isModalOpen}
-        headerTitle={t("wrapSuccess")}
-        title={`Qi wrapped successfully to ${to && isAccountTotalTypeGuard(to) ? to.address : "Quai"}`}
-        onClose={() => {
-          setIsModalOpen(false)
-          history.push("/")
-        }}
+        headerTitle={confirmationModalProps.headerTitle}
+        title={confirmationModalProps.title}
+        subtitle={confirmationModalProps.subtitle}
+        isOpen={confirmationModalProps.isOpen}
+        onClose={confirmationModalProps.onClose}
+        icon={confirmationModalProps.icon}
+        link={confirmationModalProps.link}
       />
 
       <style jsx>{`

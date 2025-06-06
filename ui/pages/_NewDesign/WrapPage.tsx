@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useHistory } from "react-router-dom"
+import { useHistory, useLocation } from "react-router-dom"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { formatQi, Zone } from "quais"
 import { isAccountTotalTypeGuard, isUtxoAccountTypeGuard } from "../../utils/accounts"
@@ -14,6 +14,11 @@ import AccountsNotificationPanel from "../../components/AccountsNotificationPane
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import ConvertFrom from "../../components/_NewDesign/ConvertAsset/ConvertFrom/ConvertFrom"
 import ConvertFromAmount from "../../components/_NewDesign/ConvertAsset/ConvertFromAmount/ConvertFromAmount"
+
+interface WrapLocationState {
+  sentWrap?: boolean
+}
+
 const MIN_QUAI_REQUIREMENT = 0.5
 
 const WrapPage = () => {
@@ -22,13 +27,12 @@ const WrapPage = () => {
       })
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
-
+  const location = useLocation<WrapLocationState>()
   const from = useBackgroundSelector((state) => state.convertAssets.from)
   const amount = useBackgroundSelector((state) => state.convertAssets.amount)
   const to = useBackgroundSelector((state) => state.convertAssets.to)
   const wrappedQiDeposit = useBackgroundSelector((state) => state.convertAssets.wrappedQiDeposit)
   const [isClaiming, setIsClaiming] = useState(false)
-
   useEffect(() => {
     if (to && isAccountTotalTypeGuard(to)) {
       dispatch(getWrappedQiDepositHandle({ from: to.address }))
@@ -86,7 +90,41 @@ const WrapPage = () => {
 
   const renderDepositBalance = () => {
     if (!wrappedQiDeposit || wrappedQiDeposit === BigInt(0)) {
-      return null
+      if (location.state?.sentWrap && !isClaiming) {
+        return (
+          <div className="details-wrapper">
+            <div className="details-row">
+              <p className="details-row-key">Pending Deposit to WQI</p>
+              <p className="details-row-value">Loading...</p>
+            </div>
+            <style jsx>{`
+            .details-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              background: var(--secondary-bg);
+              border-radius: 8px;
+              padding: 2%;
+              margin-bottom: 3%;
+            }
+            .details-row-key {
+              font-weight: 900;
+              font-size: 14px;
+              line-height: 18px;
+              color: var(--secondary-text);
+            }
+            .details-row-value {
+              font-weight: 500;
+              font-size: 14px;
+              line-height: 20px;
+              color: var(--primary-text);
+            }
+          `}</style>
+          </div>
+        )
+      } else {
+        return null
+      }
     }
 
     return (
@@ -98,10 +136,13 @@ const WrapPage = () => {
         <SharedButton
           type="secondary"
           size="medium"
-          onClick={() => {
+          onClick={async () => {
             if (to && isAccountTotalTypeGuard(to)) {
-              dispatch(claimWrappedQiDepositHandle({ from: to.address }))
               setIsClaiming(true)
+              await dispatch(claimWrappedQiDepositHandle({ from: to.address }))
+              setTimeout(() => {
+                dispatch(getWrappedQiDepositHandle({ from: to.address }))
+              }, 10000)
             }
           }}
           isDisabled={isClaiming}
@@ -166,7 +207,7 @@ const WrapPage = () => {
       </div>
       <SharedActionButtons
         title={{ confirmTitle: "Wrap", cancelTitle: "Cancel" }}
-        onClick={{ onConfirm: handleConfirm, onCancel: () => history.goBack() }}
+        onClick={{ onConfirm: handleConfirm, onCancel: () => history.push("/") }}
         isConfirmDisabled={isDisabledHandle()}
       />
       <AccountsNotificationPanel

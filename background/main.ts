@@ -163,6 +163,7 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
+import { WRAPPED_QI_CONTRACT_ADDRESS } from "./constants/base-assets"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -593,8 +594,26 @@ export default class Main extends BaseService<never> {
       return
 
     const { balances } = currentAccountState
-    for (const assetSymbol in balances) {
-      const { asset } = balances[assetSymbol].assetAmount
+    const wQi = this.indexingService.getKnownSmartContractAsset(selectedAccount.network, WRAPPED_QI_CONTRACT_ADDRESS)
+    
+    // Create a new balances object
+    const updatedBalances = { ...balances }
+    
+    if(wQi && !updatedBalances["WQI"]) {
+      updatedBalances["WQI"] = {
+        assetAmount: {
+          amount: BigInt(0),
+          asset: wQi,
+        },
+        network: selectedAccount.network,
+        retrievedAt: Date.now(),
+        dataSource: "local",
+        address: selectedAccount.address,
+      }
+    }
+
+    for (const assetSymbol in updatedBalances) {
+      const { asset } = updatedBalances[assetSymbol].assetAmount
       let newSpendableBalance = BigInt(0)
       let newLockedBalance = BigInt(0)
       const isSmartContractAsset = isSmartContractFungibleAsset(asset)

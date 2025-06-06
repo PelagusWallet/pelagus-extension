@@ -9,10 +9,18 @@ import AccountsNotificationPanel from "../../components/AccountsNotificationPane
 import ConfirmTransaction from "../../components/_NewDesign/ConfirmTransaction/ConfirmTransaction"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
 import SharedConfirmationModal from "../../components/Shared/SharedConfirmationModal"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
+
+interface AsyncThunkResult {
+  txHash?: string
+  error?: { message: string }
+}
 
 const ConfirmTransactionPage = () => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
+  const network = useBackgroundSelector(selectCurrentNetwork)
+  const blockExplorerUrl = network.blockExplorerURL
 
   const { t: confirmationLocales } = useTranslation("translation", {
     keyPrefix: "drawers.transactionConfirmation",
@@ -27,6 +35,8 @@ const ConfirmTransactionPage = () => {
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(false)
   const [isConfirmLoading, setIsConfirmLoading] = useState(false)
   const [isTransactionError, setIsTransactionError] = useState(false)
+  const [transactionHash, setTransactionHash] = useState<string>("")
+  const [errorMessage, setErrorMessage] = useState<string>("")
 
   useEffect(() => {
     if (channelExists) return
@@ -44,17 +54,34 @@ const ConfirmTransactionPage = () => {
     if (!channelExists && isInsufficientQuai) return
 
     setIsConfirmLoading(true)
-    dispatch(sendQiTransaction())
-    setTimeout(() => {
+    setIsTransactionError(false)
+    setTransactionHash("")
+
+    try {
+      const result = await dispatch(sendQiTransaction()) as AsyncThunkResult
+      console.log("result", result)
+      if (result?.txHash) {
+        setTransactionHash(result.txHash)
+      } else {
+        if (result?.error) {
+          setErrorMessage(result.error.message)
+        }
+        setIsTransactionError(true)
+      }
+    } catch (error: any) {
+      console.error("Transaction error:", error)
+      setErrorMessage(error?.message || confirmationLocales("send.errorSubtitle"))
+      setIsTransactionError(true)
+    } finally {
       setIsConfirmLoading(false)
       setIsOpenConfirmationModal(true)
-    }, 2000)
+    }
   }
 
   const confirmationModalProps = isTransactionError
     ? {
         headerTitle: confirmationLocales("send.errorHeadline"),
-        subtitle: confirmationLocales("send.errorSubtitle"),
+        subtitle: errorMessage || confirmationLocales("send.errorSubtitle"),
         title: `${confirmationLocales("send.errorTitle")}!`,
         icon: {
           src: "icons/s/notif-wrong.svg",
@@ -71,6 +98,10 @@ const ConfirmTransactionPage = () => {
           network: "",
         }),
         title: confirmationLocales("send.title"),
+        link: {
+          text: confirmationLocales("viewTransaction"),
+          url: `${blockExplorerUrl}/tx/${transactionHash}`,
+        },
         isOpen: isOpenConfirmationModal,
         onClose: () => history.push("/"),
       }
@@ -104,6 +135,7 @@ const ConfirmTransactionPage = () => {
         isOpen={confirmationModalProps.isOpen}
         onClose={confirmationModalProps.onClose}
         icon={confirmationModalProps.icon}
+        link={confirmationModalProps.link}
       />
       <style jsx>{`
         .confirm-transaction-wrapper {

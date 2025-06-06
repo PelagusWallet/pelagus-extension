@@ -275,12 +275,14 @@ export const selectCurrentAccountBalances = createSelector(
   selectHideDust,
   selectShowUnverifiedAssets,
   selectMainCurrencySymbol,
+  selectCurrentNetwork,
   (
     currentAccount,
     assets,
     hideDust,
     showUnverifiedAssets,
-    mainCurrencySymbol
+    mainCurrencySymbol,
+    currentNetwork
   ) => {
     if (typeof currentAccount === "undefined" || currentAccount === "loading")
       return undefined
@@ -300,6 +302,27 @@ export const selectCurrentAccountBalances = createSelector(
       }
     })
 
+    // Ensure WQI is always present in allAssetAmounts
+    if (currentNetwork) {
+      // Find WQI asset for the current network in the assets list
+      const wqiAsset = assets.find(
+        (a) =>
+          a.symbol === "WQI" &&
+          isSmartContractFungibleAsset(a) &&
+          a.homeNetwork.chainID === currentNetwork.chainID
+      )
+      // If WQI is not in currentAccount.balances, add a zero balance entry
+      const hasWqiBalance = Object.values(currentAccount.balances).some(
+        (b) =>
+          b.assetAmount.asset.symbol === "WQI" &&
+          isSmartContractFungibleAsset(b.assetAmount.asset) &&
+          b.assetAmount.asset.homeNetwork.chainID === currentNetwork.chainID
+      )
+      if (wqiAsset && !hasWqiBalance) {
+        assetAmounts.push({ asset: wqiAsset, amount: BigInt(0) })
+      }
+    }
+
     const {
       allAssetAmounts,
       lockedAssetAmounts: allLockedAssetAmounts,
@@ -313,7 +336,7 @@ export const selectCurrentAccountBalances = createSelector(
       assets,
       mainCurrencySymbol,
       hideDust,
-      showUnverifiedAssets
+      showUnverifiedAssets,
     )
 
     for (let i = 0; i < allAssetAmounts.length; i++) {

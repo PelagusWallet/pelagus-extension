@@ -10,6 +10,7 @@ import {
   setNewPelagusNotificationsValue,
   selectAutoLockInterval,
   setAutoLockInterval,
+  selectQiWalletSyncInProgress,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import {
@@ -130,7 +131,13 @@ export default function Settings(): ReactElement {
   const showPelagusNotifications = useSelector(selectShowPelagusNotifications)
   const autoLockInterval = useSelector(selectAutoLockInterval)
   const [showRescanConfirm, setShowRescanConfirm] = useState(false)
+  const qiWalletSyncInProgress = useSelector(selectQiWalletSyncInProgress)
 
+  useEffect(() => {
+    if (!qiWalletSyncInProgress) {
+      setShowRescanConfirm(false)
+    }
+  }, [qiWalletSyncInProgress])
 
   const toggleDefaultWallet = (defaultWalletValue: boolean) => {
     dispatch(setNewDefaultWalletValue(defaultWalletValue))
@@ -241,90 +248,104 @@ export default function Settings(): ReactElement {
 
   const forceQiWalletRescan = {
     title: "",
-    component: () => (
-      <>
-        <SettingButton
-          label={t("settings.forceQiWalletRescan")}
-          ariaLabel={t("settings.forceQiWalletRescan")}
-          icon="continue"
-          onClick={() => setShowRescanConfirm(true)}
-        />
-        <SharedDrawer
-          title={t("settings.forceQiWalletRescan")}
-          isOpen={showRescanConfirm}
-          close={() => setShowRescanConfirm(false)}
-          gap={0}
-        >
-          <div className="confirm_rescan">
-            <p>{t("settings.forceQiWalletRescanConfirm")}</p>
-            <div className="button_container">
-              <button
-                type="button"
-                className="cancel"
-                onClick={() => setShowRescanConfirm(false)}
-              >
-                {t("settings.cancel")}
-              </button>
-              <button
-                type="button"
-                className="confirm"
-                onClick={() => {
-                  dispatch(forceQiWalletFullRescan())
-                  setShowRescanConfirm(false)
-                }}
-              >
-                {t("settings.confirm")}
-              </button>
+    component: () => {
+      return (
+        <>
+          <SettingButton
+            label={t("settings.forceQiWalletRescan")}
+            ariaLabel={t("settings.forceQiWalletRescan")}
+            icon="continue"
+            onClick={() => setShowRescanConfirm(true)}
+            isLoading={qiWalletSyncInProgress}
+          />
+          <SharedDrawer
+            title={t("settings.forceQiWalletRescan")}
+            isOpen={showRescanConfirm}
+            close={() => setShowRescanConfirm(false)}
+            gap={0}
+          >
+            <div className="confirm_rescan">
+              <p>{t("settings.forceQiWalletRescanConfirm")}</p>
+              <div className="button_container">
+                <button
+                  type="button"
+                  className="cancel"
+                  onClick={() => setShowRescanConfirm(false)}
+                  disabled={qiWalletSyncInProgress}
+                >
+                  {t("settings.cancel")}
+                </button>
+                <button
+                  type="button"
+                  className="confirm"
+                  onClick={async () => {
+                    try {
+                      dispatch(forceQiWalletFullRescan())
+                    } catch (error) {
+                      console.error("Error during Qi wallet rescan:", error)
+                    } finally {
+                      setShowRescanConfirm(false)
+                    }
+                  }}
+                  disabled={qiWalletSyncInProgress}
+                >
+                  {qiWalletSyncInProgress ? t("settings.rescanning") : t("settings.confirm")}
+                </button>
+              </div>
             </div>
-          </div>
-          <style jsx>
-            {`
-              .confirm_rescan {
-                display: flex;
-                flex-direction: column;
-                min-height: 100px;
-              }
-              p {
-                color: var(--white);
-                font-size: 14px;
-                line-height: 24px;
-                margin: 0;
-              }
-              .button_container {
-                display: flex;
-                justify-content: flex-end;
-                margin-top: auto;
-              }
-              button {
-                padding: 8px 24px;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s;
-              }
-              .cancel {
-                background: transparent;
-                border: 1px solid var(--green-40);
-                color: var(--green-40);
-                margin-right: 10%;
-              }
-              .cancel:hover {
-                background: var(--green-120);
-              }
-              .confirm {
-                background: var(--green-40);
-                border: none;
-                color: var(--hunter-green);
-              }
-              .confirm:hover {
-                background: var(--green-20);
-              }
-            `}
-          </style>
-        </SharedDrawer>
-      </>
-    ),
+            <style jsx>
+              {`
+                .confirm_rescan {
+                  display: flex;
+                  flex-direction: column;
+                  min-height: 100px;
+                }
+                p {
+                  color: var(--white);
+                  font-size: 14px;
+                  line-height: 24px;
+                  margin: 0;
+                }
+                .button_container {
+                  display: flex;
+                  justify-content: flex-end;
+                  margin-top: auto;
+                }
+                button {
+                  padding: 8px 24px;
+                  border-radius: 4px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  cursor: pointer;
+                  transition: all 0.2s;
+                }
+                button:disabled {
+                  opacity: 0.5;
+                  cursor: not-allowed;
+                }
+                .cancel {
+                  background: transparent;
+                  border: 1px solid var(--green-40);
+                  color: var(--green-40);
+                  margin-right: 10%;
+                }
+                .cancel:hover:not(:disabled) {
+                  background: var(--green-120);
+                }
+                .confirm {
+                  background: var(--green-40);
+                  border: none;
+                  color: var(--hunter-green);
+                }
+                .confirm:hover:not(:disabled) {
+                  background: var(--green-20);
+                }
+              `}
+            </style>
+          </SharedDrawer>
+        </>
+      )
+    },
   }
 
   const notificationBanner = {

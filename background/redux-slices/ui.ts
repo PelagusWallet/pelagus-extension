@@ -4,6 +4,8 @@ import { Zone } from "quais"
 import { AccountCategoriesEnum } from "@pelagus/pelagus-ui/utils/enum/accountsEnum"
 import { AnalyticsEvent, OneTimeAnalyticsEvent } from "../lib/posthog"
 import { ChainIdWithError } from "../networks"
+import { PELAGUS_NETWORKS } from "../constants/networks/networks"
+import { NetworkInterface } from "../constants/networks/networkTypes"
 import { AnalyticsPreferences } from "../services/preferences/types"
 import {
   AccountSignerSettings,
@@ -14,7 +16,6 @@ import {
 import { AccountState, addAddressNetwork, UtxoAccountData } from "./accounts"
 import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
-import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QuaiGoldenAgeTestnet } from "../constants/networks/networks"
 
 export const defaultSettings = {
@@ -72,6 +73,9 @@ export type UIState = {
   }
   slippageTolerance: number
   accountSignerSettings: AccountSignerSettings[]
+  qiWalletSyncInProgress: boolean
+  lastUserActivityOnAddress: { [address: string]: number }
+  lastUserActivityOnNetwork: { [chainID: string]: number }
 }
 
 export type Events = {
@@ -124,6 +128,11 @@ export const initialState: UIState = {
   },
   slippageTolerance: 0.01,
   accountSignerSettings: [],
+  qiWalletSyncInProgress: false,
+  lastUserActivityOnAddress: {},
+  lastUserActivityOnNetwork: Object.fromEntries(
+    PELAGUS_NETWORKS.map((network: NetworkInterface) => [network.chainID, 0])
+  ),
 }
 
 const uiSlice = createSlice({
@@ -232,10 +241,16 @@ const uiSlice = createSlice({
     ) => {
       const shard = getExtendedZoneForAddress(addressNetwork.address)
       globalThis.main.SetShard(shard)
-      // TODO: Potentially call getLatestBaseAccountBalance here
       immerState.selectedAccount = addressNetwork
+      if (!immerState.lastUserActivityOnAddress) {
+        immerState.lastUserActivityOnAddress = {}
+      }
+      immerState.lastUserActivityOnAddress[addressNetwork.address] = Date.now()
+      if(!immerState.lastUserActivityOnNetwork) {
+        immerState.lastUserActivityOnNetwork = {}
+      }
+      immerState.lastUserActivityOnNetwork[addressNetwork.network.chainID] = Date.now()
     },
-
     setSelectedUtxoAccount: (
       immerState,
       { payload }: { payload: UtxoAccountData | null }
@@ -357,6 +372,15 @@ const uiSlice = createSlice({
         autoLockInterval,
       },
     }),
+    setQiWalletSyncInProgress: (immerState, { payload }: { payload: boolean }) => {
+      immerState.qiWalletSyncInProgress = payload
+    },
+    updateLastUserActivityOnNetwork: (
+      immerState,
+      { payload: chainID }: { payload: string }
+    ) => {
+      immerState.lastUserActivityOnNetwork[chainID] = Date.now()
+    },
   },
 })
 
@@ -388,6 +412,8 @@ export const {
   setIsUtxoSelected,
   updateSelectedUtxoAccountBalance,
   setAutoLockInterval,
+  setQiWalletSyncInProgress,
+  updateLastUserActivityOnNetwork,
 } = uiSlice.actions
 
 export default uiSlice.reducer
@@ -512,6 +538,8 @@ export const setSelectedNetwork = createBackgroundAsyncThunk(
     const state = getState() as { ui: UIState; account: AccountState }
     const { ui, account } = state
     const currentlySelectedChainID = ui.selectedAccount.network.chainID
+    
+    dispatch(updateLastUserActivityOnNetwork(network.chainID))
     emitter.emit("newSelectedNetwork", network)
     // Add any accounts on the currently selected network to the newly
     // selected network - if those accounts don't yet exist on it.
@@ -642,6 +670,11 @@ export const selectShowingImportPrivateKeyModal = createSelector(
 export const selectImportPrivateKeyModalCategory = createSelector(
   selectUI,
   (ui) => ui.showingImportPrivateKeyModal.category
+)
+
+export const selectQiWalletSyncInProgress = createSelector(
+  selectUI,
+  (ui) => ui.qiWalletSyncInProgress
 )
 
 export const selectShowTestNetworks = createSelector(

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
+import { isUtxoAccountTypeGuard, isAccountTotalTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 import { Zone, formatQi, formatQuai, parseQi, parseQuai, quais } from "quais"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
@@ -195,15 +195,23 @@ export const convertAssetsHandle = createBackgroundAsyncThunk(
 
 export const wrapQiHandle = createBackgroundAsyncThunk(
   "convertAssets/wrapQiHandle",
-  async ({from, amount, to}: {from: UtxoAccountData, amount: string, to: string}, { extra: { main }, dispatch }) => {
-    if (!isUtxoAccountTypeGuard(from)) {
-      throw new Error("From account must be a UTXO account")
+  async (_, { getState }) => {
+    const { convertAssets } = getState() as RootState
+    const { from, amount, to } = convertAssets
+
+    if (!from || !amount || !to || !isUtxoAccountTypeGuard(from) || !isAccountTotalTypeGuard(to)) {
+      return { error: { message: "Invalid conversion parameters" } }
     }
-    if (quais.isQuaiAddress(to)) {
-      await main.transactionService.wrapQi(amount, to)
-      dispatch(resetConvertAssetsSlice())
-    } else {
-      throw new Error("Qi address provided to wrapQiHandle but Quai address expected")
+
+    try {
+      const txHash = await main.transactionService.wrapQi(amount, to.address)
+      return { txHash }
+    } catch (error: any) {
+      return { 
+        error: {
+          message: typeof error === 'string' ? error : error?.message
+        }
+      }
     }
   }
 )

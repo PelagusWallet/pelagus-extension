@@ -44,7 +44,7 @@ export default function TransactionSignatureSummaryDefault({
       amount: amountValue,
     },
     heuristicDesiredDecimalsForUnitPrice(
-      2,
+      3,
       typeof baseAssetPricePoint !== "undefined"
         ? unitPricePointForPricePoint(baseAssetPricePoint)
         : undefined

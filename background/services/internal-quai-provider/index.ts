@@ -308,7 +308,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         )
       case "eth_sendRawTransaction":
         throw new Error(
-          "eth_sendRawTransaction is not supported. You must use quai_sendRawTransaction instead."
+          "eth_sendRawTransaction is not supported. You must use eth_sendTransaction or quai_sendRawTransaction instead."
         )
 
       case "quai_gasPrice":
@@ -561,10 +561,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     // // Ethereum specific fields
     if ("gas" in transactionRequest) {
       payload.gasLimit = transactionRequest.gas
-    }
-
-    if ("maxFeePerGas" in transactionRequest) {
-      payload.gasPrice = transactionRequest.maxFeePerGas
     }
 
     if (typeof transactionRequest.value === "undefined") {

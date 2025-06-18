@@ -3,6 +3,7 @@ import {
   WindowRequestEvent,
 } from "@pelagus-provider/provider-bridge-shared"
 import PelagusWindowProvider from "@pelagus-provider/window-provider"
+import { announceProvider } from "./eip-6963"
 
 const PELAGUS_OBJECT_PROPERTY = "pelagus"
 const ETHEREUM_OBJECT_PROPERTY = "ethereum"
@@ -121,5 +122,8 @@ if (!window.ethereum) {
     configurable: true,
   })
 }
+
+// Announce provider for EIP-6963
+announceProvider()
 
 window.dispatchEvent(new Event(DETECT_PROVIDER_INITIALIZATION_EVENT))

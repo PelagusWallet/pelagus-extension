@@ -164,6 +164,11 @@ import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
 import { WRAPPED_QI_CONTRACT_ADDRESS } from "./constants/base-assets"
+import WalletConnectService from "./services/wallet-connect"
+import {
+  setPendingProposal,
+  removeActiveSession,
+} from "./redux-slices/wallet-connect"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -283,6 +288,8 @@ export default class Main extends BaseService<never> {
   public ready: Promise<boolean>
 
   balanceChecker: NodeJS.Timeout
+
+  public walletConnectService: WalletConnectService
 
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
@@ -492,6 +499,15 @@ export default class Main extends BaseService<never> {
     this.UrlToProvider = new Map()
     globalThis.main = this
     this.ready = Promise.resolve(true)
+
+    // Add message listener for WalletConnect URI pairing
+    browser.runtime.onMessage.addListener((message, sender) => {
+      if (message.type === 'PAIR_WALLET_CONNECT_URI') {
+        console.log("PAIR_WALLET_CONNECT_URI", message.uri)
+        // Pair the URI with WalletConnect
+        this.walletConnectService.walletKit?.pair({ uri: message.uri })
+      }
+    })
   }
 
   async SetNetworkError(chainIdWithError: ChainIdWithError): Promise<void> {
@@ -711,6 +727,9 @@ export default class Main extends BaseService<never> {
     // Sequential initialization for services that depend on others
     await this.transactionService.startService()
     await this.blockService.startService()
+
+    // Initialize WalletConnect service
+    await this.connectWalletConnectService()
   }
 
   protected override async internalStopService(): Promise<void> {
@@ -2129,6 +2148,61 @@ export default class Main extends BaseService<never> {
           pricePoint,
         })
       )
+    })
+  }
+
+  private async connectWalletConnectService(): Promise<void> {
+    // Initialize WalletConnect service
+    this.walletConnectService = await WalletConnectService.create()
+    await this.walletConnectService.initialize(process.env.WALLET_CONNECT_PROJECT_ID || "19ddb0ca4668df428cdc61f782694969")
+
+    // Connect WalletConnect service
+    this.walletConnectService.emitter.on("sessionProposal", async (proposal) => {
+      // Handle session proposal
+      const { address } = await this.preferenceService.getSelectedAccount()
+      
+      // Store proposal in Redux for UI to display
+      this.store.dispatch(setPendingProposal({
+        id: proposal.id,
+        dappName: proposal.params.proposer.metadata.name,
+        dappUrl: proposal.params.proposer.metadata.url,
+        dappIcon: proposal.params.proposer.metadata.icons[0]
+      }))
+    })
+
+    this.walletConnectService.emitter.on("sessionRequest", async (request) => {
+      const { topic, params } = request
+      const { request: rpcRequest } = params
+
+      try {
+        const result = await this.internalQuaiProviderService.routeSafeRPCRequest(
+          rpcRequest.method,
+          rpcRequest.params,
+          request.verifyContext.verified.origin
+        )
+
+        await this.walletConnectService.respondToRequest(topic, {
+          id: request.id,
+          result,
+          jsonrpc: "2.0"
+        })
+      } catch (error) {
+        logger.error("Error handling WalletConnect request:", error)
+        await this.walletConnectService.respondToRequest(topic, {
+          id: request.id,
+          error: {
+            code: -32000,
+            message: error instanceof Error ? error.message : "Unknown error"
+          },
+          jsonrpc: "2.0"
+        })
+      }
+    })
+
+    this.walletConnectService.emitter.on("sessionDelete", async (event) => {
+      // Remove session from Redux store
+      this.store.dispatch(removeActiveSession(event.topic))
+      logger.info("WalletConnect session deleted:", event.topic)
     })
   }
 }

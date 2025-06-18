@@ -23,6 +23,7 @@ import ConvertPage from "../pages/_NewDesign/ConvertPage"
 import ConfirmConversionPage from "../pages/_NewDesign/ConfirmConversionPage"
 import WrapPage from "../pages/_NewDesign/WrapPage"
 import ConfirmWrapPage from "../pages/_NewDesign/ConfirmWrapPage"
+import WalletConnectPage from "../pages/WalletConnect"
 
 type PageList = {
   path: string
@@ -137,6 +138,11 @@ const pageList: PageList[] = [
   {
     path: "/dapp-permission",
     Component: DAppPermissionRequest,
+    hasTopBar: false,
+  },
+  {
+    path: "/wallet-connect",
+    Component: WalletConnectPage,
     hasTopBar: false,
   },
   {

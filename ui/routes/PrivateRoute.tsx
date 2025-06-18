@@ -40,7 +40,9 @@ const PrivateRoute = ({
                 />
               )}
 
-              {areKeyringsUnlocked && isAllowedQueryParamPage(pathFromQuery) && (
+              {areKeyringsUnlocked && 
+               isAllowedQueryParamPage(pathFromQuery) && 
+               pathFromQuery !== locationRouter.pathname && (
                 <Redirect
                   to={{
                     pathname: pathFromQuery,

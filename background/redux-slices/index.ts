@@ -11,6 +11,7 @@ import dappReducer from "./dapp"
 import signingReducer from "./signing"
 import qiSendReducer from "./qiSend"
 import convertAssetsReducer from "./convertAssets"
+import walletConnectReducer from "./wallet-connect"
 
 const mainReducer = combineReducers({
   account: accountsReducer,
@@ -24,6 +25,7 @@ const mainReducer = combineReducers({
   signing: signingReducer,
   qiSend: qiSendReducer,
   convertAssets: convertAssetsReducer,
+  walletConnect: walletConnectReducer,
 })
 
 export default mainReducer

@@ -6,13 +6,15 @@
   "author": "https://pelaguswallet.io",
   "manifest_version": 3,
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:* http://localhost:* ws://rpc.sandbox.quai.network:* http://rpc.sandbox.quai.network:* https://rpc.dev.quai.network:* https://rpc.quai.network:* wss://rpc.quai.network:* https://goldenage.rpc.quai.network:* wss://goldenage.rpc.quai.network:* https://orchard.rpc.quai.network:* wss://orchard.rpc.quai.network:* https://api.qu.ai https://ipfs.qu.ai:*; img-src 'self' data: https://*; frame-ancestors 'none'; base-uri 'none'; form-action 'none';",
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:* http://localhost:* ws://rpc.sandbox.quai.network:* http://rpc.sandbox.quai.network:* https://rpc.dev.quai.network:* https://rpc.quai.network:* wss://rpc.quai.network:* https://goldenage.rpc.quai.network:* wss://goldenage.rpc.quai.network:* https://orchard.rpc.quai.network:* wss://orchard.rpc.quai.network:* https://api.qu.ai https://ipfs.qu.ai:* https://cloud.walletconnect.com https://*.walletconnect.org wss://*.walletconnect.org wss://*.walletconnect.com wss://relay.walletconnect.com https://*.walletconnect.com https://relay.walletconnect.com; img-src 'self' data: https://*; frame-ancestors 'none'; base-uri 'none'; form-action 'none';",
     "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'none'; default-src 'none'; connect-src *;"
   },
   "web_accessible_resources": [
     {
       "resources": [
-        "window-provider.js"
+        "window-provider.js",
+        "wc.html",
+        "wc.js"
       ],
       "matches": [
         "<all_urls>"

@@ -93,7 +93,7 @@
       "submitBtn": "Anchors Away!",
       "error": {
         "characterCount": "Must be at least 8 characters",
-        "noMatch": "Passwords don’t match",
+        "noMatch": "Passwords don't match",
         "invalidCharacters": "Must contain at least one number, uppercase, lowercase and special character"
       }
     },
@@ -188,7 +188,7 @@
         },
         "importPrivateKey": {
           "title": "Import private key",
-          "subtitle": "Importing a private key does not associate it to a secret recovery phrase, but it’s still protected by the same password",
+          "subtitle": "Importing a private key does not associate it to a secret recovery phrase, but it's still protected by the same password",
           "inputLabel": "Paste private key string",
           "submit": "Import account",
           "errorImport": "Importing private key failed"
@@ -225,7 +225,7 @@
         "invalidStateMsg": "Verify the order and remove the ones that aren't in the right position.",
         "verifyValidState": "Verify recovery phrase",
         "submit": "Finalize",
-        "tip": "If you didn’t write it down, you can <url>start with a new phrase.</url>"
+        "tip": "If you didn't write it down, you can <url>start with a new phrase.</url>"
       },
       "complete": {
         "title": "Welcome to Pelagus",
@@ -450,7 +450,7 @@
       "guideline": {
         "title": "How to connect to dapps",
         "step1": "Set Pelagus as default",
-        "step2": "Click “connect to wallet” in a dapp",
+        "step2": "Click \"connect to wallet\" in a dapp",
         "step3": "Select one similar to these"
       }
     }
@@ -524,7 +524,7 @@
       "symbol": "Symbol",
       "contract": "Contract address",
       "discoveryTxHash": "Added from transaction",
-      "dontShow": "Don’t show",
+      "dontShow": "Don't show",
       "addToAssetList": "Add to asset list",
       "verifyAssetSnackbar": "Asset added to list",
       "removeAssetSnackbar": "Asset removed from list",
@@ -610,5 +610,24 @@
         "errorSubtitle": "Make sure the transaction you are submitting is valid and try again"
       }
     }
+  },
+  "walletConnect": {
+    "connectRequest": "Connection Request",
+    "selectedAccount": "Selected Account",
+    "approve": "Approve",
+    "reject": "Reject",
+    "connectedDapps": "Connected dApps",
+    "noConnectedDapps": "No dApps connected",
+    "disconnect": "Disconnect",
+    "disconnectConfirm": "Are you sure you want to disconnect from this dApp?",
+    "disconnectSuccess": "Successfully disconnected from dApp",
+    "disconnectError": "Failed to disconnect from dApp",
+    "connectError": "Failed to connect to dApp",
+    "connectSuccess": "Successfully connected to dApp",
+    "dappPermissionListTitle": "Dapp Permissions",
+    "viewAddressPermission": "View your address",
+    "createTransactionPermission": "Create transactions",
+    "rejectConnection": "Reject Connection",
+    "acceptConnection": "Accept Connection"
   }
 }

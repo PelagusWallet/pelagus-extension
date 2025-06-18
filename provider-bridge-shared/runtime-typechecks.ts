@@ -67,6 +67,8 @@ export const AllowedQueryParamPage = {
   dappPermission: "/dapp-permission",
   signData: "/sign-data",
   personalSignData: "/personal-sign",
+  walletConnect: "/wallet-connect",
+  walletConnectWc: "/wallet-connect/wc",
 } as const
 
 export type AllowedQueryParamPageType =

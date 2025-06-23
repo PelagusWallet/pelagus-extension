@@ -1,4 +1,4 @@
-import { isQuaiAddress, Zone } from "quais"
+import { isQuaiAddress, Zone, getAddressDetails, Ledger } from "quais"
 
 const ADDRESS_VALIDATION_PATTERN = /^(0x)?[0-9a-fA-F]{40}$/
 
@@ -24,6 +24,14 @@ export const isGoldenAgeQuaiAddress = (addressToValidate: string): boolean => {
 
   const prefix = addressToValidate.slice(0, 4)
   return isValidZone(prefix)
+}
+
+export const isValidQuaiAddress = (addressToValidate: string): boolean => {
+  const addressDetails = getAddressDetails(addressToValidate)
+  if (!addressDetails) return false
+  return (
+    addressDetails.zone === Zone.Cyprus1 && addressDetails.ledger === Ledger.Quai
+  )
 }
 
 export function normalizeHexAddress(address: string | Buffer): string {

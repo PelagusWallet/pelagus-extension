@@ -4,8 +4,8 @@ import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/s
 import { HexString } from "@pelagus/pelagus-background/types"
 import { useRef, useState, useCallback } from "react"
 import {
-  isGoldenAgeQuaiAddress,
   isValidAddressFormat,
+  isValidQuaiAddress,
 } from "@pelagus/pelagus-background/utils/addresses"
 import { useBackgroundDispatch, useBackgroundSelector } from "./redux-hooks"
 
@@ -138,10 +138,10 @@ export const useAddressOrNameValidation: AsyncValidationHook<
       } else if (!isValidAddressFormat(trimmed)) {
         onValidChange(undefined)
         setErrorMessage("Invalid address format")
-      } else if (!isGoldenAgeQuaiAddress(trimmed)) {
+      } else if (!isValidQuaiAddress(trimmed)) {
         onValidChange(undefined)
-        setErrorMessage("Only Golden Age addresses are supported")
-      } else if (isGoldenAgeQuaiAddress(trimmed)) {
+        setErrorMessage("Only valid Quai addresses are supported")
+      } else if (isValidQuaiAddress(trimmed)) {
         onValidChange({ address: trimmed })
       } else {
         setIsValidating(true)

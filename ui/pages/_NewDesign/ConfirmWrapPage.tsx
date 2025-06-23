@@ -83,10 +83,7 @@ const ConfirmWrapPage = () => {
     : {
         headerTitle: t("wrapSuccess"),
         title: `Qi wrapped successfully`,
-        link: {
-          text: confirmationLocales("viewTransaction"),
-          url: `${blockExplorerUrl}/tx/${transactionHash}`,
-        },
+        subtitle: "Please wait a minute to claim your wrapped Qi",
         isOpen: isModalOpen,
         onClose: () => history.push("/wrap", { sentWrap: true }),
       }
@@ -107,8 +104,9 @@ const ConfirmWrapPage = () => {
           size="large"
           onClick={handleConfirm}
           isDisabled={isLoading}
+          isLoading={isLoading}
         >
-          {isLoading ? t("wrapping") : t("confirm")}
+          {t("confirm")}
         </SharedButton>
       </div>
 
@@ -119,7 +117,6 @@ const ConfirmWrapPage = () => {
         isOpen={confirmationModalProps.isOpen}
         onClose={confirmationModalProps.onClose}
         icon={confirmationModalProps.icon}
-        link={confirmationModalProps.link}
       />
 
       <style jsx>{`

@@ -24,7 +24,7 @@ import {
 import { IVaultManager } from "./vault-manager"
 import PrivateKeyManager from "./wallets/private-key-manager"
 import QuaiHDWalletManager from "./wallets/quai-hd-wallet-manager"
-import { isGoldenAgeQuaiAddress } from "../../utils/addresses"
+import { isValidQuaiAddress } from "../../utils/addresses"
 import logger from "../../lib/logger"
 import { SignerType } from "../signing"
 import { generateRandomBytes } from "./utils"
@@ -274,8 +274,8 @@ export default class WalletManager {
   // -------------------------- private methods --------------------------
   private async importPrivateKey(privateKey: string): Promise<string> {
     const { address, publicKey } = await this.privateKeyManager.add(privateKey)
-    if (!isGoldenAgeQuaiAddress(address)) {
-      throw new Error("Not a Golden Age address", { cause: applicationError })
+    if (!isValidQuaiAddress(address)) {
+      throw new Error("Not a valid Quai address", { cause: applicationError })
     }
 
     if (await this.findSigner(address)) {

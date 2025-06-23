@@ -146,8 +146,9 @@ const WrapPage = () => {
             }
           }}
           isDisabled={isClaiming}
+          isLoading={isClaiming}
         >
-          {isClaiming ? "Claiming..." : "Claim"}
+          Claim
         </SharedButton>
 
       <style jsx>{`

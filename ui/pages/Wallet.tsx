@@ -127,7 +127,7 @@ export default function Wallet(): ReactElement {
   return (
     <>
       <div className="page_content">
-        {showAlphaWalletBanner && <WalletAlphaBanner />}
+        {/* {showAlphaWalletBanner && <WalletAlphaBanner />} */}
         {/* {!showAnalyticsNotification && */}
         {/*  isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && ( */}
         {/*    <WalletToggleDefaultBanner /> */}

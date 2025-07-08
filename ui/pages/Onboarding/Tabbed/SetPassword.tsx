@@ -153,12 +153,6 @@ export default function SetPassword(): JSX.Element {
   return (
     <section className="fadeIn">
       <header>
-        <img
-          alt="Secure pelagus"
-          width="80"
-          height="80"
-          src="./images/pelagus_chest.png"
-        />
         <style jsx>
           {`
             header {
@@ -195,12 +189,16 @@ export default function SetPassword(): JSX.Element {
           }}
         >
           <div className="input_wrap">
+            <label className="input_label">Password</label>
             <PasswordInput
-              label="Password"
               name="password"
+              placeholder="Enter a Password"
               onChange={handleInputChange(setPassword)}
               errorMessage={passwordErrorMessage}
             />
+            <div className="requirement_text">
+              *Must have at least 8 characters
+            </div>
           </div>
           <div className="strength_bar_wrap">
             {!passwordErrorMessage && (
@@ -208,9 +206,10 @@ export default function SetPassword(): JSX.Element {
             )}
           </div>
           <div className="input_wrap repeat_password_wrap">
+            <label className="input_label">Confirm Password</label>
             <PasswordInput
               name="confirm_password"
-              label="Repeat Password"
+              placeholder="Enter a Password"
               onChange={handleInputChange(setPasswordConfirmation)}
               errorMessage={passwordErrorMessage}
             />
@@ -225,9 +224,7 @@ export default function SetPassword(): JSX.Element {
             showLoadingOnClick={!passwordErrorMessage}
             isFormSubmit
           >
-            <span className="submit_button">
-              {t("onboarding.setPassword.submit")}
-            </span>
+            <span className="submit_button">Anchors Away!</span>
           </SharedButton>
         </form>
 
@@ -242,6 +239,22 @@ export default function SetPassword(): JSX.Element {
 
             .input_wrap {
               width: 100%;
+              margin-bottom: 8px;
+            }
+
+            .input_label {
+              display: block;
+              color: white;
+              font-size: 14px;
+              margin-bottom: 8px;
+              text-align: left;
+            }
+
+            .requirement_text {
+              color: #808080;
+              font-size: 12px;
+              margin-top: 8px;
+              text-align: left;
             }
 
             .strength_bar_wrap {
@@ -251,9 +264,11 @@ export default function SetPassword(): JSX.Element {
               padding-top: 10px;
               margin-bottom: 28px;
             }
+
             .repeat_password_wrap {
               margin-bottom: 44px;
             }
+
             .set_as_default_ask {
               display: flex;
               align-items: center;
@@ -264,6 +279,7 @@ export default function SetPassword(): JSX.Element {
               font-weight: 500;
               margin-bottom: 32px;
             }
+
             .password_section {
               text-align: center;
               width: 100%;
@@ -275,6 +291,10 @@ export default function SetPassword(): JSX.Element {
               font-size: 20px;
               line-height: 24px;
               font-weight: 500;
+            }
+
+            form :global(button[type="submit"]) {
+              border-radius: 4px;
             }
           `}
         </style>

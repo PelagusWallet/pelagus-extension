@@ -1,7 +1,6 @@
 import React, { ReactElement } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import SharedButton from "../../../../components/Shared/SharedButton"
-import OnboardingTip from "../OnboardingTip"
 
 export default function NewSeedIntro({
   onAccept,
@@ -14,26 +13,29 @@ export default function NewSeedIntro({
 
   return (
     <section className="step_content fadeIn">
-      <h1 className="center_text">{t("title")}</h1>
+      <h1 className="title">{t("title")}</h1>
       <div className="message">
-        <div className="message_header">
-          <img
-            className="message_icon"
-            src="./images/message_warning.png"
-            alt="warning"
+        <div className="message_content">
+          <img 
+            src="./images/material-symbols_warning-outline.png" 
+            alt="warning" 
+            className="warning_icon"
           />
+          <p>
+            It's important to write down your secret recovery phrase and store it somewhere
+            safe. This is the only way to recover your accounts and funds.
+          </p>
+          <p className="underlined">
+            You will not be able to export your recovery phrase later.
+          </p>
         </div>
-        <p>
-          <Trans t={t} i18nKey="warning" components={{ u: <u /> }} />
-        </p>
       </div>
       <div className="cta">
         <SharedButton type="primary" size="large" onClick={onAccept} center>
           {t("submit")}
-        </SharedButton>
+      </SharedButton>
       </div>
 
-      <OnboardingTip>{t("tip")}</OnboardingTip>
       <style jsx>{`
         .step_content {
           display: flex;
@@ -41,57 +43,50 @@ export default function NewSeedIntro({
           align-items: stretch;
           max-width: 380px;
           margin: 0 auto;
+          gap: 24px;
         }
 
-        section h1 {
-          font-family: "TT Travels";
-          font-style: normal;
-          font-weight: 500;
-          font-size: 36px;
-          line-height: 42px;
-          margin: 45px 0 48px;
+        .title {
+          font-family: "Segment";
+          font-size: 24px;
+          line-height: 32px;
+          color: white;
+          margin: 0;
+          text-align: center;
         }
 
         .message {
-          background: var(--green-95);
-          border-radius: 8px;
-          font-weight: 600;
-          color: var(--green-20);
-          padding: 24px 29px 32px;
-          margin: 15px 0 24px;
-          display: flex;
-          flex-direction: column;
+          background: rgba(33, 150, 243, 0.1);
+          border: 1px solid #2196F3;
+          border-radius: 4px;
+          padding: 16px;
         }
 
-        .message p {
+        .message_content {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .warning_icon {
+          width: 24px;
+          height: 24px;
+        }
+
+        p {
           margin: 0;
           font-family: "Segment";
-          font-style: normal;
-          font-weight: 600;
-          font-size: 18px;
+          font-size: 16px;
           line-height: 24px;
-          color: var(--green-20);
-          text-align: left;
+          color: white;
         }
 
-        .message_header {
-          display: flex;
-          align-items: center;
-          font-weight: 600;
-          font-size: 18px;
-          color: var(--attention);
+        .underlined {
+          text-decoration: underline;
         }
 
-        .message_icon {
-          height: 54px;
-          margin: 10px auto;
-        }
-
-        .cta {
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          margin-bottom: 40px;
+        :global(button) {
+          border-radius: 4px;
         }
       `}</style>
     </section>

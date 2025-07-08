@@ -51,17 +51,17 @@ export default function NewSeedReview({
         </div>
 
         <div className="copy_button_container">
-          <button 
-            type="button" 
-            className="copy_button"
-            onClick={() => {
-              navigator.clipboard.writeText(mnemonic?.join(" ") ?? "")
-              dispatch(setSnackbarMessage(sharedT("copyTextSnackbar")))
-            }}
+        <div className="copy_phrase">
+          <SharedButton
+            type="tertiary"
+            size="small"
+            iconMedium="copy"
+            onClick={onCopyMnemonic}
+            center
           >
-            <img src="./images/icons/m/copy.svg" alt="copy" />
-            Copy phrase to clipboard
-          </button>
+            {t("copyAddressAction")}
+          </SharedButton>
+        </div>
         </div>
 
         <SharedButton 

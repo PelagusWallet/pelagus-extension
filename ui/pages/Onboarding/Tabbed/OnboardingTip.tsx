@@ -10,7 +10,7 @@ export default function OnboardingTip({
       <div role="presentation" className="quote_icon">
         <span>i</span>
       </div>
-      <q>{children}</q>
+      <q className="tip-text">{children}</q>
       <style jsx>
         {`
           .quote_icon {
@@ -50,6 +50,17 @@ export default function OnboardingTip({
           q::before,
           q::after {
             content: none;
+          }
+
+          :global(.reset_seed_link) {
+            color: #1775E4;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            text-decoration: none;
+          }
+
+          :global(.reset_seed_link:hover) {
+            opacity: 0.8;
           }
         `}
       </style>

@@ -13,93 +13,86 @@ export default function Intro(): ReactElement {
   const dispatch = useBackgroundDispatch()
 
   return (
-    <section className="fadeIn">
-      <header>
-        <div className="illustration" />
-        <h1>{t("title")}</h1>
-      </header>
-      <div className="actions">
+    <section className="intro_section fadeIn">
+      <img src="./images/pelagus_title_vertical_grey.svg" alt="Pelagus" className="logo" />
+      <h1 className="title">Raise your sails, matey!</h1>
+      <p className="description">
+        Pelagus Wallet, the first open source web wallet for Quai Network.
+      </p>
+      <div className="button_container">
         <SharedButton
-          type="primary"
+          type="secondary"
           size="large"
           linkTo={OnboardingRoutes.ADD_WALLET}
           onClick={() =>
             dispatch(sendEvent(OneTimeAnalyticsEvent.ONBOARDING_STARTED))
           }
           center
-          style={{
-            fontSize: "20px",
-            lineHeight: "24px",
-            fontWeight: 500,
-          }}
         >
           {t("useExisting")}
         </SharedButton>
         <SharedButton
-          type="secondary"
+          type="primary"
           size="large"
           linkTo={OnboardingRoutes.NEW_SEED}
           onClick={() =>
             dispatch(sendEvent(OneTimeAnalyticsEvent.ONBOARDING_STARTED))
           }
           center
-          style={{
-            fontSize: "20px",
-            lineHeight: "24px",
-            fontWeight: 500,
-          }}
         >
           {t("createNew")}
         </SharedButton>
       </div>
       <style jsx>
         {`
-          section {
-            max-width: 348px;
-            margin: 0 auto;
+          .intro_section {
+            width: 100%;
+            max-width: 480px;
             display: flex;
             flex-direction: column;
-            gap: 65px;
-            justify-content: center;
             align-items: center;
+            text-align: center;
             --fade-in-duration: 300ms;
           }
 
-          .illustration {
-            background: url("./icon-128.png");
-            background-size: cover;
-            width: 120px;
-            border-radius: 20px;
-            height: 120px;
-            margin: 0 auto;
+          .logo {
+            width: 192px;
+            height: 192px;
+            margin-bottom: 24px;
           }
 
-          header {
+          .title {
+            font-family: "Segment";
+            font-size: 24px;
+            line-height: 32px;
+            color: #FFFFFF;
+            margin: 0 0 12px 0;
+          }
+
+          .description {
+            font-family: "Segment";
+            font-size: 16px;
+            line-height: 24px;
+            color: #808080;
+            margin: 0 0 32px 0;
+          }
+
+          .button_container {
             display: flex;
-            flex-direction: column;
             gap: 16px;
-          }
-
-          header h1 {
-            font-family: "TT Travels";
-            font-weight: 500;
-            font-size: 45px;
-            line-height: 52px;
-            margin: 0;
-            color: #ffffff;
-            display: block;
-            text-align: center;
-          }
-
-          .actions {
             width: 100%;
-            box-sizing: border-box;
-            border-radius: 16px;
-            background: var(--green-95);
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
+            justify-content: space-between;
+          }
+
+          .button_container > :global(button) {
+            flex: 1 1 0;
+            border-radius: 4px !important;
+          }
+
+          @media (max-width: 520px) {
+            .intro_section {
+              padding: 0 16px;
+            }
           }
         `}
       </style>

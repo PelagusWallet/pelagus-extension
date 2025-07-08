@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { ReactElement, useEffect, useState } from "react"
 import {
   createPassword,
   unlockKeyrings,
@@ -23,7 +23,7 @@ import { WalletDefaultToggle } from "../../../components/Wallet/WalletToggleDefa
 import OnboardingRoutes from "./Routes"
 import { validatePassword } from "../../../utils/passwordValidation"
 
-export default function SetPassword(): JSX.Element {
+export default function SetPassword(): ReactElement {
   const [password, setPassword] = useState("")
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
@@ -200,7 +200,7 @@ export default function SetPassword(): JSX.Element {
               *Must have at least 8 characters
             </div>
           </div>
-          <div className="strength_bar_wrap">
+          <div className="strength_bar_wrap" aria-hidden="true" tabIndex={-1}>
             {!passwordErrorMessage && (
               <PasswordStrengthBar password={password} />
             )}

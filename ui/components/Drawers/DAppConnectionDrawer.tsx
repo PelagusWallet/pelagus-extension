@@ -145,13 +145,13 @@ export default function DAppConnectionDrawer({
         .disconnect-btn {
           font-weight: 500;
           line-height: 20px;
-          border: 1px solid var(--green-40);
+          border: 1px solid var(--secondary-text);
           border-radius: 4px;
           width: 100%;
           padding: 10px;
           text-align: center;
           box-sizing: border-box;
-          color: var(--green-40);
+          color: var(--secondary-text);
         }
         .disconnect-btn:hover {
           border-color: var(--green-20);

@@ -14,6 +14,16 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
   const passwordInputType = showPassword ? "text" : "password"
   const { t } = useTranslation("translation", { keyPrefix: "shared" })
 
+  const handleShowButtonKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      const nextInput = e.currentTarget.closest('.wrapper')?.nextElementSibling?.querySelector('input');
+      if (nextInput) {
+        (nextInput as HTMLElement).focus();
+      }
+    }
+  };
+
   return (
     <div className="wrapper">
       <SharedInput
@@ -25,7 +35,9 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
         <button
           type="button"
           onClick={() => setShowPassword((visible) => !visible)}
+          onKeyDown={handleShowButtonKeyDown}
           className="show_button"
+          tabIndex={-1}
         >
           {showPassword ? "Hide" : "Show"}
         </button>
@@ -34,10 +46,10 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
         {`
           .wrapper > :global(input) {
             padding-right: 70px;
-            background: #1C1C1C;
+            background: var(--secondary-bg);
             border: 1px solid #333333;
             border-radius: 4px;
-            color: white;
+            color: var(--primary-text);
             height: 48px;
             font-size: 16px;
           }

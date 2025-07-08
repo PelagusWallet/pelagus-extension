@@ -155,7 +155,6 @@ export default function AccountItemEditName({
           box-sizing: border-box;
           height: 52px;
           margin: 15px auto 0;
-          background-color: var(--hunter-green);
           border-radius: 16px;
         }
       `}</style>

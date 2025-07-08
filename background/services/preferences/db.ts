@@ -46,6 +46,7 @@ export interface Preferences {
   showTestNetworks: boolean
   showPelagusNotifications: boolean
   showPaymentChannelModal: boolean
+  theme: string
 }
 
 export class PreferenceDatabase extends Dexie {
@@ -114,6 +115,15 @@ export class PreferenceDatabase extends Dexie {
         })
     })
 
+    this.version(4).upgrade((tx) => {
+      return tx
+        .table("preferences")
+        .toCollection()
+        .modify((preferences: Preferences) => {
+          preferences.theme = "light"
+        })
+    })
+
     this.on("populate", (tx: Transaction) => {
       tx.table("preferences").add(DEFAULT_PREFERENCES)
     })
@@ -122,7 +132,8 @@ export class PreferenceDatabase extends Dexie {
   async getPreferences(): Promise<Preferences> {
     // TBD: This will surely return a value because `getOrCreateDB` is called first
     // when the service is created. It runs the migration which writes the `DEFAULT_PREFERENCES`
-    return this.preferences.reverse().first() as Promise<Preferences>
+    const prefs = await this.preferences.reverse().first()
+    return prefs as Preferences
   }
 
   async setShowDefaultWalletBanner(newValue: boolean): Promise<void> {
@@ -171,6 +182,18 @@ export class PreferenceDatabase extends Dexie {
       .modify((storedPreferences: Preferences) => {
         const update: Partial<Preferences> = {
           showPaymentChannelModal: newValue,
+        }
+
+        Object.assign(storedPreferences, update)
+      })
+  }
+
+  async setTheme(theme: string): Promise<void> {
+    await this.preferences
+      .toCollection()
+      .modify((storedPreferences: Preferences) => {
+        const update: Partial<Preferences> = {
+          theme,
         }
 
         Object.assign(storedPreferences, update)

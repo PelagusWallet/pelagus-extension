@@ -300,7 +300,7 @@ export default function NetworkSettingsSelect({
               }}
               label={t("networkFees.gasLimit")}
               type="number"
-              focusedLabelBackgroundColor="var(--green-95)"
+              focusedLabelBackgroundColor="var(--secondary-bg)"
               step={1000}
             />
           </div>
@@ -342,7 +342,7 @@ export default function NetworkSettingsSelect({
           }
           .max_label {
             font-size: 14px;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .info {
             display: flex;

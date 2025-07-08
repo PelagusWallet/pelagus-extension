@@ -41,7 +41,7 @@ export default function RawDataPanel({
           padding: 24px;
           border-radius: 4px;
           background-color: var(--hunter-green);
-          color: var(--green-40);
+          color: var(--secondary-text);
           overflow-wrap: break-word;
         }
       `}</style>

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { ReactElement, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import OnboardingRoutes from "./Routes"
 import { intersperseWith } from "../../../utils/lists"
@@ -17,7 +17,7 @@ export function AddWalletRow({
   url,
   label,
   onClick,
-}: AddWalletRowProps): JSX.Element {
+}: AddWalletRowProps): ReactElement {
   return (
     <SharedButton
       style={{ width: "100%" }}
@@ -27,37 +27,41 @@ export function AddWalletRow({
       onClick={onClick}
     >
       <div className="option">
-        <SharedIcon icon={icon} width={32} color="currentColor" />
+        <SharedIcon icon={icon} width={32} color="white" />
         {label}
         <SharedIcon
           customStyles="margin-left: auto;"
           icon="chevron_right.svg"
           width={16}
-          color="currentColor"
+          color="white"
         />
       </div>
       <style jsx>{`
         .option {
           display: flex;
           width: 100%;
-          gap: 10px;
+          gap: 16px;
           align-items: center;
-          background-color: var(--green-95);
-          font-size: 18px;
-          font-weight: 600;
-          color: var(--green-20);
+          background: #1C1C1C;
+          border-radius: 4px;
+          padding: 16px;
+          font-family: "Segment";
+          font-size: 16px;
+          font-weight: 500;
+          color: white;
           line-height: 24px;
+          transition: opacity 0.2s ease;
         }
 
         .option:hover {
-          color: var(--trophy-gold);
+          opacity: 0.8;
         }
       `}</style>
     </SharedButton>
   )
 }
 
-export default function AddWalletOptions(): JSX.Element {
+export default function AddWalletOptions(): ReactElement {
   const { t } = useTranslation("translation", {
     keyPrefix: "onboarding.tabbed.addWallet",
   })
@@ -88,31 +92,55 @@ export default function AddWalletOptions(): JSX.Element {
   }, [t])
 
   return (
-    <>
-      {optionsWithSpacer.map((option) => {
-        if (typeof option === "string") {
-          return <li key={option} className="spacer" role="presentation" />
-        }
+    <div className="options_container">
+      <ul>
+        {optionsWithSpacer.map((option) => {
+          if (typeof option === "string") {
+            return <li key={option} className="spacer" role="presentation" />
+          }
 
-        const { label, icon, url } = option
-        return (
-          <li key={url}>
-            <AddWalletRow icon={icon} url={url} label={label} />
-          </li>
-        )
-      })}
+          const { label, icon, url } = option
+          return (
+            <li key={url}>
+              <AddWalletRow icon={icon} url={url} label={label} />
+            </li>
+          )
+        })}
+      </ul>
       <style jsx>
         {`
+          .options_container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+          }
+
+          ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+
           li {
             display: flex;
           }
 
           .spacer {
             width: 100%;
-            border: 0.5px solid var(--green-120);
+            border: 0.5px solid #333333;
+            margin: 4px 0;
+          }
+
+          @media (max-width: 520px) {
+            .options_container {
+              padding: 0 16px;
+            }
           }
         `}
       </style>
-    </>
+    </div>
   )
 }

@@ -72,7 +72,7 @@ export default function BalanceReloader(): ReactElement {
         .reload {
           mask-image: url("./images/reload@2x.png");
           mask-size: cover;
-          background-color: #96969b;
+          background-color: var(--secondary-text);
           width: 17px;
           height: 17px;
         }
@@ -86,7 +86,7 @@ export default function BalanceReloader(): ReactElement {
           animation: spin 1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
         }
         .spinning:hover {
-          background-color: #fff;
+          background-color: var(--primary-text);
         }
         @keyframes spin {
           to {

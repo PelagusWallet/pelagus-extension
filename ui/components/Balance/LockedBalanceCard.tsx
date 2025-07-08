@@ -15,8 +15,8 @@ export default function LockedBalanceCard({
       <span className="balance">{balance} {assetSymbol} Locked</span>
       <style jsx>{`
         .locked-balance-card {
-          color: #19191a;
-          background-color: #efefef;
+          color: var(--primary-text);
+          background-color: var(--secondary-bg);
           border-radius: 8px;
           padding: 10px;
           width: 200px;
@@ -30,7 +30,7 @@ export default function LockedBalanceCard({
           mask: url("./images/balance_lock.svg") center / contain no-repeat;
           width: 20px;
           height: 21px;
-          background-color: #96969b;
+          background-color: var(--secondary-text);
           margin-right: 12px;
         }
         .balance {

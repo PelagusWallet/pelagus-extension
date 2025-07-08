@@ -145,17 +145,17 @@ export default function SharedButton(
           }
           .button:hover {
             background-color: var(--gold-80);
-            color: var(--green-95);
+            color: var(--secondary-bg);
           }
           .button:hover .icon_button {
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
           }
           .button:active {
             background-color: var(--trophy-gold);
             color: var(--green-120);
           }
           .button:active .icon_button {
-            background-color: var(--green-120);
+            background-color: var(--primary-bg);
           }
           .button_content {
             display: flex;
@@ -260,23 +260,23 @@ export default function SharedButton(
           }
           .twitter {
             background-color: #3a90e9;
-            color: #fff;
+            color: var(--primary-text);
           }
           .twitter:hover {
-            color: #fff;
+            color: var(--primary-text);
             background-color: #5cacff;
           }
           .twitter .icon_button,
           .twitter:hover .icon_button {
             mask-image: url("./images/twitter.svg");
-            background-color: #fff;
+            background-color: var(--primary-text);
           }
           .white {
-            color: #ffffff;
+            color: var(--primary-text);
             font-weight: 500;
           }
           .white .icon_button {
-            background-color: #ffffff;
+            background-color: var(--primary-text);
           }
           .gray {
             color: var(--green-60);
@@ -285,10 +285,10 @@ export default function SharedButton(
             background-color: var(--green-60);
           }
           .gray:hover {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .gray:hover .icon_button {
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
           }
           .error {
             color: var(--error);
@@ -309,18 +309,18 @@ export default function SharedButton(
             background-color: var(--green-60);
           }
           .deemphasized_white {
-            color: #fff;
-            background-color: var(--green-95);
+            color: var(--primary-text);
+            background-color: var(--secondary-bg);
           }
           .deemphasized_white .icon_button {
-            background-color: #fff;
+            background-color: var(--primary-text);
           }
           .deemphasized_white:hover {
             background-color: var(--green-60);
-            color: #fff;
+            color: var(--primary-text);
           }
           .deemphasized_white:hover .icon_button {
-            background-color: #fff;
+            background-color: var(--primary-text);
           }
           .small {
             padding: 0 12px;

@@ -15,7 +15,7 @@ export default function SharedIconGA({
     <div className="shared-icon">
       <style jsx>{`
         .shared-icon {
-          background: var(--green-40)
+          background: var(--secondary-text)
             url("${iconUrl ?? "./images/avatar@2x.png"}") no-repeat center;
           background-size: cover;
           width: ${width}px;

@@ -45,13 +45,16 @@ export default function SharedCurrentAccountInformation({
             position: relative;
             min-width: 0; // Allow the account address/name to collapse to an ellipsis.
           }
+          .account_info_label {
+            color: var(--primary-text);
+          }
           .avatar {
             border-radius: 12px;
             width: 32px;
             height: 32px;
             margin-left: 8px;
             background: url("${avatarURL ?? "./images/portrait.png"}");
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
             background-size: cover;
             flex-shrink: 0;
           }
@@ -59,7 +62,7 @@ export default function SharedCurrentAccountInformation({
             color: var(--trophy-gold);
           }
           .keyring_icon_wrap {
-            background-color: var(--hunter-green);
+            background-color: var(--primary-bg);
             padding: 2px 6px 4px 2px;
             border-radius: 8px;
             position: absolute;

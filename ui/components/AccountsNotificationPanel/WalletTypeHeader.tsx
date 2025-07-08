@@ -119,7 +119,7 @@ export default function WalletTypeHeader({
           <SharedDropdown
             toggler={(toggle) => (
               <SharedIcon
-                color="var(--green-40)"
+                color="var(--secondary-text)"
                 customStyles="cursor: pointer;"
                 width={24}
                 onClick={() => toggle()}
@@ -182,7 +182,7 @@ export default function WalletTypeHeader({
         }
 
         .wallet_title > h2 {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 16px;
           font-weight: 500;
           margin: 0;

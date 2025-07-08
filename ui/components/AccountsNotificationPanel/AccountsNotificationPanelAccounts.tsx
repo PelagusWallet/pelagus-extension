@@ -310,28 +310,10 @@ export default function AccountsNotificationPanelAccounts({
                 indexOfB = customOrder[signerId].length - 1
               }
 
-              // If both addresses are found in customOrder, compare their indices
-              if (indexOfA !== -1 && indexOfB !== -1) {
-                return indexOfA - indexOfB
-              }
-
-              // If address A is not in customOrder, but B is, B should come first
-              if (indexOfA === -1 && indexOfB !== -1) {
-                return 1
-              }
-
-              // If address B is not in customOrder, but A is, A should come first
-              if (indexOfA !== -1 && indexOfB === -1) {
-                return -1
-              }
-
-              // If neither address is in customOrder, use localeCompare as a fallback
-              return a.address.localeCompare(b.address)
+              return indexOfA - indexOfB
             })
           } else {
-            accountTotalsByType[signerId].sort((a, b) => {
-              return a.address.localeCompare(b.address)
-            })
+            // Keep natural order, just save it as custom order for future reference
             const newCustomOrder = accountTotalsByType[signerId].map(
               (item) => item.address
             )
@@ -475,7 +457,7 @@ export default function AccountsNotificationPanelAccounts({
           .category_wrap {
             display: flex;
             justify-content: center;
-            background-color: var(--hunter-green);
+            background-color: var(--primary-bg);
           }
           p {
             margin: 0;
@@ -485,7 +467,7 @@ export default function AccountsNotificationPanelAccounts({
             margin-top: 110px;
             display: flex;
             justify-content: center;
-            color: var(--white);
+            color: var(--primary-text);
             font-weight: 500;
             font-size: 18px;
             line-height: 20px;
@@ -508,7 +490,7 @@ export default function AccountsNotificationPanelAccounts({
             left: 0;
             z-index: 2;
             padding: 0 16px 16px 16px;
-            background: var(--hunter-green);
+            background: var(--primary-bg);
           }
         `}
       </style>

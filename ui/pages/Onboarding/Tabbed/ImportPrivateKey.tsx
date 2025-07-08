@@ -104,13 +104,13 @@ export default function ImportPrivateKey(props: Props): ReactElement {
             font-size: 16px;
             line-height: 24px;
             top: 12px;
-            color: var(--hunter-green);
+            color: var(--primary-text);
             left: 16px;
           }
 
           #recovery_phrase[data-empty="false"] ~ .recovery_label {
             padding: 0 6px;
-            color: var(--green-40);
+            color: var(--primary-text);
             background: var(--hunter-green);
             top: -8px;
             left: 16px;
@@ -120,7 +120,7 @@ export default function ImportPrivateKey(props: Props): ReactElement {
             width: 320px;
             height: 104px;
             border-radius: 4px;
-            border: 2px solid var(--hunter-green);
+            border: 2px solid var(--secondary-bg);
             padding: 12px 16px;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -131,7 +131,7 @@ export default function ImportPrivateKey(props: Props): ReactElement {
 
           #recovery_phrase * {
             word-wrap: break-word;
-            color: var(--white);
+            color: var(--primary-text);
             font-family: inherit;
           }
 

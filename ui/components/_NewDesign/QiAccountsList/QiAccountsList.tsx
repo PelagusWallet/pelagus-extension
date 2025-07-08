@@ -117,7 +117,7 @@ const QiAccountsList = () => {
           left: 0;
           z-index: 2;
           padding: 0 16px;
-          background: var(--hunter-green);
+          background: var(--secondary-bg);
         }
 
         .lock-signing {
@@ -148,7 +148,7 @@ const QiAccountsList = () => {
         }
 
         .connected-account-item.select {
-          background: var(--green-95);
+          background: var(--secondary-bg);
           margin: 0;
           padding: 11px 16px;
         }

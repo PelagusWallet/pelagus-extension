@@ -35,7 +35,7 @@ export default function TopMenuProtocolSwitcher({
             width: 100%;
             padding: 6px 13px 6px 10px;
             border-radius: 35px;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             box-sizing: border-box;
           }
 
@@ -45,7 +45,7 @@ export default function TopMenuProtocolSwitcher({
             mask-size: 11px 7px;
             width: 11px;
             height: 7px;
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
           }
         `}
       </style>

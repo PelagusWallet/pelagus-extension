@@ -103,13 +103,13 @@ export default function DAppConnectPage({
         li {
           font-size: 14px;
           line-height: 20px;
-          color: var(--green-40);
+          color: var(--secondary-text);
           margin-bottom: 4px;
           margin-left: 5px;
         }
 
         .permissions_list_title {
-          color: var(--green-40);
+          color: var(--secondary-text);
           margin-bottom: 8px;
           margin-top: 15px;
           margin-left: 0;
@@ -129,7 +129,7 @@ export default function DAppConnectPage({
         }
 
         .icon_connection {
-          background: var(--green-95) url("./images/bolt@2x.png") no-repeat
+          background: var(--secondary-bg) url("./images/bolt@2x.png") no-repeat
             center;
           border-radius: 4px;
           background-size: 10px 17px;
@@ -153,7 +153,7 @@ export default function DAppConnectPage({
           height: 80px;
           justify-content: space-between;
           box-shadow: 0 0 5px rgba(0, 20, 19, 0.5);
-          background-color: var(--green-95);
+          background-color: var(--secondary-bg);
         }
       `}</style>
     </>

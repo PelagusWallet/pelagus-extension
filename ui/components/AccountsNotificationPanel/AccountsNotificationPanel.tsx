@@ -101,19 +101,19 @@ export default function AccountsNotificationPanel({
           .confirmation-btn {
             font-weight: 500;
             line-height: 20px;
-            border: 1px solid var(--white);
+            border: 1px solid var(--green-20);
             border-radius: 4px;
             width: 100%;
             min-height: 40px;
             padding: 10px;
             text-align: center;
             box-sizing: border-box;
-            color: var(--white);
+            color: var(--green-20);
             margin: 0;
           }
 
           .confirmation-btn:hover {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
 
           .footer_wrap {

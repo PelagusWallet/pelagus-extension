@@ -28,7 +28,7 @@ export default function TransactionSignatureDetailsWarning(
             icon="icons/s/close.svg"
             ariaLabel="close"
             width={16}
-            color="var(--green-40)"
+            color="var(--secondary-text)"
             hoverColor="var(--green-20)"
             customStyles={`
               position: absolute;

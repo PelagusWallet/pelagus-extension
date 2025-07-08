@@ -57,7 +57,7 @@ export default function SharedToggleItem({
           font-weight: 500;
           font-size: 14px;
           line-height: 16px;
-          color: var(--white);
+          color: var(--primary-text);
           display: block;
         }
       `}</style>

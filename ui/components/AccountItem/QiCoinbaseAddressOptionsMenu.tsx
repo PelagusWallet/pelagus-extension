@@ -76,7 +76,7 @@ export default function QiCoinbaseAddressOptionsMenu({
               icon="icons/s/copy.svg"
               label="Copy Key"
               hoverable
-              color="var(--green-40)"
+              color="var(--secondary-text)"
               hoverColor="var(--green-20)"
             />
           </button>
@@ -136,14 +136,14 @@ export default function QiCoinbaseAddressOptionsMenu({
             mask-image: url("./images/more_dots@2x.png");
             mask-repeat: no-repeat;
             mask-position: center;
-            background-color: var(--white);
+            background-color: var(--primary-text);
             mask-size: 15%;
             width: 4px;
             height: 20px;
             border: 10px solid transparent;
           }
           .icon_settings:hover {
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
           }
           .address_name {
             color: var(--trophy-gold);
@@ -174,7 +174,6 @@ export default function QiCoinbaseAddressOptionsMenu({
           }
           .account_container {
             margin-top: -10px;
-            background-color: var(--hunter-green);
             padding: 5px;
             border-radius: 16px;
           }

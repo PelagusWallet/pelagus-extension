@@ -83,7 +83,7 @@ export default function SharedAccountItemSummary(props: Props): ReactElement {
         .avatar {
           background: url("${avatarURL ?? "./images/avatar@2x.png"}") center
             no-repeat;
-          background-color: var(--green-40);
+          background-color: var(--secondary-text);
           background-size: cover;
           width: 48px;
           height: 48px;
@@ -115,12 +115,12 @@ export default function SharedAccountItemSummary(props: Props): ReactElement {
           text-overflow: ellipsis;
         }
         .address {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 16px;
         }
         .balance {
           text-align: right;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 16px;
         }
         .connected_status {

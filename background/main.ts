@@ -78,6 +78,7 @@ import {
   setShowDefaultWalletBanner,
   setShowPaymentChannelModal,
   setSnackbarConfig,
+  setTheme,
   toggleCollectAnalytics,
   toggleTestNetworks,
 } from "./redux-slices/ui"
@@ -1638,6 +1639,13 @@ export default class Main extends BaseService<never> {
     )
 
     this.preferenceService.emitter.on(
+      "themeChanged",
+      async (theme: string) => {
+        this.store.dispatch(setTheme(theme))
+      }
+    )
+
+    this.preferenceService.emitter.on(
       "initializeSelectedAccount",
       async (dbAddressNetwork: AddressOnNetwork) => {
         if (dbAddressNetwork) {
@@ -1696,6 +1704,13 @@ export default class Main extends BaseService<never> {
         await this.preferenceService.setShowPaymentChannelModal(
           isShowPaymentChannelModal
         )
+      }
+    )
+
+    uiSliceEmitter.on(
+      "themeChanged",
+      async (theme: string) => {
+        await this.preferenceService.setTheme(theme)
       }
     )
 

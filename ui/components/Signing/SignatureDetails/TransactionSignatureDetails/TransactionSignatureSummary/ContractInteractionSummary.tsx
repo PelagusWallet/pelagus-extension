@@ -36,7 +36,7 @@ export default function ContractInteractionSummary({
         <style jsx>
           {`
             .label {
-              color: var(--green-40);
+              color: var(--secondary-text);
               font-size: 16px;
               line-height: 24px;
               margin-bottom: 4px;

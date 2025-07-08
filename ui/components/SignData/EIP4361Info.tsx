@@ -39,7 +39,7 @@ export default function EIP4361Info({ signingData }: Props): ReactElement {
       ) : null}
       <style jsx>{`
         .subtext {
-          color: var(--green-40);
+          color: var(--secondary-text);
           line-height: 24px;
           font-size: 16px;
           margin-bottom: 4px;

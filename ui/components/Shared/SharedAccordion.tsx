@@ -89,7 +89,7 @@ export default function SharedAccordion({
       <style jsx>{`
         .accordion {
           background-color: ${isOpen
-            ? "var(--background, var(--green-120))"
+            ? "var(--background, var(--primary-bg))"
             : ""};
         }
 

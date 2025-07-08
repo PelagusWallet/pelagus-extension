@@ -40,7 +40,7 @@ export default function SwitchWalletPage({
             <SharedIcon
               icon="icons/s/settings.svg"
               width={16}
-              color="var(--green-40)"
+              color="var(--secondary-text)"
             />
           </span>
           {t("descSecondPart")}
@@ -61,7 +61,7 @@ export default function SwitchWalletPage({
 
       <style jsx>{`
         .page {
-          background-color: var(--green-95);
+          background-color: var(--secondary-bg);
           height: 100vh;
           width: 100vw;
           z-index: 1000;

@@ -56,7 +56,7 @@ export default function RouteBasedContent(): ReactElement {
       <Route>
         <div className="onboarding_facts fadeIn">
           <p>{t("default.fact1")}</p>
-          <div className="community_links">
+          <div className="social_container">
             <div className="icon_row">
               <a
                 href="https://discord.gg/quai"
@@ -75,38 +75,49 @@ export default function RouteBasedContent(): ReactElement {
             </div>
             <p>Join the community</p>
           </div>
-          <style jsx>
-            {`
-              .onboarding_facts {
-                color: var(--hunter-green);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                gap: 24px;
-              }
+          <style jsx>{`
+            .social_container {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              margin-top: 32px;
+            }
 
-              .onboarding_facts p {
-                color: var(--hunter-green);
-                margin: 0;
-                text-align: center;
-                font-size: 24px;
-                line-height: 24px;
-              }
+            .icon_row {
+              display: flex;
+              gap: 16px;
+              margin-bottom: 12px;
+            }
 
-              .community_links {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 16px;
-              }
+            p {
+              font-family: "Segment";
+              font-size: 16px;
+              line-height: 24px;
+              color: var(--secondary-text);
+              margin: 0;
+            }
 
-              .icon_row {
-                display: flex;
-                flex-direction: row;
-                gap: 16px;
+            :global(a) {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 52px;
+              height: 52px;
+              border-radius: 4px;
+              background: #1C1C1C;
+              transition: opacity 0.2s ease;
+            }
+
+            :global(a:hover) {
+              opacity: 0.8;
+            }
+
+            @media (max-width: 520px) {
+              .social_container {
+                padding: 0 16px;
               }
-            `}
-          </style>
+            }
+          `}</style>
         </div>
       </Route>
     </Switch>

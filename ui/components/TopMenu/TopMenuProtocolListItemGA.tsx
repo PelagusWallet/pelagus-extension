@@ -64,7 +64,7 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .networks-list-item.select {
-            background: var(--green-95);
+            background: var(--secondary-bg);
             margin: 0;
             padding-left: 24px;
             padding-right: 24px;
@@ -101,7 +101,7 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .item-title {
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;

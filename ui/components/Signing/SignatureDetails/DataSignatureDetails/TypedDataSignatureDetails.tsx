@@ -44,7 +44,7 @@ function TypedDataFieldValue({ value }: { value: unknown }): ReactElement {
           icon="new_tab@2x.png"
           width={16}
           height={16}
-          color="var(--green-40)"
+          color="var(--secondary-text)"
           hoverColor="var(--trophy-gold)"
           ariaLabel={t("viewAddressOnBlockExplorer", {
             blockExplorer: "Etherscan",
@@ -165,7 +165,7 @@ function BasicTypedDataDetails<
             padding-top: 8px;
           }
           .key {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
         `}
       </style>

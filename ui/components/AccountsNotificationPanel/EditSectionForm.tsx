@@ -110,7 +110,7 @@ function EditSectionForm({
       </form>
       <style jsx>{`
         .icon_wrap {
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
           margin: 0 7px 0 0;
           border-radius: 4px;
         }
@@ -127,7 +127,7 @@ function EditSectionForm({
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
           border-radius: 4px;
           padding: 8px;
           margin-top: 24px;
@@ -135,7 +135,7 @@ function EditSectionForm({
         .wallet_title > h2 {
           display: flex;
           align-items: center;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 18px;
           font-weight: 600;
           line-height: 24px;

@@ -32,12 +32,13 @@ export default function PasswordStrengthBar(
         bar_average: evaluation === 3,
         bar_strong: evaluation > 3,
       })}
+      aria-hidden="true"
     >
       <div className="bar_background bar_shape">
         <div className="bar_fill bar_shape" />
       </div>
       <div className="bar_description">{getDescription()}</div>
-      <SharedTooltip width={150}>
+      <SharedTooltip width={150} disabled>
         {t("passwordStrength.hintDesc")}
       </SharedTooltip>
       <style jsx>{`
@@ -49,6 +50,8 @@ export default function PasswordStrengthBar(
           line-height: 16px;
           color: var(--trophy-gold);
           transition: color 300ms;
+          pointer-events: none;
+          user-select: none;
         }
         .bar_shape {
           height: 4px;
@@ -66,7 +69,7 @@ export default function PasswordStrengthBar(
         }
         .bar_fill {
           width: 0;
-          background-color: var(--green-95);
+          background-color: var(--secondary-bg);
           transition: width 300ms, background-color 300ms;
         }
 

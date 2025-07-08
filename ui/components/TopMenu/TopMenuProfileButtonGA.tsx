@@ -91,7 +91,7 @@ export default function TopMenuProfileButtonGA(props: {
             gap: 8px;
             user-select: none;
             padding: 3px 21px;
-            border: 1px solid var(--green-95);
+            border: 1px solid var(--secondary-bg);
             border-radius: 8px;
             box-sizing: border-box;
             width: 100%;
@@ -101,7 +101,7 @@ export default function TopMenuProfileButtonGA(props: {
             border-radius: 50%;
             width: 14px;
             height: 14px;
-            background: var(--green-95)
+            background: var(--secondary-bg)
               url("${isUtxoSelected
                 ? defaultAvatar
                 : avatarURL ?? "./images/portrait.png"}");
@@ -110,7 +110,7 @@ export default function TopMenuProfileButtonGA(props: {
           }
 
           .account_info_label {
-            color: black;
+            color: var(--primary-text);
             font-weight: 500;
             font-size: 14px;
             line-height: 20px;
@@ -123,7 +123,7 @@ export default function TopMenuProfileButtonGA(props: {
             mask-size: 11px 7px;
             width: 11px;
             height: 7px;
-            background-color: black;
+            background-color: var(--secondary-text);
           }
 
           .address_wrapper {
@@ -134,7 +134,7 @@ export default function TopMenuProfileButtonGA(props: {
           }
 
           .address {
-            color: var(--green-60);
+            color: var(--secondary-text);
             font-weight: 500;
             font-size: 12px;
             line-height: 18px;
@@ -146,7 +146,7 @@ export default function TopMenuProfileButtonGA(props: {
             mask-size: 14px 14px;
             width: 14px;
             height: 14px;
-            background-color: var(--green-60);
+            background-color: var(--secondary-text);
           }
         `}
       </style>

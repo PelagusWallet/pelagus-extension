@@ -26,7 +26,7 @@ export default function ConnectedWebsitesListEmpty(): React.ReactElement {
             text-align: center;
             line-height: 24px;
             font-weight: 500;
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 16px;
           }
         `}

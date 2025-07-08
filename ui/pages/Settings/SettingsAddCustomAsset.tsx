@@ -322,8 +322,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
                     <SharedLink
                       styles={{
                         textDecoration: "underline",
-                        "--link-color": "var(--green-95)",
-                        "--hover-color": "var(--green-40)",
+                        "--link-color": "var(--secondary-bg)",
+                        "--hover-color": "var(--secondary-text)",
                         padding: "0px",
                       }}
                       type="button"
@@ -415,7 +415,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
       </form>
       <style jsx>{`
         .alert {
-          background: var(--green-120);
+          background: var(--primary-bg);
           border-radius: 8px;
           padding: 8px;
           display: flex;
@@ -435,7 +435,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
         <SharedLink
           text={t("footer.hint")}
           url={HELPDESK_CUSTOM_TOKENS_LINK}
-          styles={{ "--link-color": "var(--green-40)" }}
+          styles={{ "--link-color": "var(--secondary-text)" }}
         />
       </footer>
       <style jsx>{`
@@ -458,7 +458,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
           line-height: 16px;
           letter-spacing: 0.03em;
           text-align: left;
-          color: var(--green-40);
+          color: var(--secondary-text);
           overflow: hidden;
           text-overflow: ellipsis;
           max-width: 140px;
@@ -486,7 +486,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
           font-weight: 600;
           font-size: 18px;
           line-height: 24px;
-          color: var(--white);
+          color: var(--primary-text);
           text-overflow: ellipsis;
           overflow-x: hidden;
           white-space: pre;

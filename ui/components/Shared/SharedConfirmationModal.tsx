@@ -92,7 +92,7 @@ const SharedConfirmationModal = ({
           }
           .confirmation-icon-wrapper {
             padding: ${icon?.padding};
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             border-radius: 50%;
           }
           .confirmation-text-wrapper {
@@ -105,7 +105,7 @@ const SharedConfirmationModal = ({
             font-size: 24px;
             line-height: 38px;
             text-align: center;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .confirmation-subtitle {
             margin: 0;
@@ -120,28 +120,28 @@ const SharedConfirmationModal = ({
             font-weight: 500;
             font-size: 14px;
             line-height: 20px;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
 
           .confirmation-link:hover {
-            color: var(--white);
+            color: var(--primary-text);
           }
 
           .confirmation-btn {
             font-weight: 500;
             line-height: 20px;
-            border: 1px solid var(--green-40);
+            border: 1px solid var(--secondary-text);
             border-radius: 4px;
             width: 100%;
             padding: 10px;
             text-align: center;
             box-sizing: border-box;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
 
           .confirmation-btn:hover {
-            border-color: var(--white);
-            color: var(--white);
+            border-color: var(--primary-text);
+            color: var(--primary-text);
           }
         `}
       </style>

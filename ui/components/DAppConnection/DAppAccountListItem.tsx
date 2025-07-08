@@ -72,7 +72,7 @@ export default function DAppAccountListItem({
             margin: 11px 16px;
           }
           .connected-account-item.select {
-            background: var(--green-95);
+            background: var(--secondary-bg);
             margin: 0;
             padding: 11px 16px;
           }
@@ -117,15 +117,15 @@ export default function DAppAccountListItem({
             font-size: 12px;
             font-weight: 400;
             line-height: 18px;
-            border: 1px solid #d4d4d4;
+            border: 1px solid var(--border-light);
             border-radius: 176px;
             text-align: center;
             box-sizing: border-box;
             padding: 4px 12px;
           }
           .account-action-btn.selected {
-            border: 1px solid #000000;
-            box-shadow: 0px 0px 0px 2px #00000033;
+            border: 1px solid var(--primary-text);
+            box-shadow: 0px 0px 0px 2px var(--shadow-34);
           }
 
           .connected-account-item.disabled {

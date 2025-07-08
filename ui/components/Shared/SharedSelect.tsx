@@ -38,8 +38,8 @@ export default function SharedSelect(props: Props): ReactElement {
     showValue,
     showOptionValue,
     width = "320px",
-    labelColor = "var(--green-40)",
     variant = "default",
+    labelColor = "var(--secondary-text)",
   } = props
 
   const cssWidth = typeof width === "number" ? `${width}px` : width
@@ -227,7 +227,7 @@ export default function SharedSelect(props: Props): ReactElement {
             box-sizing: border-box;
             width: calc(${cssWidth} - 4px);
             text-align: right;
-            background-color: ${variant === "small" ? "var(--hunter-green)" : "var(--green-95)"};
+            background-color: var(--secondary-bg);
             border-radius: 5px;
             overflow-y: auto;
             color: var(--green-60);
@@ -297,7 +297,7 @@ export default function SharedSelect(props: Props): ReactElement {
             padding: 16px;
             display: flex;
             justify-content: flex-end;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
           }
         `}
       </style>

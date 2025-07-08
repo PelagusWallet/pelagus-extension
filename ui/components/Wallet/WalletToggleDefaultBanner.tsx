@@ -108,7 +108,7 @@ export default function WalletToggleDefaultBanner(): ReactElement {
           align-items: center;
           box-sizing: border-box;
           width: 100%;
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
           font-weight: 500;
           font-size: 16px;
           line-height: 24px;

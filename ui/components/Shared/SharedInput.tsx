@@ -126,10 +126,10 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
             text-align: left;
           }
           input::placeholder {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           input:focus {
-            border: 2px solid var(--green-40);
+            border: 2px solid var(--secondary-text);
           }
           input[type="number"] {
             -moz-appearance: textfield;
@@ -163,7 +163,7 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
               font-weight 0.2s ease, padding 0.2s ease;
           }
           input:disabled {
-            color: var(--green-40);
+            color: var(--secondary-text);
             background-color: var(--green-80);
           }
           input:disabled ~ label {

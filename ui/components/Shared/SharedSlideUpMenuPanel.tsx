@@ -25,7 +25,7 @@ export default function SharedSlideUpMenuPanel({
         }
         .header_wrap {
           width: 100%;
-          background-color: var(--green-95);
+          background-color: var(--secondary-bg);
           position: sticky;
           top: -25px;
           padding-top: 25px;

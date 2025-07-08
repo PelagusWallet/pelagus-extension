@@ -182,7 +182,7 @@ function SelectAssetMenuContent<T extends AnyAsset>(
         {`
           .search_label {
             height: 20px;
-            color: var(--green-60);
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;
@@ -196,14 +196,14 @@ function SelectAssetMenuContent<T extends AnyAsset>(
             width: 336px;
             height: 48px;
             border-radius: 4px;
-            border: 1px solid var(--green-60);
+            border: 1px solid var(--secondary-text);
             padding-left: 16px;
             padding-right: 56px;
             box-sizing: border-box;
-            color: var(--green-40);
+            color: var(--primary-text);
           }
           .search_input::placeholder {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .icon_search {
             background: url("./images/search_large@2x.png");
@@ -255,7 +255,7 @@ function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
         button {
           display: flex;
           align-items: center;
-          color: var(--green-40);
+          color: var(--primary-text);
           font-size: 16px;
           font-weight: 500;
           line-height: 24px;
@@ -263,7 +263,7 @@ function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
         }
         button:disabled {
           cursor: default;
-          color: var(--green-40);
+          color: var(--secondary-text);
         }
         .asset_icon_wrap {
           margin-right: 8px;
@@ -436,6 +436,22 @@ export default function SharedAssetInput<T extends AnyAsset>(
     selectedAssetAndAmount &&
     hasAmounts(selectedAssetAndAmount) &&
     selectedAssetAndAmount.localizedDecimalAmount
+  const formatNumberWithCommas = (value: string) => {
+    // Remove existing commas first
+    const rawValue = value.replace(/,/g, '');
+    // Split on decimal point
+    const [integerPart, decimalPart] = rawValue.split('.');
+    // Add commas to integer part
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // Return with decimal part if it exists
+    return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+  };
+
+  const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = event.target.value.replace(/,/g, '');
+    onAmountChange?.(rawValue, getErrorMessage(rawValue));
+  };
+
   return (
     <>
       <label
@@ -507,12 +523,11 @@ export default function SharedAssetInput<T extends AnyAsset>(
           <input
             id={`asset_amount_input${inputId}`}
             className="input_amount"
-            type="number"
-            step="any"
+            type="text"
+            inputMode="decimal"
             placeholder="0.0"
-            min="0"
             disabled={isDisabled}
-            value={amount}
+            value={amount ? formatNumberWithCommas(amount) : ''}
             spellCheck={false}
             onFocus={(e) => {
               if (e.target === e.currentTarget) {
@@ -524,12 +539,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
                 onBlur()
               }
             }}
-            onChange={(event) =>
-              onAmountChange?.(
-                event.target.value,
-                getErrorMessage(event.target.value)
-              )
-            }
+            onChange={handleAmountChange}
           />
           {showPriceDetails &&
             amount &&
@@ -561,7 +571,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
             // align with label top + offset by border radius right
             margin: -27px 4px 0 0;
 
-            color: var(--green-40);
+            color: var(--secondary-text);
             text-align: right;
             position: relative;
             font-size: 14px;
@@ -569,7 +579,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
           .asset_wrap {
             height: 72px;
             border-radius: 4px;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -591,13 +601,13 @@ export default function SharedAssetInput<T extends AnyAsset>(
             align-items: end;
           }
           .input_amount::placeholder {
-            color: var(--green-40);
+            color: var(--secondary-text);
             opacity: 1;
           }
           .input_amount {
             max-width: 125px;
             height: 32px;
-            color: var(--green-40);
+            color: var(--primary-text);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;
@@ -615,7 +625,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
           }
           .input_amount:disabled {
             cursor: default;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .error_message {
             color: var(--error);

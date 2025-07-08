@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { ReactElement, useEffect, useState } from "react"
 import {
   createPassword,
   unlockKeyrings,
@@ -23,7 +23,7 @@ import { WalletDefaultToggle } from "../../../components/Wallet/WalletToggleDefa
 import OnboardingRoutes from "./Routes"
 import { validatePassword } from "../../../utils/passwordValidation"
 
-export default function SetPassword(): JSX.Element {
+export default function SetPassword(): ReactElement {
   const [password, setPassword] = useState("")
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
@@ -108,6 +108,7 @@ export default function SetPassword(): JSX.Element {
                 flex-direction: column;
                 gap: 20px;
                 margin-bottom: 32px;
+                color: white;
               }
 
               header h1 {
@@ -123,7 +124,7 @@ export default function SetPassword(): JSX.Element {
               }
             `}
           </style>
-          <h1>{t("onboarding.tabbed.unlockWallet.title")}</h1>
+          <h1 className="center_text">{t("onboarding.tabbed.unlockWallet.title")}</h1>
         </header>
         <form onSubmit={handleAttemptUnlock}>
           <PasswordInput
@@ -174,9 +175,15 @@ export default function SetPassword(): JSX.Element {
               margin: 0 auto;
               border-radius: 25%;
             }
+
+            .title-white {
+              color: white;
+              align-items: center;
+              text-align: center;
+            }
           `}
         </style>
-        <h1 className="center_text">
+        <h1 className="title-white">
           <Trans t={t} i18nKey="onboarding.setPassword.title" />
         </h1>
       </header>
@@ -200,7 +207,7 @@ export default function SetPassword(): JSX.Element {
               *Must have at least 8 characters
             </div>
           </div>
-          <div className="strength_bar_wrap">
+          <div className="strength_bar_wrap" aria-hidden="true" tabIndex={-1}>
             {!passwordErrorMessage && (
               <PasswordStrengthBar password={password} />
             )}

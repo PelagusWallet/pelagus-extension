@@ -1,6 +1,6 @@
 :root {
-  --hunter-green: #ffffff;
-  --castle-black: #ffffff;
+  --hunter-green: #001512;
+  --castle-black: #1B1B1D;
   --green-120: #adc4e6;
   --green-95: #ebebeb9c;
   --green-80: #00407a;
@@ -16,7 +16,7 @@
   --gold-40: #A0C6FF;
   --gold-20: #b3d1fe;
   --gold-5: #ffffff;
-  --white: #505050;
+  --white: #ffffff;
   --disabled: #cccccc;
 
   --error: #FF6666;
@@ -38,10 +38,14 @@
 
   --shadow: 0px 16px 16px rgba(0, 33, 30, 0.14),
     0px 6px 8px rgba(0, 33, 30, 0.24), 0px 2px 4px rgba(0, 33, 30, 0.34);
-
-
-
-  //////// NEW WHITE THEME ////////
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-14: rgba(0, 20, 19, 0.14);
+  --shadow-24: rgba(0, 20, 19, 0.24);
+  --shadow-34: rgba(0, 20, 19, 0.34);
+  --spinner-border: rgba(255, 255, 255, 0.3);
+  --border-light: #d4d4d4;
+  --border-medium: #33514e;
+  --border-dark: #578f89;
 
   --primary-bg: #ffffff;
   --secondary-bg: #EFEFEF;
@@ -59,20 +63,48 @@
 }
 
 :root[data-theme="dark"] {
+  /* Main background and text colors */
+  --hunter-green: #1B1B1D;
+  --castle-black: #1B1B1D;
+  --white: #F2F2F2;
 
-  --primary-bg: #1B1B1D;
-  --secondary-bg: #262628;
-
-  --tertiary-bg: #3E3E41;
-
-  --accent-color: #1775E4;
-  --contrast-text: #F2F2F2;
-
-  --primary-text: #F2F2F2;
-  --secondary-text: #7E7E83;
-
-  --error-color: #CA4242;
-  --success-color: #1CAF4E;
+  
+  /* Status colors */
+  --disabled: #7E7E83;
+  --error: #FF6666;
+  --error-80: #B04443;
+  --success: #1CAF4E;
+  --success-20: #0F5A2E;
+  --attention: #F2B824;
+  --attention-20: #5A4A25;
+  --info: #3CC5EE;
+  --info-20: #1F5A61;
+  --link: #4A90E2;
+  
+  /* Trading colors */
+  --trading-outgoing: #EF6194;
+  --trading-incoming: #11BEA9;
+  
+  /* Shadow colors for dark theme */
+  --shadow-light: 0 2px 8px rgba(255, 255, 255, 0.1);
+  --shadow-14: rgba(255, 255, 255, 0.14);
+  --shadow-24: rgba(255, 255, 255, 0.24);
+  --shadow-34: rgba(255, 255, 255, 0.34);
+  --spinner-border: rgba(0, 0, 0, 0.3);
+  --border-light: #4A4A4A;
+  --border-medium: #6A6A6A;
+  --border-dark: #8A8A8A;
+  
+  /* Unified new variable names (map to old system for consistency) */
+  --primary-bg: #1B1B1D;        /* Same as --hunter-green */
+  --secondary-bg: #262628;       /* Darker shade for cards/panels */
+  --tertiary-bg: #3E3E41;        /* Same as --green-120 for hover states */
+  --accent-color: #1775E4;       /* Same as --trophy-gold */
+  --contrast-text: #F2F2F2;      /* Same as --white */
+  --primary-text: #F2F2F2;       /* Same as --white */
+  --secondary-text: #7E7E83;     /* Same as --green-60 */
+  --error-color: #FF6666;        /* Same as --error */
+  --success-color: #1CAF4E;      /* Same as --success */
 }
 
 ::-webkit-scrollbar {
@@ -85,15 +117,16 @@ body {
   font-family: "Segment", -apple-system, BlinkMacSystemFont, "Helvetica Neue",
     sans-serif;
   position: relative;
-  color: var(--white);
+  color: var(--primary-text);
   font-size: 16px;
-  background-color: var(--hunter-green);
+  background-color: var(--primary-bg);
 }
 
 html,
 body,
 #tally-root {
   height: 100%;
+  background-color: var(--primary-bg);
 }
 
 body.popup {
@@ -171,7 +204,7 @@ label {
 }
 
 .label {
-  color: var(--green-40);
+  color: var(--secondary-text);
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.42px;
@@ -192,11 +225,11 @@ label {
   width: 80%;
   height: 2px;
   opacity: 60%;
-  background-color: var(--green-120);
+  background-color: var(--primary-bg);
 }
 
 .simple_text {
-  color: var(--green-40);
+  color: var(--secondary-text);
   font-size: 16px;
   font-weight: 500;
   line-height: 24px;

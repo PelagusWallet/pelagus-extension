@@ -66,7 +66,7 @@ export function TransferSummaryBase({
         <style jsx>
           {`
             .label {
-              color: var(--green-40);
+              color: var(--secondary-text);
               font-size: 16px;
               line-height: 24px;
               margin-bottom: 4px;
@@ -80,7 +80,7 @@ export function TransferSummaryBase({
               width: 80%;
               height: 2px;
               opacity: 60%;
-              background-color: var(--green-120);
+              background-color: var(--primary-bg);
             }
             .container {
               display: flex;

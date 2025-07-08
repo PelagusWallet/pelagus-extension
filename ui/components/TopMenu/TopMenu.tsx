@@ -170,7 +170,7 @@ export default function TopMenu(): ReactElement {
               }}
               style={{
                 padding: 0,
-                background: "var(--green-95)",
+                background: "var(--secondary-bg)",
                 borderRadius: "50%",
               }}
             >
@@ -193,7 +193,7 @@ export default function TopMenu(): ReactElement {
             linkTo="/settings"
             style={{
               padding: 0,
-              background: "var(--green-95)",
+              background: "var(--secondary-bg)",
               borderRadius: "50%",
             }}
           >

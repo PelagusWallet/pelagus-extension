@@ -22,6 +22,7 @@ export interface Preferences {
   showTestNetworks: boolean
   showPelagusNotifications: boolean
   showPaymentChannelModal: boolean
+  theme: string
 }
 
 export type AnalyticsPreferences = Preferences["analytics"]

@@ -73,7 +73,7 @@ export default function SharedModal({
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: ${shadowBgColor || "var(--hunter-green)"};
+            background-color: ${shadowBgColor || "var(--primary-bg)"};
             opacity: 0.7;
           }
           .modal_content {
@@ -83,7 +83,7 @@ export default function SharedModal({
             z-index: 1;
             box-sizing: border-box;
             width: ${width || "312px"};
-            background-color: ${bgColor || "var(--green-120)"};
+            background-color: ${bgColor || "var(--primary-bg)"};
             padding: 24px;
             box-shadow: 0px 24px 24px rgba(0, 20, 19, 0.14),
               0px 14px 16px rgba(0, 20, 19, 0.24),

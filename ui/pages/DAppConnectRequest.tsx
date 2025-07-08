@@ -84,7 +84,7 @@ export default function DAppConnectRequest(): ReactElement {
       )}
       <style jsx>{`
         .page {
-          background-color: var(--green-95);
+          background-color: var(--secondary-bg);
           height: 100vh;
           width: 100vw;
           z-index: 1000;
@@ -92,7 +92,7 @@ export default function DAppConnectRequest(): ReactElement {
       `}</style>
       <style jsx global>{`
         body {
-          background-color: var(--green-95);
+          background-color: var(--secondary-bg);
         }
       `}</style>
     </div>

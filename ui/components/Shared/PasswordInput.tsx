@@ -23,52 +23,39 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
       />
       {hasPreview && (
         <button
-          role="switch"
           type="button"
-          aria-label={
-            !showPassword ? t("showPasswordHint") : t("hidePasswordHint")
-          }
-          aria-checked={showPassword}
           onClick={() => setShowPassword((visible) => !visible)}
-          className={classNames("icon icon_medium", {
-            active: showPassword,
-          })}
-        />
+          className="show_button"
+        >
+          {showPassword ? "Hide" : "Show"}
+        </button>
       )}
       <style jsx>
         {`
           .wrapper > :global(input) {
-            padding-right: 40px;
+            padding-right: 70px;
+            background: #1C1C1C;
+            border: 1px solid #333333;
+            border-radius: 4px;
+            color: white;
+            height: 48px;
+            font-size: 16px;
           }
           .wrapper {
             position: relative;
+            width: 100%;
           }
-          .icon {
+          .show_button {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            margin-right: 16px;
-            height: 16px;
-            width: 16px;
-            mask-size: cover;
-            background-position: center;
-            background-color: var(--white);
-            background-size: 16px;
-            transition: all 0.12s ease-out;
-            transform: translateY(50%);
-          }
-          .icon.active {
-            background-color: var(--trophy-gold);
-            mask-image: url("./images/icons/m/eye-on.svg");
-          }
-          .icon_medium {
-            mask-image: url("./images/icons/m/eye-off.svg");
-            mask-size: cover;
-            color: var(--trophy-gold);
-            width: 24px;
-            height: 24px;
-            background-size: 24px;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #2196F3;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
           }
         `}
       </style>

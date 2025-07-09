@@ -105,7 +105,7 @@ const SharedConfirmationModal = ({
             font-size: 24px;
             line-height: 38px;
             text-align: center;
-            color: var(--secondary-text);
+            color: var(--primary-text);
           }
           .confirmation-subtitle {
             margin: 0;
@@ -130,13 +130,13 @@ const SharedConfirmationModal = ({
           .confirmation-btn {
             font-weight: 500;
             line-height: 20px;
-            border: 1px solid var(--secondary-text);
+            border: 1px solid var(--primary-text);
             border-radius: 4px;
             width: 100%;
             padding: 10px;
             text-align: center;
             box-sizing: border-box;
-            color: var(--secondary-text);
+            color: var(--primary-text);
           }
 
           .confirmation-btn:hover {

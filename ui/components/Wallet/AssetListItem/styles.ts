@@ -3,7 +3,7 @@ export default `
     height: 72px;
     width: 100%;
     border-radius: 16px;
-    background-color: var(--green-95);
+    background-color: var(--secondary-bg);
     display: flex;
     padding: 16px;
     box-sizing: border-box;

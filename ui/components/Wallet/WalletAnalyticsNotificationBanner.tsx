@@ -53,7 +53,7 @@ export default function WalletAnalyticsNotificationBanner(): ReactElement {
             icon="icons/s/close.svg"
             ariaLabel={t("shared.close")}
             width={16}
-            color="var(--green-40)"
+            color="var(--secondary-text)"
             hoverColor="var(--green-20)"
             customStyles="flex-shrink:0;"
           />

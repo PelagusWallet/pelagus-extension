@@ -350,7 +350,7 @@ export default function WalletAccountBalanceControl(
             justify-content: center;
           }
           .balance {
-            color: var(--green-20);
+            color: var(--primary-text);
             font-size: 36px;
             font-weight: 500;
             line-height: 48px;
@@ -363,11 +363,11 @@ export default function WalletAccountBalanceControl(
           }
           .dollar_sign {
             width: auto;
-            height: 32px;
-            color: var(--secondary-text);
-            font-size: 22px;
+            height: auto;
+            color: var(--primary-text);
+            font-size: 36px;
             font-weight: 500;
-            line-height: 32px;
+            line-height: 48px;
             text-align: center;
           }
           .balance_update_button {

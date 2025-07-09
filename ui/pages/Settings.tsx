@@ -328,7 +328,7 @@ export default function Settings(): ReactElement {
                 }
                 .cancel {
                   background: transparent;
-                  border: 1px solid var(--green-40);
+                  border: 1px solid var(--secondary-text);
                   color: var(--secondary-text);
                   margin-right: 10%;
                 }
@@ -336,7 +336,7 @@ export default function Settings(): ReactElement {
                   background: var(--primary-bg);
                 }
                 .confirm {
-                  background: var(--green-40);
+                  background: var(--secondary-text);
                   border: none;
                   color: var(--hunter-green);
                 }
@@ -445,7 +445,7 @@ export default function Settings(): ReactElement {
                   icon={`${icon}.svg`}
                   width={18}
                   color="var(--white)"
-                  hoverColor="var(--green-40)"
+                  hoverColor="var(--secondary-text)"
                   transitionHoverTime="0.2s"
                   onClick={() => {
                     window.open(linkTo, "_blank")?.focus()

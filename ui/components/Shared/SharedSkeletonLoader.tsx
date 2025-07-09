@@ -31,7 +31,7 @@ export default function SharedSkeletonLoader(props: {
               background-color: var(--hunter-green);
             }
             50% {
-              background-color: var(--green-95);
+              background-color: var(--secondary-bg);
             }
             100% {
               background-color: var(--hunter-green);

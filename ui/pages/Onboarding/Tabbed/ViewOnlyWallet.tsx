@@ -143,7 +143,7 @@ export default function ViewOnlyWallet(): ReactElement {
           }
 
           .subtitle {
-            color: var(--green-95);
+            color: var(--secondary-bg);
             max-width: 307px;
             text-align: center;
             line-height: 24px;

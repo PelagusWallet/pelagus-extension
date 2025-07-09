@@ -62,7 +62,7 @@ function OnboardingAddWallet(): ReactElement {
           .list_container {
             display: flex;
             flex-direction: column;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             border-radius: 16px;
             padding: 24px;
             gap: 24px;

@@ -481,7 +481,7 @@ export default function Send(): ReactElement {
             margin-left: -1px;
             margin-top: -4px;
             z-index: 10;
-            background: white;
+            background: var(--primary-bg);
             width: 100%;
           }
 
@@ -525,7 +525,7 @@ export default function Send(): ReactElement {
             color: var(--secondary-text);
 
             border-radius: 4px;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             padding: 0 16px;
 
             transition: padding-bottom 0.2s;
@@ -542,7 +542,7 @@ export default function Send(): ReactElement {
             color: var(--secondary-text);
 
             border-radius: 4px;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             padding: 0 16px;
 
             transition: padding-bottom 0.2s;

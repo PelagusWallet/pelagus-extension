@@ -69,7 +69,7 @@ export default function PasswordStrengthBar(
         }
         .bar_fill {
           width: 0;
-          background-color: var(--green-95);
+          background-color: var(--secondary-bg);
           transition: width 300ms, background-color 300ms;
         }
 

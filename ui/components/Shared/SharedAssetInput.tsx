@@ -569,7 +569,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
           .asset_wrap {
             height: 72px;
             border-radius: 4px;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             display: flex;
             align-items: center;
             justify-content: space-between;

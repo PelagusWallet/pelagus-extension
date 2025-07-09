@@ -24,7 +24,7 @@ export default function GlobalModal({ id }: { id: string }): ReactElement {
       onClose={() => setShowModal("false")}
       width="90%"
       minHeight="550px"
-      bgColor="var(--green-95)"
+      bgColor="var(--secondary-bg)"
       shadowBgColor="var(--green-120)"
     >
       <div className="content">

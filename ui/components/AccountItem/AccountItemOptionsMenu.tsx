@@ -191,7 +191,7 @@ export default function AccountItemOptionsMenu({
               icon="icons/s/copy.svg"
               label="Copy Key"
               hoverable
-              color="var(--green-40)"
+              color="var(--secondary-text)"
               hoverColor="var(--green-20)"
             />
           </button>
@@ -459,7 +459,7 @@ export default function AccountItemOptionsMenu({
           }
           .export_option_button {
             width: 100%;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             border: none;
             cursor: pointer;
             padding: 10px;
@@ -484,7 +484,7 @@ export default function AccountItemOptionsMenu({
             width: 100%;
             padding: 10px;
             border-radius: 8px;
-            border: 1px solid var(--green-40);
+            border: 1px solid var(--secondary-text);
             background-color: var(--hunter-green);
             color: var(--primary-text);
           }

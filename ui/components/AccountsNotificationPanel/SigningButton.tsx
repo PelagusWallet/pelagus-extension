@@ -46,7 +46,7 @@ export default function SigningButton({
         <SharedIcon
           icon={`icons/m/${keyringData.icon}.svg`}
           width={15}
-          color="var(--green-40)"
+          color="var(--secondary-text)"
           hoverColor={`var(--${keyringData.color})`}
           transitionHoverTime="0.2s"
         />

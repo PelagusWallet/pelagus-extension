@@ -129,7 +129,7 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
             color: var(--secondary-text);
           }
           input:focus {
-            border: 2px solid var(--green-40);
+            border: 2px solid var(--secondary-text);
           }
           input[type="number"] {
             -moz-appearance: textfield;

@@ -67,7 +67,7 @@ export default function SharedNetworkIcon(props: {
           height: 100%;
           border-radius: 6px;
           background-color: ${hasBackground
-            ? "var(--green-95)"
+            ? "var(--secondary-bg)"
             : "transparent"};
           opacity: ${backgroundOpacity};
         }
@@ -90,7 +90,7 @@ export default function SharedNetworkIcon(props: {
           z-index: 1;
           border-radius: 50%;
           background-color: ${network.chainID === QuaiLocalNodeNetwork.chainID
-            ? "var(--green-40)"
+            ? "var(--secondary-text)"
             : "transparent"};
         }
       `}</style>

@@ -109,7 +109,7 @@ export default function KeyringUnlock(): ReactElement {
                 setErrorMessage("")
               }}
               errorMessage={errorMessage}
-              focusedLabelBackgroundColor="var(--green-95)"
+              focusedLabelBackgroundColor="var(--secondary-bg)"
             />
           </div>
           {isUnlocking && (
@@ -142,7 +142,7 @@ export default function KeyringUnlock(): ReactElement {
           }
 
           section {
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             display: flex;
             flex-direction: column;
             justify-content: center;

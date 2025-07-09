@@ -145,10 +145,10 @@ export default function SharedButton(
           }
           .button:hover {
             background-color: var(--gold-80);
-            color: var(--green-95);
+            color: var(--secondary-bg);
           }
           .button:hover .icon_button {
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
           }
           .button:active {
             background-color: var(--trophy-gold);
@@ -310,7 +310,7 @@ export default function SharedButton(
           }
           .deemphasized_white {
             color: var(--primary-text);
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
           }
           .deemphasized_white .icon_button {
             background-color: var(--primary-text);

@@ -158,7 +158,7 @@ export default function SharedDropdown({
             <div className="options">
               <SharedIcon
                 ariaLabel={t("shared.close")}
-                color="var(--green-40)"
+                color="var(--secondary-text)"
                 hoverColor="var(--green-20)"
                 customStyles={`
                   position: absolute;

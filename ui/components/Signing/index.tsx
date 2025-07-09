@@ -61,7 +61,7 @@ function SigningLoaded<T extends SignOperationType>({
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             z-index: 5;
           }
           section :global(h1.title) {

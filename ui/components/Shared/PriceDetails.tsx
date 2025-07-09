@@ -15,10 +15,10 @@ function getPriceImpactColor(value: number | undefined): string {
       case Math.abs(value) > 2:
         return "attention"
       default:
-        return "green-40"
+        return "secondary-text"
     }
   }
-  return "green-40"
+  return "secondary-text"
 }
 
 type PriceDetailsProps = {

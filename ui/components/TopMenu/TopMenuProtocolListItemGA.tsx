@@ -64,7 +64,7 @@ export default function TopMenuProtocolListItemGA({
           }
 
           .networks-list-item.select {
-            background: var(--green-95);
+            background: var(--secondary-bg);
             margin: 0;
             padding-left: 24px;
             padding-right: 24px;

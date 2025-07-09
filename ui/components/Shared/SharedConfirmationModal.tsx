@@ -92,7 +92,7 @@ const SharedConfirmationModal = ({
           }
           .confirmation-icon-wrapper {
             padding: ${icon?.padding};
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             border-radius: 50%;
           }
           .confirmation-text-wrapper {

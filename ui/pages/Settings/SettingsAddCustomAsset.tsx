@@ -322,7 +322,7 @@ export default function SettingsAddCustomAsset(): ReactElement {
                     <SharedLink
                       styles={{
                         textDecoration: "underline",
-                        "--link-color": "var(--green-95)",
+                        "--link-color": "var(--secondary-bg)",
                         "--hover-color": "var(--secondary-text)",
                         padding: "0px",
                       }}

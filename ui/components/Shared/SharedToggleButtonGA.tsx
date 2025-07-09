@@ -53,7 +53,7 @@ export default function SharedToggleButtonGA({
             width: 28px;
             height: 18px;
             border-radius: 20px;
-            background-color: var(--green-95);
+            background-color: var(--secondary-bg);
             box-sizing: border-box;
             padding: 1px;
             cursor: pointer;

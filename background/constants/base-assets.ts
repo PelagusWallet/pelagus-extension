@@ -24,29 +24,6 @@ export const QUAI: NetworkBaseAsset = {
   },
 }
 
-export const QI_GOLDEN_AGE: NetworkBaseAsset = {
-  chainID: "9000",
-  name: "Quai Network Golden Age",
-  symbol: "QI",
-  decimals: 3,
-  coinType: COIN_TYPES_BY_ASSET_SYMBOL.QI,
-  metadata: {
-    tokenLists: [],
-    websiteURL: "https://qu.ai/",
-  },
-}
-
-export const QUAI_GOLDEN_AGE: NetworkBaseAsset = {
-  chainID: "9000",
-  name: "Quai Network Golden Age",
-  symbol: "QUAI",
-  decimals: 18,
-  coinType: COIN_TYPES_BY_ASSET_SYMBOL.QUAI,
-  metadata: {
-    tokenLists: [],
-    websiteURL: "https://qu.ai/",
-  },
-}
 export const QUAI_ORCHARD: NetworkBaseAsset = {
   chainID: "15000",
   name: "Quai Network Orchard",
@@ -74,7 +51,6 @@ export const QUAI_LOCAL: NetworkBaseAsset = {
 export const BASE_ASSETS_BY_CUSTOM_NAME = {
   QI,
   QUAI,
-  QUAI_GOLDEN_AGE,
   QUAI_ORCHARD,
   QUAI_LOCAL,
 }

@@ -62,7 +62,7 @@ export default function SharedDrawer({
   return (
     <>
       <div
-        className={classNames("drawer-overlay", { closed: !isOpen })}
+        className={classNames("drawer-overlay theme", { closed: !isOpen })}
         onClick={handleOverlayClick}
       />
       <div
@@ -84,8 +84,8 @@ export default function SharedDrawer({
               icon="close.svg"
               width={14}
               height={14}
-              color="var(--white)"
-              hoverColor="var(--green-40)"
+              color="var(--primary-text)"
+              hoverColor="var(--secondary-text)"
               ariaLabel={tShared("close")}
               onClick={close}
               customStyles={`
@@ -114,15 +114,14 @@ export default function SharedDrawer({
           bottom: 0;
           cursor: pointer;
           z-index: 998;
-          background: var(--tertiary-bg);
-          opacity: 0.7;
+          background: var(--secondary-bg);
           transition: opacity cubic-bezier(0.19, 1, 0.22, 1)
               ${SLIDE_TRANSITION_MS}ms,
-            visiblity ${SLIDE_TRANSITION_MS}ms;
+            visibility ${SLIDE_TRANSITION_MS}ms;
         }
         .drawer-overlay.closed {
           opacity: 0;
-          visiblity: hidden;
+          visibility: hidden;
           pointer-events: none;
         }
 

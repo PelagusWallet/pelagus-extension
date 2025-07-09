@@ -47,10 +47,6 @@
   --border-medium: #33514e;
   --border-dark: #578f89;
 
-
-
-  //////// NEW WHITE THEME ////////
-
   --primary-bg: #ffffff;
   --secondary-bg: #EFEFEF;
 
@@ -71,6 +67,7 @@
   --hunter-green: #1B1B1D;
   --castle-black: #1B1B1D;
   --white: #F2F2F2;
+
   
   /* Status colors */
   --disabled: #7E7E83;

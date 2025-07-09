@@ -159,7 +159,7 @@ export default function SharedDropdown({
               <SharedIcon
                 ariaLabel={t("shared.close")}
                 color="var(--secondary-text)"
-                hoverColor="var(--green-20)"
+                hoverColor="var(--primary-text)"
                 customStyles={`
                   position: absolute;
                   top: 16px;
@@ -205,7 +205,7 @@ export default function SharedDropdown({
                     padding: 0;
 
                     cursor: default;
-                    background-color: var(--primary-bg);
+                    background-color: var(--secondary-bg);
                     width: 212px;
                     border-radius: 4px;
                     z-index: 1;

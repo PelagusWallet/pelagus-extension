@@ -2,7 +2,7 @@ import React, { ReactElement } from "react"
 
 const SIZE = 60
 const DEFAULT_COLORS: ColorDetails = {
-  color: "var(--secondary-text)",
+  color: "var(--green-40)",
   hoverColor: "var(--gold-80)",
 }
 
@@ -58,7 +58,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             font-weight: 500;
             line-height: 20px;
             letter-spacing: 0.03em;
-            color: var(--secondary-text);
+            color: var(--primary-text);
             transition: color 0.2s;
             width: ${width ?? "80%"};
             display: flex;
@@ -95,7 +95,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             mask-size: cover;
             width: ${`${iconWidth}px` ?? "100%"};
             height: ${`${iconHeight}px` ?? "100%"};
-            background-color: var(--hunter-green);
+            background-color: var(--secondary-bg);
           }
         `}
       </style>

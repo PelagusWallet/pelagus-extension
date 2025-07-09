@@ -444,7 +444,7 @@ export default function Settings(): ReactElement {
                   key={icon}
                   icon={`${icon}.svg`}
                   width={18}
-                  color="var(--white)"
+                  color="var(--primary-text)"
                   hoverColor="var(--secondary-text)"
                   transitionHoverTime="0.2s"
                   onClick={() => {

@@ -19,7 +19,7 @@ export default function SettingButton(props: {
         <SharedIcon
           icon={`icons/s/${icon}.svg`}
           width={16}
-          color="var(--white)"
+          color="var(--primary-text)"
           ariaLabel={ariaLabel}
         />
         <style jsx>{`

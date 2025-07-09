@@ -292,6 +292,7 @@ interface SharedAssetInputProps<AssetType extends AnyAsset> {
   isPriceDetailsLoading?: boolean
   showPriceDetails?: boolean
   mainCurrencySign?: string
+  tabIndex?: number
   onAssetSelect?: (asset: AssetType) => void
   onFocus?: () => void
   onBlur?: () => void
@@ -337,6 +338,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
     showPriceDetails,
     isPriceDetailsLoading,
     mainCurrencySign,
+    tabIndex,
     onAssetSelect,
     onAmountChange,
     onFocus = () => {},
@@ -529,6 +531,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
             disabled={isDisabled}
             value={amount ? formatNumberWithCommas(amount) : ''}
             spellCheck={false}
+            tabIndex={tabIndex}
             onFocus={(e) => {
               if (e.target === e.currentTarget) {
                 onFocus()

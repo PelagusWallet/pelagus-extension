@@ -163,7 +163,7 @@ export default class IndexingService extends BaseService<Events> {
                 homeNetwork: network,
                 metadata: {
                   verified: true,
-                  logoURL: "./images/Qi.svg",
+                  logoURL: "./images/WQi.svg",
                 },
           }
           await this.importCustomToken(wrappedQiAsset)
@@ -251,7 +251,7 @@ export default class IndexingService extends BaseService<Events> {
       homeNetwork: network,
       metadata: {
         verified: true,
-        logoURL: "./images/Qi.svg",
+        logoURL: "./images/WQi.svg",
       },
     }
 

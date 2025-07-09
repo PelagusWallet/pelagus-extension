@@ -45,6 +45,10 @@ function OnboardingAddWallet(): ReactElement {
             border-radius: 22px;
           }
 
+          .bottom_content {
+            color: white;
+          }
+
           header h1 {
             font-family: "TT Travels";
             font-weight: 500;

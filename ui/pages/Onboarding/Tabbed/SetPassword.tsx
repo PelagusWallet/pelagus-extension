@@ -108,6 +108,7 @@ export default function SetPassword(): ReactElement {
                 flex-direction: column;
                 gap: 20px;
                 margin-bottom: 32px;
+                color: white;
               }
 
               header h1 {
@@ -123,7 +124,7 @@ export default function SetPassword(): ReactElement {
               }
             `}
           </style>
-          <h1>{t("onboarding.tabbed.unlockWallet.title")}</h1>
+          <h1 className="center_text">{t("onboarding.tabbed.unlockWallet.title")}</h1>
         </header>
         <form onSubmit={handleAttemptUnlock}>
           <PasswordInput
@@ -174,9 +175,15 @@ export default function SetPassword(): ReactElement {
               margin: 0 auto;
               border-radius: 25%;
             }
+
+            .title-white {
+              color: white;
+              align-items: center;
+              text-align: center;
+            }
           `}
         </style>
-        <h1 className="center_text">
+        <h1 className="title-white">
           <Trans t={t} i18nKey="onboarding.setPassword.title" />
         </h1>
       </header>

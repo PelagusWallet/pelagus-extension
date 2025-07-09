@@ -18,6 +18,7 @@ import ViewOnlyWallet from "./ViewOnlyWallet"
 import OnboardingRoutes from "./Routes"
 import { useIsOnboarding } from "../../../hooks"
 import ImportPrivateKeyForm from "./ImportPrivateKeyForm"
+import { useTheme } from "../../../hooks/theme-hooks"
 
 function Navigation({
   children,
@@ -66,7 +67,7 @@ function Navigation({
           }
 
           .card_container {
-            background: #1C1C1C;
+            background: var(--primary-bg);
             border-radius: 16px;
             padding: 48px;
             width: 100%;
@@ -113,6 +114,7 @@ function Navigation({
 
 export default function Root(): ReactElement {
   const [isOnboarding] = useState(useIsOnboarding())
+  useTheme()
 
   return (
     <Navigation isOnboarding={isOnboarding}>

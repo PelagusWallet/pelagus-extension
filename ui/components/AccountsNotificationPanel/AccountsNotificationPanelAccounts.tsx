@@ -310,28 +310,10 @@ export default function AccountsNotificationPanelAccounts({
                 indexOfB = customOrder[signerId].length - 1
               }
 
-              // If both addresses are found in customOrder, compare their indices
-              if (indexOfA !== -1 && indexOfB !== -1) {
-                return indexOfA - indexOfB
-              }
-
-              // If address A is not in customOrder, but B is, B should come first
-              if (indexOfA === -1 && indexOfB !== -1) {
-                return 1
-              }
-
-              // If address B is not in customOrder, but A is, A should come first
-              if (indexOfA !== -1 && indexOfB === -1) {
-                return -1
-              }
-
-              // If neither address is in customOrder, use localeCompare as a fallback
-              return a.address.localeCompare(b.address)
+              return indexOfA - indexOfB
             })
           } else {
-            accountTotalsByType[signerId].sort((a, b) => {
-              return a.address.localeCompare(b.address)
-            })
+            // Keep natural order, just save it as custom order for future reference
             const newCustomOrder = accountTotalsByType[signerId].map(
               (item) => item.address
             )

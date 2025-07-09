@@ -440,7 +440,6 @@ export default function AccountItemOptionsMenu({
           }
           .account_container {
             margin-top: -10px;
-            background-color: var(--hunter-green);
             padding: 5px;
             border-radius: 16px;
           }

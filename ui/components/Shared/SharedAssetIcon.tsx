@@ -125,21 +125,25 @@ export default function SharedAssetIcon(props: Props): ReactElement {
       className={classNames("token_icon_wrap", sizeClass)}
       role="img"
     >
-      <div
-        role="presentation"
-        className={classNames("token_icon_fallback", sizeClass)}
-      >
-        {(symbol?.[0] ?? "?").toUpperCase()}
-      </div>
+      {imageURL ? (
+        <div className="token_icon" />
+      ) : (
+        <div
+          role="presentation"
+          className={classNames("token_icon_fallback", sizeClass)}
+        >
+          {(symbol?.[0] ?? "?").toUpperCase()}
+        </div>
+      )}
       <style jsx>
         {`
           .token_icon_wrap {
             width: 40px;
             height: 40px;
             border-radius: 80px;
-            border: 1px solid var(--disabled);
+            border: none;
             overflow: hidden;
-            background-color: var(--castle-black);
+            background-color: var(--secondary-bg);
             flex-shrink: 0;
           }
           .token_icon_fallback {
@@ -174,7 +178,7 @@ export default function SharedAssetIcon(props: Props): ReactElement {
         .token_icon {
           width: 100%;
           height: 100%;
-          background-color: var(--castle-black);
+          background-color: var(--secondary-bg);
           display: flex;
           align-items: center;
           justify-content: center;

@@ -264,7 +264,7 @@ export default function DetailPanel({
         {`
           .detail_item {
             width: 100%;
-            color: var(--secondary-text);
+            color: var(--primary-text);
             font-size: 14px;
             line-height: 16px;
             display: flex;

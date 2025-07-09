@@ -41,6 +41,10 @@ export function storageGatewayURL(url: string): URL {
     case "ar:":
       return changeURLProtocolAndBase(new URL(url), arweaveGateway)
     default:
+      // Handle relative paths by creating URL relative to current origin
+      if (url.startsWith("./") || url.startsWith("/")) {
+        return new URL(url, window.location.origin)
+      }
       return new URL(url)
   }
 }

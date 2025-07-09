@@ -34,12 +34,12 @@ export default function RequestingDAppBlock(props: {
           flex-shrink: 0;
         }
         .dapp_title {
-          color: var(--secondary-text);
+          color: var(--primary-text);
           font-size: 16px;
           font-weight: 500;
         }
         .dapp_url {
-          color: var(--secondary-text);
+          color: var(--primary-text);
           font-size: 16px;
           white-space: nowrap;
           overflow: hidden;

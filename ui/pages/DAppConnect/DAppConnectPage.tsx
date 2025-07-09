@@ -103,13 +103,13 @@ export default function DAppConnectPage({
         li {
           font-size: 14px;
           line-height: 20px;
-          color: var(--secondary-text);
+          color: var(--primary-text);
           margin-bottom: 4px;
           margin-left: 5px;
         }
 
         .permissions_list_title {
-          color: var(--secondary-text);
+          color: var(--primary-text);
           margin-bottom: 8px;
           margin-top: 15px;
           margin-left: 0;

@@ -144,7 +144,7 @@ export const setConvertExpectedResultHandle = createBackgroundAsyncThunk(
     let parsedAmount = 0n
     let formattedAmount = 0
     if (convertingFromUtxoAccount) {
-      parsedAmount = parseQi(convertAssets?.amount)
+      parsedAmount = parseQi(convertAssets?.amount || "0")
       expectedAmount = await jsonRpcProvider.calculateConversionAmount({
         from: mockQiAddress,
         to: mockQuaiAddress,
@@ -152,7 +152,7 @@ export const setConvertExpectedResultHandle = createBackgroundAsyncThunk(
       })
       formattedAmount = Number(formatQuai(expectedAmount))
     } else {
-      parsedAmount = parseQuai(convertAssets?.amount)
+      parsedAmount = parseQuai(convertAssets?.amount || "0")
       expectedAmount = await jsonRpcProvider.calculateConversionAmount({
         from: mockQuaiAddress,
         to: mockQiAddress,

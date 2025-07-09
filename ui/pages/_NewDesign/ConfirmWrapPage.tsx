@@ -46,7 +46,6 @@ const ConfirmWrapPage = () => {
     try {
       setIsLoading(true)
       const result = await dispatch(wrapQiHandle()) as AsyncThunkResult
-      console.log("result", result)
       if (result?.txHash) {
         setTransactionHash(result.txHash)
       } else {

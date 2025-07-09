@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { useHistory } from "react-router-dom"
 import { FaTriangleExclamation, FaCircleExclamation } from "react-icons/fa6"
 
-import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
+import { selectQiWalletSyncInProgress, setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { parseQi, Zone } from "quais"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
@@ -10,12 +10,14 @@ import ConvertAsset from "../../components/_NewDesign/ConvertAsset/ConvertAsset"
 import AccountsNotificationPanel from "../../components/AccountsNotificationPanel/AccountsNotificationPanel"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { isUtxoAccountTypeGuard } from "../../utils/accounts"
+import { useSelector } from "react-redux"
 
 const ConvertPage = () => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const [showSlippageWarning, setShowSlippageWarning] = useState(false)
   const scrollableContentRef = useRef<HTMLDivElement>(null)
+  const qiWalletSyncInProgress = useSelector(selectQiWalletSyncInProgress)
 
   const { from, to, amount, expectedSlippage, maxSlippage } =
     useBackgroundSelector((state) => state.convertAssets)
@@ -34,6 +36,7 @@ const ConvertPage = () => {
     if (!from || !to || !amount) return true
 
     if (isUtxoAccountTypeGuard(from)) {
+      if (qiWalletSyncInProgress) return true
       return (
         Number(amount) < 10 ||
         !from?.balances[Zone.Cyprus1]?.assetAmount?.amount ||
@@ -106,6 +109,7 @@ const ConvertPage = () => {
               },
             }}
             isConfirmDisabled={isDisabledHandle()}
+            isLoading={qiWalletSyncInProgress}
           />
         </div>
       </main>

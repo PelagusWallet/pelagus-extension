@@ -449,13 +449,24 @@ export class ChainDatabase extends Dexie {
   }
 
   async removeQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
-    const keys: [string, string, number][] = outpoints.map((outpoint) => [
-      outpoint.chainID,
-      outpoint.outpoint.txhash,
-      outpoint.outpoint.index,
-    ]) as [string, string, number][]
-
-    await this.qiOutpoints.bulkDelete(keys)
+    // Use transaction to ensure atomicity
+    await this.transaction("rw", this.qiOutpoints, async () => {
+      for (const outpoint of outpoints) {
+        let txhash: string
+        if (outpoint.outpoint.txhash.startsWith("0x")) {  
+          txhash = outpoint.outpoint.txhash
+        } else {
+          txhash = "0x" + outpoint.outpoint.txhash
+        }
+        const deleted = await this.qiOutpoints
+          .where("[chainID+outpoint.txhash+outpoint.index]")
+          .equals([outpoint.chainID, txhash, outpoint.outpoint.index])
+          .delete()
+        if (deleted === 0) {
+          console.warn("failed to delete outpoint", outpoint)
+        }
+      }
+    })
   }
 
   async getAllQiOutpoints(chainID: string): Promise<QiOutpoint[]> {
@@ -482,6 +493,24 @@ export class ChainDatabase extends Dexie {
       .where("outpoint.denomination")
       .below(denomination)
       .toArray()
+  }
+
+  async getUnlockedQiOutpointsLessThanDenomination(
+    denomination: number,
+    chainID: string,
+    currentBlockNumber: number
+  ): Promise<QiOutpoint[]> {
+    const batch = this.qiOutpoints
+        .where("[chainID+outpoint.lock]")
+        .between(
+          [chainID, Dexie.minKey],
+          [chainID, currentBlockNumber],
+          false,
+          true
+        ).and((outpoint) => outpoint.outpoint.denomination < denomination)
+        .toArray()
+
+    return batch
   }
 
   async loadQiOutpointsForSending(

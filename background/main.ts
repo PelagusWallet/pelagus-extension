@@ -66,6 +66,7 @@ import {
 import {
   emitter as uiSliceEmitter,
   initializationLoadingTimeHitLimit,
+  resetProgressStates,
   resetSnackbarConfig,
   setAccountsSignerSettings,
   setDefaultWallet,
@@ -756,6 +757,9 @@ export default class Main extends BaseService<never> {
     this.store.dispatch(
       clearTransactionState(TransactionConstructionStatus.Idle)
     )
+    
+    // Reset progress states that may have been stuck due to interrupted operations
+    this.store.dispatch(resetProgressStates())
 
     this.connectPopupMonitor()
   }

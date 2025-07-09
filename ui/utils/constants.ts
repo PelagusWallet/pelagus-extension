@@ -1,7 +1,6 @@
 import {
   QUAI_NETWORK_ORCHARD,
   QUAI_NETWORK_LOCAL,
-  QUAI_NETWORK_GOLDEN_AGE,
   QUAI_NETWORK,
 } from "@pelagus/pelagus-background/constants"
 import { NetworkFeeTypeChosen } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
@@ -13,13 +12,6 @@ export const blockExplorer = {
     url:
       QUAI_NETWORK.chains !== undefined
         ? QUAI_NETWORK.chains[0].blockExplorerUrl
-        : "",
-  },
-  [QUAI_NETWORK_GOLDEN_AGE.chainID]: {
-    title: "Quaiscan",
-    url:
-      QUAI_NETWORK_GOLDEN_AGE.chains !== undefined
-        ? QUAI_NETWORK_GOLDEN_AGE.chains[0].blockExplorerUrl
         : "",
   },
   [QUAI_NETWORK_ORCHARD.chainID]: {

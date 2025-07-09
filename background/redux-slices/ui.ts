@@ -16,7 +16,7 @@ import {
 import { AccountState, addAddressNetwork, UtxoAccountData } from "./accounts"
 import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
-import { QuaiGoldenAgeTestnet } from "../constants/networks/networks"
+import { QuaiMainnet } from "../constants/networks/networks"
 
 export const defaultSettings = {
   hideDust: false,
@@ -123,7 +123,7 @@ export const initialState: UIState = {
   },
   selectedAccount: {
     address: "",
-    network: QuaiGoldenAgeTestnet,
+    network: QuaiMainnet,
   },
   selectedUtxoAccount: null,
   isUtxoSelected: false,

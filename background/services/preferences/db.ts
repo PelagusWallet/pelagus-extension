@@ -7,7 +7,7 @@ import {
 } from "../../accounts"
 import {
   PELAGUS_NETWORKS,
-  QuaiGoldenAgeTestnet,
+  QuaiMainnet
 } from "../../constants/networks/networks"
 import { FiatCurrency } from "../../assets"
 import DEFAULT_PREFERENCES from "./defaults"
@@ -89,7 +89,7 @@ export class PreferenceDatabase extends Dexie {
                   storedPreferences.selectedAccount?.network?.chainID
               )
               update.selectedAccount.network =
-                updatedNetwork ?? QuaiGoldenAgeTestnet
+                updatedNetwork ?? QuaiMainnet
             }
 
             update.showDefaultWalletBanner = true

@@ -768,6 +768,14 @@ export default class ChainService extends BaseService<Events> {
     )
   }
 
+  async getQiOutpointsLessThanDenomination(denomination: number, chainID: string, currentBlockNumber: number): Promise<QiOutpoint[]> {
+    return this.db.getUnlockedQiOutpointsLessThanDenomination(denomination, chainID, currentBlockNumber)
+  }
+
+  async removeQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
+    return this.db.removeQiOutpoints(outpoints)
+  }
+
   async getLatestBaseAccountBalance({
     address,
     network,

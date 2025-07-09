@@ -5,6 +5,7 @@ import {
 } from "quais/lib/commonjs/providers"
 import {
   Contract,
+  denominations,
   getZoneForAddress,
   parseQi,
   parseQuai,
@@ -234,6 +235,33 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             error.message.includes("Insufficient funds")
           ) {
             bufferPercentage += 10
+          } else if (error instanceof Error && error.message.includes("non-existent UTXO")) {
+            // Parse the error message to get the outpoint hash and index
+            const match = error.message.match(/non-existent UTXO ([0-9a-fA-F]+):(\d+)/)
+            if (match) {
+              const outpointHash = match[1]
+              const outpointIndex = parseInt(match[2], 10)
+              
+              // Remove the non-existent outpoint from the database
+              const chainID = this.chainService.selectedNetwork.chainID
+              const nonExistentOutpoint = {
+                chainID,
+                outpoint: {
+                  txhash: outpointHash,
+                  index: outpointIndex,
+                  denomination: 0, // This doesn't matter for deletion
+                  lock: 0 // This doesn't matter for deletion
+                },
+                value: BigInt(0), // This doesn't matter for deletion
+                address: "", // This doesn't matter for deletion
+                derivationPath: "" // This doesn't matter for deletion
+              }
+              await this.chainService.removeQiOutpoints([nonExistentOutpoint])
+              logger.info(`Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`)
+            }
+            // Continue to next attempt with fresh outpoints after removal
+            qiWallet = await this.keyringService.getQiHDWallet()
+            qiWallet.connect(jsonRpcProvider)
           } else {
             await this.chainService.syncQiWallet()
             qiWallet = await this.keyringService.getQiHDWallet()
@@ -378,10 +406,72 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       to: unusedAddress,
       from,
       value: amount,
-      gasLimit: 100000, // use 1M gas limit to avoid running out of gas when creating outpoints
+      gasLimit: 1000000, // use 1M gas limit to avoid running out of gas when creating outpoints
       data: slippageDataHex,
     }
     await this.signAndSendQuaiTransaction(convertTxRequest)
+  }
+
+  public async getUTXODenominationDistribution(): Promise<{ [denomination: number]: number }> {
+    const qiOutpoints = await this.chainService.getQiOutpointsLessThanDenomination(
+      denominations.length - 1,
+      this.chainService.selectedNetwork.chainID,
+      await this.chainService.jsonRpcProvider.getBlockNumber(Shard.Cyprus1)
+    )
+
+    const distribution = qiOutpoints.reduce((acc, outpoint) => {
+      const denomination = outpoint.outpoint.denomination
+      acc[denomination] = (acc[denomination] || 0) + 1
+      return acc
+    }, {} as { [denomination: number]: number })
+    return distribution
+  }
+
+  public async aggregateQi(maxDenominationAggregate: number, maxDenominationOutput: number): Promise<string> {
+    const { jsonRpcProvider } = this.chainService
+    let qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+    
+    // TODO: Implement aggregation logic using maxDenominationAggregate and maxDenominationOutput
+    console.log("maxDenominationAggregate:", maxDenominationAggregate)
+    console.log("maxDenominationOutput:", maxDenominationOutput)
+
+    const maxInputs = 1000
+
+    const qiOutpoints = await this.chainService.getQiOutpointsLessThanDenomination(
+      maxDenominationAggregate+1, // +1 because we want to include the maxDenominationAggregate in the selection
+      this.chainService.selectedNetwork.chainID,
+      await this.chainService.jsonRpcProvider.getBlockNumber(Shard.Cyprus1)
+    )
+
+    const outpoints = qiOutpoints.slice(0, maxInputs)
+
+    qiWallet.importOutpoints(outpoints.map((outpoint) => ({
+      outpoint: outpoint.outpoint,
+      address: outpoint.address,
+      zone: Zone.Cyprus1,
+      derivationPath: outpoint.derivationPath,
+    })))
+    const amount = outpoints.reduce((acc, outpoint) => acc + denominations[outpoint.outpoint.denomination], BigInt(0))
+
+    const tx = await qiWallet.aggregate(Zone.Cyprus1, {}, maxDenominationAggregate, maxDenominationOutput)
+    console.log("tx", tx)
+    try {
+      const transaction = processSentQiTransaction(
+        qiWallet.getPaymentCode(0),
+        qiWallet.getPaymentCode(0),
+        tx as QiTransactionResponse,
+        amount
+      )
+      await this.saveQiTransaction(transaction)
+      await Promise.all([
+        this.subscribeToQiTransaction(transaction.hash),
+        this.chainService.syncQiWallet(),
+      ])
+    } catch (error: any) {
+      console.log("error saving Qi aggregation transaction", error)
+    }
+    return tx.hash
   }
 
   public async wrapQi(value: string, to: string): Promise<string | undefined> {
@@ -430,9 +520,29 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         ) {
           bufferPercentage += 10
         } else if (error instanceof Error && error.message.includes("non-existent UTXO")) {
-          await this.chainService.syncQiWallet(true)
-          qiWallet = await this.keyringService.getQiHDWallet()
-          qiWallet.connect(jsonRpcProvider)
+          // Parse the error message to get the outpoint hash and index
+          const match = error.message.match(/non-existent UTXO ([0-9a-fA-F]+):(\d+)/)
+          if (match) {
+            const outpointHash = match[1]
+            const outpointIndex = parseInt(match[2], 10)
+            
+            // Remove the non-existent outpoint from the database
+            const chainID = this.chainService.selectedNetwork.chainID
+            const nonExistentOutpoint = {
+              chainID,
+              outpoint: {
+                txhash: outpointHash,
+                index: outpointIndex,
+                denomination: 0, // This doesn't matter for deletion
+                lock: 0 // This doesn't matter for deletion
+              },
+              value: BigInt(0), // This doesn't matter for deletion
+              address: "", // This doesn't matter for deletion
+              derivationPath: "" // This doesn't matter for deletion
+            }
+            await this.chainService.removeQiOutpoints([nonExistentOutpoint])
+            logger.info(`Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`)
+          }
         } else {
           await this.chainService.syncQiWallet()
           qiWallet = await this.keyringService.getQiHDWallet()
@@ -532,6 +642,33 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             error.message.includes("Insufficient funds")
           ) {
             bufferPercentage += 10
+          } else if (error instanceof Error && error.message.includes("non-existent UTXO")) {
+            // Parse the error message to get the outpoint hash and index
+            const match = error.message.match(/non-existent UTXO ([0-9a-fA-F]+):(\d+)/)
+            if (match) {
+              const outpointHash = match[1]
+              const outpointIndex = parseInt(match[2], 10)
+              
+              // Remove the non-existent outpoint from the database
+              const chainID = this.chainService.selectedNetwork.chainID
+              const nonExistentOutpoint = {
+                chainID,
+                outpoint: {
+                  txhash: outpointHash,
+                  index: outpointIndex,
+                  denomination: 0, // This doesn't matter for deletion
+                  lock: 0 // This doesn't matter for deletion
+                },
+                value: BigInt(0), // This doesn't matter for deletion
+                address: "", // This doesn't matter for deletion
+                derivationPath: "" // This doesn't matter for deletion
+              }
+              await this.chainService.removeQiOutpoints([nonExistentOutpoint])
+              logger.info(`Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`)
+            }
+            // Continue to next attempt with fresh outpoints after removal
+            qiWallet = await this.keyringService.getQiHDWallet()
+            qiWallet.connect(jsonRpcProvider)
           } else {
             await this.chainService.syncQiWallet()
             qiWallet = await this.keyringService.getQiHDWallet()

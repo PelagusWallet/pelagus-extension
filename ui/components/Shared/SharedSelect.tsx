@@ -23,6 +23,7 @@ type Props = {
   showOptionValue?: boolean
   width?: string | number
   labelColor?: string
+  variant?: "default" | "small"
 }
 
 export default function SharedSelect(props: Props): ReactElement {
@@ -38,6 +39,7 @@ export default function SharedSelect(props: Props): ReactElement {
     showOptionValue,
     width = "320px",
     labelColor = "var(--green-40)",
+    variant = "default",
   } = props
 
   const cssWidth = typeof width === "number" ? `${width}px` : width
@@ -225,7 +227,7 @@ export default function SharedSelect(props: Props): ReactElement {
             box-sizing: border-box;
             width: calc(${cssWidth} - 4px);
             text-align: right;
-            background-color: var(--green-95);
+            background-color: ${variant === "small" ? "var(--hunter-green)" : "var(--green-95)"};
             border-radius: 5px;
             overflow-y: auto;
             color: var(--green-60);
@@ -237,7 +239,10 @@ export default function SharedSelect(props: Props): ReactElement {
             opacity: 0;
             line-height: 1.5;
             transition: max-height 0.2s ease-in-out, opacity 0.2s ease-in-out;
-            z-index: 1;
+            z-index: 1000;
+            min-width: ${variant === "small" ? "100px" : "unset"};
+            max-width: ${variant === "small" ? "120px" : "unset"};
+            font-size: ${variant === "small" ? "13px" : "16px"};
           }
 
           .select.bottom .options {
@@ -261,8 +266,9 @@ export default function SharedSelect(props: Props): ReactElement {
             list-style-type: none;
             font-weight: 600;
             cursor: pointer;
-            padding: 0 16px;
+            padding: ${variant === "small" ? "4px 8px" : "0 16px"};
             color: var(--green-60);
+            font-size: ${variant === "small" ? "13px" : "16px"};
           }
 
           .option.selected {

@@ -29,7 +29,7 @@ import { convertFixedPoint } from "../lib/fixed-point"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QiWallet } from "../services/keyring/types"
 import { RootState } from "./index"
-import { updateSelectedUtxoAccountBalance } from "./ui"
+import { updateSelectedUtxoAccountBalance, setAggregateQiOutputsInProgress } from "./ui"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to
@@ -649,5 +649,31 @@ export const forceQiWalletFullRescan = createBackgroundAsyncThunk(
   "account/forceQiWalletFullRescan",
   async (_, { extra: { main } }) => {
     await main.chainService.syncQiWallet(true)
+  }
+)
+
+export const aggregateQiOutputs = createBackgroundAsyncThunk(
+  "account/aggregateQiOutputs",
+  async (params: { maxDenominationAggregate: number; maxDenominationOutput: number }, { extra: { main }, dispatch }) => {
+    try {
+      dispatch(setAggregateQiOutputsInProgress(true))
+      const txHash = await main.transactionService.aggregateQi(params.maxDenominationAggregate, params.maxDenominationOutput)
+      return { txHash }
+    } catch (error: any) {
+      return {
+        error: {
+          message: typeof error === 'string' ? error : error?.message
+        }
+      }
+    } finally {
+      dispatch(setAggregateQiOutputsInProgress(false))
+    }
+  }
+)
+
+export const fetchUTXODenominationDistribution = createBackgroundAsyncThunk(
+  "account/fetchUTXODenominationDistribution",
+  async (_, { extra: { main } }): Promise<{ [denomination: number]: number }> => {
+    return await main.transactionService.getUTXODenominationDistribution()
   }
 )

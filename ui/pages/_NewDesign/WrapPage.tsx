@@ -11,9 +11,10 @@ import SharedButton from "../../components/Shared/SharedButton"
 import ConvertTo from "../../components/_NewDesign/ConvertAsset/ConvertTo/ConvertTo"
 import { FaTriangleExclamation } from "react-icons/fa6"
 import AccountsNotificationPanel from "../../components/AccountsNotificationPanel/AccountsNotificationPanel"
-import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
+import { selectQiWalletSyncInProgress, setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import ConvertFrom from "../../components/_NewDesign/ConvertAsset/ConvertFrom/ConvertFrom"
 import ConvertFromAmount from "../../components/_NewDesign/ConvertAsset/ConvertFromAmount/ConvertFromAmount"
+import { useSelector } from "react-redux"
 
 interface WrapLocationState {
   sentWrap?: boolean
@@ -32,6 +33,7 @@ const WrapPage = () => {
   const amount = useBackgroundSelector((state) => state.convertAssets.amount)
   const to = useBackgroundSelector((state) => state.convertAssets.to)
   const wrappedQiDeposit = useBackgroundSelector((state) => state.convertAssets.wrappedQiDeposit)
+  const qiWalletSyncInProgress = useSelector(selectQiWalletSyncInProgress)
   const [isClaiming, setIsClaiming] = useState(false)
   useEffect(() => {
     if (to && isAccountTotalTypeGuard(to)) {
@@ -140,9 +142,12 @@ const WrapPage = () => {
             if (to && isAccountTotalTypeGuard(to)) {
               setIsClaiming(true)
               await dispatch(claimWrappedQiDepositHandle({ from: to.address }))
-              setTimeout(() => {
+              const intervalId = setInterval(() => {
                 dispatch(getWrappedQiDepositHandle({ from: to.address }))
               }, 10000)
+              setTimeout(() => {
+                clearInterval(intervalId)
+              }, 5 * 60 * 1000) // 5 minutes in milliseconds
             }
           }}
           isDisabled={isClaiming}
@@ -210,6 +215,7 @@ const WrapPage = () => {
         title={{ confirmTitle: "Wrap", cancelTitle: "Cancel" }}
         onClick={{ onConfirm: handleConfirm, onCancel: () => history.push("/") }}
         isConfirmDisabled={isDisabledHandle()}
+        isLoading={qiWalletSyncInProgress}
       />
       <AccountsNotificationPanel
         onCurrentAddressChange={() => dispatch(setShowingAccountsModal(false))}

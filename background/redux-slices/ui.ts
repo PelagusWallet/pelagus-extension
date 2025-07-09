@@ -74,6 +74,7 @@ export type UIState = {
   slippageTolerance: number
   accountSignerSettings: AccountSignerSettings[]
   qiWalletSyncInProgress: boolean
+  aggregateQiOutputsInProgress: boolean
   lastUserActivityOnAddress: { [address: string]: number }
   lastUserActivityOnNetwork: { [chainID: string]: number }
 }
@@ -129,6 +130,7 @@ export const initialState: UIState = {
   slippageTolerance: 0.01,
   accountSignerSettings: [],
   qiWalletSyncInProgress: false,
+  aggregateQiOutputsInProgress: false,
   lastUserActivityOnAddress: {},
   lastUserActivityOnNetwork: Object.fromEntries(
     PELAGUS_NETWORKS.map((network: NetworkInterface) => [network.chainID, 0])
@@ -375,6 +377,13 @@ const uiSlice = createSlice({
     setQiWalletSyncInProgress: (immerState, { payload }: { payload: boolean }) => {
       immerState.qiWalletSyncInProgress = payload
     },
+    setAggregateQiOutputsInProgress: (immerState, { payload }: { payload: boolean }) => {
+      immerState.aggregateQiOutputsInProgress = payload
+    },
+    resetProgressStates: (immerState) => {
+      immerState.qiWalletSyncInProgress = false
+      immerState.aggregateQiOutputsInProgress = false
+    },
     updateLastUserActivityOnNetwork: (
       immerState,
       { payload: chainID }: { payload: string }
@@ -413,6 +422,8 @@ export const {
   updateSelectedUtxoAccountBalance,
   setAutoLockInterval,
   setQiWalletSyncInProgress,
+  setAggregateQiOutputsInProgress,
+  resetProgressStates,
   updateLastUserActivityOnNetwork,
 } = uiSlice.actions
 
@@ -675,6 +686,11 @@ export const selectImportPrivateKeyModalCategory = createSelector(
 export const selectQiWalletSyncInProgress = createSelector(
   selectUI,
   (ui) => ui.qiWalletSyncInProgress
+)
+
+export const selectAggregateQiOutputsInProgress = createSelector(
+  selectUI,
+  (ui) => ui.aggregateQiOutputsInProgress
 )
 
 export const selectShowTestNetworks = createSelector(

@@ -199,5 +199,6 @@ export class TransactionsDatabase extends Dexie {
 export function initializeTransactionsDatabase(
   options?: DexieOptions
 ): TransactionsDatabase {
+  console.log("Initializing transactions database")
   return new TransactionsDatabase(options)
 }

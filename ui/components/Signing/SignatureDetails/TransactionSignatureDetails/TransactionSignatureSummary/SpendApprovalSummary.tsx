@@ -250,6 +250,7 @@ export default function SpendApprovalSummary({
             margin-bottom: 16px;
           }
           .asset_icon_wrap {
+            color: var(--primary-text);
             z-index: 1;
           }
           .site {

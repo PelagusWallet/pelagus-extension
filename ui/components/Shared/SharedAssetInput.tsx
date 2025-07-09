@@ -255,7 +255,7 @@ function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
         button {
           display: flex;
           align-items: center;
-          color: var(--secondary-text);
+          color: var(--primary-text);
           font-size: 16px;
           font-weight: 500;
           line-height: 24px;
@@ -436,6 +436,22 @@ export default function SharedAssetInput<T extends AnyAsset>(
     selectedAssetAndAmount &&
     hasAmounts(selectedAssetAndAmount) &&
     selectedAssetAndAmount.localizedDecimalAmount
+  const formatNumberWithCommas = (value: string) => {
+    // Remove existing commas first
+    const rawValue = value.replace(/,/g, '');
+    // Split on decimal point
+    const [integerPart, decimalPart] = rawValue.split('.');
+    // Add commas to integer part
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // Return with decimal part if it exists
+    return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+  };
+
+  const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = event.target.value.replace(/,/g, '');
+    onAmountChange?.(rawValue, getErrorMessage(rawValue));
+  };
+
   return (
     <>
       <label
@@ -507,12 +523,11 @@ export default function SharedAssetInput<T extends AnyAsset>(
           <input
             id={`asset_amount_input${inputId}`}
             className="input_amount"
-            type="number"
-            step="any"
+            type="text"
+            inputMode="decimal"
             placeholder="0.0"
-            min="0"
             disabled={isDisabled}
-            value={amount}
+            value={amount ? formatNumberWithCommas(amount) : ''}
             spellCheck={false}
             onFocus={(e) => {
               if (e.target === e.currentTarget) {
@@ -524,12 +539,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
                 onBlur()
               }
             }}
-            onChange={(event) =>
-              onAmountChange?.(
-                event.target.value,
-                getErrorMessage(event.target.value)
-              )
-            }
+            onChange={handleAmountChange}
           />
           {showPriceDetails &&
             amount &&
@@ -597,7 +607,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
           .input_amount {
             max-width: 125px;
             height: 32px;
-            color: var(--secondary-text);
+            color: var(--primary-text);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;

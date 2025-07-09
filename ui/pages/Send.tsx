@@ -306,7 +306,49 @@ export default function Send(): ReactElement {
           <ReadOnlyNotice isLite />
         </h1>
         <div className="form">
-          <div className="form_input">
+          <div className="form_input send_to_field">
+            <label htmlFor="send_address">{t("wallet.sendTo")}</label>
+            <input
+              id="send_address"
+              type="text"
+              placeholder="0x..."
+              spellCheck={false}
+              onChange={(event) => handleAddressChange(event.target.value)}
+              className={classNames({
+                error: addressErrorMessage !== undefined,
+                resolved_address: resolvedNameToAddress,
+              })}
+            />
+            {addressErrorMessage !== undefined ? (
+              <p className="error">{addressErrorMessage}</p>
+            ) : (
+              <></>
+            )}
+            {addressIsValidating ? (
+              <p className="validating">
+                <SharedLoadingSpinner />
+              </p>
+            ) : (
+              <></>
+            )}
+            {resolvedNameToAddress ? (
+              <button
+                type="button"
+                className="address"
+                onClick={() => copyAddress()}
+              >
+                <SharedIcon
+                  icon="icons/s/copy.svg"
+                  width={14}
+                  color="var(--green-60)"
+                />
+                {destinationAddress}
+              </button>
+            ) : (
+              <></>
+            )}
+          </div>
+          <div className="form_input amount_section">
             <SharedAssetInput
               currentNetwork={currentNetwork}
               label={t("wallet.assetAmount")}
@@ -324,34 +366,17 @@ export default function Send(): ReactElement {
               amount={amount}
               showMaxButton
             />
-          </div>
-          <div className="form_input send_to_field">
-            <label htmlFor="send_address">{t("wallet.sendTo")}</label>
-            <input
-              id="send_address"
-              type="text"
-              placeholder="0x..."
-              spellCheck={false}
-              onChange={(event) => handleAddressChange(event.target.value)}
-              className={classNames({
-                error: addressErrorMessage !== undefined,
-                resolved_address: resolvedNameToAddress,
-              })}
-            />
-            <button
-              type="button"
-              className="advanced-button"
-              onClick={() => setAdvancedVisible(!advancedVisible)}
-            >
-              Options
-            </button>
-            {addressErrorMessage !== undefined ? (
-              <p className="error">{addressErrorMessage}</p>
-            ) : (
-              <></>
-            )}
+            <div className="options_container">
+              <button
+                type="button"
+                className="advanced-button"
+                onClick={() => setAdvancedVisible(!advancedVisible)}
+              >
+                Options
+              </button>
+            </div>
             {advancedVisible && (
-              <div>
+              <div className="advanced_options">
                 <label style={{ paddingTop: "5px" }} htmlFor="nonce">
                   Nonce
                 </label>
@@ -405,29 +430,6 @@ export default function Send(): ReactElement {
                 />
               </div>
             )}
-            {addressIsValidating ? (
-              <p className="validating">
-                <SharedLoadingSpinner />
-              </p>
-            ) : (
-              <></>
-            )}
-            {resolvedNameToAddress ? (
-              <button
-                type="button"
-                className="address"
-                onClick={() => copyAddress()}
-              >
-                <SharedIcon
-                  icon="icons/s/copy.svg"
-                  width={14}
-                  color="var(--green-60)"
-                />
-                {destinationAddress}
-              </button>
-            ) : (
-              <></>
-            )}
           </div>
           <div className="send_footer standard_width_padded">
             <SharedButton
@@ -451,16 +453,18 @@ export default function Send(): ReactElement {
       <style jsx>
         {`
           .advanced-button {
-            margin: 5px;
+            margin: 5px 0;
             text-decoration: underline;
+            color: var(--secondary-text);
+            font-size: 14px;
           }
 
           .advanced-button:hover {
-            color: var(--green-20);
+            color: var(--primary-text);
           }
 
           .icon_activity_send_medium {
-            background: url("./images/pelagus_send.png");
+            background: url("./images/pelagus_send.svg");
             background-size: 24px 24px;
             width: 24px;
             height: 24px;
@@ -470,8 +474,8 @@ export default function Send(): ReactElement {
           .title {
             flex-grow: 1;
             height: 32px;
-            color: var(--trophy-gold);
-            font-size: 22px;
+            color: var(--secondary-text);
+            font-size: 18px;
             font-weight: 500;
             line-height: 32px;
           }
@@ -512,40 +516,36 @@ export default function Send(): ReactElement {
             color: var(--secondary-text);
             text-align: right;
             font-size: 14px;
+            margin-bottom: 8px;
           }
 
           input#send_address {
             box-sizing: border-box;
-            height: 72px;
+            height: 56px;
             width: 100%;
-
-            font-size: 22px;
-            font-weight: 500;
-            line-height: 72px;
-            color: var(--secondary-text);
-
-            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 24px;
+            color: var(--primary-text);
+            border-radius: 8px;
             background-color: var(--secondary-bg);
             padding: 0 16px;
-
-            transition: padding-bottom 0.2s;
+            border: 1px solid var(--secondary-bg);
           }
 
           input#send_address_alt {
             box-sizing: border-box;
             height: 40px;
             width: 100%;
-
-            font-size: 22px;
-            font-weight: 500;
-            line-height: 72px;
-            color: var(--secondary-text);
-
-            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 24px;
+            color: var(--primary-text);
+            border-radius: 8px;
             background-color: var(--secondary-bg);
             padding: 0 16px;
-
-            transition: padding-bottom 0.2s;
+            margin-bottom: 8px;
+            border: 1px solid var(--secondary-bg);
           }
 
           input#send_address::placeholder {
@@ -553,9 +553,8 @@ export default function Send(): ReactElement {
           }
 
           input#send_address.resolved_address {
-            font-size: 18px;
-            font-weight: 600;
-            padding-bottom: 16px;
+            font-size: 14px;
+            font-weight: 400;
           }
 
           input#send_address ~ .error {
@@ -565,9 +564,7 @@ export default function Send(): ReactElement {
             line-height: 20px;
             align-self: flex-end;
             text-align: end;
-            margin-top: -25px;
-            margin-right: 4px;
-            margin-bottom: 5px;
+            margin-top: 4px;
           }
 
           input#send_address ~ .address {
@@ -577,15 +574,11 @@ export default function Send(): ReactElement {
             line-height: 20px;
             align-self: flex-end;
             text-align: end;
-            margin-top: -23px;
-            margin-right: 4px;
-            margin-bottom: 5px;
-
-            transition: color 0.2s;
+            margin-top: 4px;
           }
 
           input#send_address ~ .address:hover {
-            color: var(--gold-80);
+            color: var(--primary-text);
           }
 
           input#send_address ~ .address > :global(.icon) {
@@ -593,12 +586,11 @@ export default function Send(): ReactElement {
           }
 
           input#send_address ~ .address:hover > :global(.icon) {
-            background-color: var(--gold-80);
+            background-color: var(--primary-text);
           }
 
           input#send_address ~ .validating {
-            margin-top: -50px;
-            margin-bottom: 22px;
+            margin-top: 4px;
             margin-right: 15px;
             align-self: flex-end;
           }
@@ -608,6 +600,21 @@ export default function Send(): ReactElement {
             justify-content: flex-end;
             margin-top: 21px;
             padding-bottom: 20px;
+          }
+
+          .amount_section {
+            position: relative;
+          }
+          .options_container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+          }
+          .advanced_options {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
           }
 
           /* Hide for all browsers */

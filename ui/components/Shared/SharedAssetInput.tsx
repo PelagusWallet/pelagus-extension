@@ -443,8 +443,8 @@ export default function SharedAssetInput<T extends AnyAsset>(
     const [integerPart, decimalPart] = rawValue.split('.');
     // Add commas to integer part
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    // Return with decimal part if it exists
-    return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+    // Return with decimal part if it exists, preserving all decimal places
+    return decimalPart !== undefined ? `${formattedInteger}.${decimalPart}` : formattedInteger;
   };
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {

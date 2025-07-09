@@ -10,6 +10,7 @@ export const QI: NetworkBaseAsset = {
   metadata: {
     tokenLists: [],
     websiteURL: "https://qu.ai/",
+    logoURL: "./images/Qi.svg",
   },
 }
 export const QUAI: NetworkBaseAsset = {
@@ -21,6 +22,7 @@ export const QUAI: NetworkBaseAsset = {
   metadata: {
     tokenLists: [],
     websiteURL: "https://qu.ai/",
+    logoURL: "./images/networks/quainetwork@2x.png",
   },
 }
 
@@ -33,6 +35,7 @@ export const QUAI_ORCHARD: NetworkBaseAsset = {
   metadata: {
     tokenLists: [],
     websiteURL: "https://qu.ai/",
+    logoURL: "./images/networks/quainetwork@2x.png",
   },
 }
 
@@ -45,6 +48,7 @@ export const QUAI_LOCAL: NetworkBaseAsset = {
   metadata: {
     tokenLists: [],
     websiteURL: "https://qu.ai/",
+    logoURL: "./images/networks/quainetworklocal@2x.png",
   },
 }
 

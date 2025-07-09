@@ -46,10 +46,10 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
         {`
           .wrapper > :global(input) {
             padding-right: 70px;
-            background: #1C1C1C;
+            background: var(--secondary-bg);
             border: 1px solid #333333;
             border-radius: 4px;
-            color: white;
+            color: var(--primary-text);
             height: 48px;
             font-size: 16px;
           }

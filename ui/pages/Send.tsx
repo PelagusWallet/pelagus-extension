@@ -444,6 +444,7 @@ export default function Send(): ReactElement {
               onClick={sendTransactionRequest}
               isFormSubmit
               isLoading={isSendingTransactionRequest}
+              style={{ width: '100%' }}
             >
               {t("wallet.sendButton")}
             </SharedButton>
@@ -597,9 +598,17 @@ export default function Send(): ReactElement {
 
           .send_footer {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 21px;
+            justify-content: center;
+            margin-top: 40px;
             padding-bottom: 20px;
+            width: 100%;
+          }
+
+          .send_footer :global(button) {
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            justify-content: center;
           }
 
           .amount_section {

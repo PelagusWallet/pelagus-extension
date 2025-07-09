@@ -182,7 +182,7 @@ function SelectAssetMenuContent<T extends AnyAsset>(
         {`
           .search_label {
             height: 20px;
-            color: var(--green-60);
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;
@@ -196,11 +196,11 @@ function SelectAssetMenuContent<T extends AnyAsset>(
             width: 336px;
             height: 48px;
             border-radius: 4px;
-            border: 1px solid var(--green-60);
+            border: 1px solid var(--secondary-text);
             padding-left: 16px;
             padding-right: 56px;
             box-sizing: border-box;
-            color: var(--secondary-text);
+            color: var(--primary-text);
           }
           .search_input::placeholder {
             color: var(--secondary-text);

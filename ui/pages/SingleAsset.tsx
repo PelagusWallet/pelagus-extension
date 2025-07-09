@@ -249,7 +249,7 @@ export default function SingleAsset(): ReactElement {
             gap: 16px;
           }
           .asset_name {
-            color: var(--secondary-text);
+            color: var(--primary-text);
             font-size: 28px;
             font-weight: 500;
             line-height: 40px;
@@ -265,7 +265,7 @@ export default function SingleAsset(): ReactElement {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: var(--secondary-text);
+            color: var(--primary-text);
             font-size: 28px;
             font-weight: 500;
             line-height: 40px;

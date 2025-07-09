@@ -72,7 +72,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
               <div
                 className="symbol ellipsis"
                 title={asset.symbol}
-                style={{ color: "var(--green-60)" }}
+                style={{ color: "var(--primary-text)" }}
               >
                 {asset.symbol}
               </div>
@@ -130,7 +130,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
             gap: 20px;
           }
           .amount {
-            color: var(--secondary-text);
+            color: var(--primary-text);
           }
           .token_group {
             display: flex;
@@ -157,7 +157,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
           }
           .token_subtitle {
             height: 17px;
-            color: var(--green-60);
+            color: var(--primary-text);
             font-size: 14px;
             font-weight: 400;
             letter-spacing: 0.42px;

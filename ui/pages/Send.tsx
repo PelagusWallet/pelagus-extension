@@ -313,6 +313,7 @@ export default function Send(): ReactElement {
               type="text"
               placeholder="0x..."
               spellCheck={false}
+              tabIndex={1}
               onChange={(event) => handleAddressChange(event.target.value)}
               className={classNames({
                 error: addressErrorMessage !== undefined,
@@ -365,6 +366,7 @@ export default function Send(): ReactElement {
               selectedAsset={selectedAsset ?? undefined}
               amount={amount}
               showMaxButton
+              tabIndex={2}
             />
             <div className="options_container">
               <button
@@ -445,6 +447,7 @@ export default function Send(): ReactElement {
               isFormSubmit
               isLoading={isSendingTransactionRequest}
               style={{ width: '100%' }}
+              tabIndex={3}
             >
               {t("wallet.sendButton")}
             </SharedButton>

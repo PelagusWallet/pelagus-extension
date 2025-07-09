@@ -15,12 +15,19 @@ export default function SharedPanelSwitcher(props: Props): ReactElement {
     panelId = "panel_switcher",
   } = props
 
+  // Check if only one meaningful panel exists (e.g., when first panel is empty)
+  const meaningfulPanels = panelNames.filter(name => name.trim() !== "")
+  const isSinglePanel = meaningfulPanels.length === 1
+
   // TODO: make these styles work for more than two panels
   // .selected::after is the hardcoded culprit.
   return (
     <nav>
-      <ul role="tablist" data-testid={panelId}>
+      <ul role="tablist" data-testid={panelId} className={isSinglePanel ? "single-panel" : ""}>
         {panelNames.slice(0, 3).map((name, index) => {
+          // Don't render empty panels
+          if (name.trim() === "") return null
+          
           return (
             <li key={name}>
               <button
@@ -58,6 +65,9 @@ export default function SharedPanelSwitcher(props: Props): ReactElement {
             padding-left: 0;
             padding-bottom: 12px;
             gap: 80px;
+          }
+          .single-panel {
+            gap: 0;
           }
           .option {
             cursor: pointer;

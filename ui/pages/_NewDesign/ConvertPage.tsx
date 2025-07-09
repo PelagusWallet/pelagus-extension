@@ -172,7 +172,7 @@ const ConvertPage = () => {
           border-radius: 8px;
           font-size: 14px;
           text-align: center;
-          color: #896404;
+          color:rgb(254, 200, 64);
           display: flex;
           align-items: center;
           justify-content: center;

@@ -79,7 +79,7 @@ export default function SharedNetworkIcon(props: {
           align-items: center;
           justify-content: center;
           user-select: none;
-          color: var(--white);
+          color: var(--primary-text);
           border-radius: 2px;
         }
         .icon_network {

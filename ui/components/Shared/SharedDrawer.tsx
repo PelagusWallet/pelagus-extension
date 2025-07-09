@@ -114,7 +114,7 @@ export default function SharedDrawer({
           bottom: 0;
           cursor: pointer;
           z-index: 998;
-          background: var(--green-120);
+          background: var(--tertiary-bg);
           opacity: 0.7;
           transition: opacity cubic-bezier(0.19, 1, 0.22, 1)
               ${SLIDE_TRANSITION_MS}ms,
@@ -127,7 +127,7 @@ export default function SharedDrawer({
         }
 
         .dark {
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
         }
 
         .fillAvailable {
@@ -152,7 +152,7 @@ export default function SharedDrawer({
           padding: 24px 16px;
           border-radius: 16px;
           opacity: 1;
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
           transition: transform cubic-bezier(0.19, 1, 0.22, 1)
             ${SLIDE_TRANSITION_MS}ms;
         }
@@ -199,7 +199,7 @@ export default function SharedDrawer({
           font-weight: 500;
           line-height: 24px;
           text-align: start;
-          color: var(--white);
+          color: var(--primary-text);
         }
 
         .drawer-footer {

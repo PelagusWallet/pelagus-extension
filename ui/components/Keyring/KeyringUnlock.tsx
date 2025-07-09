@@ -185,7 +185,7 @@ export default function KeyringUnlock(): ReactElement {
 
           .progress_text {
             font-size: 12px;
-            color: var(--green-40);
+            color: var(--secondary-text);
             text-align: center;
           }
         `}

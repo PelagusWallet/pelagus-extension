@@ -108,12 +108,12 @@ export default function AccountsNotificationPanel({
             padding: 10px;
             text-align: center;
             box-sizing: border-box;
-            color: var(--white);
+            color: var(--primary-text);
             margin: 0;
           }
 
           .confirmation-btn:hover {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
 
           .footer_wrap {

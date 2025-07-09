@@ -45,7 +45,7 @@ export default function TopMenuProtocolSwitcher({
             mask-size: 11px 7px;
             width: 11px;
             height: 7px;
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
           }
         `}
       </style>

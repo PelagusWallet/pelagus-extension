@@ -475,7 +475,7 @@ export default function AccountsNotificationPanelAccounts({
           .category_wrap {
             display: flex;
             justify-content: center;
-            background-color: var(--hunter-green);
+            background-color: var(--primary-bg);
           }
           p {
             margin: 0;
@@ -485,7 +485,7 @@ export default function AccountsNotificationPanelAccounts({
             margin-top: 110px;
             display: flex;
             justify-content: center;
-            color: var(--white);
+            color: var(--primary-text);
             font-weight: 500;
             font-size: 18px;
             line-height: 20px;
@@ -508,7 +508,7 @@ export default function AccountsNotificationPanelAccounts({
             left: 0;
             z-index: 2;
             padding: 0 16px 16px 16px;
-            background: var(--hunter-green);
+            background: var(--primary-bg);
           }
         `}
       </style>

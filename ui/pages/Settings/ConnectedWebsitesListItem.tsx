@@ -89,7 +89,7 @@ export default function ConnectedWebsitesListItem(
 
         .host {
           display: block;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 14px;
         }
       `}</style>

@@ -167,15 +167,15 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             background-color: var(--green-5);
             border-radius: 8px;
             margin-top: 8px;
-            color: white;
+            color: var(--primary-text);
           }
           .info_text {
             font-size: 14px;
             font-weight: 500;
-            color: white;
+            color: var(--primary-text);
           }
           .link {
-            color: white;
+            color: var(--primary-text);
             text-decoration: underline;
             margin-left: 4px;
           }
@@ -364,7 +364,7 @@ export default function WalletAccountBalanceControl(
           .dollar_sign {
             width: auto;
             height: 32px;
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;
@@ -377,7 +377,7 @@ export default function WalletAccountBalanceControl(
             justify-content: center;
             width: 32px;
             height: 32px;
-            background-color: #efefef;
+            background-color: var(--secondary-bg);
             border-radius: 8px;
           }
           .save_seed_button_wrap {
@@ -386,7 +386,7 @@ export default function WalletAccountBalanceControl(
           .balance_label {
             width: 195px;
             height: 24px;
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 16px;
             font-weight: 400;
             line-height: 24px;

@@ -82,7 +82,7 @@ export default function ConnectionDAppGuideline({
         .wallet_connect_info p {
           margin: 0;
           font-size: 16px;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-family: Segment;
           font-weight: 500;
           line-height: 24px;

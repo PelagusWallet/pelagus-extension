@@ -40,7 +40,7 @@ export default `
     word-break: break-all;
   }
   .asset_list_item:hover .asset_amount{
-    color: #FFFFFF
+    color: var(--primary-text)
   }
   .bold_amount_count {
     width: 70px;
@@ -52,6 +52,6 @@ export default `
     margin-right: 4px;
   }
   .asset_list_item:hover .bold_amount_count{
-    color: #FFFFFF;
+    color: var(--primary-text);
   }
 `

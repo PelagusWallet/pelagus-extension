@@ -74,7 +74,7 @@ export default function SharedToggleButtonGA({
             transform: translateX(10px);
           }
           .is_active {
-            background-color: var(--white);
+            background-color: var(--primary-text);
           }
           .disabled {
             opacity: 0.5;

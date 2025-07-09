@@ -165,7 +165,7 @@ function BasicTypedDataDetails<
             padding-top: 8px;
           }
           .key {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
         `}
       </style>

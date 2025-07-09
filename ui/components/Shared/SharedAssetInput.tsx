@@ -200,10 +200,10 @@ function SelectAssetMenuContent<T extends AnyAsset>(
             padding-left: 16px;
             padding-right: 56px;
             box-sizing: border-box;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .search_input::placeholder {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .icon_search {
             background: url("./images/search_large@2x.png");
@@ -255,7 +255,7 @@ function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
         button {
           display: flex;
           align-items: center;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 16px;
           font-weight: 500;
           line-height: 24px;
@@ -263,7 +263,7 @@ function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
         }
         button:disabled {
           cursor: default;
-          color: var(--green-40);
+          color: var(--secondary-text);
         }
         .asset_icon_wrap {
           margin-right: 8px;
@@ -561,7 +561,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
             // align with label top + offset by border radius right
             margin: -27px 4px 0 0;
 
-            color: var(--green-40);
+            color: var(--secondary-text);
             text-align: right;
             position: relative;
             font-size: 14px;
@@ -591,13 +591,13 @@ export default function SharedAssetInput<T extends AnyAsset>(
             align-items: end;
           }
           .input_amount::placeholder {
-            color: var(--green-40);
+            color: var(--secondary-text);
             opacity: 1;
           }
           .input_amount {
             max-width: 125px;
             height: 32px;
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;
@@ -615,7 +615,7 @@ export default function SharedAssetInput<T extends AnyAsset>(
           }
           .input_amount:disabled {
             cursor: default;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .error_message {
             color: var(--error);

@@ -49,7 +49,7 @@ export default function SharedPanelSwitcher(props: Props): ReactElement {
               var(--panel-switcher-border, var(--green-120));
           }
           button {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           ul {
             display: flex;

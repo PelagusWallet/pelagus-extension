@@ -39,7 +39,7 @@ export default function WalletAssetListItem(props: Props): ReactElement {
             height: 12px;
           }
           .asset_list_item:hover .asset_icon:not(:hover) {
-            background-color: #ffffff;
+            background-color: var(--primary-text);
           }
           .asset_icon:hover {
             background-color: var(--trophy-gold);

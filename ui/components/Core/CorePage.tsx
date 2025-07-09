@@ -23,6 +23,7 @@ export default function CorePage(props: Props): ReactElement {
             height: 100%;
             display: flex;
             flex-direction: column;
+            background-color: var(--primary-bg);
           }
           main {
             width: 100%;
@@ -32,7 +33,7 @@ export default function CorePage(props: Props): ReactElement {
             flex-grow: 1;
             margin: 0 auto;
             align-items: center;
-            background-color: var(--hunter-green);
+            background-color: var(--primary-bg);
             height: 100%;
           }
         `}

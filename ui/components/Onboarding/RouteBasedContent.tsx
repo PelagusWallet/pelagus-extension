@@ -93,7 +93,7 @@ export default function RouteBasedContent(): ReactElement {
               font-family: "Segment";
               font-size: 16px;
               line-height: 24px;
-              color: #808080;
+              color: var(--secondary-text);
               margin: 0;
             }
 

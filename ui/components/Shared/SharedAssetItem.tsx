@@ -92,7 +92,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
               <SharedIcon
                 icon="icons/s/new-tab.svg"
                 width={16}
-                color="var(--green-40)"
+                color="var(--secondary-text)"
                 hoverColor="var(--trophy-gold)"
                 onClick={() => {
                   window.open(contractLink, "_blank")?.focus()
@@ -130,7 +130,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
             gap: 20px;
           }
           .amount {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .token_group {
             display: flex;
@@ -153,7 +153,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
             justify-content: center;
           }
           .token_group:hover .token_icon_wrap {
-            background-color: var(--green-120);
+            background-color: var(--primary-bg);
           }
           .token_subtitle {
             height: 17px;
@@ -165,7 +165,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
             margin-top: 5px;
           }
           .symbol {
-            color: #fff;
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 18px;

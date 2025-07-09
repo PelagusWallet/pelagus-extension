@@ -24,7 +24,7 @@ export default function SettingButton(props: {
         />
         <style jsx>{`
           .action_name {
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 20px;
@@ -37,7 +37,7 @@ export default function SettingButton(props: {
             display: flex;
           }
           .button_row:hover > .action_name {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
         `}</style>
       </div>

@@ -79,7 +79,7 @@ export default function SharedAddress({
         p.detail {
           font-size: 14px;
           line-height: 16px;
-          color: var(--green-40);
+          color: var(--secondary-text);
         }
       `}</style>
     </button>

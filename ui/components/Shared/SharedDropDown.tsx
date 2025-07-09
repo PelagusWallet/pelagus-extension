@@ -205,7 +205,7 @@ export default function SharedDropdown({
                     padding: 0;
 
                     cursor: default;
-                    background-color: var(--green-120);
+                    background-color: var(--primary-bg);
                     width: 212px;
                     border-radius: 4px;
                     z-index: 1;

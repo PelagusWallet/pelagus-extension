@@ -46,7 +46,7 @@ function Banner(props: BannerProps): ReactElement {
         {`
           .banner_wrap {
             width: 336px;
-            background: var(--green-120);
+            background: var(--primary-bg);
             border-radius: 8px;
             padding: 8px;
             display: flex;

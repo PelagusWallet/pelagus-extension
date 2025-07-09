@@ -274,6 +274,7 @@
     "setAsDefault": "Use Pelagus as default wallet",
     "showPelagusNotifications": "Pelagus notifications",
     "autoLockInterval": "Auto-lock interval",
+    "theme": "Theme",
     "language": "Language",
     "bugReport": "Bug report",
     "connectedWebsites": "Connected websites",

@@ -264,7 +264,7 @@ export default function DetailPanel({
         {`
           .detail_item {
             width: 100%;
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 14px;
             line-height: 16px;
             display: flex;
@@ -361,7 +361,7 @@ export default function DetailPanel({
             gap: 8px;
           }
           .usd_value {
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 14px;
           }
         `}

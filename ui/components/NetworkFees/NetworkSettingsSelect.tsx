@@ -342,7 +342,7 @@ export default function NetworkSettingsSelect({
           }
           .max_label {
             font-size: 14px;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
           .info {
             display: flex;

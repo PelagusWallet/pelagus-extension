@@ -32,7 +32,7 @@ export default function SwitchWallet({
       </div>
       <style jsx>{`
         .switch_wallet {
-          background: var(--green-120);
+          background: var(--primary-bg);
           padding: 8px 15px 0 8px;
           border-radius: 8px;
         }

@@ -509,7 +509,7 @@ export default function Send(): ReactElement {
           }
 
           div.send_to_field label {
-            color: var(--green-40);
+            color: var(--secondary-text);
             text-align: right;
             font-size: 14px;
           }
@@ -522,7 +522,7 @@ export default function Send(): ReactElement {
             font-size: 22px;
             font-weight: 500;
             line-height: 72px;
-            color: var(--green-40);
+            color: var(--secondary-text);
 
             border-radius: 4px;
             background-color: var(--green-95);
@@ -539,7 +539,7 @@ export default function Send(): ReactElement {
             font-size: 22px;
             font-weight: 500;
             line-height: 72px;
-            color: var(--green-40);
+            color: var(--secondary-text);
 
             border-radius: 4px;
             background-color: var(--green-95);
@@ -549,7 +549,7 @@ export default function Send(): ReactElement {
           }
 
           input#send_address::placeholder {
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
 
           input#send_address.resolved_address {

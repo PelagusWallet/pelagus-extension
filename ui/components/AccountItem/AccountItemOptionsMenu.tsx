@@ -240,7 +240,7 @@ export default function AccountItemOptionsMenu({
                     label="Export as Plaintext"
                     hoverable
                     color="var(--green-20)"
-                    hoverColor="white"
+                    hoverColor="var(--white)"
                   />
                 </button>
                 <button
@@ -256,7 +256,7 @@ export default function AccountItemOptionsMenu({
                     label="Export as Encrypted JSON"
                     hoverable
                     color="var(--green-20)"
-                    hoverColor="white"
+                    hoverColor="var(--white)"
                   />
                 </button>
               </div>
@@ -403,14 +403,14 @@ export default function AccountItemOptionsMenu({
             mask-image: url("./images/more_dots@2x.png");
             mask-repeat: no-repeat;
             mask-position: center;
-            background-color: var(--white);
+            background-color: var(--primary-text);
             mask-size: 15%;
             width: 4px;
             height: 20px;
             border: 10px solid transparent;
           }
           .icon_settings:hover {
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
           }
           .address_name {
             color: var(--trophy-gold);
@@ -486,7 +486,7 @@ export default function AccountItemOptionsMenu({
             border-radius: 8px;
             border: 1px solid var(--green-40);
             background-color: var(--hunter-green);
-            color: var(--white);
+            color: var(--primary-text);
           }
           .button_container {
             display: flex;
@@ -502,7 +502,7 @@ export default function AccountItemOptionsMenu({
             font-weight: 600;
           }
           .cancel_button {
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
             color: white;
           }
           .submit_button {

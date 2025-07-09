@@ -83,7 +83,7 @@ export default function WalletAlphaBanner(): ReactElement {
           line-height: 24px;
           padding: 12px 16px;
           border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          box-shadow: var(--shadow-light);
           border: 1px solid var(--tertiary-bg);
         }
         .banner-content {

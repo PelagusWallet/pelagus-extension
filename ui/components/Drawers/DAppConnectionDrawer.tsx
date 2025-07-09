@@ -151,7 +151,7 @@ export default function DAppConnectionDrawer({
           padding: 10px;
           text-align: center;
           box-sizing: border-box;
-          color: var(--green-40);
+          color: var(--secondary-text);
         }
         .disconnect-btn:hover {
           border-color: var(--green-20);

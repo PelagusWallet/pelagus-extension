@@ -132,7 +132,7 @@ export default function Snackbar({
             justify-content: center;
             font-size: 16px;
             font-weight: 500;
-            background: var(--green-120);
+            background: var(--primary-bg);
             color: var(--green-20);
             box-shadow: 0px 24px 24px rgba(0, 20, 19, 0.14),
               0px 14px 16px rgba(0, 20, 19, 0.24),

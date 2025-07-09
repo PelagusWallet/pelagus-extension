@@ -52,11 +52,11 @@ const AccountsSearchBar = ({
             border: 1px solid #a2a2a2;
             padding: 6px 36px;
             box-sizing: border-box;
-            color: var(--white);
+            color: var(--primary-text);
           }
 
           .search_input::placeholder {
-            color: var(--white);
+            color: var(--primary-text);
           }
 
           .icon_search {

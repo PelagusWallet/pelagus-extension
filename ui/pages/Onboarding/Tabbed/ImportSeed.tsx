@@ -288,7 +288,7 @@ export default function ImportSeed(props: Props): ReactElement {
 
         #recovery_phrase[data-empty="false"] ~ .recovery_label {
           padding: 0 6px;
-          color: var(--green-40);
+          color: var(--secondary-text);
           background: var(--hunter-green);
           top: -8px;
           left: 16px;
@@ -309,7 +309,7 @@ export default function ImportSeed(props: Props): ReactElement {
 
         #recovery_phrase * {
           word-wrap: break-word;
-          color: var(--white);
+          color: var(--primary-text);
           font-family: inherit;
         }
 

@@ -124,7 +124,7 @@ export default function CommonAssetListItem(
         .price {
           height: 17px;
           display: flex;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 14px;
           font-weight: 400;
           letter-spacing: 0.42px;

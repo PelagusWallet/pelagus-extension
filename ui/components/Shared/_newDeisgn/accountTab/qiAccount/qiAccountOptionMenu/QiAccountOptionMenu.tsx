@@ -97,14 +97,14 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
             mask-image: url("./images/more_dots@2x.png");
             mask-repeat: no-repeat;
             mask-position: center;
-            background-color: var(--white);
+            background-color: var(--primary-text);
             mask-size: 15%;
             width: 4px;
             height: 20px;
             border: 10px solid transparent;
           }
           .icon_settings:hover {
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
           }
         `}
       </style>

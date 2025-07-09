@@ -143,7 +143,7 @@ export default function SharedTooltip(props: Props): ReactElement {
               : ""}
           }
           .dark {
-            background: var(--green-120);
+            background: var(--primary-bg);
             color: var(--green-20);
             border-radius: 4px;
             font-size: 14px;

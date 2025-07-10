@@ -12,6 +12,7 @@ import {
   setAutoLockInterval,
   selectQiWalletSyncInProgress,
   selectAggregateQiOutputsInProgress,
+  selectAggregationProgress,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import {
@@ -151,14 +152,15 @@ export default function Settings(): ReactElement {
   const [showUTXODistribution, setShowUTXODistribution] = useState(false)
   const [utxoDistributionData, setUtxoDistributionData] = useState<{ [denomination: number]: number } | null>(null)
   const [utxoDistributionLoading, setUtxoDistributionLoading] = useState(false)
-  const [maxDenominationAggregate, setMaxDenominationAggregate] = useState(0)
-  const [maxDenominationOutput, setMaxDenominationOutput] = useState(0)
+  const [maxDenominationAggregate, setMaxDenominationAggregate] = useState(5)
+  const [maxDenominationOutput, setMaxDenominationOutput] = useState(10)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(false)
   const [isTransactionError, setIsTransactionError] = useState(false)
   const [transactionHash, setTransactionHash] = useState<string>("")
   const [errorMessage, setErrorMessage] = useState<string>("")
   const qiWalletSyncInProgress = useSelector(selectQiWalletSyncInProgress)
   const aggregateQiOutputsInProgress = useSelector(selectAggregateQiOutputsInProgress)
+  const aggregationProgress = useSelector(selectAggregationProgress)
 
   useEffect(() => {
     if (!qiWalletSyncInProgress && !aggregateQiOutputsInProgress) {
@@ -404,28 +406,49 @@ export default function Settings(): ReactElement {
           >
             <div className="confirm_aggregate">
               <p className="confirm_aggregate_text">{t("settings.aggregateQiOutputsConfirm")}</p>
-              <div className="input_container input_container_first">
-                <label htmlFor="maxDenominationAggregate">Max Denomination Input:</label>
-                <SharedSelect
-                  width={120}
-                  variant="small"
-                  options={denominationOptions.slice(0, 14)} // 0-13 for input
-                  onChange={(value) => setMaxDenominationAggregate(parseInt(value))}
-                  defaultIndex={maxDenominationAggregate}
-                  placement="bottom"
-                />
-              </div>
-              <div className="input_container input_container_second">
-                <label htmlFor="maxDenominationOutput">Max Denomination Output:</label>
-                <SharedSelect
-                  width={120}
-                  variant="small"
-                  options={denominationOptions} // 0-14 for output
-                  onChange={(value) => setMaxDenominationOutput(parseInt(value))}
-                  defaultIndex={maxDenominationOutput}
-                  placement="bottom"
-                />
-              </div>
+              {aggregateQiOutputsInProgress && (
+                <div className="progress_container">
+                  <div className="progress_bar">
+                    <div 
+                      className="progress_fill" 
+                      style={{ width: `${aggregationProgress.progress}%` }}
+                    />
+                  </div>
+                  <div className="progress_text">
+                    <div className="progress_step">{aggregationProgress.step}</div>
+                    {aggregationProgress.detail && (
+                      <div className="progress_detail">{aggregationProgress.detail}</div>
+                    )}
+                    <div className="progress_percentage">{aggregationProgress.progress}%</div>
+                  </div>
+                </div>
+              )}
+              {!aggregateQiOutputsInProgress && (
+                <>
+                  <div className="input_container input_container_first">
+                    <label htmlFor="maxDenominationAggregate">Max Denomination Input:</label>
+                    <SharedSelect
+                      width={120}
+                      variant="small"
+                      options={denominationOptions.slice(0, 14)} // 0-13 for input
+                      onChange={(value) => setMaxDenominationAggregate(parseInt(value))}
+                      defaultIndex={maxDenominationAggregate}
+                      placement="bottom"
+                    />
+                  </div>
+                  <div className="input_container input_container_second">
+                    <label htmlFor="maxDenominationOutput">Max Denomination Output:</label>
+                    <SharedSelect
+                      width={120}
+                      variant="small"
+                      options={denominationOptions} // 0-14 for output
+                      onChange={(value) => setMaxDenominationOutput(parseInt(value))}
+                      defaultIndex={maxDenominationOutput}
+                      placement="bottom"
+                    />
+                  </div>
+                </>
+              )}
               <div className="button_container">
                 <button
                   type="button"
@@ -542,6 +565,48 @@ export default function Settings(): ReactElement {
                 }
                 .confirm:hover:not(:disabled) {
                   background: var(--green-20);
+                }
+                .progress_container {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 12px;
+                  width: 100%;
+                  margin: 20px 0;
+                }
+                .progress_bar {
+                  width: 100%;
+                  height: 8px;
+                  background: var(--hunter-green);
+                  border-radius: 4px;
+                  overflow: hidden;
+                  border: 1px solid var(--green-40);
+                }
+                .progress_fill {
+                  height: 100%;
+                  background: linear-gradient(90deg, var(--green-40) 0%, var(--green-20) 100%);
+                  transition: width 0.3s ease;
+                  border-radius: 3px;
+                }
+                .progress_text {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+                  text-align: center;
+                }
+                .progress_step {
+                  color: var(--white);
+                  font-size: 14px;
+                  font-weight: 500;
+                }
+                .progress_detail {
+                  color: var(--green-40);
+                  font-size: 12px;
+                  font-weight: 400;
+                }
+                .progress_percentage {
+                  color: var(--green-20);
+                  font-size: 16px;
+                  font-weight: 600;
                 }
               `}
             </style>

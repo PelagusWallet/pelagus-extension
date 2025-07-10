@@ -427,12 +427,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return distribution
   }
 
-  public async aggregateQi(maxDenominationAggregate: number, maxDenominationOutput: number): Promise<string> {
+  public async aggregateQi(maxDenominationAggregate: number, maxDenominationOutput: number, onProgress?: (progress: number, step: string, detail?: string) => void): Promise<string> {
     const { jsonRpcProvider } = this.chainService
     let qiWallet = await this.keyringService.getQiHDWallet()
     qiWallet.connect(jsonRpcProvider)
     
-    // TODO: Implement aggregation logic using maxDenominationAggregate and maxDenominationOutput
     console.log("maxDenominationAggregate:", maxDenominationAggregate)
     console.log("maxDenominationOutput:", maxDenominationOutput)
 
@@ -454,7 +453,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     })))
     const amount = outpoints.reduce((acc, outpoint) => acc + denominations[outpoint.outpoint.denomination], BigInt(0))
 
-    const tx = await qiWallet.aggregate(Zone.Cyprus1, {}, maxDenominationAggregate, maxDenominationOutput)
+    const tx = await qiWallet.aggregate(Zone.Cyprus1, {}, maxDenominationAggregate, maxDenominationOutput, onProgress)
     console.log("tx", tx)
     try {
       const transaction = processSentQiTransaction(
@@ -464,13 +463,13 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         amount
       )
       await this.saveQiTransaction(transaction)
-      await Promise.all([
-        this.subscribeToQiTransaction(transaction.hash),
-        this.chainService.syncQiWallet(),
-      ])
+      await this.subscribeToQiTransaction(transaction.hash)
     } catch (error: any) {
       console.log("error saving Qi aggregation transaction", error)
     }
+    setTimeout(async () => {
+      await this.chainService.syncQiWallet()
+    }, 3000)
     return tx.hash
   }
 

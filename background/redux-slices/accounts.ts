@@ -29,7 +29,7 @@ import { convertFixedPoint } from "../lib/fixed-point"
 import { NetworkInterface } from "../constants/networks/networkTypes"
 import { QiWallet } from "../services/keyring/types"
 import { RootState } from "./index"
-import { updateSelectedUtxoAccountBalance, setAggregateQiOutputsInProgress } from "./ui"
+import { updateSelectedUtxoAccountBalance, setAggregateQiOutputsInProgress, setAggregationProgress } from "./ui"
 
 /**
  * The set of available UI account types. These may or may not map 1-to-1 to
@@ -657,7 +657,12 @@ export const aggregateQiOutputs = createBackgroundAsyncThunk(
   async (params: { maxDenominationAggregate: number; maxDenominationOutput: number }, { extra: { main }, dispatch }) => {
     try {
       dispatch(setAggregateQiOutputsInProgress(true))
-      const txHash = await main.transactionService.aggregateQi(params.maxDenominationAggregate, params.maxDenominationOutput)
+      
+      const onProgress = (progress: number, step: string, detail?: string) => {
+        dispatch(setAggregationProgress({ progress, step, detail }))
+      }
+      
+      const txHash = await main.transactionService.aggregateQi(params.maxDenominationAggregate, params.maxDenominationOutput, onProgress)
       return { txHash }
     } catch (error: any) {
       return {

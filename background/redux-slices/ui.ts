@@ -75,6 +75,11 @@ export type UIState = {
   accountSignerSettings: AccountSignerSettings[]
   qiWalletSyncInProgress: boolean
   aggregateQiOutputsInProgress: boolean
+  aggregationProgress: {
+    progress: number
+    step: string
+    detail?: string
+  }
   lastUserActivityOnAddress: { [address: string]: number }
   lastUserActivityOnNetwork: { [chainID: string]: number }
 }
@@ -131,6 +136,11 @@ export const initialState: UIState = {
   accountSignerSettings: [],
   qiWalletSyncInProgress: false,
   aggregateQiOutputsInProgress: false,
+  aggregationProgress: {
+    progress: 0,
+    step: "",
+    detail: ""
+  },
   lastUserActivityOnAddress: {},
   lastUserActivityOnNetwork: Object.fromEntries(
     PELAGUS_NETWORKS.map((network: NetworkInterface) => [network.chainID, 0])
@@ -380,9 +390,17 @@ const uiSlice = createSlice({
     setAggregateQiOutputsInProgress: (immerState, { payload }: { payload: boolean }) => {
       immerState.aggregateQiOutputsInProgress = payload
     },
+    setAggregationProgress: (immerState, { payload }: { payload: { progress: number; step: string; detail?: string } }) => {
+      immerState.aggregationProgress = payload
+    },
     resetProgressStates: (immerState) => {
       immerState.qiWalletSyncInProgress = false
       immerState.aggregateQiOutputsInProgress = false
+      immerState.aggregationProgress = {
+        progress: 0,
+        step: "",
+        detail: ""
+      }
     },
     updateLastUserActivityOnNetwork: (
       immerState,
@@ -423,6 +441,7 @@ export const {
   setAutoLockInterval,
   setQiWalletSyncInProgress,
   setAggregateQiOutputsInProgress,
+  setAggregationProgress,
   resetProgressStates,
   updateLastUserActivityOnNetwork,
 } = uiSlice.actions
@@ -691,6 +710,11 @@ export const selectQiWalletSyncInProgress = createSelector(
 export const selectAggregateQiOutputsInProgress = createSelector(
   selectUI,
   (ui) => ui.aggregateQiOutputsInProgress
+)
+
+export const selectAggregationProgress = createSelector(
+  selectUI,
+  (ui) => ui.aggregationProgress
 )
 
 export const selectShowTestNetworks = createSelector(

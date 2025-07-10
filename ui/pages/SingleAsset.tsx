@@ -249,7 +249,7 @@ export default function SingleAsset(): ReactElement {
             gap: 16px;
           }
           .asset_name {
-            color: var(--green-40);
+            color: var(--primary-text);
             font-size: 28px;
             font-weight: 500;
             line-height: 40px;
@@ -265,7 +265,7 @@ export default function SingleAsset(): ReactElement {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: var(--green-40);
+            color: var(--primary-text);
             font-size: 28px;
             font-weight: 500;
             line-height: 40px;
@@ -275,7 +275,7 @@ export default function SingleAsset(): ReactElement {
             mask-size: cover;
             width: 16px;
             height: 16px;
-            background-color: var(--green-40);
+            background-color: var(--secondary-text);
             margin: 0 5px;
           }
           .new_tab_link:hover .icon_new_tab {

@@ -10,101 +10,6 @@ import { useBackgroundDispatch } from "../../../../hooks"
 import OnboardingTip from "../OnboardingTip"
 import OnboardingRoutes from "../Routes"
 
-type SeedWordProps = {
-  word?: string
-  index: number
-  isActive: boolean
-  onSubmit: () => void
-}
-
-function SeedWord(props: SeedWordProps): ReactElement {
-  const { index, word, isActive = false, onSubmit } = props
-
-  return (
-    <>
-      <div
-        className={classNames("word_container", {
-          is_active: isActive,
-          is_filled: !!word,
-        })}
-        onClick={() => onSubmit()}
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            onSubmit()
-          }
-        }}
-        role="button"
-        data-testid="verify_seed_word_placeholder"
-      >
-        <span className="word_index">{index + 1}</span>
-        <span className="dash">-</span>
-        <div className="word_box">{word}</div>
-      </div>
-      <style jsx>{`
-        .word_container {
-          cursor: pointer;
-          color: var(--green-60);
-          font-size: 18px;
-          line-height: 24px;
-          display: flex;
-          gap: 8px;
-        }
-
-        .word_index {
-          width: 16px;
-          padding: 4px 0;
-          text-align: right;
-        }
-
-        .word_container.is_active {
-          color: var(--trophy-gold);
-        }
-
-        .word_container.is_active .word_box {
-          background: var(--trophy-gold);
-        }
-
-        .word_container.is_filled {
-          color: var(--green-40);
-        }
-
-        .word_container.is_filled .word_box {
-          background: var(--green-60);
-          border-color: var(--green-60);
-          color: var(--hunter-green);
-          background-image: url("./images/icons/s/close.svg");
-          background-size: 16px;
-          background-position: calc(100% - 8px) 8px;
-          background-repeat: no-repeat;
-          font-family: "Segment";
-          font-style: normal;
-          font-weight: 600;
-          font-size: 16px;
-          line-height: 24px;
-        }
-
-        .word_box {
-          border: 1px solid;
-          border-radius: 4px;
-          min-width: 55px;
-          width: auto;
-          color: var(--hunter-green);
-          height: 22px;
-          padding: 4px 32px 4px 8px;
-          text-align: left;
-        }
-
-        .dash {
-          padding: 4px 0;
-          font-size: 18px;
-          line-height: 24px;
-        }
-      `}</style>
-    </>
-  )
-}
-
 type SeedWordWithIndex = {
   wordIndex: number
   word: string
@@ -239,13 +144,18 @@ export default function NewSeedVerify({
       <div className="subtitle center_text">{t("subtitle")}</div>
       <div className="words_list">
         {placeholderList.map(({ selectedWord, key, wordIndex }, i) => (
-          <SeedWord
-            key={key}
-            index={wordIndex}
-            word={selectedWord}
-            isActive={activePlaceholder === i}
-            onSubmit={() => handlePlaceholderClick(i)}
-          />
+          <div className="word_container" key={key}>
+            <span className="number">{wordIndex + 1}.</span>
+            <div 
+              className={classNames("word_box", {
+                "is_filled": selectedWord,
+                "is_active": activePlaceholder === i
+              })}
+              onClick={() => selectedWord ? handlePlaceholderClick(i) : setActivePlaceholder(i)}
+            >
+              {selectedWord || ""}
+            </div>
+          </div>
         ))}
       </div>
       <div className="actions">
@@ -255,7 +165,15 @@ export default function NewSeedVerify({
               {submitted ? (
                 <SharedButton
                   type="primary"
-                  style={{ background: "var(--green-80)" }}
+                  style={{ 
+                    background: "transparent",
+                    border: "1px solid #1775E4",
+                    width: "100%",
+                    maxWidth: "320px",
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "8px"
+                  }}
                   size="medium"
                   isDisabled
                 >
@@ -270,7 +188,6 @@ export default function NewSeedVerify({
                           width={24}
                           icon="icons/m/notif-correct.svg"
                         />
-
                         {t("validState")}
                       </>
                     ) : (
@@ -280,7 +197,6 @@ export default function NewSeedVerify({
                           width={24}
                           icon="icons/m/notif-wrong.svg"
                         />
-
                         {t("invalidState")}
                       </>
                     )}
@@ -290,6 +206,10 @@ export default function NewSeedVerify({
                 <SharedButton
                   type="primary"
                   size="medium"
+                  style={{
+                    width: "100%",
+                    maxWidth: "320px"
+                  }}
                   onClick={handleVerification}
                 >
                   {t("verifyValidState")}
@@ -299,6 +219,11 @@ export default function NewSeedVerify({
               <SharedButton
                 type="primary"
                 size="medium"
+                style={{
+                  width: "100%",
+                  maxWidth: "320px",
+                  marginTop: "16px"
+                }}
                 isDisabled={!submitted || !isValidSeed}
                 onClick={() => onVerify(mnemonic)}
               >
@@ -306,32 +231,29 @@ export default function NewSeedVerify({
               </SharedButton>
             </div>
             {submitted && !isValidSeed && (
-              <div className="error">{t("invalidStateMsg")}</div>
+              <div className="error" style={{ textAlign: "center", color: "#FF4E4E" }}>
+                {t("invalidStateMsg")}
+              </div>
             )}
           </>
         ) : (
-          <ul
-            className="remaining_word_list"
-            data-testid="remaining_seed_words"
-          >
+          <div className="word_buttons">
             {remainingWords.map((word, i) => {
               const key = `${word}-${i}`
               return (
-                <li className="button_spacing" key={key}>
-                  <SharedButton
-                    type="primary"
-                    size="small"
-                    onClick={() => handleAdd(i)}
-                  >
-                    {word}
-                  </SharedButton>
-                </li>
+                <button
+                  type="button"
+                  key={key}
+                  className="word_button"
+                  onClick={() => handleAdd(i)}
+                >
+                  {word}
+                </button>
               )
             })}
-          </ul>
+          </div>
         )}
       </div>
-
       <OnboardingTip>
         <Trans
           t={t}
@@ -357,110 +279,116 @@ export default function NewSeedVerify({
           }}
         />
       </OnboardingTip>
-      <style jsx>
-        {`
-          h1 {
-            font-family: "TT Travels";
-            font-style: normal;
-            font-weight: 500;
-            font-size: 36px;
-            line-height: 42px;
-            color: var(--hunter-green);
-            margin: 24px 0 4px;
-          }
+      <style jsx>{`
+        .verify_section {
+          max-width: 450px;
+          margin: 0 auto;
+        }
 
-          .subtitle {
-            font-family: "Segment";
-            font-style: normal;
-            font-weight: 400;
-            font-size: 16px;
-            line-height: 24px;
-            color: var(--hunter-green);
-            margin-bottom: 41px;
-          }
+        h1 {
+          font-family: "Segment";
+          font-size: 24px;
+          line-height: 32px;
+          color: white;
+          margin: 0 0 8px 0;
+        }
 
-          .verify_section {
-            max-width: 450px;
-            margin: 0 auto;
-          }
+        .subtitle {
+          font-family: "Segment";
+          font-size: 16px;
+          line-height: 24px;
+          color: #808080;
+          margin: 0 0 24px 0;
+        }
 
-          .error {
-            width: 100%;
-            font-family: "Segment";
-            font-style: normal;
-            font-weight: 400;
-            font-size: 16px;
-            line-height: 24px;
-            color: var(--green-40);
-          }
+        .words_list {
+          background: #1C1C1C;
+          border-radius: 4px;
+          padding: 16px;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          margin-bottom: 24px;
+        }
 
-          .valid_status_btn_content[data-is-valid="false"] {
-            color: var(--error);
-          }
+        .word_container {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
 
-          .valid_status_btn_content[data-is-valid="true"] {
-            color: var(--success);
-          }
+        .number {
+          color: white;
+          min-width: 24px;
+          font-size: 16px;
+          line-height: 24px;
+          text-align: right;
+        }
 
-          .valid_status_btn_content {
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
+        .word_box {
+          flex: 1;
+          height: 40px;
+          border: 1px solid #333333;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          padding: 0 16px;
+          color: white;
+          font-size: 16px;
+          background: #1C1C1C;
+          cursor: pointer;
+        }
 
-          .reset_seed_link {
-            cursor: pointer;
-            color: var(--trophy-gold);
-          }
+        .word_box.is_filled {
+          background: #1775E4;
+          border-color: #1775E4;
+          color: white;
+        }
 
-          .words_list {
-            display: flex;
-            flex-wrap: wrap;
-            grid: repeat(4, 1fr) / auto-flow;
-            gap: 19px 40px;
-            background: var(--green-95);
-            border-radius: 8px;
-            padding: 36px;
-            margin-bottom: 16px;
-            width: fit-content;
-            justify-content: center;
-            align-items: center;
-          }
+        .word_box.is_active {
+          border-color: #1775E4;
+        }
 
-          @media screen and (max-width: 600px) {
-            .words_list {
-              grid: repeat(8, 1fr);
-              gap: 19px;
-              justify-content: center;
-              align-items: center;
-            }
-          }
+        .word_buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 24px;
+        }
 
-          .word_container {
-            flex: 0 0 calc(50% - 19px); /* occupy half the width minus half the gap */
-          }
+        .word_button {
+          background: #1775E4;
+          border: none;
+          border-radius: 4px;
+          padding: 8px 16px;
+          color: white;
+          font-size: 16px;
+          line-height: 24px;
+          cursor: pointer;
+        }
 
-          .remaining_word_list {
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            gap: 8px;
-            margin: 0;
-          }
+        .error {
+          color: var(--error);
+          margin-top: 8px;
+        }
 
-          .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 24px;
-          }
-          .verify_and_submit {
-            display: flex;
-            justify-content: space-between;
-          }
-        `}
-      </style>
+        :global(button[type="submit"]) {
+          border-radius: 4px;
+        }
+
+        .verify_and_submit {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+        }
+
+        .valid_status_btn_content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      `}</style>
     </section>
   )
 }

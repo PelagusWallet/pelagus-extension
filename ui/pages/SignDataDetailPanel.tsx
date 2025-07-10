@@ -51,7 +51,7 @@ function SignDataMessage({
           color: #ccd3d3;
         }
         .key {
-          color: var(--green-40);
+          color: var(--secondary-text);
           margin-right: 8px;
         }
       `}</style>
@@ -110,7 +110,7 @@ export default function SignDataDetailPanel(): ReactElement {
           justify-content: space-between;
         }
         .label {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-weight: 500;
           font-size: 16px;
           line-height: 24px;
@@ -133,7 +133,7 @@ export default function SignDataDetailPanel(): ReactElement {
           width: 80%;
           height: 2px;
           opacity: 60%;
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
         }
         .container {
           display: flex;

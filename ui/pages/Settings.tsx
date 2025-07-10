@@ -11,6 +11,8 @@ import {
   selectAutoLockInterval,
   setAutoLockInterval,
   selectQiWalletSyncInProgress,
+  selectTheme,
+  updateTheme,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import {
@@ -81,7 +83,7 @@ function VersionLabel(): ReactElement {
       <style jsx>
         {`
           .version {
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 14px;
             font-weight: 500;
             margin: 0 auto;
@@ -111,7 +113,7 @@ function SettingRow(props: {
             justify-content: space-between;
             align-items: center;
 
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 20px;
@@ -132,6 +134,7 @@ export default function Settings(): ReactElement {
   const autoLockInterval = useSelector(selectAutoLockInterval)
   const [showRescanConfirm, setShowRescanConfirm] = useState(false)
   const qiWalletSyncInProgress = useSelector(selectQiWalletSyncInProgress)
+  const currentTheme = useSelector(selectTheme)
 
   useEffect(() => {
     if (!qiWalletSyncInProgress) {
@@ -301,7 +304,7 @@ export default function Settings(): ReactElement {
                   min-height: 100px;
                 }
                 p {
-                  color: var(--white);
+                  color: var(--primary-text);
                   font-size: 14px;
                   line-height: 24px;
                   margin: 0;
@@ -325,15 +328,15 @@ export default function Settings(): ReactElement {
                 }
                 .cancel {
                   background: transparent;
-                  border: 1px solid var(--green-40);
-                  color: var(--green-40);
+                  border: 1px solid var(--secondary-text);
+                  color: var(--secondary-text);
                   margin-right: 10%;
                 }
                 .cancel:hover:not(:disabled) {
-                  background: var(--green-120);
+                  background: var(--primary-bg);
                 }
                 .confirm {
-                  background: var(--green-40);
+                  background: var(--secondary-text);
                   border: none;
                   color: var(--hunter-green);
                 }
@@ -380,6 +383,21 @@ export default function Settings(): ReactElement {
     ),
   }
 
+  const themeSetting = {
+    title: t("settings.theme"),
+    component: () => (
+      <SharedSelect
+        width={194}
+        options={[
+          { value: "light", label: "Light" },
+          { value: "dark", label: "Dark" },
+        ]}
+        onChange={(value) => dispatch(updateTheme(value))}
+        defaultIndex={currentTheme === "dark" ? 1 : 0}
+      />
+    ),
+  }
+
   const settings = Object.values({
     general: {
       title: t("settings.group.general"),
@@ -392,6 +410,7 @@ export default function Settings(): ReactElement {
         qiCoinbaseAddress,
         pelagusNotifications,
         autoLockSetting,
+        themeSetting,
         ...wrapIfEnabled(FeatureFlags.SUPPORT_MULTIPLE_LANGUAGES, languages),
         ...wrapIfEnabled(
           FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER,
@@ -425,8 +444,8 @@ export default function Settings(): ReactElement {
                   key={icon}
                   icon={`${icon}.svg`}
                   width={18}
-                  color="var(--white)"
-                  hoverColor="var(--green-40)"
+                  color="var(--primary-text)"
+                  hoverColor="var(--secondary-text)"
                   transitionHoverTime="0.2s"
                   onClick={() => {
                     window.open(linkTo, "_blank")?.focus()
@@ -466,7 +485,7 @@ export default function Settings(): ReactElement {
             flex-flow: column;
             justify-content: space-between;
             height: 544px;
-            background-color: var(--hunter-green);
+            background-color: var(--primary-bg);
           }
 
           .menu {
@@ -476,7 +495,7 @@ export default function Settings(): ReactElement {
           }
 
           h1 {
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 22px;
             font-weight: 500;
             line-height: 32px;
@@ -484,7 +503,7 @@ export default function Settings(): ReactElement {
           }
 
           span {
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 16px;
             font-weight: 400;
             line-height: 24px;
@@ -519,7 +538,7 @@ export default function Settings(): ReactElement {
           }
 
           .group_title {
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-family: "Segment";
             font-style: normal;
             font-weight: 400;

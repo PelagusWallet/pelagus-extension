@@ -6,7 +6,7 @@ import {
 } from "@pelagus-provider/provider-bridge-shared"
 import { createBackgroundAsyncThunk } from "./utils"
 import { keyPermissionsByChainIdAddressOrigin } from "../services/provider-bridge/utils"
-import { QuaiGoldenAgeTestnet } from "../constants/networks/networks"
+import { QuaiMainnet } from "../constants/networks/networks"
 
 export type DAppPermissionState = {
   permissionRequests: { [origin: string]: PermissionRequest }
@@ -138,7 +138,7 @@ const dappSlice = createSlice({
           delete updatedPermissionRequests[permission.origin]
 
           // Support all networks regardless of which one initiated grant request
-          const permissions = [QuaiGoldenAgeTestnet].map((network) => ({
+          const permissions = [QuaiMainnet].map((network) => ({
             ...permission,
             chainID: network.chainID,
           }))

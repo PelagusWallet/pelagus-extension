@@ -14,6 +14,16 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
   const passwordInputType = showPassword ? "text" : "password"
   const { t } = useTranslation("translation", { keyPrefix: "shared" })
 
+  const handleShowButtonKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      const nextInput = e.currentTarget.closest('.wrapper')?.nextElementSibling?.querySelector('input');
+      if (nextInput) {
+        (nextInput as HTMLElement).focus();
+      }
+    }
+  };
+
   return (
     <div className="wrapper">
       <SharedInput
@@ -23,52 +33,41 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
       />
       {hasPreview && (
         <button
-          role="switch"
           type="button"
-          aria-label={
-            !showPassword ? t("showPasswordHint") : t("hidePasswordHint")
-          }
-          aria-checked={showPassword}
           onClick={() => setShowPassword((visible) => !visible)}
-          className={classNames("icon icon_medium", {
-            active: showPassword,
-          })}
-        />
+          onKeyDown={handleShowButtonKeyDown}
+          className="show_button"
+          tabIndex={-1}
+        >
+          {showPassword ? "Hide" : "Show"}
+        </button>
       )}
       <style jsx>
         {`
           .wrapper > :global(input) {
-            padding-right: 40px;
+            padding-right: 70px;
+            background: var(--secondary-bg);
+            border: 1px solid #333333;
+            border-radius: 4px;
+            color: var(--primary-text);
+            height: 48px;
+            font-size: 16px;
           }
           .wrapper {
             position: relative;
+            width: 100%;
           }
-          .icon {
+          .show_button {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            margin-right: 16px;
-            height: 16px;
-            width: 16px;
-            mask-size: cover;
-            background-position: center;
-            background-color: var(--white);
-            background-size: 16px;
-            transition: all 0.12s ease-out;
-            transform: translateY(50%);
-          }
-          .icon.active {
-            background-color: var(--trophy-gold);
-            mask-image: url("./images/icons/m/eye-on.svg");
-          }
-          .icon_medium {
-            mask-image: url("./images/icons/m/eye-off.svg");
-            mask-size: cover;
-            color: var(--trophy-gold);
-            width: 24px;
-            height: 24px;
-            background-size: 24px;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #2196F3;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
           }
         `}
       </style>

@@ -16,7 +16,7 @@ export default function SigningLoading(): ReactElement {
         .loading_transaction {
           height: 100vh;
           width: 100%;
-          background: var(--green-95);
+          background: var(--secondary-bg);
           padding-top: 64px;
         }
         .header {

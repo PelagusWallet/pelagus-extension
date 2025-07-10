@@ -10,7 +10,7 @@ export default function OnboardingTip({
       <div role="presentation" className="quote_icon">
         <span>i</span>
       </div>
-      <q>{children}</q>
+      <q className="tip-text">{children}</q>
       <style jsx>
         {`
           .quote_icon {
@@ -19,7 +19,7 @@ export default function OnboardingTip({
             font-size: 20px;
             line-height: 42px;
             text-align: center;
-            color: var(--green-95);
+            color: var(--secondary-text);
             display: flex;
             align-items: center;
             gap: 18px;
@@ -34,7 +34,7 @@ export default function OnboardingTip({
             max-width: 100px;
             display: inline-block;
             flex-grow: 1;
-            border: 0.5px solid var(--green-95);
+            border: 0.5px solid var(--secondary-bg);
           }
 
           q {
@@ -42,7 +42,7 @@ export default function OnboardingTip({
             font-weight: 400;
             font-size: 16px;
             line-height: 16px;
-            color: var(--green-95);
+            color: var(--secondary-text);
             text-align: center;
             display: block;
           }
@@ -50,6 +50,17 @@ export default function OnboardingTip({
           q::before,
           q::after {
             content: none;
+          }
+
+          :global(.reset_seed_link) {
+            color: #1775E4;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            text-decoration: none;
+          }
+
+          :global(.reset_seed_link:hover) {
+            opacity: 0.8;
           }
         `}
       </style>

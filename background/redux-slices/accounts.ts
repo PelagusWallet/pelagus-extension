@@ -49,19 +49,6 @@ export const ACCOUNT_TYPES = [
   AccountType.ReadOnly,
 ]
 
-export const DEFAULT_ACCOUNT_NAMES = [
-  "Nautilus",
-  "Poseidon",
-  "Compass",
-  "Calypso",
-  "Marina",
-  "Siren",
-  "Endeavour",
-  "Yawl",
-]
-
-const availableDefaultNames = [...DEFAULT_ACCOUNT_NAMES]
-
 export type ListAccount = {
   address: string
   defaultAvatar: string
@@ -80,6 +67,18 @@ export type EvmAccountData = {
   }
   defaultName: string
   defaultAvatar: string
+}
+
+function getNextAccountNumber(existingAccounts: { [address: string]: EvmAccountData | "loading" }): number {
+  const existingNumbers = Object.values(existingAccounts)
+    .filter((account): account is EvmAccountData => account !== "loading")
+    .map(account => {
+      const match = account.defaultName.match(/Address (\d+)$/)
+      return match ? parseInt(match[1], 10) : 0
+    })
+  
+  if (existingNumbers.length === 0) return 1
+  return Math.max(...existingNumbers) + 1
 }
 
 type EvmAccountsByChainID = {
@@ -148,39 +147,11 @@ function newAccountData(
   network: NetworkInterface,
   accountsState: AccountState
 ): EvmAccountData {
-  const existingAccountsCount = Object.keys(
-    accountsState.accountsData.evm[network.chainID]
-  ).filter((key) => key !== address).length
-
-  const sameAccountOnDifferentChain = Object.values(
-    accountsState.accountsData.evm
-  )
-    .flatMap((chain) => Object.values(chain))
-    .find(
-      (accountData): accountData is EvmAccountData =>
-        accountData !== "loading" && accountData.address === address
-    )
-  const defaultNameIndex =
-    // Skip potentially-used names at the beginning of the array if relevant
-    (existingAccountsCount % availableDefaultNames.length) +
-    Number(
-      // Treat the address as a number and mod it to get an index into default names.
-      BigInt(address) %
-        BigInt(
-          availableDefaultNames.length -
-            (existingAccountsCount % availableDefaultNames.length)
-        )
-    )
-
-  let defaultAccountName = sameAccountOnDifferentChain?.defaultName
-  if (typeof defaultAccountName === "undefined") {
-    defaultAccountName = availableDefaultNames[defaultNameIndex]
-    // Move used default names to the start so they can be skipped above.
-    availableDefaultNames.splice(defaultNameIndex, 1)
-    availableDefaultNames.unshift(defaultAccountName)
-  }
-
-  const defaultAccountAvatar = `./images/avatars/${defaultAccountName.toLowerCase()}@2x.png`
+  const existingAccounts = accountsState.accountsData.evm[network.chainID] || {}
+  const nextNumber = getNextAccountNumber(existingAccounts)
+  
+  const defaultAccountName = `Address ${nextNumber}`
+  const defaultAccountAvatar = "./images/avatars/compass@2x.png"
 
   return {
     address,

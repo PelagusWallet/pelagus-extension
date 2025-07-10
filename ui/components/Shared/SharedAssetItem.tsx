@@ -72,7 +72,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
               <div
                 className="symbol ellipsis"
                 title={asset.symbol}
-                style={{ color: "var(--green-60)" }}
+                style={{ color: "var(--primary-text)" }}
               >
                 {asset.symbol}
               </div>
@@ -92,7 +92,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
               <SharedIcon
                 icon="icons/s/new-tab.svg"
                 width={16}
-                color="var(--green-40)"
+                color="var(--secondary-text)"
                 hoverColor="var(--trophy-gold)"
                 onClick={() => {
                   window.open(contractLink, "_blank")?.focus()
@@ -130,7 +130,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
             gap: 20px;
           }
           .amount {
-            color: var(--green-40);
+            color: var(--primary-text);
           }
           .token_group {
             display: flex;
@@ -153,11 +153,11 @@ export default function SharedAssetItem<T extends AnyAsset>(
             justify-content: center;
           }
           .token_group:hover .token_icon_wrap {
-            background-color: var(--green-120);
+            background-color: var(--primary-bg);
           }
           .token_subtitle {
             height: 17px;
-            color: var(--green-60);
+            color: var(--primary-text);
             font-size: 14px;
             font-weight: 400;
             letter-spacing: 0.42px;
@@ -165,7 +165,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
             margin-top: 5px;
           }
           .symbol {
-            color: #fff;
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 18px;

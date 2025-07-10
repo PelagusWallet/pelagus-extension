@@ -77,17 +77,17 @@ export default function CommonAssetListItem(
             symbol={assetAmount?.asset?.symbol}
           />
           <div className="asset_left_content">
-            <div className="asset_amount">
-              <span className="bold_amount_count">
-                {formatBalance(assetAmount)}
-              </span>
-              <span title={assetAmount.asset.symbol}>
-                {trimWithEllipsis(assetAmount.asset.symbol, MAX_SYMBOL_LENGTH)}
-              </span>
-            </div>
+            <span className="asset_symbol" title={assetAmount.asset.symbol}>
+              {trimWithEllipsis(assetAmount.asset.symbol, MAX_SYMBOL_LENGTH)}
+            </span>
           </div>
         </div>
         <div className="asset_right">
+          <div className="asset_amount">
+            <span className="bold_amount_count">
+              {formatBalance(assetAmount)}
+            </span>
+          </div>
           <>
             {isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET) &&
             isUnverified ? (
@@ -124,7 +124,7 @@ export default function CommonAssetListItem(
         .price {
           height: 17px;
           display: flex;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 14px;
           font-weight: 400;
           letter-spacing: 0.42px;

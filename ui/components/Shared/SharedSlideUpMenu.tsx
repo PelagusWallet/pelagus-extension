@@ -89,7 +89,7 @@ export default function SharedSlideUpMenu(props: Props): ReactElement {
             icon="close.svg"
             width={12}
             color="var(--green-20)"
-            hoverColor="#fff"
+            hoverColor="var(--white)"
             ariaLabel="Close menu"
             onClick={(e) => {
               close(e)
@@ -106,7 +106,7 @@ export default function SharedSlideUpMenu(props: Props): ReactElement {
             overflow-x: hidden;
             overflow-y: ${isScrollable ? "auto" : "hidden"};
             border-radius: ${isFullScreen ? "0" : "16px 16px 0 0"};
-            background-color: #ffffff;
+            background-color: var(--secondary-bg);
             position: fixed;
             left: 0;
             right: 0;
@@ -127,7 +127,7 @@ export default function SharedSlideUpMenu(props: Props): ReactElement {
             top: 0;
             cursor: pointer;
             z-index: 998;
-            background: var(--green-120);
+            background: var(--primary-bg);
             opacity: 0.7;
             transition: opacity cubic-bezier(0.19, 1, 0.22, 1) 0.445s,
               visiblity 0.445s;

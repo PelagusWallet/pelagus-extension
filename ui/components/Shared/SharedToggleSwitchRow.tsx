@@ -20,7 +20,7 @@ export default function SharedToggleSwitchRow(
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;

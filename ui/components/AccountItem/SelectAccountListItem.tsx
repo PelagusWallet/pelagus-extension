@@ -52,7 +52,7 @@ export default function SelectAccountListItem({
             border-radius: 4px;
           }
           .connected-account-item.select {
-            background: var(--green-95);
+            background: var(--secondary-bg);
             margin: 0;
             padding: 11px 16px;
           }

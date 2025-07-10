@@ -5,8 +5,31 @@ import { Store } from "webext-redux"
 import Container from "../components/BrowserTab/BrowserTabContainer"
 import Snackbar from "../components/Snackbar/Snackbar"
 import TabbedOnboardingRoot from "./Onboarding/Tabbed/Root"
+import { useTheme } from "../hooks"
 
 import TabNotFound from "./TabNotFound"
+
+function TabMain(): ReactElement {
+  useTheme()
+
+  return (
+    <>
+      <Container>
+        <HashRouter>
+          <Switch>
+            <Route path="/onboarding">
+              <TabbedOnboardingRoot />
+            </Route>
+            <Route>
+              <TabNotFound />
+            </Route>
+          </Switch>
+        </HashRouter>
+      </Container>
+      <Snackbar isTabbedOnboarding />
+    </>
+  )
+}
 
 /**
  * Entry point for UI shown in browser tabs.
@@ -15,20 +38,7 @@ export default function Tab({ store }: { store: Store }): ReactElement {
   return (
     <>
       <Provider store={store}>
-        {/* HashRouter seems the only choice supporting safe page reloads. */}
-        <Container>
-          <HashRouter>
-            <Switch>
-              <Route path="/onboarding">
-                <TabbedOnboardingRoot />
-              </Route>
-              <Route>
-                <TabNotFound />
-              </Route>
-            </Switch>
-          </HashRouter>
-        </Container>
-        <Snackbar isTabbedOnboarding />
+        <TabMain />
       </Provider>
       <>
         <style jsx global>

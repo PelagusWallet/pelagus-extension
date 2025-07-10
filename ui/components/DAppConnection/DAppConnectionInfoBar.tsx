@@ -90,7 +90,7 @@ function DefaultConnectionPopover({ close }: PopoverProps): ReactElement {
 
           color: var(--green-20);
 
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
           border: 1px solid var(--green-80);
           border-radius: 16px;
           box-shadow: 0 10px 12px rgba(0, 20, 19, 0.34),
@@ -115,7 +115,7 @@ function DefaultConnectionPopover({ close }: PopoverProps): ReactElement {
           border-style: solid none none solid;
           border-top-left-radius: 6px;
 
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
         }
 
         section:after {
@@ -145,7 +145,7 @@ function DefaultConnectionPopover({ close }: PopoverProps): ReactElement {
         }
 
         h4 {
-          color: var(--white);
+          color: var(--primary-text);
 
           margin: 21px 0 14px;
         }
@@ -212,7 +212,7 @@ export default function DAppConnectionInfoBar(): ReactElement {
 
       <style jsx>{`
         section {
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
           padding: 10px 16px 10px 4px;
 
           display: flex;

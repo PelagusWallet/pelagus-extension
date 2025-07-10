@@ -59,7 +59,7 @@ export default function SharedBackButton({
       {!withoutBackText && t("shared.backButtonText")}
       <style jsx>{`
         button {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 12px;
           font-weight: 500;
           line-height: 16px;
@@ -80,14 +80,14 @@ export default function SharedBackButton({
         }
 
         .round .icon {
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
         }
 
         .icon {
           mask: url("./images/chevron_left.svg") center / contain no-repeat;
           width: 16px;
           height: 16px;
-          background-color: var(--green-40);
+          background-color: var(--secondary-text);
         }
 
         button:hover .icon {

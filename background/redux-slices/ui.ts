@@ -16,7 +16,7 @@ import {
 import { AccountState, addAddressNetwork, UtxoAccountData } from "./accounts"
 import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
-import { QuaiGoldenAgeTestnet } from "../constants/networks/networks"
+import { QuaiMainnet } from "../constants/networks/networks"
 
 export const defaultSettings = {
   hideDust: false,
@@ -33,6 +33,7 @@ export const defaultSettings = {
   alphaBannerVersion: 1,
   showPelagusNotifications: true,
   autoLockInterval: 10, // in minutes
+  theme: "dark", // light or dark
 }
 
 const defaultSnackbarDuration = 2500
@@ -64,6 +65,7 @@ export type UIState = {
     showAlphaWalletBanner: boolean
     alphaBannerVersion: number
     autoLockInterval: number
+    theme: string
   }
   snackbarConfig: {
     message: string
@@ -100,6 +102,7 @@ export type Events = {
   showAlphaWalletBanner: boolean
   showTestNetworks: boolean
   showPaymentChannelModal: boolean
+  themeChanged: string
 }
 
 export const emitter = new Emittery<Events>()
@@ -114,7 +117,7 @@ export const initialState: UIState = {
   },
   selectedAccount: {
     address: "",
-    network: QuaiGoldenAgeTestnet,
+    network: QuaiMainnet,
   },
   selectedUtxoAccount: null,
   isUtxoSelected: false,
@@ -372,6 +375,16 @@ const uiSlice = createSlice({
         autoLockInterval,
       },
     }),
+    setTheme: (
+      state,
+      { payload: theme }: { payload: string }
+    ) => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        theme,
+      },
+    }),
     setQiWalletSyncInProgress: (immerState, { payload }: { payload: boolean }) => {
       immerState.qiWalletSyncInProgress = payload
     },
@@ -412,6 +425,7 @@ export const {
   setIsUtxoSelected,
   updateSelectedUtxoAccountBalance,
   setAutoLockInterval,
+  setTheme,
   setQiWalletSyncInProgress,
   updateLastUserActivityOnNetwork,
 } = uiSlice.actions
@@ -609,6 +623,14 @@ export const updateShowPaymentChannelModal = createBackgroundAsyncThunk(
   }
 )
 
+export const updateTheme = createBackgroundAsyncThunk(
+  "ui/updateTheme",
+  async (theme: string, { dispatch }) => {
+    await emitter.emit("themeChanged", theme)
+    dispatch(uiSlice.actions.setTheme(theme))
+  }
+)
+
 export const selectUI = createSelector(
   (state: { ui: UIState }): UIState => state.ui,
   (uiState) => uiState
@@ -718,4 +740,9 @@ export const selectAlphaBannerVersion = createSelector(
 export const selectAutoLockInterval = createSelector(
   selectSettings,
   (settings) => settings?.autoLockInterval
+)
+
+export const selectTheme = createSelector(
+  selectSettings,
+  (settings) => settings?.theme
 )

@@ -40,10 +40,10 @@ export default function AccountitemOptionLabel({
           width: 100%;
         }
         .hover:hover {
-          color: ${hoverColor || "#fff"};
+          color: ${hoverColor || "var(--green-40)"};
         }
         .hover:hover .icon {
-          background-color: ${hoverColor || "#fff"};
+          background-color: ${hoverColor || "var(--green-40"};
         }
       `}</style>
     </div>

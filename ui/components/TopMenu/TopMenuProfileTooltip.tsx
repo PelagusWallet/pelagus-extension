@@ -20,7 +20,7 @@ export default function TopMenuProfileTooltip(props: {
           cursor: pointer;
           bottom: -30px;
           right: 0;
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
           padding: 8px 10px 8px;
           border-radius: 8px;
           color: var(--green-5);

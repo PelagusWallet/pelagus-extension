@@ -1,5 +1,4 @@
 import React, { ReactElement, useState } from "react"
-
 import {
   Route,
   Switch,
@@ -7,9 +6,7 @@ import {
   useLocation,
   Redirect,
 } from "react-router-dom"
-
 import classNames from "classnames"
-
 import SharedBackButton from "../../../components/Shared/SharedBackButton"
 import AddWallet from "./AddWallet"
 import Done from "./Done"
@@ -19,9 +16,9 @@ import NewSeed, { NewSeedRoutes } from "./NewSeed"
 import InfoIntro from "./Intro"
 import ViewOnlyWallet from "./ViewOnlyWallet"
 import OnboardingRoutes from "./Routes"
-import RouteBasedContent from "../../../components/Onboarding/RouteBasedContent"
 import { useIsOnboarding } from "../../../hooks"
 import ImportPrivateKeyForm from "./ImportPrivateKeyForm"
+import { useTheme } from "../../../hooks/theme-hooks"
 
 function Navigation({
   children,
@@ -41,111 +38,66 @@ function Navigation({
 
   return (
     <section className="onboarding_container">
+      <img 
+        src="./images/pelagus_title_horizontal.svg" 
+        alt="Pelagus" 
+        className="header_logo" 
+      />
       <style jsx>
         {`
           section {
             display: flex;
-            height: 100%;
+            height: 100vh;
             width: 100%;
             justify-content: center;
-          }
-
-          .left_container {
-            position: relative;
-            width: 80%;
-            padding-top: 10%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
             align-items: center;
-            overflow-y: hidden;
-            box-sizing: border-box;
-          }
-
-          .left_container.hide {
-            display: none;
-          }
-
-          .right_container {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+              url('./images/pelagus_flag_2.png');
+            background-size: cover;
+            background-position: center;
             position: relative;
-            padding: 10% 80px 0;
-            width: 50%;
-            max-height: 100vh;
-            box-sizing: border-box;
-            background: #04141480;
-            overflow-y: auto;
           }
 
-          .route_based_content {
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-grow: 1;
-            font-family: "Segment";
-            font-style: normal;
-            font-weight: 400;
-            font-size: 18px;
-            line-height: 24px;
-            color: var(--green-20);
-            text-align: center;
+          .header_logo {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            height: 32px;
+            width: auto;
           }
 
-          .onboarding_branding {
+          .card_container {
+            background: var(--primary-bg);
+            border-radius: 16px;
+            padding: 48px;
             width: 100%;
-            max-width: 300px;
-            margin: 0 auto 38px;
-            padding-bottom: 44px;
-            border-bottom: 1px solid var(--green-120);
+            max-width: 480px;
+            position: relative;
           }
 
-          .onboarding_logo_branding {
-            width: 100%;
-            max-width: 300px;
+          .back_button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1;
           }
 
-          @media (max-width: 1090px) {
-            .right_container {
-              padding: 10% 50px 0;
-            }
-          }
-
-          @media (max-width: 980px) {
-            .left_container {
-              display: none;
+          @media (max-width: 520px) {
+            .card_container {
+              margin: 16px;
+              padding: 32px;
             }
 
-            .right_container {
-              width: 100%;
-              padding: 10% 80px 0;
+            .header_logo {
+              top: 20px;
+              left: 20px;
+              height: 24px;
             }
           }
         `}
       </style>
-      <div
-        className={classNames("left_container", { hide: !isOnboarding })}
-        style={{
-          backgroundImage: `
-      linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)), 
-      url('./images/pelagus_flag.png')
-    `,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="onboarding_branding">
-          <img
-            src="./images/logo_onboarding.png"
-            alt="Onboarding logo"
-            className="onboarding_logo_branding"
-          />
-        </div>
-        <div className="route_based_content">
-          <RouteBasedContent />
-        </div>
-      </div>
 
-      <div className="right_container">
+      <div className="card_container">
         {!matchPath(location.pathname, {
           path: ROUTES_WITHOUT_BACK_BUTTON,
           exact: true,
@@ -156,21 +108,13 @@ function Navigation({
         )}
         {children}
       </div>
-      <style jsx>{`
-        .back_button {
-          position: absolute;
-          margin-top: 20px;
-          z-index: 1;
-        }
-      `}</style>
     </section>
   )
 }
 
 export default function Root(): ReactElement {
-  // This prevents navigation "Onboarding" state from changing
-  // until this component is unmounted
   const [isOnboarding] = useState(useIsOnboarding())
+  useTheme()
 
   return (
     <Navigation isOnboarding={isOnboarding}>

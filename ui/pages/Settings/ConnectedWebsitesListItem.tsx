@@ -48,7 +48,7 @@ export default function ConnectedWebsitesListItem(
           </span>
         </div>
         <SharedIcon
-          color="var(--green-40)"
+          color="var(--secondary-text)"
           hoverColor="var(--error)"
           width={24}
           icon="icons/m/disconnect.svg"
@@ -59,7 +59,7 @@ export default function ConnectedWebsitesListItem(
       <style jsx>{`
         .container {
           padding: 16px 0;
-          border-bottom: 1px solid var(--green-95);
+          border-bottom: 1px solid var(--secondary-bg);
           width: 100%;
         }
 
@@ -89,7 +89,7 @@ export default function ConnectedWebsitesListItem(
 
         .host {
           display: block;
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 14px;
         }
       `}</style>

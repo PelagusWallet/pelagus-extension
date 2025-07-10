@@ -41,6 +41,7 @@ interface Events extends ServiceLifecycleEvents {
   alphaBannerVersion: number
   showTestNetworks: boolean
   showPaymentChannelModal: boolean
+  themeChanged: string
 }
 
 /*
@@ -92,6 +93,8 @@ export default class PreferenceService extends BaseService<Events> {
       "showPaymentChannelModal",
       await this.getShowPaymentChannelModal()
     )
+
+    this.emitter.emit("themeChanged", await this.getTheme())
   }
 
   protected override async internalStopService(): Promise<void> {
@@ -238,5 +241,15 @@ export default class PreferenceService extends BaseService<Events> {
   ): Promise<void> {
     await this.db.setShowPaymentChannelModal(showPaymentChannelModal)
     await this.emitter.emit("showPaymentChannelModal", showPaymentChannelModal)
+  }
+
+  async getTheme(): Promise<string> {
+    const prefs = await this.db.getPreferences()
+    return prefs?.theme || "light"
+  }
+
+  async setTheme(theme: string): Promise<void> {
+    await this.db.setTheme(theme)
+    await this.emitter.emit("themeChanged", theme)
   }
 }

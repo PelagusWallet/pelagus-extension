@@ -141,7 +141,7 @@ export default function SettingsAnalytics(): ReactElement {
         .toggle_container {
           border-radius: 15px;
           padding: 24px 20px;
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
         }
 
         .header_container {

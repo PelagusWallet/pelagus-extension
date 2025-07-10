@@ -46,7 +46,7 @@ function Banner(props: BannerProps): ReactElement {
         {`
           .banner_wrap {
             width: 336px;
-            background: var(--green-120);
+            background: var(--primary-bg);
             border-radius: 8px;
             padding: 8px;
             display: flex;
@@ -97,7 +97,7 @@ function BannerWithClose(props: BannerProps & { id: string }): ReactElement {
         icon="icons/s/close.svg"
         ariaLabel="close"
         width={16}
-        color="var(--green-40)"
+        color="var(--secondary-text)"
         hoverColor="var(--green-20)"
         customStyles={`
               position: absolute;

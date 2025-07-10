@@ -58,7 +58,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             font-weight: 500;
             line-height: 20px;
             letter-spacing: 0.03em;
-            color: ${textColor.color};
+            color: var(--primary-text);
             transition: color 0.2s;
             width: ${width ?? "80%"};
             display: flex;
@@ -67,7 +67,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             gap: 4px;
           }
           .hoverable:hover {
-            color: ${textColor.hoverColor};
+            color: var(--primary-text);
           }
           .disabled {
             color: var(--disabled);
@@ -95,7 +95,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             mask-size: cover;
             width: ${`${iconWidth}px` ?? "100%"};
             height: ${`${iconHeight}px` ?? "100%"};
-            background-color: var(--hunter-green);
+            background-color: var(--secondary-bg);
           }
         `}
       </style>

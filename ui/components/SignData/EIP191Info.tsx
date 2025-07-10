@@ -38,14 +38,14 @@ const EIP191Info: React.FC<{
           color: --var(green-20);
         }
         .message-title {
-          color: var(--green-40);
+          color: var(--secondary-text);
           margin-bottom: 6px;
         }
         .light {
           white-space: pre-wrap;
         }
         .label {
-          color: var(--green-40);
+          color: var(--secondary-text);
         }
         .header {
           padding: 16px 0;

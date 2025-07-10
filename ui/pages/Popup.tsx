@@ -5,7 +5,7 @@ import { Store } from "webext-redux"
 import { Provider } from "react-redux"
 import { runtime } from "webextension-polyfill"
 import { popupMonitorPortName } from "@pelagus/pelagus-background/main"
-import { useIsDappPopup } from "../hooks"
+import { useIsDappPopup, useTheme } from "../hooks"
 import pageList from "../routes/routes"
 import GlobalModal from "../components/GlobalModal/GlobalModal"
 import PrivateRoute from "../routes/PrivateRoute"
@@ -24,6 +24,7 @@ export function Main(): ReactElement {
   const isDappPopup = useIsDappPopup()
 
   useConnectPopupMonitor()
+  useTheme()
 
   return (
     <>

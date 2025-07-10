@@ -250,6 +250,7 @@ export default function SpendApprovalSummary({
             margin-bottom: 16px;
           }
           .asset_icon_wrap {
+            color: var(--primary-text);
             z-index: 1;
           }
           .site {
@@ -261,7 +262,7 @@ export default function SpendApprovalSummary({
           }
           .spending_label {
             width: 272px;
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 16px;
             line-height: 24px;
             text-align: center;
@@ -274,7 +275,7 @@ export default function SpendApprovalSummary({
             justify-content: center;
           }
           .spend_limit_label {
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 14px;
             line-height: 16px;
             margin-bottom: 4px;
@@ -293,7 +294,7 @@ export default function SpendApprovalSummary({
             margin-top: 24px;
           }
           .spend_amount {
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 16px;
             line-height: 24px;
           }

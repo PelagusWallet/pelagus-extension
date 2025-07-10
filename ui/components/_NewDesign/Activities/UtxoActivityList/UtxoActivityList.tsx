@@ -32,7 +32,7 @@ const UtxoActivityList = () => {
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: var(--green-40);
+            color: var(--secondary-text);
             font-size: 16px;
             text-align: center;
             line-height: 22px;

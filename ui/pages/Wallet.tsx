@@ -127,7 +127,7 @@ export default function Wallet(): ReactElement {
   return (
     <>
       <div className="page_content">
-        {showAlphaWalletBanner && <WalletAlphaBanner />}
+        {/* {showAlphaWalletBanner && <WalletAlphaBanner />} */}
         {/* {!showAnalyticsNotification && */}
         {/*  isDisabled(FeatureFlags.ENABLE_UPDATED_DAPP_CONNECTIONS) && ( */}
         {/*    <WalletToggleDefaultBanner /> */}
@@ -256,7 +256,7 @@ export default function Wallet(): ReactElement {
             line-height: 24px;
             letter-spacing: 0;
             text-align: left;
-            color: var(--green-40);
+            color: var(--secondary-text);
           }
 
           .line {

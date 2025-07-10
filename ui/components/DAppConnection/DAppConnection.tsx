@@ -54,7 +54,7 @@ export default function DAppConnection(): ReactElement {
       <DAppConnectionDefaultToggle />
       <style jsx>{`
         section {
-          background-color: var(--green-120);
+          background-color: var(--primary-bg);
           padding: 10px 16px 10px 4px;
 
           display: flex;

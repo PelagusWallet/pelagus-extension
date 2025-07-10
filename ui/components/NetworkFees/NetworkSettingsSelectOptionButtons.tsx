@@ -15,7 +15,7 @@ const buttonStyle = `
   .subtext_large {
     font-weight: 500;
     font-size: 16px;
-    color: var(--green-40);
+    color: var(--secondary-text);
   }
   .network_option {
     width: 100%;
@@ -69,7 +69,7 @@ const buttonStyle = `
   }
   .max_r_label {
     font-size: 14px;
-    color: var(--green-40);
+    color: var(--secondary-text);
   }
   .currently_selected {
     color: var(--success);

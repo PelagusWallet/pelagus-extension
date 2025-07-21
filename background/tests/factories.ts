@@ -24,7 +24,7 @@ import {
   ProviderBridgeService,
   // SigningService,
 } from "../services"
-import { QuaiGoldenAgeTestnet } from "../constants/networks/networks"
+import { QuaiOrchardTestnet } from "../constants/networks/networks"
 import ProviderFactory from "../services/provider-factory/provider-factory"
 import BlockService from "../services/block"
 import TransactionService from "../services/transactions"
@@ -182,7 +182,7 @@ export const createAnyEVMBlock = (
     blockHeight: 15547463,
     timestamp: Date.now(),
     baseFeePerGas: overrides.baseFeePerGas ? overrides.baseFeePerGas : 0n,
-    network: QuaiGoldenAgeTestnet,
+    network: QuaiOrchardTestnet,
   }
 }
 
@@ -198,12 +198,12 @@ export const createAccountBalance = (
       name: "USD Coin",
       symbol: "USDC",
       decimals: 6,
-      homeNetwork: QuaiGoldenAgeTestnet,
+      homeNetwork: QuaiOrchardTestnet,
       contractAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
     },
     amount: 5000000n,
   },
-  network: QuaiGoldenAgeTestnet,
+  network: QuaiOrchardTestnet,
   blockHeight: BigInt(15547463),
   retrievedAt: Date.now(),
   dataSource: "local",
@@ -214,7 +214,7 @@ export const createAddressOnNetwork = (
   overrides: Partial<AddressOnNetwork> = {}
 ): AddressOnNetwork => ({
   address: createRandom0xHash(),
-  network: QuaiGoldenAgeTestnet,
+  network: QuaiOrchardTestnet,
   ...overrides,
 })
 
@@ -230,7 +230,7 @@ export const createBlockPrices = (
       gasPrice: 1001550n,
     },
   ],
-  network: QuaiGoldenAgeTestnet,
+  network: QuaiOrchardTestnet,
   ...overrides,
 })
 
@@ -239,7 +239,7 @@ export const createAccountData = (
 ): EvmAccountData => {
   return {
     address: createAddressOnNetwork().address,
-    network: QuaiGoldenAgeTestnet,
+    network: QuaiOrchardTestnet,
     balances: {},
     customAccountData: {
       name: "test.crypto",
@@ -278,7 +278,7 @@ export const createSmartContractAsset = (
     name: `${symbol} Network`,
     symbol,
     decimals: 18,
-    homeNetwork: QuaiGoldenAgeTestnet,
+    homeNetwork: QuaiOrchardTestnet,
     contractAddress: createRandom0xHash(),
   }
 

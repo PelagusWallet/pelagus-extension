@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import userEvent from "@testing-library/user-event"
 import { FungibleAsset } from "@pelagus/pelagus-background/assets"
 import { hardcodedMainCurrencySign } from "@pelagus/pelagus-background/redux-slices/utils/constants"
-import { QuaiGoldenAgeTestnet } from "@pelagus/pelagus-background/constants/networks/networks"
+import { QuaiOrchardTestnet } from "@pelagus/pelagus-background/constants/networks/networks"
 import SharedAssetInput from "../SharedAssetInput"
 import { renderWithProviders } from "../../../tests/test-utils"
 
@@ -72,7 +72,7 @@ function SharedAssetInputWithState({
   const [currentAsset, setCurrent] = useState(asset)
   return (
     <SharedAssetInput
-      currentNetwork={QuaiGoldenAgeTestnet}
+      currentNetwork={QuaiOrchardTestnet}
       selectedAsset={currentAsset}
       assetsAndAmounts={assetsAndAmounts}
       label={label}
@@ -91,7 +91,7 @@ describe("SharedAssetInput", () => {
   test("should renderWithProviders component", async () => {
     const ui = renderWithProviders(
       <SharedAssetInput
-        currentNetwork={QuaiGoldenAgeTestnet}
+        currentNetwork={QuaiOrchardTestnet}
         selectedAsset={undefined}
         assetsAndAmounts={[]}
         label={label}
@@ -211,7 +211,7 @@ describe("SharedAssetInput", () => {
   test("should be able to disable assets selector", async () => {
     const ui = renderWithProviders(
       <SharedAssetInput
-        currentNetwork={QuaiGoldenAgeTestnet}
+        currentNetwork={QuaiOrchardTestnet}
         selectedAsset={asset}
         assetsAndAmounts={assetsAndAmounts}
         label={label}

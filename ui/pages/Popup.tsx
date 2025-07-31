@@ -7,7 +7,6 @@ import { runtime } from "webextension-polyfill"
 import { popupMonitorPortName } from "@pelagus/pelagus-background/main"
 import { useIsDappPopup } from "../hooks"
 import pageList from "../routes/routes"
-import GlobalModal from "../components/GlobalModal/GlobalModal"
 import PrivateRoute from "../routes/PrivateRoute"
 
 function useConnectPopupMonitor() {
@@ -27,7 +26,6 @@ export function Main(): ReactElement {
 
   return (
     <>
-      <GlobalModal id="meet_pelagus" />
       <Router>
         <Switch>
           {pageList.map(({ path, Component, hasTopBar }) => {

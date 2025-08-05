@@ -26,7 +26,14 @@ COPY provider-bridge-shared/package.json ./provider-bridge-shared/
 COPY window-provider/package.json ./window-provider/
 
 # Install dependencies with exact versions
-RUN yarn install --frozen-lockfile --production=false
+# Skip postinstall script to avoid playwright installation in Docker
+RUN yarn install --frozen-lockfile --ignore-scripts
+
+# Copy patches directory before running patch-package
+COPY patches ./patches
+
+# Apply patches explicitly
+RUN npx patch-package
 
 # Copy source code
 COPY . .

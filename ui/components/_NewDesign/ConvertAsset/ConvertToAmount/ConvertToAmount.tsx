@@ -1,6 +1,6 @@
 import React from "react"
 import { useBackgroundSelector } from "../../../../hooks"
-import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
 
 const ConvertToAmount = () => {

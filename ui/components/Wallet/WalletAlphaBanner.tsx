@@ -5,12 +5,16 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import classNames from "classnames"
 import React, { ReactElement, useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import { CURRENT_BANNER_VERSION } from "../../utils/constants"
 
 // Current version of the banner - increment this when the message changes
 
 export default function WalletAlphaBanner(): ReactElement {
+  const { t } = useTranslation("translation", {
+    keyPrefix: "wallet.promoBanner",
+  })
   const dispatch = useBackgroundDispatch()
   const showAlphaWalletBanner = useBackgroundSelector(
     selectShowAlphaWalletBanner
@@ -56,9 +60,9 @@ export default function WalletAlphaBanner(): ReactElement {
             &#10005;
           </button> */}
           <div className="message-container">
-            <span className="header">Coming soon</span>
+            <span className="header">{t("comingSoon")}</span>
             <span className="body">
-              Up to <span className="highlight">25% yield</span> on Quai!
+              {t("yieldPrefix")} <span className="highlight">{t("yieldHighlight")}</span> {t("yieldSuffix")}
             </span>
           </div>
           <a
@@ -67,7 +71,7 @@ export default function WalletAlphaBanner(): ReactElement {
             rel="noopener noreferrer"
             className="link"
           >
-            Learn more →
+            {t("learnMore")} →
           </a>
         </div>
       </div>

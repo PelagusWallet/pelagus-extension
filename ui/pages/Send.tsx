@@ -229,8 +229,8 @@ export default function Send(): ReactElement {
     }
 
     navigator.clipboard.writeText(destinationAddress)
-    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
-  }, [destinationAddress, dispatch])
+    dispatch(setSnackbarConfig({ message: t("common.addressCopiedToClipboard") }))
+  }, [destinationAddress, dispatch, t])
 
   const {
     rawValue: userAddressValue,
@@ -343,7 +343,7 @@ export default function Send(): ReactElement {
               className="advanced-button"
               onClick={() => setAdvancedVisible(!advancedVisible)}
             >
-              Options
+              {t("wallet.options")}
             </button>
             {addressErrorMessage !== undefined ? (
               <p className="error">{addressErrorMessage}</p>

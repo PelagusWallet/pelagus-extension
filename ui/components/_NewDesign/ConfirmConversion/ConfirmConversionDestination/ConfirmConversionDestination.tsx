@@ -1,11 +1,13 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import ArrowRightIcon from "../../../Shared/_newDeisgn/iconComponents/ArrowRightIcon"
 import { useBackgroundSelector } from "../../../../hooks"
-import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 const ConfirmConversionDestination = () => {
+  const { t } = useTranslation()
   const convertFromAccount = useBackgroundSelector(
     (state) => state.convertAssets.from
   )
@@ -36,7 +38,7 @@ const ConfirmConversionDestination = () => {
     <>
       <div className="wallets">
         <div className="wallet-from">
-          <h5 className="wallet-role">From</h5>
+          <h5 className="wallet-role">{t("convert_from.from")}</h5>
           <h4 className="wallet-name">
             {accountInfoHandle(convertFromAccount).name}
           </h4>
@@ -48,7 +50,7 @@ const ConfirmConversionDestination = () => {
           <ArrowRightIcon />
         </div>
         <div className="wallet-to">
-          <h5 className="wallet-role">To</h5>
+          <h5 className="wallet-role">{t("convert_to.to")}</h5>
           <h4 className="wallet-name">
             {accountInfoHandle(convertToAccount).name}
           </h4>

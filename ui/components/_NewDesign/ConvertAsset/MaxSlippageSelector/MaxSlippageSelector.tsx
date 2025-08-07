@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent } from "react"
+import { useTranslation } from "react-i18next"
 import { setMaxSlippage } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 
@@ -12,6 +13,7 @@ const MIN_SLIPPAGE = 30 // 0.3%
 const MAX_SLIPPAGE = 9000 // 90%
 
 const MaxSlippageSelector = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const maxSlippage = useBackgroundSelector(
     (state) => state.convertAssets.maxSlippage
@@ -59,7 +61,7 @@ const MaxSlippageSelector = () => {
   return (
     <>
       <section className="max-slippage-wrapper">
-        <h3 className="max-slippage-label">Max slippage</h3>
+        <h3 className="max-slippage-label">{t("convert_slippage.max_slippage")}</h3>
         <div className="max-slippage-options">
           {PRESET_OPTIONS.map((option) => (
             <button
@@ -82,7 +84,7 @@ const MaxSlippageSelector = () => {
             <input
               type="text"
               className="custom-slippage-input"
-              placeholder="Custom"
+              placeholder={t("convert_slippage.custom")}
               value={isCustom ? customValue : ""}
               onChange={handleCustomInputChange}
               onFocus={() => {
@@ -96,10 +98,10 @@ const MaxSlippageSelector = () => {
 
         {/* Display warnings if needed */}
         {maxSlippage < MIN_SLIPPAGE && isCustom && (
-          <p className="slippage-warning">Minimum slippage is 0.3%</p>
+          <p className="slippage-warning">{t("convert_slippage.min_slippage_warning")}</p>
         )}
         {maxSlippage > MAX_SLIPPAGE && isCustom && (
-          <p className="slippage-warning">Maximum slippage is 90%</p>
+          <p className="slippage-warning">{t("convert_slippage.max_slippage_warning")}</p>
         )}
       </section>
 

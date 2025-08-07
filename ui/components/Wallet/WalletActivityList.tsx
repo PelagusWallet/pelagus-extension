@@ -23,6 +23,7 @@ export default function WalletActivityList({
   const { t } = useTranslation("translation", {
     keyPrefix: "wallet.activities",
   })
+  const { t: commonT } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const showingActivityDetail = useBackgroundSelector(
     selectShowingActivityDetail
@@ -106,7 +107,7 @@ export default function WalletActivityList({
         footer={<></>}
         header={
           <SharedModalHeaders
-            title="Review Transaction"
+            title={commonT("common.reviewTransaction")}
             onClose={handleClose}
             withGoBackIcon={false}
           />

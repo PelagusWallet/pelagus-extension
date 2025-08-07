@@ -1,10 +1,12 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useBackgroundSelector } from "../../../../hooks"
 import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
 
 const ConfirmConversionDetails = () => {
+  const { t } = useTranslation()
   const { from, to, amount, expectedResult } = useBackgroundSelector(
     (state) => state.convertAssets
   )
@@ -38,13 +40,13 @@ const ConfirmConversionDetails = () => {
     <>
       <div className="details-wrapper">
         <div className="details-row">
-          <p className="details-row-key">Convert</p>
+          <p className="details-row-key">{t("convert_from.from")}</p>
           <p className="details-row-value">
             {Number(amount).toFixed(4)} {tokenSymbolHandle(from)}
           </p>
         </div>
         <div className="details-row">
-          <p className="details-row-key">Receive</p>
+          <p className="details-row-key">{t("convert_to.to")}</p>
           <p className="details-row-value">
             {receiveAmountHandle()} {tokenSymbolHandle(to)}
           </p>

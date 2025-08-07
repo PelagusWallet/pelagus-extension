@@ -10,6 +10,7 @@ const EIP191Info: React.FC<{
   excludeHeader?: boolean
 }> = ({ signingData, account, internal, excludeHeader = false }) => {
   const { t } = useTranslation("translation", { keyPrefix: "signing" })
+  const { t: commonT } = useTranslation()
   return (
     <>
       {excludeHeader ? (
@@ -28,7 +29,7 @@ const EIP191Info: React.FC<{
       </div>
       <div className="message">
         <div className="signed">{t("signed")}</div>
-        <div>{account ?? "Unknown"}</div>
+        <div>{account ?? commonT("common.unknown")}</div>
       </div>
       <style jsx>{`
         .message {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   setConvertAmount,
   setConvertExpectedResultHandle,
@@ -6,12 +7,13 @@ import {
 import { formatQi, Zone } from "quais"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
-import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 
 // Reserve 0.01 QUAI for transaction fees
 const TRANSACTION_FEE_RESERVE = 0.01
 
 const ConvertFromAmount = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const convertFromAccount = useBackgroundSelector(
@@ -142,7 +144,7 @@ const ConvertFromAmount = () => {
           <input
             type="text"
             className="amount-input"
-            placeholder={`Enter ${tokenLabelHandle()} Amount`}
+            placeholder={t("convert_amount.enter_quai_amount")}
             value={inputValue}
             onChange={handleInput}
           />
@@ -151,11 +153,11 @@ const ConvertFromAmount = () => {
             className="amount-button"
             onClick={() => onMaxAmount()}
           >
-            Max
+            {t("convert_amount.max")}
           </button>
         </div>
 
-        <div className="amount-available">Available {balanceHandle()}</div>
+        <div className="amount-available">{t("convert_amount.available")} {balanceHandle()}</div>
       </div>
 
       <style jsx>{`

@@ -1,4 +1,5 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import {
   selectShowingAddAccountModal,
   selectShowingImportPrivateKeyModal,
@@ -19,6 +20,7 @@ const ImportAccount = ({
 }: {
   accountCategory: AccountCategoriesEnum
 }) => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const isShowingAddAccountModal = useBackgroundSelector(
@@ -49,9 +51,9 @@ const ImportAccount = ({
   }
 
   const modalTitleHandler = () => {
-    if (isShowingImportPrivateKeyModal) return "Import From Private Key"
+    if (isShowingImportPrivateKeyModal) return t("topMenu.importFromPrivateKey")
 
-    return "Add Quai Account"
+    return t("topMenu.addQuaiAccountTitle")
   }
 
   if (!isShowingAddAccountModal && !isShowingImportPrivateKeyModal) return <></>
@@ -66,7 +68,7 @@ const ImportAccount = ({
           }
           footer={
             <SharedCancelButton
-              title="Import From Private Key"
+              title={t("topMenu.importFromPrivateKey")}
               onClick={goToImportPrivateKey}
             />
           }

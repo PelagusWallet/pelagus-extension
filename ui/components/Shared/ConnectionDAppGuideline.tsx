@@ -113,7 +113,8 @@ export default function ConnectionDAppGuideline({
           align-items: start;
           font-weight: 500;
           font-size: 16px;
-          line-height: 40px;
+          line-height: 24px;
+          margin-bottom: 8px;
         }
         .steps > li::before {
           content: counter(step) ".";

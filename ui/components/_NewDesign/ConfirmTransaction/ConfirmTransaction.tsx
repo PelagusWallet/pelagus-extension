@@ -1,4 +1,5 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import FeeSettings from "./FeeSettings/FeeSettings"
 import QuaiAccount from "./QuaiAccount/QuaiAccount"
 import TransactionDetails from "./TransactionDetails/TransactionDetails"
@@ -10,6 +11,7 @@ const ConfirmTransaction = ({
 }: {
   isInsufficientQuai: boolean
 }) => {
+  const { t } = useTranslation()
   const { channelExists } = useBackgroundSelector((state) => state.qiSend)
 
   return (
@@ -19,7 +21,7 @@ const ConfirmTransaction = ({
         <>
           <QuaiAccount />
           {isInsufficientQuai && (
-            <SharedErrorLabel title="Insufficient funds to process transaction" />
+            <SharedErrorLabel title={t("common.insufficientFunds")} />
           )}
         </>
       )}

@@ -45,18 +45,19 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
           }
           .icon {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            margin-right: 16px;
-            height: 16px;
-            width: 16px;
+            top: 50%;
+            right: 16px;
+            height: 24px;
+            width: 24px;
             mask-size: cover;
             background-position: center;
             background-color: var(--white);
-            background-size: 16px;
+            background-size: 24px;
             transition: all 0.12s ease-out;
-            transform: translateY(50%);
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
           .icon.active {
             background-color: var(--trophy-gold);

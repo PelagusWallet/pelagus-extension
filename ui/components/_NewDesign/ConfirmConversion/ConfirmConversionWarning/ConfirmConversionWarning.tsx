@@ -1,15 +1,18 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import SharedInfoTab from "../../../Shared/_newDeisgn/InfoTab/SharedInfoTab"
 
 const ConfirmConversionWarning = () => {
+  const { t } = useTranslation()
+  
   return (
     <>
       <div className="conversion-warning-wrapper">
         <SharedInfoTab>
           <div className="warning-message">
-            These funds will be locked for about 2 weeks.{" "}
+            {t("confirm_conversion.funds_locked_warning")}{" "}
             <a href="#" className="warning-link">
-              Learn more
+              {t("confirm_conversion.learn_more")}
             </a>
           </div>
         </SharedInfoTab>

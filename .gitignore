@@ -12,3 +12,4 @@ playwright-report
 test-results/
 .idea/
 .yarn/
+PR_SUMMARY.md

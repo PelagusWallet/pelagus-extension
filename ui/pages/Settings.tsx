@@ -215,8 +215,13 @@ export default function Settings(): ReactElement {
     ),
   }
 
-  const langOptions = getAvalableLanguages()
-  const langIdx = getLanguageIndex(getLanguage())
+  const allLangOptions = getAvalableLanguages()
+  // Filter only supported languages (en and ru)
+  const langOptions = allLangOptions.filter(option => 
+    option.value === 'en' || option.value === 'ru'
+  )
+  const currentLang = getLanguage()
+  const langIdx = langOptions.findIndex(option => option.value === currentLang)
   const languages = {
     title: t("settings.language"),
     component: () => (
@@ -224,7 +229,7 @@ export default function Settings(): ReactElement {
         width={194}
         options={langOptions}
         onChange={setLanguage}
-        defaultIndex={langIdx}
+        defaultIndex={langIdx >= 0 ? langIdx : 0}
       />
     ),
   }
@@ -400,55 +405,34 @@ export default function Settings(): ReactElement {
             gap={0}
             customStyles={{
               overflow: "visible",
-              zIndex: "1050",
+              zIndex: "10000",
               minHeight: "400px"
             }}
           >
             <div className="confirm_aggregate">
               <p className="confirm_aggregate_text">{t("settings.aggregateQiOutputsConfirm")}</p>
-              {aggregateQiOutputsInProgress && (
-                <div className="progress_container">
-                  <div className="progress_bar">
-                    <div 
-                      className="progress_fill" 
-                      style={{ width: `${aggregationProgress.progress}%` }}
-                    />
-                  </div>
-                  <div className="progress_text">
-                    <div className="progress_step">{aggregationProgress.step}</div>
-                    {aggregationProgress.detail && (
-                      <div className="progress_detail">{aggregationProgress.detail}</div>
-                    )}
-                    <div className="progress_percentage">{aggregationProgress.progress}%</div>
-                  </div>
-                </div>
-              )}
-              {!aggregateQiOutputsInProgress && (
-                <>
-                  <div className="input_container input_container_first">
-                    <label htmlFor="maxDenominationAggregate">Max Denomination Input:</label>
-                    <SharedSelect
-                      width={120}
-                      variant="small"
-                      options={denominationOptions.slice(0, 14)} // 0-13 for input
-                      onChange={(value) => setMaxDenominationAggregate(parseInt(value))}
-                      defaultIndex={maxDenominationAggregate}
-                      placement="bottom"
-                    />
-                  </div>
-                  <div className="input_container input_container_second">
-                    <label htmlFor="maxDenominationOutput">Max Denomination Output:</label>
-                    <SharedSelect
-                      width={120}
-                      variant="small"
-                      options={denominationOptions} // 0-14 for output
-                      onChange={(value) => setMaxDenominationOutput(parseInt(value))}
-                      defaultIndex={maxDenominationOutput}
-                      placement="bottom"
-                    />
-                  </div>
-                </>
-              )}
+              <div className="input_container input_container_first">
+                <label htmlFor="maxDenominationAggregate">{t("settings.maxDenominationInput")}</label>
+                <SharedSelect
+                  width={120}
+                  variant="small"
+                  options={denominationOptions.slice(0, 14)} // 0-13 for input
+                  onChange={(value) => setMaxDenominationAggregate(parseInt(value))}
+                  defaultIndex={maxDenominationAggregate}
+                  placement="bottom"
+                />
+              </div>
+              <div className="input_container input_container_second">
+                <label htmlFor="maxDenominationOutput">{t("settings.maxDenominationOutput")}</label>
+                <SharedSelect
+                  width={120}
+                  variant="small"
+                  options={denominationOptions} // 0-14 for output
+                  onChange={(value) => setMaxDenominationOutput(parseInt(value))}
+                  defaultIndex={maxDenominationOutput}
+                  placement="bottom"
+                />
+              </div>
               <div className="button_container">
                 <button
                   type="button"
@@ -471,13 +455,13 @@ export default function Settings(): ReactElement {
                         if (result?.error) {
                           setErrorMessage(result.error.message)
                         } else {
-                          setErrorMessage("Failed to aggregate Qi outputs")
+                          setErrorMessage(t("settings.aggregation.failedToAggregate"))
                         }
                         setIsTransactionError(true)
                       }
                     } catch (error: any) {
                       console.error("Error during Qi aggregation:", error)
-                      setErrorMessage(error?.message || "Failed to aggregate Qi outputs")
+                      setErrorMessage(error?.message || t("settings.aggregation.failedToAggregate"))
                       setIsTransactionError(true)
                     } finally {
                       setShowAggregateConfirm(false)
@@ -508,6 +492,7 @@ export default function Settings(): ReactElement {
                   font-size: 12px;
                   line-height: 24px;
                   margin: 0 0 12px 0;
+                  white-space: pre-line;
                 }
                 .input_container {
                   display: flex;
@@ -617,17 +602,17 @@ export default function Settings(): ReactElement {
   const utxoDistributionDrawer = () => {
     return (
       <SharedDrawer
-        title="Qi UTXO Distribution"
+        title={t("settings.qiUTXODistribution")}
         isOpen={showUTXODistribution}
         close={() => setShowUTXODistribution(false)}
         gap={0}
       >
         <div className="utxo_distribution">
           {utxoDistributionLoading ? (
-            <div className="loading">Loading UTXO distribution...</div>
+            <div className="loading">{t("settings.loadingUTXODistribution")}</div>
           ) : utxoDistributionData ? (
             <div className="chart_container">
-              <div className="chart_title">UTXO Count by Denomination</div>
+              <div className="chart_title">{t("settings.utxoCountByDenomination")}</div>
               <div className="chart">
                 {Object.entries(utxoDistributionData)
                   .sort(([a], [b]) => Number(a) - Number(b))
@@ -650,7 +635,7 @@ export default function Settings(): ReactElement {
               </div>
             </div>
           ) : (
-            <div className="error">Failed to load UTXO distribution data</div>
+            <div className="error">{t("settings.failedToLoadUTXODistribution")}</div>
           )}
         </div>
         <style jsx>
@@ -758,8 +743,8 @@ export default function Settings(): ReactElement {
       return (
         <>
           <SettingButton
-            label="Show Qi UTXO Distribution"
-            ariaLabel="Show Qi UTXO Distribution"
+            label={t("settings.showQiUTXODistribution")}
+            ariaLabel={t("settings.showQiUTXODistribution")}
             icon="continue"
             onClick={handleShowUTXODistribution}
             isLoading={utxoDistributionLoading}
@@ -785,11 +770,11 @@ export default function Settings(): ReactElement {
       <SharedSelect
         width={194}
         options={[
-          { value: "5", label: "5 minutes" },
-          { value: "10", label: "10 minutes" },
-          { value: "15", label: "15 minutes" },
-          { value: "30", label: "30 minutes" },
-          { value: "60", label: "1 hour" },
+          { value: "5", label: t("settings.autoLockOptions.5minutes") },
+          { value: "10", label: t("settings.autoLockOptions.10minutes") },
+          { value: "15", label: t("settings.autoLockOptions.15minutes") },
+          { value: "30", label: t("settings.autoLockOptions.30minutes") },
+          { value: "60", label: t("settings.autoLockOptions.1hour") },
         ]}
         onChange={(value) => dispatch(setAutoLockInterval(Number(value)))}
         defaultIndex={(() => {
@@ -803,9 +788,9 @@ export default function Settings(): ReactElement {
 
   const confirmationModalProps = isTransactionError
     ? {
-        headerTitle: "Aggregation Failed",
-        subtitle: errorMessage || "Failed to aggregate Qi outputs",
-        title: "Transaction Error!",
+        headerTitle: t("settings.aggregation.failed"),
+        subtitle: errorMessage || t("settings.aggregation.failedToAggregate"),
+        title: t("settings.aggregation.transactionError"),
         icon: {
           src: "icons/s/notif-wrong.svg",
           height: "43",
@@ -817,10 +802,10 @@ export default function Settings(): ReactElement {
         onClose: () => setIsOpenConfirmationModal(false),
       }
     : {
-        headerTitle: "Aggregation Successful",
-        title: "Transaction Sent",
+        headerTitle: t("settings.aggregation.successful"),
+        title: t("settings.aggregation.transactionSent"),
         link: {
-          text: "View Transaction",
+          text: t("settings.aggregation.viewTransaction"),
           url: `${network.blockExplorerURL}/tx/${transactionHash}`,
         },
         isOpen: isOpenConfirmationModal,
@@ -839,7 +824,7 @@ export default function Settings(): ReactElement {
         qiCoinbaseAddress,
         pelagusNotifications,
         autoLockSetting,
-        ...wrapIfEnabled(FeatureFlags.SUPPORT_MULTIPLE_LANGUAGES, languages),
+        languages,
         ...wrapIfEnabled(
           FeatureFlags.SUPPORT_ACHIEVEMENTS_BANNER,
           notificationBanner
@@ -957,6 +942,8 @@ export default function Settings(): ReactElement {
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-top: auto;
+            padding-top: 200px;
           }
 
           .action_icons {

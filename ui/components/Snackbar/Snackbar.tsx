@@ -19,7 +19,7 @@ import {
 } from "../../hooks"
 import SnackbarTransactionActivityModal from "./OnClickModals/SnackbarTransactionActivityModal"
 
-const DISMISS_ANIMATION_MS = 300
+const DISMISS_ANIMATION_MS = 500
 
 export default function Snackbar({
   isTabbedOnboarding = false,
@@ -115,7 +115,7 @@ export default function Snackbar({
           .snackbar_container {
             position: fixed;
             z-index: 999999999;
-            bottom: 72px;
+            top: 20px;
             left: 0;
             right: 0;
             cursor: pointer;
@@ -130,28 +130,30 @@ export default function Snackbar({
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 500;
-            background: var(--green-120);
-            color: var(--green-20);
-            box-shadow: 0px 24px 24px rgba(0, 20, 19, 0.14),
-              0px 14px 16px rgba(0, 20, 19, 0.24),
-              0px 10px 12px rgba(0, 20, 19, 0.34);
+            background: var(--green-95);
+            color: var(--green-40);
+            border: 1px solid var(--green-60);
             border-radius: 8px;
-            transition: all ${DISMISS_ANIMATION_MS}ms ease;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
             transform: translateY(0px);
             user-select: none;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
           }
 
           .snackbar_container.hidden {
             pointer-events: none;
             opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           }
 
           .snackbar_container.hidden .snackbar_wrap {
             padding: 0;
-            transform: translateY(10px);
+            transform: translateY(-30px);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           }
 
           @media (min-width: 980px) {

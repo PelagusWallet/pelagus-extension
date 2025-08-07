@@ -34,6 +34,9 @@ export default function AccountItemOptionsMenu({
   const { t: tAccounts } = useTranslation("translation", {
     keyPrefix: "accounts",
   })
+  const { t: tTopMenu } = useTranslation("translation", {
+    keyPrefix: "topMenu",
+  })
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
@@ -50,12 +53,12 @@ export default function AccountItemOptionsMenu({
   
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
-    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
-  }, [address, dispatch])
+    dispatch(setSnackbarConfig({ message: tTopMenu("addressCopiedMsg") }))
+  }, [address, dispatch, tTopMenu])
 
   const copyPrivateKey = async () => {
     await addToOffscreenClipboardSensitiveData(key)
-    dispatch(setSnackbarConfig({ message: "Key copied to clipboard" }))
+    dispatch(setSnackbarConfig({ message: t("keyCopiedToClipboard") }))
   }
 
   const onClosePrivateKeyModal = () => {
@@ -97,7 +100,7 @@ export default function AccountItemOptionsMenu({
     
     setEncryptPassword("")
     setShowEncryptPasswordModal(false)
-    dispatch(setSnackbarConfig({ message: "Encrypted key file downloaded", duration: 5000 }))
+    dispatch(setSnackbarConfig({ message: t("encryptedKeyFileDownloaded"), duration: 5000 }))
   }
 
   return (
@@ -174,8 +177,8 @@ export default function AccountItemOptionsMenu({
       >
         <li className="account_container">
           <div className="item-summary">
-            <div title="Private Key" className="address_name">
-              Private Key
+            <div title={t("privateKey")} className="address_name">
+              {t("privateKey")}
             </div>
             <text style={{ marginTop: "18px" }}>{key}</text>
           </div>
@@ -189,7 +192,7 @@ export default function AccountItemOptionsMenu({
           >
             <AccountitemOptionLabel
               icon="icons/s/copy.svg"
-              label="Copy Key"
+              label={t("copyKey")}
               hoverable
               color="var(--green-40)"
               hoverColor="var(--green-20)"
@@ -225,7 +228,7 @@ export default function AccountItemOptionsMenu({
         >
           <li className="account_container">
             <div className="item-summary">
-              <div className="address_name">Export Account</div>
+              <div className="address_name">{t("exportAccountTitle")}</div>
               <div className="export_options">
                 <button
                   type="button"
@@ -237,7 +240,7 @@ export default function AccountItemOptionsMenu({
                 >
                   <AccountitemOptionLabel
                     icon="icons/s/key.svg"
-                    label="Export as Plaintext"
+                    label={t("exportAsPlaintext")}
                     hoverable
                     color="var(--green-20)"
                     hoverColor="white"
@@ -253,7 +256,7 @@ export default function AccountItemOptionsMenu({
                 >
                   <AccountitemOptionLabel
                     icon="icons/s/lock.svg"
-                    label="Export as Encrypted JSON"
+                    label={t("exportAsEncryptedJSON")}
                     hoverable
                     color="var(--green-20)"
                     hoverColor="white"
@@ -283,11 +286,11 @@ export default function AccountItemOptionsMenu({
         >
           <li className="account_container">
             <div className="item-summary">
-              <div className="address_name">Encrypt Private Key</div>
+              <div className="address_name">{t("encryptPrivateKey")}</div>
               <div className="password_input_container">
                 <input
                   type="password"
-                  placeholder="Enter password to encrypt"
+                  placeholder={t("enterPasswordToEncrypt")}
                   value={encryptPassword}
                   onChange={(e) => setEncryptPassword(e.target.value)}
                   onKeyDown={(e) => {
@@ -310,7 +313,7 @@ export default function AccountItemOptionsMenu({
                   }}
                   className="cancel_button"
                 >
-                  Back
+                  {t("back")}
                 </button>
                 <button
                   type="button"

@@ -19,7 +19,21 @@
       "clearConfirm": "Yes, I want to clear it",
       "clearHistoryWarning": "Clearing your wallet history in this extension does not delete transaction records from the blockchain. Your transaction history remains publicly visible on the blockchain and can be viewed using block explorers.",
       "moveUp": "Move up",
-      "moveDown": "Move down"
+      "moveDown": "Move down",
+      "keyCopiedToClipboard": "Key copied to clipboard",
+      "addressCopiedToClipboard": "Address copied to clipboard",
+      "exportAccountTitle": "Export Account",
+      "exportAsPlaintext": "Export as Plaintext",
+      "exportAsEncryptedJSON": "Export as Encrypted JSON",
+      "encryptPrivateKey": "Encrypt Private Key",
+      "enterPasswordToEncrypt": "Enter password to encrypt",
+      "back": "Back",
+      "encryptedKeyFileDownloaded": "Encrypted key file downloaded",
+      "copyPaymentCode": "Copy payment code",
+      "paymentCodeCopiedToClipboard": "Payment code copied to clipboard",
+      "sendAsset": "Send asset",
+      "privateKey": "Private Key",
+      "copyKey": "Copy Key"
     },
     "notificationPanel": {
       "addWallet": "Add Wallet",
@@ -98,12 +112,16 @@
       }
     },
     "unlock": {
-      "title": "Unlock Pelagus",
-      "subtitle": "Enter your password",
+      "title": "Welcome to Quai",
+      "subtitle": "Where energy transforms into money",
       "submitBtn": "Unlock",
+      "unlocking": "Unlocking...",
       "signingPassword": "Pelagus password",
+      "selectLanguage": "Select language",
+      "joinCommunity": "Join Community",
       "error": {
-        "incorrect": "Incorrect password"
+        "incorrect": "Incorrect password",
+        "pleaseEnterPassword": "Please enter your password"
       },
       "snackbar": "Pelagus unlocked"
     }
@@ -262,6 +280,9 @@
     "strength": "Strength",
     "hintDesc": "For a strong password, consider a mix of lower and uppercase characters, symbols, and numbers. Passwords should be over 8 characters."
   },
+  "balance": {
+    "locked": "Locked"
+  },
   "readOnly": "Read-only",
   "readOnlyNotice": "Read-only mode",
   "settings": {
@@ -270,10 +291,25 @@
       "walletOptions": "Networks & Assets",
       "helpCenter": "Help center"
     },
+    "aggregation": {
+      "failed": "Aggregation Failed",
+      "successful": "Aggregation Successful",
+      "transactionError": "Transaction Error!",
+      "transactionSent": "Transaction Sent",
+      "failedToAggregate": "Failed to aggregate Qi outputs",
+      "viewTransaction": "View Transaction"
+    },
     "mainMenu": "Settings",
     "setAsDefault": "Use Pelagus as default wallet",
     "showPelagusNotifications": "Pelagus notifications",
     "autoLockInterval": "Auto-lock interval",
+    "autoLockOptions": {
+      "5minutes": "5 minutes",
+      "10minutes": "10 minutes",
+      "15minutes": "15 minutes", 
+      "30minutes": "30 minutes",
+      "1hour": "1 hour"
+    },
     "language": "Language",
     "bugReport": "Bug report",
     "connectedWebsites": "Connected websites",
@@ -283,6 +319,13 @@
     "rescanning": "Rescanning...",
     "aggregateQiOutputs": "Aggregate Qi Outputs",
     "aggregateQiOutputsConfirm": "This will aggregate your Qi outputs into fewer, larger-denomination UTXOs. Max Denomination Input is the max denomination of your UTXOs that will be aggregated. Max Denomination Output is the max denomination of your UTXOs that will be created.",
+    "maxDenominationInput": "Max Denomination Input:",
+    "maxDenominationOutput": "Max Denomination Output:",
+    "showQiUTXODistribution": "Show Qi UTXO Distribution",
+    "qiUTXODistribution": "Qi UTXO Distribution",
+    "utxoCountByDenomination": "UTXO Count by Denomination",
+    "loadingUTXODistribution": "Loading UTXO distribution...",
+    "failedToLoadUTXODistribution": "Failed to load UTXO distribution data",
     "aggregating": "Aggregating...",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -343,6 +386,7 @@
       "addQiCoinbaseAddressTitle": "Add Qi mining address",
       "addAddressButtonTitle": "add address",
       "confirmButtonTitle": "confirm",
+      "selectNetwork": "Select a Network",
       "gettingAddress": "generating new Qi Mining Address"
     },
     "addCustomAssetSettings": {
@@ -363,10 +407,51 @@
   "send": {
     "balance": "Balance: {{amount}}"
   },
+  "convert_page": {
+    "title": "Convert Assets",
+    "native_conversions_disclaimer": "Native conversions are meant for market makers.",
+    "increase_max_slippage_warning": "Increase max slippage to at least {{percentage}}% to ensure transaction success.",
+    "next": "Next",
+    "cancel": "Cancel"
+  },
+  "convert_from": {
+    "from": "From",
+    "cyprus_1_qi_wallet": "Cyprus 1 - QI Wallet",
+    "quai_account": "QUAI Account"
+  },
+  "convert_to": {
+    "to": "To",
+    "cyprus_1_qi_wallet": "Cyprus 1 - QI Wallet",
+    "quai_account": "QUAI Account"
+  },
+  "convert_amount": {
+    "enter_quai_amount": "Enter QUAI Amount",
+    "max": "Max",
+    "available": "Available"
+  },
+  "convert_rate": {
+    "market_rate": "Market rate"
+  },
+  "convert_slippage": {
+    "estimated_slippage": "Estimated slippage",
+    "max_slippage": "Max slippage",
+    "custom": "Custom",
+    "min_slippage_warning": "Minimum slippage is 0.3%",
+    "max_slippage_warning": "Maximum slippage is 90%"
+  },
+  "confirm_conversion": {
+    "funds_locked_warning": "These funds will be locked for about 2 weeks.",
+    "learn_more": "Learn more",
+    "converting": "Converting"
+  },
   "shared": {
     "pelagus": "Pelagus",
     "metaMask": "MetaMask",
     "injected": "Injected",
+    "accountCategories": {
+      "quai": "Quai Account",
+      "qi": "Qi Wallet"
+    },
     "cancelBtn": "Cancel",
     "gwei": "Gwei",
     "send": "Send",
@@ -447,6 +532,13 @@
     "setOtherAsDefault": "Set MetaMask/other wallet as default",
     "copyAddressTooltip": "Copy address",
     "addressCopiedMsg": "Address copied to clipboard",
+    "addQuaiAccountTitle": "Add Quai Account",
+    "selectAShard": "Select a Shard",
+    "confirm": "Confirm",
+    "importFromPrivateKey": "Import From Private Key",
+    "importPrivateKeySubtitle": "Importing a private key does not associate it to a secret recovery phrase, but it's still protected by the same password",
+    "pastePrivateKeyString": "Paste private key string...",
+    "importAccount": "Import account",
     "connectedDappInfo": {
       "dAppTitle": "Account connected to",
       "dappConnections": "Dapp connections",
@@ -482,6 +574,16 @@
       "addCustomAssetPrompt": "Can't find an asset?",
       "addCustomAssetAction": "Add custom asset"
     },
+    "promoBanner": {
+      "comingSoon": "Coming soon",
+      "yieldPrefix": "Up to",
+      "yieldHighlight": "25% yield",
+      "yieldSuffix": "on Quai!",
+      "learnMore": "Learn more"
+    },
+    "testnetBanner": {
+      "message": "Testnet ended, so transactions are disabled."
+    },
     "totalAccountBalance": "Available Balance",
     "totalAccountBalanceShort": "Balance",
     "availableDeposit": "Available Deposit",
@@ -497,14 +599,20 @@
     "secureSeed": "First, secure your recovery seed",
     "sendAsset": "Send Asset",
     "assetAmount": "Asset / Amount",
+    "pages": {
+      "assets": "Assets",
+      "activity": "Activity"
+    },
     "sendTo": "Send To:",
     "sendButton": "Send",
     "receiveAddress": "Receive address",
+    "copied": "Copied!",
     "sendToContractWarning": "This is a contract address, sending assets could result in loss of funds.",
     "pages": {
       "assets": "Assets",
       "activity": "Activity"
     },
+    "options": "Options",
     "defaultToggle": {
       "snackbar": "You can change this in Settings later",
       "isDefault": "is now your default wallet",
@@ -582,6 +690,23 @@
   "tabs": {
     "wallet": "Wallet",
     "settings": "Settings"
+  },
+  "common": {
+    "wrapQi": "Wrap Qi",
+    "confirmTransaction": "Confirm Transaction",
+    "reviewTransaction": "Review Transaction",
+    "insufficientFunds": "Insufficient funds to process transaction",
+    "pleaseWaitMinute": "Please wait a minute to claim your wrapped Qi",
+    "next": "Next",
+    "cancel": "Cancel",
+    "wrap": "Wrap",
+    "addressCopiedToClipboard": "Address copied to clipboard",
+    "qiPaymentCode": "Qi Payment Code",
+    "unknown": "Unknown",
+    "quai": "Quai",
+    "invalidZone": "Invalid zone",
+    "noAccountFound": "No account found",
+    "paymentCodeCopiedToClipboard": "Payment code copied to clipboard"
   },
   "drawers": {
     "selectNetwork": {

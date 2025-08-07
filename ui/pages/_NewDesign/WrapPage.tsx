@@ -23,9 +23,7 @@ interface WrapLocationState {
 const MIN_QUAI_REQUIREMENT = 0.5
 
 const WrapPage = () => {
-    const { t } = useTranslation("translation", {
-        keyPrefix: "wallet",
-      })
+    const { t } = useTranslation()
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
   const location = useLocation<WrapLocationState>()
@@ -194,7 +192,7 @@ const WrapPage = () => {
   return (
     <div className="wrap_page">
       <div className="header-area">
-          <SharedGoBackPageHeader title="Wrap Qi" linkTo="/" />
+          <SharedGoBackPageHeader title={t("common.wrapQi")} linkTo="/" />
           <div className="disclaimer">
             Wrap your Qi to be used with Quai in the EVM.
           </div>
@@ -212,7 +210,7 @@ const WrapPage = () => {
         {renderDepositBalance()}
       </div>
       <SharedActionButtons
-        title={{ confirmTitle: "Wrap", cancelTitle: "Cancel" }}
+        title={{ confirmTitle: t("common.wrap"), cancelTitle: t("common.cancel") }}
         onClick={{ onConfirm: handleConfirm, onCancel: () => history.push("/") }}
         isConfirmDisabled={isDisabledHandle()}
         isLoading={qiWalletSyncInProgress}

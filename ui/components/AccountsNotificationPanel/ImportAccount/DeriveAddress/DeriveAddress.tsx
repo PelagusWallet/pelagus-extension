@@ -1,4 +1,5 @@
 import { useHistory } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   setShowingAddAccountModal,
   setSnackbarConfig,
@@ -30,6 +31,7 @@ import SharedCancelButton from "../../../Shared/_newDeisgn/actionButtons/SharedC
 import { Option } from "../../../Shared/SharedSelect"
 
 const DeriveAddress = () => {
+  const { t } = useTranslation()
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
 
@@ -72,14 +74,14 @@ const DeriveAddress = () => {
     }
 
     if (zone?.value === null || !VALID_ZONES.includes(toZone(zone?.value))) {
-      await dispatch(setSnackbarConfig({ message: "Invalid zone" }))
+      await dispatch(setSnackbarConfig({ message: t("common.invalidZone") }))
       return
     }
 
     const signerId = signerIdHandle()
 
     if (!signerId) {
-      await dispatch(setSnackbarConfig({ message: "No account found" }))
+      await dispatch(setSnackbarConfig({ message: t("common.noAccountFound") }))
       return
     }
 
@@ -102,7 +104,10 @@ const DeriveAddress = () => {
   if (!isWalletExists) {
     return (
       <div style={{ marginBottom: "16px" }}>
-        <SharedCancelButton title="Add Wallet" onClick={addWalletHandle} />
+        <SharedCancelButton
+          title={t("accounts.notificationPanel.addWallet")}
+          onClick={addWalletHandle}
+        />
       </div>
     )
   }
@@ -113,7 +118,7 @@ const DeriveAddress = () => {
           <SharedSelectMenu
             direction={zoneOptions?.length > 2 ? "top" : "bottom"}
             options={zoneOptions}
-            label="Select a Shard"
+            label={t("topMenu.selectAShard")}
             onSelectOption={setZone}
             selectedOption={zone}
           />
@@ -123,7 +128,7 @@ const DeriveAddress = () => {
             className="confirm_button"
             onClick={deriveAddressHandle}
           >
-            Confirm
+            {t("topMenu.confirm")}
           </button>
         </>
       </div>

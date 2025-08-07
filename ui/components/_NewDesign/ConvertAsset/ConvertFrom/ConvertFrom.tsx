@@ -1,4 +1,5 @@
 import React, { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { setConvertFrom } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import {
   selectCurrentAccountTotal,
@@ -9,10 +10,11 @@ import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSkeletonLoader from "../../../Shared/SharedSkeletonLoader"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
-import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 
 const ConvertFrom = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
@@ -53,7 +55,7 @@ const ConvertFrom = () => {
             color: "var(--secondary-text)",
           }}
         >
-          From
+          {t("convert_from.from")}
         </h3>
         <SharedSkeletonLoader height={66} />
       </section>
@@ -62,11 +64,11 @@ const ConvertFrom = () => {
   return (
     <>
       <section className="convert-from-wallet">
-        <h3 className="convert-from-label">From</h3>
+        <h3 className="convert-from-label">{t("convert_from.from")}</h3>
         {isUtxoAccountTypeGuard(convertFromAccount) ? (
           <SharedAccountTab
             account={{
-              title: `Cyprus 1 - QI Wallet`,
+              title: `${t("convert_from.cyprus_1_qi_wallet")}`,
               subtitle: `${convertFromAccount.paymentCode.slice(
                 0,
                 10
@@ -76,7 +78,7 @@ const ConvertFrom = () => {
         ) : (
           <SharedAccountTab
             account={{
-              title: `${convertFromAccount?.shortName} - QUAI Account`,
+              title: `${convertFromAccount?.shortName} - ${t("convert_from.quai_account")}`,
               subtitle: `${getExtendedZoneForAddress(
                 convertFromAccount?.address,
                 true,

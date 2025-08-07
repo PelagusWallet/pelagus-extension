@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import SharedConfirmationModal from "../../components/Shared/SharedConfirmationModal"
 
 const ConfirmConversionPage = () => {
+  const { t } = useTranslation()
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
 
@@ -40,10 +41,10 @@ const ConfirmConversionPage = () => {
   return (
     <>
       <main className="convert-confirmation-wrapper">
-        <SharedGoBackPageHeader title="Confirm Conversion" />
+        <SharedGoBackPageHeader title={t("wallet.confirm")} />
         <ConfirmConversion />
         <SharedActionButtons
-          title={{ confirmTitle: "Convert", cancelTitle: "Back" }}
+          title={{ confirmTitle: t("wallet.convert"), cancelTitle: t("shared.backButtonText") }}
           onClick={{
             onConfirm: () => handleConfirm(),
             onCancel: () => history.push("-1"),

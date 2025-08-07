@@ -115,10 +115,15 @@ export default function SharedTooltip(props: Props): ReactElement {
           .info_icon {
             mask-image: url("./images/icons/m/info.svg");
             mask-size: cover;
-            background-color: var(--tooltip-icon-color, var(--green-95));
-            width: 16px;
-            height: 16px;
+            background-color: var(--tooltip-icon-color, var(--trophy-gold));
+            width: 18px;
+            height: 18px;
             display: block;
+            transition: all 0.2s ease;
+          }
+          .info_icon:hover {
+            background-color: var(--green-40);
+            transform: scale(1.1);
           }
           .tooltip {
             width: ${width !== undefined ? `${width}px` : "auto"};
@@ -127,9 +132,9 @@ export default function SharedTooltip(props: Props): ReactElement {
               0 6px 8px rgba(0, 20, 19, 0.14), 0 16px 16px rgba(0, 20, 19, 0.04);
             background-color: var(--green-20);
             color: var(--green-95);
-            font-size: 14px;
+            font-size: 10px;
             font-weight: 500;
-            line-height: 20px;
+            line-height: 16px;
             border-radius: 3px;
             padding: 12px;
             z-index: 20;

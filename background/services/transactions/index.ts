@@ -40,6 +40,7 @@ import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
 import IndexingService from "../indexing"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 
 const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
@@ -60,6 +61,7 @@ const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
  */
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
   public readonly MAILBOX_CONTRACT_ADDRESS = MAILBOX_CONTRACT_ADDRESS || ""
+  private intervalConversions: Map<string, NodeJS.Timeout> = new Map()
 
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
@@ -95,6 +97,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     await this.initializeQiTransactions()
     await this.initializeQuaiTransactions()
+    
+    // Restart any running interval conversions
+    await this.restartRunningIntervals()
   }
 
   // ------------------------------------ public methods ------------------------------------
@@ -389,10 +394,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
 
       if (!unusedAddress) {
-        logger.warn(
-          "Maximum attempts reached without finding an unused address."
-        )
-        return
+        const errorMsg = "Maximum attempts reached without finding an unused address."
+        logger.warn(errorMsg)
+        throw new Error(errorMsg)
       }
     }
 
@@ -585,6 +589,171 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
   }
 
+  public async startIntervalConversion(params: {
+    from: any,
+    to: any,
+    amount: string,
+    maxSlippage: number,
+    transactionCount: number,
+    intervalMinutes: number
+  }): Promise<string> {
+    const intervalId = `interval_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    let executedCount = 0
+    const transactions: string[] = []
+    
+    // Store interval in database
+    await this.db.addIntervalConversion({
+      id: intervalId,
+      from: params.from,
+      to: params.to,
+      amount: params.amount,
+      maxSlippage: params.maxSlippage,
+      transactionCount: params.transactionCount,
+      intervalMinutes: params.intervalMinutes,
+      executedCount: 0,
+      status: "running",
+      startedAt: Date.now(),
+      transactions: []
+    })
+    
+    const executeConversion = async () => {
+      try {
+        // Check if interval was cancelled
+        const intervalData = await this.db.getIntervalConversion(intervalId)
+        if (intervalData?.status === "cancelled") {
+          this.stopIntervalConversion(intervalId)
+          logger.info(`Interval conversion ${intervalId} was cancelled`)
+          return
+        }
+
+        // Check if we should stop
+        if (executedCount >= params.transactionCount) {
+          await this.db.updateIntervalConversion(intervalId, {
+            status: "completed",
+            completedAt: Date.now(),
+            executedCount
+          })
+          this.stopIntervalConversion(intervalId)
+          logger.info(`Interval conversion ${intervalId} completed after ${executedCount} transactions`)
+          return
+        }
+
+        // Check if conversion is from UTXO to Account or vice versa
+        const isFromUtxo = isUtxoAccountTypeGuard(params.from)
+        const isToUtxo = isUtxoAccountTypeGuard(params.to)
+
+        let txHash: string | undefined
+        // Execute the conversion based on type
+        if (isFromUtxo && !isToUtxo) {
+          // Converting Qi to Quai
+          await this.convertQiToQuai(params.to.address, params.amount, params.maxSlippage)
+          // TODO: Get transaction hash from conversion
+          txHash = `tx_${Date.now()}`
+        } else if (!isFromUtxo && isToUtxo) {
+          // Converting Quai to Qi
+          await this.convertQuaiToQi(params.from.address, params.amount, params.maxSlippage)
+          // TODO: Get transaction hash from conversion
+          txHash = `tx_${Date.now()}`
+        } else {
+          throw new Error("Invalid conversion type")
+        }
+
+        executedCount++
+        if (txHash) transactions.push(txHash)
+        
+        await this.db.updateIntervalConversion(intervalId, {
+          executedCount,
+          transactions
+        })
+        
+        logger.info(`Interval conversion ${intervalId}: executed ${executedCount}/${params.transactionCount} transactions`)
+        
+      } catch (error: any) {
+        const errorMessage = error?.message || "Unknown error"
+        
+        // Update database with error
+        await this.db.updateIntervalConversion(intervalId, {
+          status: "failed",
+          completedAt: Date.now(),
+          error: errorMessage,
+          executedCount
+        })
+        
+        // Check for insufficient balance error
+        if (errorMessage.includes("Insufficient") || errorMessage.includes("balance")) {
+          logger.error(`Interval conversion ${intervalId} stopped due to insufficient balance`)
+          this.stopIntervalConversion(intervalId)
+          NotificationsManager.createFailedQiTxNotification()
+        } else {
+          logger.error(`Interval conversion ${intervalId} error: ${errorMessage}`)
+          this.stopIntervalConversion(intervalId)
+        }
+      }
+    }
+
+    // Execute first conversion immediately
+    executeConversion()
+
+    // Set up interval for remaining conversions
+    const intervalMs = params.intervalMinutes * 60 * 1000
+    const interval = setInterval(executeConversion, intervalMs)
+    this.intervalConversions.set(intervalId, interval)
+
+    logger.info(`Started interval conversion ${intervalId}: ${params.transactionCount} transactions every ${params.intervalMinutes} minutes`)
+    return intervalId
+  }
+
+  public async cancelIntervalConversion(intervalId: string): Promise<void> {
+    const interval = this.intervalConversions.get(intervalId)
+    if (interval) {
+      clearInterval(interval)
+      this.intervalConversions.delete(intervalId)
+      
+      await this.db.updateIntervalConversion(intervalId, {
+        status: "cancelled",
+        completedAt: Date.now()
+      })
+      
+      logger.info(`Cancelled interval conversion ${intervalId}`)
+    }
+  }
+
+  public async getIntervalConversions(): Promise<any[]> {
+    return this.db.getAllIntervalConversions()
+  }
+
+  public async getIntervalConversion(intervalId: string): Promise<any> {
+    return this.db.getIntervalConversion(intervalId)
+  }
+
+  private async restartRunningIntervals(): Promise<void> {
+    try {
+      const runningIntervals = await this.db.getRunningIntervalConversions()
+      logger.info(`Found ${runningIntervals.length} running intervals to restart`)
+      
+      for (const interval of runningIntervals) {
+        // Mark as failed if it was running when the service stopped
+        await this.db.updateIntervalConversion(interval.id, {
+          status: "failed",
+          completedAt: Date.now(),
+          error: "Interval was interrupted by extension restart"
+        })
+        logger.info(`Marked interval ${interval.id} as failed due to restart`)
+      }
+    } catch (error) {
+      logger.error("Failed to restart running intervals:", error)
+    }
+  }
+
+  private stopIntervalConversion(intervalId: string): void {
+    const interval = this.intervalConversions.get(intervalId)
+    if (interval) {
+      clearInterval(interval)
+      this.intervalConversions.delete(intervalId)
+      logger.info(`Stopped interval conversion ${intervalId}`)
+    }
+  }
+
   public async convertQiToQuai(to: string, value: string, maxSlippage: number): Promise<void> {
     const amount = parseQi(value)
     const { jsonRpcProvider } = this.chainService
@@ -687,6 +856,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     } catch (error: any) {
       logger.error("Failed to convert Qi to Quai", error.message)
       NotificationsManager.createFailedQiTxNotification()
+      // Re-throw the error so interval conversions can track it
+      throw error
     }
   }
 

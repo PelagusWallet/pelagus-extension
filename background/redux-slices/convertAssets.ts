@@ -15,6 +15,11 @@ export type ConvertAssetsState = {
   expectedSlippage: number
   maxSlippage: number
   wrappedQiDeposit: bigint
+  intervalSettings: {
+    enabled: boolean
+    transactionCount: number
+    intervalMinutes: number
+  }
 }
 
 const initialState: ConvertAssetsState = {
@@ -25,7 +30,12 @@ const initialState: ConvertAssetsState = {
   expectedResult: 0,
   expectedSlippage: 0,
   maxSlippage: 100, // Default 1% (in basis points)
-  wrappedQiDeposit: BigInt(0)
+  wrappedQiDeposit: BigInt(0),
+  intervalSettings: {
+    enabled: false,
+    transactionCount: 10,
+    intervalMinutes: 1
+  }
 }
 
 const convertAssetsSlice = createSlice({
@@ -79,6 +89,15 @@ const convertAssetsSlice = createSlice({
     setWrappedQiDeposit: (immerState, { payload }: { payload: bigint }) => {
       immerState.wrappedQiDeposit = payload
     },
+    setIntervalSettings: (
+      immerState,
+      { payload }: { payload: Partial<ConvertAssetsState['intervalSettings']> }
+    ) => {
+      immerState.intervalSettings = {
+        ...immerState.intervalSettings,
+        ...payload
+      }
+    },
     resetConvertAssetsSlice: (immerState) => {
       immerState.from = null
       immerState.to = null
@@ -86,6 +105,11 @@ const convertAssetsSlice = createSlice({
       immerState.rate = 0
       immerState.maxSlippage = 100 // Reset to default 1%
       immerState.wrappedQiDeposit = BigInt(0)
+      immerState.intervalSettings = {
+        enabled: false,
+        transactionCount: 10,
+        intervalMinutes: 1
+      }
     },
   },
 })
@@ -101,6 +125,7 @@ export const {
   setConvertExpectedSlippage,
   setMaxSlippage,
   setWrappedQiDeposit,
+  setIntervalSettings,
 } = convertAssetsSlice.actions
 
 export default convertAssetsSlice.reducer
@@ -178,18 +203,29 @@ export const convertAssetsHandle = createBackgroundAsyncThunk(
 
     if (!from || !to) return
 
-    if (!isUtxoAccountTypeGuard(to)) {
-      await main.transactionService.convertQiToQuai(to.address, amount, maxSlippage)
-    } else if (!isUtxoAccountTypeGuard(from)) {
-      await main.transactionService.convertQuaiToQi(
-        from.address,
-        amount,
-        maxSlippage
-      )
+    try {
+      if (!isUtxoAccountTypeGuard(to)) {
+        await main.transactionService.convertQiToQuai(to.address, amount, maxSlippage)
+      } else if (!isUtxoAccountTypeGuard(from)) {
+        await main.transactionService.convertQuaiToQi(
+          from.address,
+          amount,
+          maxSlippage
+        )
+      }
+      setTimeout(() => {
+        dispatch(resetConvertAssetsSlice())
+      }, 2000)
+      return { success: true }
+    } catch (error: any) {
+      // Return error info that UI can handle
+      return { 
+        error: {
+          message: error?.message || "Conversion failed",
+          code: error?.code
+        }
+      }
     }
-    setTimeout(() => {
-      dispatch(resetConvertAssetsSlice())
-    }, 2000)
   }
 )
 
@@ -229,5 +265,60 @@ export const getWrappedQiDepositHandle = createBackgroundAsyncThunk(
     const deposit = await main.transactionService.getWrappedQiDeposit(from)
     dispatch(setWrappedQiDeposit(deposit))
     return deposit
+  }
+)
+
+export const startIntervalConversionHandle = createBackgroundAsyncThunk(
+  "convertAssets/startIntervalConversion",
+  async (_, { getState, dispatch, extra: { main } }) => {
+    const { convertAssets } = getState() as RootState
+    const { 
+      from, 
+      to, 
+      amount = "0", 
+      maxSlippage = 100, 
+      intervalSettings 
+    } = convertAssets
+
+    if (!from || !to || !intervalSettings.enabled) {
+      return { error: "Invalid interval conversion parameters" }
+    }
+
+    try {
+      const intervalId = await main.transactionService.startIntervalConversion({
+        from,
+        to,
+        amount,
+        maxSlippage,
+        transactionCount: intervalSettings.transactionCount,
+        intervalMinutes: intervalSettings.intervalMinutes
+      })
+
+      return { intervalId }
+    } catch (error: any) {
+      return { error: error?.message || "Failed to start interval conversion" }
+    }
+  }
+)
+
+export const getIntervalConversionsHandle = createBackgroundAsyncThunk(
+  "convertAssets/getIntervalConversions",
+  async (_, { extra: { main } }) => {
+    return await main.transactionService.getIntervalConversions()
+  }
+)
+
+export const cancelIntervalConversionHandle = createBackgroundAsyncThunk(
+  "convertAssets/cancelIntervalConversion",
+  async (intervalId: string, { extra: { main } }) => {
+    await main.transactionService.cancelIntervalConversion(intervalId)
+    return intervalId
+  }
+)
+
+export const getIntervalConversionHandle = createBackgroundAsyncThunk(
+  "convertAssets/getIntervalConversion",
+  async (intervalId: string, { extra: { main } }) => {
+    return await main.transactionService.getIntervalConversion(intervalId)
   }
 )

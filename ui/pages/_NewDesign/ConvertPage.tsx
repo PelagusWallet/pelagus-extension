@@ -19,7 +19,7 @@ const ConvertPage = () => {
   const scrollableContentRef = useRef<HTMLDivElement>(null)
   const qiWalletSyncInProgress = useSelector(selectQiWalletSyncInProgress)
 
-  const { from, to, amount, expectedSlippage, maxSlippage } =
+  const { from, to, amount, expectedSlippage, maxSlippage, intervalSettings } =
     useBackgroundSelector((state) => state.convertAssets)
 
   // Check if expected slippage exceeds max slippage
@@ -58,8 +58,12 @@ const ConvertPage = () => {
       return
     }
 
-    // Only navigate if no slippage warning
-    history.push("/convert/confirmation")
+    // Navigate to different page based on interval settings
+    if (intervalSettings.enabled) {
+      history.push("/convert/interval-confirmation")
+    } else {
+      history.push("/convert/confirmation")
+    }
   }
 
   // Effect to scroll to the bottom when the warning is shown

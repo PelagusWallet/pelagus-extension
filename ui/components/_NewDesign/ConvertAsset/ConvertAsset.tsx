@@ -6,6 +6,7 @@ import ConvertToAmount from "./ConvertToAmount/ConvertToAmount"
 import ConvertRate from "./ConvertRate/ConvertRate"
 import ConvertSlippage from "./ConvertSlippage/ConvertSlippage"
 import MaxSlippageSelector from "./MaxSlippageSelector/MaxSlippageSelector"
+import IntervalSettings from "./IntervalSettings/IntervalSettings"
 
 const ConvertAsset = () => {
   return (
@@ -17,6 +18,7 @@ const ConvertAsset = () => {
       <ConvertRate />
       <ConvertSlippage />
       <MaxSlippageSelector />
+      <IntervalSettings />
     </>
   )
 }

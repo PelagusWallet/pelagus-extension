@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { useHistory } from "react-router-dom"
+import { useHistory, useLocation } from "react-router-dom"
 import { FaClock, FaCircleCheck, FaCircleXmark, FaSpinner, FaChevronRight, FaBan } from "react-icons/fa6"
 import { useBackgroundDispatch } from "../../hooks"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
@@ -29,10 +29,22 @@ interface IntervalConversion {
 
 const RunningIntervals = () => {
   const history = useHistory()
+  const location = useLocation()
   const dispatch = useBackgroundDispatch()
   const [intervals, setIntervals] = useState<IntervalConversion[]>([])
   const [loading, setLoading] = useState(true)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
+  
+  // Determine back link based on referrer or default to convert page
+  const getBackLink = () => {
+    // Check if we came from settings
+    const state = location.state as { from?: string } | undefined
+    if (state?.from === 'settings') {
+      return '/settings'
+    }
+    // Default to convert page
+    return '/convert'
+  }
 
   useEffect(() => {
     loadIntervals()
@@ -126,7 +138,7 @@ const RunningIntervals = () => {
   if (loading) {
     return (
       <main className="intervals-wrapper">
-        <SharedGoBackPageHeader title="Interval Conversions" linkTo="/convert" />
+        <SharedGoBackPageHeader title="Interval Conversions" linkTo={getBackLink()} />
         <div className="loading-container">
           <FaSpinner className="loading-icon spin" />
           <p>Loading intervals...</p>
@@ -139,7 +151,7 @@ const RunningIntervals = () => {
     <>
       <main className="intervals-wrapper">
         <div className="header-area">
-          <SharedGoBackPageHeader title="Interval Conversions" linkTo="/convert" />
+          <SharedGoBackPageHeader title="Interval Conversions" linkTo={getBackLink()} />
         </div>
 
         <div className="content-area">

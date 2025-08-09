@@ -30,7 +30,7 @@ const IntervalSettings = () => {
   return (
     <>
       <div className="interval-settings-container">
-        <div className="interval-header" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="interval-header" onClick={() => handleToggleInterval()}>
           <div className="header-left">
             <FaClock className="icon" />
             <span className="title">Interval Conversion</span>

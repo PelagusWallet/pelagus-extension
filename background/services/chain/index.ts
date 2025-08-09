@@ -270,6 +270,18 @@ export default class ChainService extends BaseService<Events> {
     this.startAddressBalanceSubscriber()
   }
 
+  public refreshProviders(): void {
+    if (this.selectedNetwork) {
+      console.log(`[ChainService] Refreshing providers for current network: ${this.selectedNetwork.chainID}`)
+      const { jsonRpcProvider, webSocketProvider, immediateJsonRpcProvider } =
+        this.providerFactory.getProvidersForNetwork(this.selectedNetwork.chainID)
+
+      this.jsonRpcProvider = jsonRpcProvider
+      this.webSocketProvider = webSocketProvider
+      this.immediateJsonRpcProvider = immediateJsonRpcProvider ?? jsonRpcProvider
+    }
+  }
+
   // --------------------------------------------------------------------------------------------------
   private async startAddressBalanceSubscriber(): Promise<void> {
     const { selectedNetwork } = this

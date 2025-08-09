@@ -29,6 +29,7 @@ import SharedIcon from "../components/Shared/SharedIcon"
 import SharedDrawer from "../components/Shared/SharedDrawer"
 import SharedToggleButtonGA from "../components/Shared/SharedToggleButtonGA"
 import SharedConfirmationModal from "../components/Shared/SharedConfirmationModal"
+import CustomRPCModal from "../components/Settings/CustomRPCModal"
 import { forceQiWalletFullRescan, aggregateQiOutputs, fetchUTXODenominationDistribution } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks/redux-hooks"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
@@ -149,6 +150,7 @@ export default function Settings(): ReactElement {
   const autoLockInterval = useSelector(selectAutoLockInterval)
   const [showRescanConfirm, setShowRescanConfirm] = useState(false)
   const [showAggregateConfirm, setShowAggregateConfirm] = useState(false)
+  const [showCustomRPCModal, setShowCustomRPCModal] = useState(false)
   const [showUTXODistribution, setShowUTXODistribution] = useState(false)
   const [utxoDistributionData, setUtxoDistributionData] = useState<{ [denomination: number]: number } | null>(null)
   const [utxoDistributionLoading, setUtxoDistributionLoading] = useState(false)
@@ -289,6 +291,130 @@ export default function Settings(): ReactElement {
     ),
   }
 
+  const customRPCUrl = {
+    title: "",
+    component: () => (
+      <SettingButton
+        label="Custom RPC URL"
+        ariaLabel="Configure custom RPC URL"
+        icon="continue"
+        onClick={() => setShowCustomRPCModal(true)}
+      />
+    ),
+  }
+
+  const historicalConversionIntervals = {
+    title: "",
+    component: () => (
+      <SettingButton
+        label="Historical Conversion Intervals"
+        ariaLabel="View historical conversion intervals"
+        icon="continue"
+        onClick={() => history.push("/intervals", { from: "settings" })}
+      />
+    ),
+  }
+
+  const forceQiWalletRescanDrawer = () => {
+    return (
+      <SharedDrawer
+        title={t("settings.forceQiWalletRescan")}
+        isOpen={showRescanConfirm}
+        close={() => setShowRescanConfirm(false)}
+        gap={0}
+        customStyles={{
+          top: "40%",
+          transform: "translateY(-20%)"
+        }}
+      >
+        <div className="confirm_rescan">
+          <p>{t("settings.forceQiWalletRescanConfirm")}</p>
+          <div className="button_container">
+            <button
+              type="button"
+              className="cancel"
+              onClick={() => setShowRescanConfirm(false)}
+              disabled={qiWalletSyncInProgress}
+            >
+              {t("settings.cancel")}
+            </button>
+            <button
+              type="button"
+              className="confirm"
+              onClick={async () => {
+                try {
+                  dispatch(forceQiWalletFullRescan())
+                } catch (error) {
+                  console.error("Error during Qi wallet rescan:", error)
+                } finally {
+                  setShowRescanConfirm(false)
+                }
+              }}
+              disabled={qiWalletSyncInProgress}
+            >
+              {qiWalletSyncInProgress ? t("settings.rescanning") : t("settings.confirm")}
+            </button>
+          </div>
+        </div>
+        <style jsx>
+          {`
+            .confirm_rescan {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              justify-content: flex-start;
+              height: 100%;
+              width: 100%;
+              gap: 24px;
+            }
+            p {
+              color: var(--white);
+              font-size: 14px;
+              line-height: 24px;
+              margin: 0;
+              text-align: left;
+            }
+            .button_container {
+              display: flex;
+              justify-content: center;
+              gap: 16px;
+              width: 100%;
+              margin-top: auto;
+            }
+            button {
+              padding: 8px 24px;
+              border-radius: 4px;
+              font-size: 14px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.2s;
+            }
+            button:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+            .cancel {
+              background: transparent;
+              border: 1px solid var(--green-40);
+              color: var(--green-40);
+            }
+            .cancel:hover:not(:disabled) {
+              background: var(--green-120);
+            }
+            .confirm {
+              background: var(--green-40);
+              border: none;
+              color: var(--hunter-green);
+            }
+            .confirm:hover:not(:disabled) {
+              background: var(--green-20);
+            }
+          `}
+        </style>
+      </SharedDrawer>
+    )
+  }
+
   const forceQiWalletRescan = {
     title: "",
     component: () => {
@@ -301,91 +427,6 @@ export default function Settings(): ReactElement {
             onClick={() => setShowRescanConfirm(true)}
             isLoading={qiWalletSyncInProgress}
           />
-          <SharedDrawer
-            title={t("settings.forceQiWalletRescan")}
-            isOpen={showRescanConfirm}
-            close={() => setShowRescanConfirm(false)}
-            gap={0}
-          >
-            <div className="confirm_rescan">
-              <p>{t("settings.forceQiWalletRescanConfirm")}</p>
-              <div className="button_container">
-                <button
-                  type="button"
-                  className="cancel"
-                  onClick={() => setShowRescanConfirm(false)}
-                  disabled={qiWalletSyncInProgress}
-                >
-                  {t("settings.cancel")}
-                </button>
-                <button
-                  type="button"
-                  className="confirm"
-                  onClick={async () => {
-                    try {
-                      dispatch(forceQiWalletFullRescan())
-                    } catch (error) {
-                      console.error("Error during Qi wallet rescan:", error)
-                    } finally {
-                      setShowRescanConfirm(false)
-                    }
-                  }}
-                  disabled={qiWalletSyncInProgress}
-                >
-                  {qiWalletSyncInProgress ? t("settings.rescanning") : t("settings.confirm")}
-                </button>
-              </div>
-            </div>
-            <style jsx>
-              {`
-                .confirm_rescan {
-                  display: flex;
-                  flex-direction: column;
-                  min-height: 100px;
-                }
-                p {
-                  color: var(--white);
-                  font-size: 14px;
-                  line-height: 24px;
-                  margin: 0;
-                }
-                .button_container {
-                  display: flex;
-                  justify-content: flex-end;
-                  margin-top: auto;
-                }
-                button {
-                  padding: 8px 24px;
-                  border-radius: 4px;
-                  font-size: 14px;
-                  font-weight: 500;
-                  cursor: pointer;
-                  transition: all 0.2s;
-                }
-                button:disabled {
-                  opacity: 0.5;
-                  cursor: not-allowed;
-                }
-                .cancel {
-                  background: transparent;
-                  border: 1px solid var(--green-40);
-                  color: var(--green-40);
-                  margin-right: 10%;
-                }
-                .cancel:hover:not(:disabled) {
-                  background: var(--green-120);
-                }
-                .confirm {
-                  background: var(--green-40);
-                  border: none;
-                  color: var(--hunter-green);
-                }
-                .confirm:hover:not(:disabled) {
-                  background: var(--green-20);
-                }
-              `}
-            </style>
-          </SharedDrawer>
         </>
       )
     },
@@ -848,7 +889,7 @@ export default function Settings(): ReactElement {
     },
     walletOptions: {
       title: t("settings.group.walletOptions"),
-      items: [addCustomAsset, forceQiWalletRescan, aggregateQiOutputsButton, showQiUTXODistributionButton],
+      items: [customRPCUrl, addCustomAsset, forceQiWalletRescan, aggregateQiOutputsButton, showQiUTXODistributionButton, historicalConversionIntervals],
     },
     helpCenter: {
       title: t("settings.group.helpCenter"),
@@ -885,8 +926,14 @@ export default function Settings(): ReactElement {
           </div>
         }
       >
+        {showRescanConfirm && forceQiWalletRescanDrawer()}
         {showAggregateConfirm && aggregateQiOutputsDrawer()}
         {showUTXODistribution && utxoDistributionDrawer()}
+        
+        <CustomRPCModal
+          isOpen={showCustomRPCModal}
+          onClose={() => setShowCustomRPCModal(false)}
+        />
         <div className="menu">
           <ul>
             {settings.map(({ title, items }) => (

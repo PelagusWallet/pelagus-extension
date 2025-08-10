@@ -1,4 +1,5 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { AccountTotal } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
@@ -6,6 +7,7 @@ import { useBackgroundSelector } from "../../../../hooks"
 import { trimWithEllipsis } from "../../../../utils/textUtils"
 
 const ConfirmConversionAmount = () => {
+  const { t } = useTranslation()
   const { from, to, amount, rate } = useBackgroundSelector(
     (state) => state.convertAssets
   )
@@ -25,7 +27,7 @@ const ConfirmConversionAmount = () => {
   return (
     <>
       <div className="amount-wrapper">
-        <h5 className="type">Converting</h5>
+        <h5 className="type">{t("confirm_conversion.converting")}</h5>
         <h2 className="amount">
           {trimWithEllipsis(amount, 8)} {tokenSymbolHandler(from)} to{" "}
           {tokenSymbolHandler(to)}

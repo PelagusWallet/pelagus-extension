@@ -1,4 +1,5 @@
 import React, { ReactElement } from "react"
+import { useTranslation } from "react-i18next"
 
 interface LockedBalanceCardProps {
   balance: string
@@ -9,10 +10,12 @@ export default function LockedBalanceCard({
   balance,
   assetSymbol,
 }: LockedBalanceCardProps): ReactElement {
+  const { t } = useTranslation()
+  
   return (
     <div className="locked-balance-card">
       <div className="icon" />
-      <span className="balance">{balance} {assetSymbol} Locked</span>
+      <span className="balance">{balance} {assetSymbol} {t("balance.locked")}</span>
       <style jsx>{`
         .locked-balance-card {
           color: #19191a;

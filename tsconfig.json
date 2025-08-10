@@ -1,17 +1,22 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2021",
+    "lib": ["dom", "dom.iterable", "es2021"],
     "declaration": false,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "jsx": "react-jsx",
+    "jsx": "react",
     "strict": true,
     "resolveJsonModule": true,
     "noEmit": false,
     "noImplicitOverride": true,
     "strictPropertyInitialization": false,
-    "sourceMap": true
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "types": ["react", "react-dom"]
   },
   "exclude": ["dev-utils"]
 }

@@ -226,7 +226,10 @@ export default function AccountsNotificationPanelAccounts({
       isMounted.current = true
     } else if (!areKeyringsUnlocked) {
       dispatch(
-        setSnackbarConfig({ message: t("accounts.notificationPanel.snackbar") })
+        setSnackbarConfig({ 
+          message: t("accounts.notificationPanel.snackbar"),
+          duration: 3000 
+        })
       )
     }
   }, [history, areKeyringsUnlocked, dispatch, t])

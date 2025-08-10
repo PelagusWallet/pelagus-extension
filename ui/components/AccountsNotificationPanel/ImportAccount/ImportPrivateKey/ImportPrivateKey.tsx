@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   selectImportPrivateKeyModalCategory,
   setShowingImportPrivateKeyModal,
@@ -19,6 +20,7 @@ import { AccountCategoriesEnum } from "../../../../utils/enum/accountsEnum"
 import SharedConfirmButton from "../../../Shared/_newDeisgn/actionButtons/SharedConfirmButton"
 
 const ImportPrivateKey = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const [privateKey, setPrivateKey] = useState("")
@@ -80,20 +82,19 @@ const ImportPrivateKey = () => {
     <>
       <div className="modal_body">
         <p className="modal_info">
-          Importing a private key does not associate it to a secret recovery
-          phrase, but it’s still protected by the same password.
+          {t("topMenu.importPrivateKeySubtitle")}
         </p>
         <div>
           <input
             type="text"
             className="key-input"
-            placeholder="Paste private key string..."
+            placeholder={t("topMenu.pastePrivateKeyString")}
             value={privateKey}
             onChange={handleInput}
           />
           <p className="error_msg">{errorMessage}</p>
           <SharedConfirmButton
-            title="Import From Private Key"
+            title={t("topMenu.importAccount")}
             onClick={handleImportPrivateKey}
           />
         </div>

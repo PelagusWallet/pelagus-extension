@@ -47,7 +47,7 @@ export default function Receive(): ReactElement {
             navigator.clipboard.writeText(
               isUtxoSelected ? paymentCode : currentAccount.address
             )
-            dispatch(setSnackbarConfig({ message: "Copied!" }))
+            dispatch(setSnackbarConfig({ message: t("wallet.copied") }))
           }}
         >
           {`${

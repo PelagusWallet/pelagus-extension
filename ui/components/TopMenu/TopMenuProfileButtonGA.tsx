@@ -45,7 +45,7 @@ export default function TopMenuProfileButtonGA(props: {
     }
     if (!paymentCode) return
     navigator.clipboard.writeText(paymentCode)
-    dispatch(setSnackbarConfig({ message: "Payment code copied to clipboard" }))
+    dispatch(setSnackbarConfig({ message: t("common.paymentCodeCopiedToClipboard") }))
   }
 
   if (!address) {

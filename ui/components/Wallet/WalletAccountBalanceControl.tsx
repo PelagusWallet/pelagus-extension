@@ -140,7 +140,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
       {currentSelectedAccount.network.chainID === "9000" && (
         <div className="info_banner">
           <span className="info_text">
-            Testnet ended, so transactions are disabled.
+            {t("testnetBanner.message")}
           </span>
         </div>
       )}

@@ -89,6 +89,7 @@ const EIP191InfoQiAddresses: React.FC<{
   excludeHeader?: boolean
 }> = ({ signingData, account, internal, excludeHeader = false }) => {
   const { t } = useTranslation("translation", { keyPrefix: "signing" })
+  const { t: commonT } = useTranslation()
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
   const utxoAccountsByPaymentCode = useBackgroundSelector(
     (state) => state.account.accountsData.utxo[currentNetwork.chainID]
@@ -113,8 +114,8 @@ const EIP191InfoQiAddresses: React.FC<{
         <div className="light">{`${signingData}`}</div>
       </div>
       <div className="message">
-        <div className="signed">Qi Payment Code</div>
-        <div>{utxoAccountArr?.paymentCode ?? "Unknown"}</div>
+        <div className="signed">{commonT("common.qiPaymentCode")}</div>
+        <div>{utxoAccountArr?.paymentCode ?? commonT("common.unknown")}</div>
       </div>
       <style jsx>{`
         .message {

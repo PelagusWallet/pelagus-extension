@@ -1,4 +1,5 @@
 import React, { Dispatch, SetStateAction } from "react"
+import { useTranslation } from "react-i18next"
 import {
   resetSnackbarConfig,
   setShowingActivityDetail,
@@ -18,6 +19,7 @@ const SnackbarTransactionActivityModal = ({
 }: {
   setIsOpenActivityDetails: Dispatch<SetStateAction<boolean>>
 }) => {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
 
   const showingActivityDetail = useBackgroundSelector(
@@ -37,7 +39,7 @@ const SnackbarTransactionActivityModal = ({
       footer={<></>}
       header={
         <SharedModalHeaders
-          title="Review Transaction"
+          title={t("common.reviewTransaction")}
           onClose={handleClose}
           withGoBackIcon={false}
         />

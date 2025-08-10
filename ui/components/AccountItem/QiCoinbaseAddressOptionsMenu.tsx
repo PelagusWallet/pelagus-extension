@@ -33,12 +33,12 @@ export default function QiCoinbaseAddressOptionsMenu({
 
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(qiCoinbaseAddress.address)
-    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
-  }, [qiCoinbaseAddress.address, dispatch])
+    dispatch(setSnackbarConfig({ message: t("addressCopiedToClipboard") }))
+  }, [qiCoinbaseAddress.address, dispatch, t])
 
   const copyPrivateKey = async () => {
     await addToOffscreenClipboardSensitiveData(key)
-    dispatch(setSnackbarConfig({ message: "Key copied to clipboard" }))
+    dispatch(setSnackbarConfig({ message: t("keyCopiedToClipboard") }))
   }
 
   const onClosePrivateKeyModal = () => {
@@ -59,8 +59,8 @@ export default function QiCoinbaseAddressOptionsMenu({
       >
         <li className="account_container">
           <div className="item-summary">
-            <div title="Private Key" className="address_name">
-              Private Key
+            <div title={t("privateKey")} className="address_name">
+              {t("privateKey")}
             </div>
             <text style={{ marginTop: "18px" }}>{key}</text>
           </div>
@@ -74,7 +74,7 @@ export default function QiCoinbaseAddressOptionsMenu({
           >
             <AccountitemOptionLabel
               icon="icons/s/copy.svg"
-              label="Copy Key"
+              label={t("copyKey")}
               hoverable
               color="var(--green-40)"
               hoverColor="var(--green-20)"

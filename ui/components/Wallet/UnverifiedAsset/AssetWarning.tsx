@@ -99,6 +99,7 @@ export default function AssetWarning(props: AssetWarningProps): ReactElement {
                 ? t("banner.description")
                 : t("banner.oldDescription")
             }
+            isVerified={!isUnverified}
           />
           <ul className="asset_details">
             <li className="asset_symbol">

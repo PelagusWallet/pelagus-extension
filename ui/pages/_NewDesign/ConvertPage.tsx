@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { useHistory } from "react-router-dom"
 import { FaTriangleExclamation, FaCircleExclamation } from "react-icons/fa6"
+import { useTranslation } from "react-i18next"
 
 import { selectQiWalletSyncInProgress, setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { parseQi, Zone } from "quais"
@@ -9,10 +10,11 @@ import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButton
 import ConvertAsset from "../../components/_NewDesign/ConvertAsset/ConvertAsset"
 import AccountsNotificationPanel from "../../components/AccountsNotificationPanel/AccountsNotificationPanel"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
-import { isUtxoAccountTypeGuard } from "../../utils/accounts"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 import { useSelector } from "react-redux"
 
 const ConvertPage = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const [showSlippageWarning, setShowSlippageWarning] = useState(false)
@@ -76,10 +78,9 @@ const ConvertPage = () => {
     <>
       <main className="convert-wrapper">
         <div className="header-area">
-          <SharedGoBackPageHeader title="Convert Assets" linkTo="/" />
+          <SharedGoBackPageHeader title={t("convert_page.title")} linkTo="/" />
           <div className="disclaimer">
-            <FaTriangleExclamation className="warning-icon" /> Native
-            conversions are meant for market makers.
+            <FaTriangleExclamation className="warning-icon" /> {t("convert_page.native_conversions_disclaimer")}
           </div>
         </div>
 
@@ -89,18 +90,18 @@ const ConvertPage = () => {
           {showSlippageWarning && hasSlippageWarning && (
             <div className="slippage-warning">
               <FaCircleExclamation className="error-icon" />
-              <span>
-                Increase max slippage to at least{" "}
-                {expectedSlippagePercentage.toFixed(2)}% to ensure transaction
-                success.
-              </span>
+                              <span>
+                  {t("convert_page.increase_max_slippage_warning", {
+                    percentage: expectedSlippagePercentage.toFixed(2)
+                  })}
+                </span>
             </div>
           )}
         </div>
 
         <div className="footer-area">
           <SharedActionButtons
-            title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
+            title={{ confirmTitle: t("convert_page.next"), cancelTitle: t("convert_page.cancel") }}
             onClick={{
               onConfirm: () => handleConfirm(),
               onCancel: () => {

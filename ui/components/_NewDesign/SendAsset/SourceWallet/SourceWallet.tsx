@@ -1,4 +1,5 @@
 import React, { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { setQiSendAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
@@ -6,6 +7,7 @@ import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedSkeletonLoader from "../../../Shared/SharedSkeletonLoader"
 
 const SourceWallet = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
   const utxoAccountsByPaymentCode = useBackgroundSelector(
@@ -26,7 +28,7 @@ const SourceWallet = () => {
   if (!qiSendAccount)
     return (
       <section className="source-wallet">
-        <h3 className="source-label">Source Wallet</h3>
+        <h3 className="source-label">{t("send.sourceWallet")}</h3>
         <SharedSkeletonLoader height={66} />
       </section>
     )
@@ -36,7 +38,7 @@ const SourceWallet = () => {
   return (
     <>
       <section className="source-wallet">
-        <h3 className="source-label">Source Wallet</h3>
+        <h3 className="source-label">{t("send.sourceWallet")}</h3>
         <SharedAccountTab
           account={{
             title: `Cyprus 1 - QI Wallet`,

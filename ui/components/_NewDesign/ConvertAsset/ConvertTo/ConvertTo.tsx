@@ -1,4 +1,5 @@
 import React, { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
   selectCurrentAccountTotal,
   selectCurrentNetwork,
@@ -10,13 +11,14 @@ import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
 import SharedSkeletonLoader from "../../../Shared/SharedSkeletonLoader"
-import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 import {
   setSelectedUtxoAccount,
   setShowingAccountsModal,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 
 const ConvertTo = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
@@ -67,7 +69,7 @@ const ConvertTo = () => {
             color: "var(--secondary-text)",
           }}
         >
-          To
+          {t("convert_to.to")}
         </h3>
         <SharedSkeletonLoader height={66} />
       </section>
@@ -76,11 +78,11 @@ const ConvertTo = () => {
   return (
     <>
       <section className="convert-to-wallet">
-        <h3 className="convert-to-label">To</h3>
+        <h3 className="convert-to-label">{t("convert_to.to")}</h3>
         {isUtxoAccountTypeGuard(convertToAccount) ? (
           <SharedAccountTab
             account={{
-              title: `Cyprus 1 - QI Wallet`,
+              title: `${t("convert_to.cyprus_1_qi_wallet")}`,
               subtitle: `${convertToAccount.paymentCode.slice(
                 0,
                 10
@@ -90,7 +92,7 @@ const ConvertTo = () => {
         ) : (
           <SharedAccountTab
             account={{
-              title: `${convertToAccount?.shortName} - QUAI Account`,
+              title: `${convertToAccount?.shortName} - ${t("convert_to.quai_account")}`,
               subtitle: `${getExtendedZoneForAddress(
                 convertToAccount?.address,
                 true,

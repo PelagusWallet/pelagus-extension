@@ -227,10 +227,10 @@ export default function SharedSelect(props: Props): ReactElement {
             box-sizing: border-box;
             width: calc(${cssWidth} - 4px);
             text-align: right;
-            background-color: ${variant === "small" ? "var(--hunter-green)" : "var(--green-95)"};
+            background-color: ${variant === "small" ? "var(--hunter-green)" : "#ffffff"};
             border-radius: 5px;
             overflow-y: auto;
-            color: var(--green-60);
+            color: var(--hunter-green);
             box-shadow: 0px 16px 16px rgba(0, 20, 19, 0.14),
               0px 6px 8px rgba(0, 20, 19, 0.24),
               0px 2px 4px rgba(0, 20, 19, 0.34);

@@ -17,6 +17,7 @@ interface AsyncThunkResult {
 }
 
 const ConfirmTransactionPage = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const network = useBackgroundSelector(selectCurrentNetwork)
@@ -109,10 +110,10 @@ const ConfirmTransactionPage = () => {
   return (
     <>
       <main className="confirm-transaction-wrapper">
-        <SharedGoBackPageHeader title="Confirm Transaction" />
+        <SharedGoBackPageHeader title={t("common.confirmTransaction")} />
         <ConfirmTransaction isInsufficientQuai={isInsufficientQuai} />
         <SharedActionButtons
-          title={{ confirmTitle: "Send", cancelTitle: "Back" }}
+          title={{ confirmTitle: t("wallet.sendButton"), cancelTitle: t("shared.backButtonText") }}
           isConfirmDisabled={
             !channelExists && (!senderQuaiAccount || isInsufficientQuai)
           }

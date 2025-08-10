@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react"
+import React, { ReactElement, useEffect, useState } from "react"
 import { useHistory } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { selectShowPaymentChannelModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { parseQi, Zone } from "quais"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
@@ -11,7 +12,8 @@ import PaymentChanelModal from "../../components/_NewDesign/SendAsset/PaymentCha
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 
-const SendPage = () => {
+const SendPage = (): ReactElement => {
+  const { t } = useTranslation()
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
 
@@ -68,10 +70,10 @@ const SendPage = () => {
   return (
     <>
       <main className="sendAsset-wrapper">
-        <SharedGoBackPageHeader title="Send Assets" linkTo="/" />
+        <SharedGoBackPageHeader title={t("wallet.sendAsset")} linkTo="/" />
         <SendAsset />
         <SharedActionButtons
-          title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
+          title={{ confirmTitle: t("common.next"), cancelTitle: t("common.cancel") }}
           isConfirmDisabled={isConfirmDisabled}
           onClick={{
             onConfirm: () => handleConfirm(),

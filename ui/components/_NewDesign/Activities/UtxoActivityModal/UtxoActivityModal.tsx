@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { QiTransactionDB } from "@pelagus/pelagus-background/services/transactions/types"
 import CrossIcon from "../../../Shared/_newDeisgn/iconComponents/CrossIcon"
 import SharedUtxoActivityTab from "../../../Shared/_newDeisgn/utxoActivityTab/SharedUtxoActivityTab"
@@ -13,6 +14,7 @@ const UtxoActivityModal = ({
   qiActivity: QiTransactionDB
   setIsOpenUtxoActivityModal: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
+  const { t } = useTranslation()
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -48,7 +50,7 @@ const UtxoActivityModal = ({
             }}
             onClick={handleClose}
           />
-          <h3 className="modal-title">Review Transaction</h3>
+          <h3 className="modal-title">{t("common.reviewTransaction")}</h3>
           <SharedUtxoActivityTab
             type={qiActivity.type}
             status={qiActivity.status}

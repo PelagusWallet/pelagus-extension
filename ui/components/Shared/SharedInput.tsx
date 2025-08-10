@@ -118,27 +118,71 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
         {`
           input {
             width: 100%;
-            height: 48px;
-            border-radius: 4px;
-            border: 2px solid var(--trophy-gold);
-            padding: var(--input-padding, 0px 16px);
+            height: 52px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: var(--input-padding, 0px 18px);
             box-sizing: border-box;
             text-align: left;
+            background: #ffffff;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            line-height: 1;
+            animation: pulse-border 4s infinite;
+          }
+
+          @keyframes pulse-border {
+            0% {
+              box-shadow: 0 0 0 0 rgba(21, 104, 229, 0.4);
+            }
+            70% {
+              box-shadow: 0 0 0 6px rgba(21, 104, 229, 0);
+            }
+            100% {
+              box-shadow: 0 0 0 0 rgba(21, 104, 229, 0);
+            }
+          }
+
+          input::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
           }
           input::placeholder {
-            color: var(--green-40);
+            color: #9ca3af;
+            font-weight: 400;
           }
           input:focus {
-            border: 2px solid var(--green-40);
+            border: 1px solid transparent;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            animation: none;
+          }
+
+          input:focus::before {
+            opacity: 1;
+          }
+
+          input:not(:placeholder-shown) {
+            animation: none;
           }
           input[type="number"] {
             -moz-appearance: textfield;
           }
           .error {
-            border-color: var(--error);
+            border-color: var(--trophy-gold);
           }
           .validation_message {
-            color: var(--error);
+            color: var(--trophy-gold);
             position: absolute;
             font-weight: 500;
             font-size: 14px;
@@ -179,15 +223,17 @@ export function SharedTypedInput<T = string>(props: Props<T>): ReactElement {
           input:focus ~ label,
           input:not(:placeholder-shown) ~ label,
           input:not([placeholder=" "]) ~ label {
-            transform: translateY(-57px) translateX(-5px);
+            transform: translateY(-65px) translateX(-5px);
             font-size: 12px;
             font-weight: 500;
             padding: 0px 6px;
             background-color: ${focusedLabelBackgroundColor};
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
           }
           .error ~ label,
           input.error:focus ~ label {
-            color: var(--error);
+            color: var(--trophy-gold);
           }
           .small {
             width: 48px;

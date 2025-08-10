@@ -1,14 +1,769 @@
 {
+  "accounts": {
+    "accountItem": {
+      "noNameError": "Имя обязательно",
+      "editName": "Изменить название адреса",
+      "saveName": "Сохранить имя",
+      "typeNewName": "Введите новое имя",
+      "cancel": "Отмена",
+      "regularWarning": "Удаление этого адреса не удаляет вашу фразу восстановления или приватные ключи. Вместо этого он просто скрывается из расширения, и вы не сможете использовать его, пока не добавите обратно.",
+      "loudWarningTitle": "Удаление этого адреса удалит связанный с ним аккаунт из интерфейса.",
+      "loudWarningBody": "Вы уверены, что хотите продолжить?",
+      "lastAccountWarningTitle": "После удаления этого аккаунта вы не сможете использовать кошелек, пока не пройдете онбординг снова.",
+      "lastAccountWarningBody": "Вы уверены, что хотите продолжить?",
+      "removeAddress": "Удалить адрес",
+      "copyAddress": "Скопировать адрес",
+      "exportAccount": "Экспортировать прив. ключ",
+      "removeConfirm": "Да, я хочу удалить",
+      "clearHistory": "Очистить историю транзакций",
+      "clearConfirm": "Да, я хочу очистить",
+      "clearHistoryWarning": "Очистка истории кошелька в этом расширении не удаляет записи транзакций из блокчейна. Ваша история транзакций остается публично видимой в блокчейне и может быть просмотрена с помощью блок-эксплореров.",
+      "moveUp": "Переместить вверх",
+      "moveDown": "Переместить вниз",
+      "keyCopiedToClipboard": "Ключ скопирован в буфер обмена",
+      "addressCopiedToClipboard": "Адрес скопирован в буфер обмена",
+      "exportAccountTitle": "Экспорт аккаунта",
+      "exportAsPlaintext": "Как обычный текст",
+      "exportAsEncryptedJSON": "Как зашифрованный JSON",
+      "encryptPrivateKey": "Зашифровать приватный ключ",
+      "enterPasswordToEncrypt": "Введите пароль для шифрования",
+      "back": "Назад",
+      "encryptedKeyFileDownloaded": "Зашифрованный файл ключа загружен",
+      "copyPaymentCode": "Копировать код платежа",
+      "paymentCodeCopiedToClipboard": "Код платежа скопирован в буфер обмена",
+      "sendAsset": "Отправить актив",
+      "privateKey": "Приватный ключ",
+      "copyKey": "Копировать ключ"
+    },
+    "notificationPanel": {
+      "addWallet": "Добавить кошелек",
+      "addAddress": "Добавить адрес",
+      "resetOrder": "Сбросить порядок",
+      "readOnly": "Только для чтения",
+      "privateKey": "Приватный ключ",
+      "import": "Импорт",
+      "internal": "Pelagus",
+      "category": {
+        "readOnly": "Предварительный просмотр",
+        "others": "Импортированные и сгенерированные"
+      },
+      "signing": {
+        "lock": "Заблокировать кошелек",
+        "unlock": "Разблокировать кошелек"
+      },
+      "snackbar": "Кошелек заблокирован"
+    },
+    "noResults": "Результаты не найдены",
+    "copyPrivateKeyWarning": "Предупреждение: Никогда не раскрывайте этот ключ. Любой, у кого есть ваши приватные ключи, может украсть все активы с вашего аккаунта."
+  },
+  "viewAddressOnBlockExplorer": "Посмотреть адрес на {{blockExplorer}}",
+  "assets": {
+    "viewAsset": "Просмотр актива на {{siteTitle}}",
+    "openNetworkExplorer": "Открыть сетевой эксплорер",
+    "verifyAsset": "Подтвердить актив",
+    "unverifiedAsset": "Актив не подтвержден",
+    "verifiedByUser": "Подтверждено вами"
+  },
+  "assetInput": {
+    "search": "Поиск по имени или адресу",
+    "selectToken": "Выбрать токен",
+    "error": {
+      "invalidAmount": "Неверная сумма",
+      "insufficientBalance": "Недостаточно средств"
+    }
+  },
+  "priceDetails": {
+    "priceImpactTooltip": {
+      "firstLine": "Влияние цены между активами высокое.",
+      "secondLine": "Это связано с низкой ликвидностью пары для обмена."
+    },
+    "noAssetPrice": "Нет информации о цене",
+    "noAssetPriceTooltip": {
+      "firstLine": "Сейчас мы не можем получить цены для этих активов.",
+      "secondLine": "Продолжение без информации о цене может привести к потере стоимости."
+    }
+  },
+  "dappConnection": {
+    "connectToDapp": "Подключиться к dApp",
+    "dappPermissionListTitle": "dApp получит разрешение на:",
+    "viewAddressPermission": "Просмотр адреса подключенного аккаунта",
+    "createTransactionPermission": "Создание, но не подписание транзакций для вас",
+    "rejectConnection": "Отклонить",
+    "acceptConnection": "Подключиться"
+  },
+  "genericPages": {
+    "pageDoesNotExist": "Эта страница не существует. Это все, что мы знаем.",
+    "errorPageTitle": "Неожиданная ошибка",
+    "returnHome": "Вернуться на главную"
+  },
   "passwordStrength": {
-    "average": "Средний"
+    "weak": "Слабый",
+    "average": "Средний",
+    "strong": "Сильный",
+    "strength": "Надежный",
+    "hintDesc": "Для надежного пароля используйте сочетание строчных и заглавных букв, символов и цифр. Пароль должен содержать более 8 символов."
+  },
+  "balance": {
+    "locked": "Заблокировано"
+  },
+  "readOnly": "Только для чтения",
+  "readOnlyNotice": "Режим только для чтения",
+  "onboarding": {
+    "tabbed": {
+      "routeBasedContent": {
+        "newSeed": {
+          "tip": "Если вы хотите просто предварительно просмотреть Pelagus, вы можете начать с добавления аккаунта только для чтения.",
+          "action": "Добавить аккаунт предварительного просмотра"
+        },
+        "addWallet": {
+          "tip": "Несколько самых популярных функций Pelagus были разработаны нашим сообществом."
+        },
+        "viewOnly": {
+          "tip": "Хороший способ взглянуть на то, что предлагает Pelagus."
+        },
+        "importSeed": {
+          "tip": "Pelagus предлагает возможность добавления нескольких фраз восстановления."
+        },
+        "default": {
+          "fact1": "Pelagus Wallet, первый веб-кошелек для сети Quai, уже здесь."
+        }
+      },
+      "intro": {
+        "title": "Давайте настроим вас!",
+        "useExisting": "Использовать существующий кошелек",
+        "createNew": "Создать новый кошелек"
+      },
+      "addWallet": {
+        "title": "Использовать существующий кошелек",
+        "titleExisting": "Добавить аккаунт",
+        "tip": "Вы всегда можете добавить больше кошельков позже.",
+        "existingListTitle": "Существующий аккаунт",
+        "newWalletTitle": "Новый кошелек",
+        "options": {
+          "importSeed": "Импортировать фразу восстановления",
+          "importPrivateKey": "Импортировать приватный ключ",
+          "readOnly": "Адрес только для чтения",
+          "createNew": "Создать новый кошелек"
+        },
+        "importSeed": {
+          "title": "Импортировать секретную фразу восстановления",
+          "subtitle": "Вставьте или введите вашу 12-24 словную секретную фразу восстановления ниже.",
+          "inputLabel": "Введите фразу восстановления",
+          "submit": "Импортировать аккаунт",
+          "errors": {
+            "phraseLengthError": "Должна быть 12 или 24 словная фраза восстановления",
+            "invalidPhraseError": "Неверная фраза восстановления",
+            "errorImport": "Импорт фразы восстановления не удался"
+          }
+        },
+        "importPrivateKey": {
+          "title": "Импортировать приватный ключ",
+          "subtitle": "Импорт приватного ключа не связывает его с секретной фразой восстановления, но он все еще защищен тем же паролем",
+          "inputLabel": "Вставьте строку приватного ключа",
+          "submit": "Импортировать аккаунт",
+          "errorImport": "Импорт приватного ключа не удался"
+        },
+        "viewOnly": {
+          "title": "Адрес только для чтения",
+          "subtitle": "Добавьте адрес QUAI для просмотра существующего кошелька в Pelagus",
+          "submit": "Предварительный просмотр Pelagus",
+          "tip": "Вы можете обновить кошелек только для чтения позже."
+        }
+      },
+      "newWalletIntro": {
+        "title": "Прежде чем мы начнем",
+        "warning": "Важно записать вашу секретную фразу восстановления и хранить ее в безопасном месте.<br /><br />Это единственный способ восстановить ваши аккаунты и средства.<br /><br /><u>Вы не сможете экспортировать вашу фразу восстановления позже.</u>",
+        "submit": "Создать фразу восстановления",
+        "tip": "Вы можете обновить кошелек только для чтения позже."
+      },
+      "unlockWallet": {
+        "title": "Требуется пароль",
+        "passwordInput": "Пароль для подписи",
+        "submit": "Подтвердить"
+      },
+      "newWalletReview": {
+        "title": "Сохраните и храните вашу фразу восстановления",
+        "submit": "Я записал",
+        "copyAddressAction": "Копировать фразу в буфер обмена",
+        "copyRecoveryPhraseWarning": " Предупреждение: Никогда не раскрывайте эту фразу восстановления. Если кто-то просит вашу фразу восстановления, они, вероятно, пытаются обмануть вас и украсть средства вашего кошелька."
+      },
+      "newWalletVerify": {
+        "title": "Проверить фразу восстановления",
+        "subtitle": "Нажмите на каждое слово в том порядке, в котором вас просят",
+        "validState": "Проверено",
+        "invalidState": "Неверный порядок",
+        "invalidStateMsg": "Проверьте порядок и удалите те, которые не в правильной позиции.",
+        "verifyValidState": "Проверить фразу восстановления",
+        "submit": "Завершить",
+        "tip": "Если вы не записали, вы можете <url>начать с новой фразы.</url>"
+      },
+      "complete": {
+        "title": "Добро пожаловать в Pelagus",
+        "titleExisting": "Аккаунт добавлен в Pelagus!",
+        "subtitle": "Чтобы избежать конфликтов с другими кошельками, мы рекомендуем отключить все другие расширения кошельков.",
+        "animationAlt": "Закрепить кошелек"
+      }
+    },
+    "setPassword": {
+      "title": "Сначала давайте защитим<br /> ваш кошелек",
+      "setAsDefault": "Установить Pelagus как кошелек по умолчанию",
+      "submit": "В путь!"
+    },
+    "steps": {
+      "create": "Создать",
+      "save": "Сохранить",
+      "verify": "Проверить"
+    },
+    "seedVerification": {
+      "seedIsInWrongOrder": "Неверный порядок",
+      "seedMismatchExplainer": "Извините, введенная вами фраза восстановления не совпала. Вы можете попробовать переупорядочить их, но убедитесь, что вы их записали.",
+      "createNewWallet": "Если вы предпочитаете, вы можете <1><0>создать новый кошелек.<0></1>",
+      "retryVerification": "Попробовать снова",
+      "verifySeedPrompt": "Проверить фразу восстановления",
+      "successMessage": "Поздравляем!",
+      "successExplainer": "Секретная фраза восстановления правильная, и теперь вы можете начать использовать ваш новый кошелек.",
+      "successButton": "Отведите меня к моему кошельку"
+    }
+  },
+  "shared": {
+    "pelagus": "Pelagus",
+    "metaMask": "MetaMask",
+    "injected": "Injected",
+    "accountCategories": {
+      "quai": "Аккаунт Quai",
+      "qi": "Кошелек Qi"
+    },
+    "cancelBtn": "Отмена",
+    "gwei": "Gwei",
+    "send": "Отправить",
+    "showPasswordHint": "Показать пароль",
+    "hidePasswordHint": "Скрыть пароль",
+    "close": "Закрыть",
+    "modalClose": "Закрыть фон",
+    "accountItemSummary": {
+      "connectedStatus": "Подключено"
+    },
+    "selectToken": "Выбрать токен",
+    "backButtonText": "Назад",
+    "saveBtn": "Сохранить",
+    "closeWindow": "Закрыть окно",
+    "copyTextSnackbar": "Скопировано в буфер обмена"
   },
   "settings": {
+    "group": {
+      "general": "Общие",
+      "walletOptions": "Сети и активы",
+      "helpCenter": "Центр помощи"
+    },
+    "aggregation": {
+      "failed": "Агрегация не удалась",
+      "successful": "Агрегация успешна",
+      "transactionError": "Ошибка транзакции!",
+      "transactionSent": "Транзакция отправлена",
+      "failedToAggregate": "Не удалось агрегировать выходы Qi",
+      "viewTransaction": "Просмотр транзакции"
+    },
+    "mainMenu": "Настройки",
+    "setAsDefault": "Использовать Pelagus как кошелек по умолчанию",
+    "showPelagusNotifications": "Уведомления Pelagus",
+    "autoLockInterval": "Интервал авто-блокировки",
+    "autoLockOptions": {
+      "5minutes": "5 минут",
+      "10minutes": "10 минут", 
+      "15minutes": "15 минут",
+      "30minutes": "30 минут",
+      "1hour": "1 час"
+    },
+    "language": "Язык",
     "bugReport": "Сообщить об ошибке",
+    "connectedWebsites": "Подключенные сайты",
+    "qiCoinbaseAddresses": "Адреса Qi для майнинга",
+    "forceQiWalletRescan": "Принудительно сканировать баланс Qi",
+    "forceQiWalletRescanConfirm": "Пересканировать кошелёк Qi? Локальные данные о транзакциях будут сброшены и заново загружены из сети. Это может занять несколько минут.",
+    "rescanning": "Сканирование...",
+    "aggregateQiOutputs": "Агрегация выходов Qi",
+    "aggregateQiOutputsConfirm": "Это объединит ваши выходы Qi в меньшее число UTXO с бОльшим номиналом.\n\n Макс. номинал входа: максимальный номинал UTXO, которые будут объединены.\n\n Макс. номинал выхода: максимальный номинал UTXO, которые будут созданы.",
+    "maxDenominationInput": "Макс. номинал входа:",
+    "maxDenominationOutput": "Макс. номинал выхода:",
+    "showQiUTXODistribution": "Показать распределение UTXO Qi",
+    "qiUTXODistribution": "Распределение UTXO Qi",
+    "utxoCountByDenomination": "Количество UTXO по номиналу",
+    "loadingUTXODistribution": "Загрузка распределения UTXO...",
+    "failedToLoadUTXODistribution": "Не удалось загрузить данные распределения UTXO",
+    "aggregating": "Агрегация...",
+    "cancel": "Отмена",
+    "confirm": "Подтвердить",
+    "addCustomAsset": "Пользовательские активы QUAI",
+    "needHelp": "Нужна помощь?",
+    "showBanners": "Показывать баннеры достижений",
+    "versionLabel": "Версия {{version}}",
+    "unknownVersionOrCommit": "<неизвестно>",
     "exportLogs": {
-      "title": "Сообщить об ошибке"
+      "title": "Сообщить об ошибке",
+      "discordTitle": "1. Присоединитесь к #bug-reports в Discord",
+      "discordDesc": "Посетите наш канал в Discord и сообщите об ошибке там. Не забудьте приложить логи.",
+      "discordBtn": "Присоединиться к Discord",
+      "logTitle": "2. Экспорт логов",
+      "logDesc": "Чтобы лучше понять вашу ошибку, нам нужно, чтобы вы экспортировали логи.",
+      "logBtn": "Экспорт логов",
+      "ariaLabel": "Открыть отчет об ошибке"
+    },
+    "analyticsSetUp": {
+      "title": "Аналитика",
+      "toggleTitleOn": "Аналитика включена",
+      "toggleTitleOff": "Аналитика отключена",
+      "toggleDesc": "Аналитика помогает нам понять ваши потребности и позволяет создавать лучший кошелек для вас",
+      "recordTitle": "Информация, которую мы собираем",
+      "recordItemTrends": "Общие тренды пользователей",
+      "recordItemUsage": "Использование функций",
+      "noRecordTitle": "Мы никогда не собираем",
+      "noRecordItemSeed": "Фразу восстановления",
+      "noRecordItemInfo": "Личную информацию",
+      "noRecordItemBalances": "Адреса, балансы или транзакции",
+      "policyBtn": "Политика конфиденциальности",
+      "deleteBtn": "Удалить мои данные",
+      "analyticsOffSlideUpMenu": {
+        "title": "Отключить аналитику?",
+        "desc": "Вы уверены, что хотите отключить аналитику?",
+        "submitBtn": "Да, отключить",
+        "snackbar": "Аналитика отключена, можно включить в любое время"
+      },
+      "deleteSlideUpMenu": {
+        "title": "Удалить ваши данные?",
+        "desc": "Вы уверены, что хотите удалить ваши данные?",
+        "submitBtn": "Да, удалить данные",
+        "snackbar": "Личные данные будут удалены в ближайшее время"
+      }
+    },
+    "connectedWebsitesSettings": {
+      "title": "Подключенные сайты",
+      "disconnected": "Сайт отключен",
+      "ariaLabel": "Управление подключенными сайтами",
+      "emptyList": "Не подключен ни к одному сайту"
+    },
+    "qiCoinbaseAddressSettings": {
+      "title": "Адреса Qi для майнинга",
+      "disconnected": "Сайт отключен",
+      "ariaLabel": "Адреса майнинга Qi",
+      "emptyList": "у вас нет адресов майнинга Qi",
+      "descriptionText": "Эти адреса генерируются специально для майнеров, их не рекомендуется использовать для транзакций.",
+      "addQiCoinbaseAddressTitle": "Добавить адрес майнинга Qi",
+      "addAddressButtonTitle": "добавить адрес",
+      "confirmButtonTitle": "подтвердить",
+      "selectNetwork": "Выберите шард",
+      "gettingAddress": "генерация нового адреса майнинга Qi"
+    },
+    "addCustomAssetSettings": {
+      "title": "Добавить пользовательский актив",
+      "input.contractAddress.label": "Адрес контракта",
+      "input.tooltip": "Найдите актив в блок-эксплорере, затем скопируйте и вставьте адрес контракта.<br><br>Не делали этого раньше? Сначала ознакомьтесь с <url>Центром знаний</url>.",
+      "asset.label.balance": "Баланс",
+      "asset.label.symbol": "Название",
+      "warning.alreadyExists.title": "Актив уже существует, вы увидите его, когда баланс будет больше 0",
+      "warning.dust.title": "Баланс актива меньше $2, вы увидите его, когда баланс будет больше $2",
+      "error.invalidToken": "Неверный адрес контракта",
+      "submit": "Добавить актив",
+      "snackbar.success": "Актив успешно добавлен",
+      "snackbar.failed": "Не удалось найти детали токена",
+      "footer.hint": "Как добавить пользовательский актив"
+    },
+          "footer": {
+        "discord": "Discord",
+        "twitter": "Twitter", 
+        "github": "GitHub"
+      }
+    },
+  "networkFees": {
+    "unknownFee": "Неизвестно",
+    "toBeDetermined": "TBD",
+    "settingsTitle": "Комиссии сети (Gwei)",
+    "gasLimit": "Лимит газа",
+    "settingsDisabledOne": "Сеть не поддерживает",
+    "settingsDisabledTwo": "настройки газа",
+    "estimatedNetworkFee": "Расчетная комиссия сети",
+    "insufficientBaseAsset": "Недостаточно {{symbol}} для комиссий сети",
+    "totalMax": "Общий макс.",
+    "saveSettings": "Сохранить настройки",
+    "errors": {
+      "limitTooLow": "Лимит газа должен быть выше 21000",
+      "invalidLimit": "Лимит газа должен быть числом",
+      "lowGas": "Низкий"
+    },
+    "maxBase": "Цена газа:",
+    "speeds": {
+      "0": "-",
+      "70": "~5 мин",
+      "95": "~1 мин",
+      "99": "~30 сек"
+    },
+    "types": {
+      "regular": "Обычная",
+      "express": "Экспресс",
+      "instant": "Мгновенная",
+      "custom": "Пользовательская"
     }
   },
   "wallet": {
-    "assetAmount": "Актив / Количество"
+    "activities": {
+      "defaultHistoricalActivityExplainer": "Все ваши новые транзакции будут отображаться здесь.",
+      "endOfList": "Вы достигли конца списка активности.",
+      "moreHistory": "Для получения дополнительной истории посетите",
+      "tokenApproved": "Одобрение токена",
+      "contractInteraction": "Взаимодействие с контрактом",
+      "externalReceived": "Внешнее получение",
+      "externalSend": "Внешняя отправка",
+      "tokenReceived": "Получение",
+      "tokenConvert": "Конвертация",
+      "tokenSent": "Отправка",
+      "infiniteApproval": "Бесконечное",
+      "transactionFailed": "Неудачно",
+      "transactionDropped": "Отброшено",
+      "transactionPending": "Обработка...",
+      "transactionApproved": "Одобрено",
+      "transactionSettled": "Завершено",
+      "contractCreation": "(Создание контракта)",
+      "transactionTo": "Кому:",
+      "loadingActivities": "Копаем глубже...",
+      "addCustomAssetPrompt": "Не можете найти актив?",
+      "addCustomAssetAction": "Добавить актив"
+    },
+    "promoBanner": {
+      "comingSoon": "Скоро Запуск",
+      "yieldPrefix": "До",
+      "yieldHighlight": "25% доходности",
+      "yieldSuffix": "на Quai!",
+      "learnMore": "Подробнее"
+    },
+    "testnetBanner": {
+      "message": "Тестнет завершен, транзакции отключены."
+    },
+    "totalAccountBalance": "Доступный баланс",
+    "totalAccountBalanceShort": "Баланс",
+    "availableDeposit": "Доступный депозит",
+    "wrapSuccess": "Qi успешно обернут",
+    "confirmWrap": "Подтвердить обертку",
+    "confirm": "Подтвердить",
+    "wrapping": "Обертка...",
+    "send": "Отправить",
+    "swap": "Обменять",
+    "convert": "Конверт.",
+    "wrap": "Wrap Qi",
+    "receive": "Получить",
+    "secureSeed": "Сначала защитите вашу фразу восстановления",
+    "sendAsset": "Отправить актив",
+    "assetAmount": "Актив / Количество",
+    "pages": {
+      "assets": "Активы",
+      "activity": "Активность"
+    },
+    "sendTo": "Отправить:",
+    "sendButton": "Отправить",
+    "receiveAddress": "Адрес для получения",
+    "copied": "Скопировано!",
+    "sendToContractWarning": "Это адрес контракта, отправка активов может привести к потере средств.",
+    "options": "Опции",
+    "promoBanner": {
+      "comingSoon": "Скоро Запуск",
+      "yieldPrefix": "До",
+      "yieldHighlight": "25% доходности",
+      "yieldSuffix": "на Quai!",
+      "learnMore": "Подробнее"
+    },
+    "testnetBanner": {
+      "message": "Тестнет завершен, транзакции отключены."
+    },
+    "defaultToggle": {
+      "snackbar": "Вы можете изменить это в Настройках позже",
+      "isDefault": "теперь ваш кошелек по умолчанию",
+      "notDefault": "не ваш кошелек по умолчанию",
+      "tooltip": "Установка Pelagus как кошелька по умолчанию означает, что каждый раз при подключении к dApp будет открываться Pelagus вместо MetaMask или других кошельков."
+    },
+    "analyticsNotification": {
+      "title": "Аналитика включена",
+      "description": "Она помогает нам улучшить кошелек. Вы можете отключить в любое время",
+      "settingsLink": "Изменить настройки"
+    },
+    "unverifiedAssets": {
+      "stateOfHiddenAssets1": "Скрыть",
+      "stateOfHiddenAssets2": "Показать",
+      "hiddenAssets": "{{stateOfHiddenAssets}} неподтвержденных активов ({{amount}})",
+      "verifyAsset": "Подтвердить актив"
+    },
+    "verifiedAssets": {
+      "assetImported": "Актив автоматически импортирован",
+      "symbol": "Символ",
+      "contract": "Адрес контракта",
+      "discoveryTxHash": "Добавлено из транзакции",
+      "dontShow": "Не показывать",
+      "addToAssetList": "Добавить в список активов",
+      "verifyAssetSnackbar": "Актив добавлен в список",
+      "removeAssetSnackbar": "Актив удален из списка",
+      "banner": {
+        "titleUnverified": "Актив не подтвержден",
+        "titleVerified": "Актив подтвержден вами",
+        "description": "Остерегайтесь мошеннических и спам-активов, взаимодействуйте только с теми активами, которым доверяете.",
+        "oldDescription": "Совершайте транзакции только с теми активами, которым доверяете."
+      }
+    }
+  },
+  "topMenu": {
+    "accountSelect": "Выбрать аккаунт",
+    "addQuaiaccount": "Добавить аккаунт Quai",
+    "addQiaccount": "Добавить приватный ключ Qi",
+    "connectToWebsiteUsing": "Подключиться к сайту используя:",
+    "setPelagusAsDefault": "Установить Pelagus по умолчанию",
+    "setOtherAsDefault": "Установить MetaMask/другой кошелек по умолчанию",
+    "copyAddressTooltip": "Адрес скопирован",
+    "addressCopiedMsg": "Адрес скопирован в буфер обмена",
+    "addQuaiAccountTitle": "Добавить аккаунт Quai",
+    "selectAShard": "Выберите шард",
+    "confirm": "Подтвердить",
+    "importFromPrivateKey": "Импорт из приватного ключа",
+    "importPrivateKeySubtitle": "Импорт приватного ключа не связывает его с секретной фразой восстановления, но он все еще защищен тем же паролем.",
+    "pastePrivateKeyString": "Вставьте строку приватного ключа...",
+    "importAccount": "Импортировать аккаунт",
+    "connectedDappInfo": {
+      "dAppTitle": "Аккаунт подключен к",
+      "dappConnections": "Подключение к dApp",
+      "guideline": {
+        "title": "Как подключиться к dApp",
+        "step1": "Установить Pelagus как кошелек по умолчанию",
+        "step2": "Нажать \"Connect Wallet\" в dApp",
+        "step3": "Выбрать один из похожих"
+      }
+    }
+  },
+  "dAppConnect": {
+    "switchWallet": {
+      "title": "Pelagus не по умолчанию",
+      "descFirstPart": "Мы отключили Pelagus как кошелек по умолчанию. Вы всегда можете включить его обратно в Настройках",
+      "descSecondPart": "в любое время.",
+      "toggleTitle": "Использовать Pelagus как кошелек по умолчанию"
+    },
+    "defaultConnectionPopover": {
+      "title": "Подключение через Pelagus",
+      "activeWallet": "Ваш активный кошелек - Pelagus.",
+      "activeWalletMeaning": "Это означает, что вы будете подключаться к сайтам через Pelagus даже при выборе MetaMask.",
+      "metaMaskHeading": "Хотите переключиться на MetaMask?",
+      "toggleLabel": "Используйте переключатель сверху для подключения через MetaMask или другой кошелек."
+    }
+  },
+  "keyring": {
+    "signing": {
+      "lock": "Заблокировать кошелек",
+      "unlock": "Разблокировать кошелек"
+    },
+    "setPassword": {
+      "title": "Установить пароль Pelagus",
+      "subtitleFirstLine": "Вам будет предложено ввести этот",
+      "subtitleSecondLine": "пароль для разблокировки Pelagus.",
+      "password": "Пароль",
+      "repeatPassword": "Повторите пароль",
+      "restorePassword": "Восстанавливаете аккаунт?",
+      "submitBtn": "В путь!",
+      "error": {
+        "characterCount": "Должно быть не менее 8 символов",
+        "noMatch": "Пароли не совпадают",
+        "invalidCharacters": "Должен содержать хотя бы одну цифру, заглавную, строчную букву и специальный символ"
+      }
+    },
+    "unlock": {
+      "title": "Добро пожаловать",
+      "subtitle": "Quai - это сеть, где энергия превращается в деньги",
+      "submitBtn": "Разблокировать",
+      "unlocking": "Разблокировка...",
+      "decryptingWallets": "Расшифровка кошельков... {{progress}}%",
+      "signingPassword": "Ввести пароль",
+      "selectLanguage": "Выбор языка",
+      "joinCommunity": "Сообщество Quai",
+      "error": {
+        "incorrect": "Неверный пароль",
+        "pleaseEnterPassword": "Пожалуйста, введите ваш пароль"
+      },
+      "snackbar": "Pelagus разблокирован"
+    }
+  },
+  "drawers": {
+    "selectNetwork": {
+      "title": "Выберите сеть",
+      "toggleShowTestNetworks": "Показать среды разработки",
+      "disabledToggleMessage": "Переключитесь на основную сеть, чтобы отключить среду разработки",
+      "unavailableTestNetworks": "Запустите локальный узел (ноду) для использования этой сети"
+    },
+    "dAppConnection": {
+      "title": "Подключения к dApp",
+      "disconnectButtonText": "Отключить все аккаунты",
+      "youHave": "У вас",
+      "oneConnectedAccount": "аккаунт",
+      "multipleConnectedAccounts": "аккаунта",
+      "accountsConnected": "подключено к этому сайту",
+      "switchAccountBtnText": "Переключиться на этот аккаунт",
+      "disconnectAccountBtnText": "Отключить"
+    },
+    "accountSearchBar": {
+      "placeholder": "Поиск аккаунтов"
+    },
+    "transactionConfirmation": {
+      "viewTransaction": "Просмотр транзакции",
+      "send": {
+        "headerTitle": "{{network}} Отправлено!",
+        "title": "Ваша транзакция была успешно отправлена",
+        "errorHeadline": "Упс!",
+        "errorTitle": "Произошла ошибка при отправке транзакции",
+        "errorSubtitle": "Убедитесь, что отправляемая транзакция действительна, и попробуйте снова"
+      }
+    }
+  },
+  "send": {
+    "balance": "Баланс: {{amount}}",
+    "sourceWallet": "Исходный кошелек",
+    "sendTo": "Отправить:",
+    "enterPaymentCode": "Введите платежный код (TL9C...)",
+    "amount": "Сумма",
+    "enterAmount": "Введите сумму",
+    "max": "Макс",
+    "available": "Доступно - {{balance}}"
+  },
+  "convert_page": {
+    "title": "Конвертировать активы",
+    "native_conversions_disclaimer": "Нативные конвертации предназначены для маркет-мейкеров.",
+    "increase_max_slippage_warning": "Увеличьте максимальный проскальзывание как минимум до {{percentage}}% для обеспечения успешности транзакции.",
+    "next": "Далее",
+    "cancel": "Отмена"
+  },
+  "convert_from": {
+    "from": "Отправитель",
+    "cyprus_1_qi_wallet": "Cyprus 1 - QI Кошелек",
+    "quai_account": "QUAI Аккаунт"
+  },
+  "convert_to": {
+    "to": "Получатель",
+    "cyprus_1_qi_wallet": "Cyprus 1 - QI Кошелек",
+    "quai_account": "QUAI Аккаунт"
+  },
+  "convert_amount": {
+    "enter_quai_amount": "Введите количество QUAI",
+    "max": "Макс",
+    "available": "Доступно"
+  },
+  "convert_rate": {
+    "market_rate": "Рыночный курс"
+  },
+  "convert_slippage": {
+    "estimated_slippage": "Расчетное проскальзывание",
+    "max_slippage": "Максимальное проскальзывание",
+    "custom": "Пользовательский",
+    "min_slippage_warning": "Минимальное проскальзывание 0.3%",
+    "max_slippage_warning": "Максимальное проскальзывание 90%"
+  },
+  "confirm_conversion": {
+    "funds_locked_warning": "Эти средства будут заблокированы примерно на 2 недели.",
+    "learn_more": "Подробнее",
+    "converting": "Конвертация"
+  },
+  "signing": {
+    "signatureRequired": "Требуется ваша подпись",
+    "dappSignatureRequest": "dApp запрашивает вашу подпись",
+    "message": "Сообщение",
+    "signed": "Подписано",
+    "type": "Тип",
+    "EIP4361": {
+      "subtext1": "Хочет, чтобы вы вошли с помощью вашего",
+      "subtext2": "аккаунта Quai:",
+      "statement": "Заявление",
+      "nonce": "Nonce",
+      "version": "Версия",
+      "chainID": "ID цепочки",
+      "expiration": "Истечение"
+    }
+  },
+  "signTransaction": {
+    "title": "Подписать транзакцию",
+    "reject": "Отклонить",
+    "unknownNetwork": "Неизвестная сеть",
+    "rawDataCopyMsg": "Сырые данные скопированы в буфер обмена",
+    "copyRawData": "Копировать hex",
+    "confirmButtonLabel": "Подписать",
+    "unsavedChangesTooltip": "У вас есть несохраненные изменения",
+    "spendApproval": {
+      "title": "Одобрить расход актива",
+      "approveSpender": "Одобрить <spenderAddress></spenderAddress>",
+      "spendAmount": "Расходовать токены {{assetSymbol}}",
+      "spendLimit": "Лимит расхода",
+      "tooltip1": "Лимит расхода - это сумма средств от конкретного актива, которую вы разрешаете контракту тратить.",
+      "tooltip2": "Бесконечная транзакция имеет недостаток: если контракт злонамеренный, он может украсть все ваши средства.",
+      "changeLimit": "Изменить лимит",
+      "invalidAmount": "Неверная сумма"
+    },
+    "assetTransfer": {
+      "title": "Перевод",
+      "sendTo": "Отправить",
+      "spendAmountLabel": "Сумма расхода"
+    },
+    "contractInteraction": {
+      "title": "Взаимодействие с контрактом",
+      "interactingWithLabel": "Взаимодействие с",
+      "newlyCreatedContract": "Недавно созданный контракт"
+    },
+    "signTypedData": {
+      "confirmButtonLabel": "Подтвердить"
+    },
+    "callingFunction": "функция"
+  },
+  "switchWallet": {
+    "title": "Хотите использовать другой кошелек?",
+    "tooltip": "Вы видите это, потому что Pelagus установлен как кошелек по умолчанию, вы можете изменить эту опцию в главном меню.",
+    "confirmSwitchWallet": "Да, переключить кошелек"
+  },
+  "globalError": {
+    "title": "Упс, здесь нечего смотреть",
+    "desc": "Похоже, вы столкнулись с пустой миской, попробуйте обновить страницу, чтобы увидеть, появится ли что-то",
+    "submitBtn": "Обновить страницу"
+  },
+  "globalModal": {
+    "title": "Привет, мир. Встречайте Pelagus Alpha.",
+    "description1": "Помогите нам сделать этот продукт лучше, сообщая о проблемах на нашем сайте поддержки: ",
+    "description2": "",
+    "description3": "",
+    "button": "Читать далее"
+  },
+  "devPanel": {
+    "title": "Панель разработчика",
+    "featureFlags": {
+      "title": "Флаги функций",
+      "flags": {
+        "HIDE_IMPORT_DERIVATION_PATH": "Скрыть путь импорта деривации",
+        "USE_UPDATED_SIGNING_UI": "Использовать обновленный UI подписи",
+        "SUPPORT_MULTIPLE_LANGUAGES": "Включить выбор языка",
+        "SUPPORT_ACHIEVEMENTS_BANNER": "Включить баннер достижений",
+        "SUPPORT_UNVERIFIED_ASSET": "Включить подтверждение активов"
+      }
+    }
+  },
+  "tabs": {
+    "wallet": "Кошелек",
+    "settings": "Настройки"
+  },
+  "convert": "Конверт.",
+  "receive": "Получить",
+  "common": {
+    "wrapQi": "Обернуть Qi",
+    "confirmTransaction": "Подтвердить транзакцию",
+    "reviewTransaction": "Просмотреть транзакцию",
+    "insufficientFunds": "Недостаточно средств для обработки транзакции",
+    "pleaseWaitMinute": "Пожалуйста, подождите минуту, чтобы получить ваш обернутый Qi",
+    "next": "Далее",
+    "cancel": "Отмена",
+    "wrap": "Обернуть",
+    "addressCopiedToClipboard": "Адрес скопирован в буфер обмена",
+    "qiPaymentCode": "Qi Payment Code",
+    "unknown": "Неизвестно",
+    "quai": "Quai",
+    "invalidZone": "Неверная зона",
+    "noAccountFound": "Аккаунт не найден",
+    "paymentCodeCopiedToClipboard": "Платежный код скопирован в буфер обмена",
+    "wrapQiDescription": "Оберните ваш Qi для использования с Quai в EVM.",
+    "minimumQuaiRequiredForGas": "Минимальное количество Quai для комиссии за газ: {{amount}}",
+    "decryptingWallets": "Расшифровка кошельков... {{progress}}%"
   }
 }

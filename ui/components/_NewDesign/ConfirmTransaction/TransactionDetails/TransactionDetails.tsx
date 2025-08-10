@@ -1,9 +1,11 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import ArrowRightIcon from "../../../Shared/_newDeisgn/iconComponents/ArrowRightIcon"
 import { useBackgroundSelector } from "../../../../hooks"
 import { trimWithEllipsis } from "../../../../utils/textUtils"
 
 const TransactionDetails = () => {
+  const { t } = useTranslation()
   const { receiverPaymentCode, senderQiAccount, amount } =
     useBackgroundSelector((state) => state.qiSend)
 
@@ -17,7 +19,7 @@ const TransactionDetails = () => {
 
         <div className="wallets">
           <div className="wallet">
-            <p className="wallet-to-from">From</p>
+            <p className="wallet-to-from">{t("convert_from.from")}</p>
             <p className="wallet-zone">Wallet 2</p>
             <p className="wallet-payment-code">{`(${paymentCode.slice(
               0,
@@ -28,7 +30,7 @@ const TransactionDetails = () => {
             <ArrowRightIcon />
           </div>
           <div className="wallet">
-            <p className="wallet-to-from">To</p>
+            <p className="wallet-to-from">{t("convert_to.to")}</p>
             <p className="wallet-zone">Wallet 1</p>
             <p className="wallet-payment-code">{`(${receiverPaymentCode.slice(
               0,

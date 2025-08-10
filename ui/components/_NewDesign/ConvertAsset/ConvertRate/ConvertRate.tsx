@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { setConvertRateHandle } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
-import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 
 const ConvertRate = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const rate = useBackgroundSelector((state) => state.convertAssets.rate)
   const convertFromAccount = useBackgroundSelector(
@@ -37,7 +39,7 @@ const ConvertRate = () => {
   return (
     <>
       <div className="rate-container">
-        <span className="rate-label">Market rate</span>
+        <span className="rate-label">{t("convert_rate.market_rate")}</span>
         <span className="rate-value">
           1 {fromAsset} ≈ {formattedRate} {toAsset}
         </span>

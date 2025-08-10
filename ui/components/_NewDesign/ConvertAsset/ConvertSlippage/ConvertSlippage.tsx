@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useBackgroundSelector } from "../../../../hooks"
 
 const ConvertSlippage = () => {
+  const { t } = useTranslation()
   const expectedSlippage = useBackgroundSelector(
     (state) => state.convertAssets.expectedSlippage
   )
@@ -28,7 +30,7 @@ const ConvertSlippage = () => {
   return (
     <>
       <div className="slippage-container">
-        <span className="slippage-label">Estimated slippage</span>
+        <span className="slippage-label">{t("convert_slippage.estimated_slippage")}</span>
         <span className="slippage-value">{formattedSlippage}%</span>
       </div>
       <style jsx>{`

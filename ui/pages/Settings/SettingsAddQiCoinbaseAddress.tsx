@@ -56,7 +56,7 @@ export default function SettingsAddQiCoinbaseAddress(): ReactElement {
               options={zoneOptions}
               onChange={(value: string) => handleZoneSelection(value as Zone)}
               defaultIndex={0}
-              label="Select a Network"
+              label={t("qiCoinbaseAddressSettings.selectNetwork")}
               width="100%"
               align-self="center"
             />

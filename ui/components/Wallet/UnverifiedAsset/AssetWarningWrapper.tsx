@@ -1,4 +1,5 @@
 import React, { ReactElement, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { SmartContractFungibleAsset } from "@pelagus/pelagus-background/assets"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { Activity } from "@pelagus/pelagus-background/redux-slices/activities"
@@ -17,6 +18,7 @@ type AssetWarningWrapperProps = {
 export default function AssetWarningWrapper(
   props: AssetWarningWrapperProps
 ): ReactElement {
+  const { t } = useTranslation()
   const { asset, close } = props
 
   const [showAssetWarning, setShowAssetWarning] = useState(!!asset)
@@ -59,7 +61,7 @@ export default function AssetWarningWrapper(
         footer={<></>}
         header={
           <SharedModalHeaders
-            title="Review Transaction"
+            title={t("common.reviewTransaction")}
             onClose={handleCloseTxDetailsModal}
             withGoBackIcon={false}
           />

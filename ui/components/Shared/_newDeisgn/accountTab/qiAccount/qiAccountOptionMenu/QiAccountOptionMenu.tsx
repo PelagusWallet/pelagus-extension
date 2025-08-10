@@ -4,6 +4,7 @@ import {
   setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedDropdown, { DropdownOption } from "../../../../SharedDropDown"
 import {
@@ -13,6 +14,7 @@ import {
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
@@ -40,11 +42,11 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
         {
           key: "copy",
           icon: "icons/s/copy.svg",
-          label: "Copy payment code",
+          label: t("accounts.accountItem.copyPaymentCode"),
           onClick: async () => {
             await onCopyData({
               data: paymentCode,
-              notificationMessage: "Payment code copied to clipboard",
+              notificationMessage: t("accounts.accountItem.paymentCodeCopiedToClipboard"),
             })
           },
         },
@@ -54,7 +56,7 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
         {
           key: "send",
           icon: "icons/s/arrow-up.svg",
-          label: "Send asset",
+          label: t("accounts.accountItem.sendAsset"),
           onClick: async () => {
             await dispatch(resetQiSendSlice())
             history.push("/send-qi")
@@ -64,11 +66,11 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
         {
           key: "copy",
           icon: "icons/s/copy.svg",
-          label: "Copy payment code",
+          label: t("accounts.accountItem.copyPaymentCode"),
           onClick: async () => {
             await onCopyData({
               data: paymentCode,
-              notificationMessage: "Payment code copied to clipboard",
+              notificationMessage: t("accounts.accountItem.paymentCodeCopiedToClipboard"),
             })
           },
         },
@@ -111,5 +113,5 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
     </div>
   )
 }
-
 export default QiAccountOptionMenu
+

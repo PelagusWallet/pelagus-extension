@@ -1,9 +1,11 @@
 import React, { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { setQiSendReceiverPaymentCode } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import QrCodeScannerIcon from "../../../Shared/_newDeisgn/iconComponents/QrCodeScannerIcon"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 
 const SendTo = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const sendTo = useBackgroundSelector(
@@ -20,13 +22,13 @@ const SendTo = () => {
   return (
     <>
       <section className="to-wallet">
-        <h3 className="to-label">Send To</h3>
+        <h3 className="to-label">{t("send.sendTo")}</h3>
 
         <div className="to-wrapper">
           <input
             type="text"
             className="to-input"
-            placeholder="Enter payment code (TL9C...)"
+            placeholder={t("send.enterPaymentCode")}
             value={inputValue}
             onChange={handleChange}
           />

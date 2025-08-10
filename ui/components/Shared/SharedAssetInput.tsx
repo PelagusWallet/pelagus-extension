@@ -622,6 +622,9 @@ export default function SharedAssetInput<T extends AnyAsset>(
             font-weight: 500;
             font-size: 14px;
             line-height: 24px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .error_message_wrap {
             position: absolute;

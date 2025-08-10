@@ -3,6 +3,7 @@ import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { NameResolverSystem } from "@pelagus/pelagus-background/services/name"
 import classNames from "classnames"
 import React, { ReactElement, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { useBackgroundDispatch } from "../../hooks"
 import SharedTooltip from "./SharedTooltip"
 
@@ -21,14 +22,15 @@ export default function SharedAddress({
   nameResolverSystem,
   alwaysShowAddress,
 }: SharedAddressProps): ReactElement {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const primaryText = name ?? truncateAddress(address)
 
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
-    dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
-  }, [address, dispatch])
+    dispatch(setSnackbarConfig({ message: t("common.addressCopiedToClipboard") }))
+  }, [address, dispatch, t])
 
   return (
     <button

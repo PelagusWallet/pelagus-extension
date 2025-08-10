@@ -22,13 +22,13 @@ const SendTo = () => {
   return (
     <>
       <section className="to-wallet">
-        <h3 className="to-label">{t("wallet.sendTo")}</h3>
+        <h3 className="to-label">{t("send.sendTo")}</h3>
 
         <div className="to-wrapper">
           <input
             type="text"
             className="to-input"
-            placeholder="Enter payment code (TL9C...)"
+            placeholder={t("send.enterPaymentCode")}
             value={inputValue}
             onChange={handleChange}
           />

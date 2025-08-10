@@ -155,7 +155,7 @@ export default function KeyringUnlock(): ReactElement {
             <div className={`progress_container ${isUnlocking ? 'show' : 'hide'}`}>
               <SharedProgressBar progress={unlockProgress} height={4} />
               <div className="progress_text">
-                Decrypting Wallets... {unlockProgress}%
+                {t("decryptingWallets", { progress: unlockProgress })}
               </div>
             </div>
             <div>

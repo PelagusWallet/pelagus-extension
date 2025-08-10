@@ -73,7 +73,7 @@ const SendPage = (): ReactElement => {
         <SharedGoBackPageHeader title={t("wallet.sendAsset")} linkTo="/" />
         <SendAsset />
         <SharedActionButtons
-          title={{ confirmTitle: "Next", cancelTitle: "Cancel" }}
+          title={{ confirmTitle: t("common.next"), cancelTitle: t("common.cancel") }}
           isConfirmDisabled={isConfirmDisabled}
           onClick={{
             onConfirm: () => handleConfirm(),

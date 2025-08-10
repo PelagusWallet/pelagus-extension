@@ -194,7 +194,7 @@ const WrapPage = () => {
       <div className="header-area">
           <SharedGoBackPageHeader title={t("common.wrapQi")} linkTo="/" />
           <div className="disclaimer">
-            Wrap your Qi to be used with Quai in the EVM.
+            {t("common.wrapQiDescription")}
           </div>
         </div>
       <div className="content">
@@ -204,7 +204,7 @@ const WrapPage = () => {
         {!hasMinimumQuai() && (
           <div className="error">
             <FaTriangleExclamation className="error-icon" />
-            {"Minimum Quai Required for Gas fees: " + MIN_QUAI_REQUIREMENT}
+            {t("common.minimumQuaiRequiredForGas", { amount: MIN_QUAI_REQUIREMENT })}
           </div>
         )}
         {renderDepositBalance()}

@@ -116,6 +116,7 @@
       "subtitle": "Where energy transforms into money",
       "submitBtn": "Unlock",
       "unlocking": "Unlocking...",
+      "decryptingWallets": "Decrypting Wallets... {{progress}}%",
       "signingPassword": "Pelagus password",
       "selectLanguage": "Select language",
       "joinCommunity": "Join Community",
@@ -405,7 +406,14 @@
     }
   },
   "send": {
-    "balance": "Balance: {{amount}}"
+    "balance": "Balance: {{amount}}",
+    "sourceWallet": "Source Wallet",
+    "sendTo": "Send To:",
+    "enterPaymentCode": "Enter payment code (TL9C...)",
+    "amount": "Amount",
+    "enterAmount": "Enter Amount",
+    "max": "Max",
+    "available": "Available - {{balance}}"
   },
   "convert_page": {
     "title": "Convert Assets",
@@ -706,7 +714,9 @@
     "quai": "Quai",
     "invalidZone": "Invalid zone",
     "noAccountFound": "No account found",
-    "paymentCodeCopiedToClipboard": "Payment code copied to clipboard"
+    "paymentCodeCopiedToClipboard": "Payment code copied to clipboard",
+    "wrapQiDescription": "Wrap your Qi to be used with Quai in the EVM.",
+    "minimumQuaiRequiredForGas": "Minimum Quai Required for Gas fees: {{amount}}"
   },
   "drawers": {
     "selectNetwork": {

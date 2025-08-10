@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { setQiSendAmount } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import { UtxoAccountData } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { formatQi, Zone } from "quais"
@@ -7,6 +8,7 @@ import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
 
 const Amount = () => {
+  const { t } = useTranslation()
   const dispatch = useBackgroundDispatch()
 
   const amount = useBackgroundSelector((state) => state.qiSend.amount)
@@ -57,12 +59,12 @@ const Amount = () => {
   return (
     <>
       <section className="amount-wallet">
-        <h3 className="amount-label">Amount</h3>
+        <h3 className="amount-label">{t("send.amount")}</h3>
         <div className="amount-wrapper">
           <input
             type="text"
             className="amount-input"
-            placeholder="Enter Amount"
+            placeholder={t("send.enterAmount")}
             value={inputValue}
             onChange={handleInput}
           />
@@ -71,11 +73,11 @@ const Amount = () => {
             className="amount-button"
             onClick={() => onMaxAmount(utxoAccountArr[0])}
           >
-            Max
+            {t("send.max")}
           </button>
         </div>
         <div className="amount-available">
-          Available - {balanceHandle(utxoAccountArr[0])}
+          {t("send.available", { balance: balanceHandle(utxoAccountArr[0]) })}
         </div>
       </section>
       <style jsx>{`

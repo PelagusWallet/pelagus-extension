@@ -572,6 +572,7 @@
       "subtitle": "Quai - это сеть, где энергия превращается в деньги",
       "submitBtn": "Разблокировать",
       "unlocking": "Разблокировка...",
+      "decryptingWallets": "Расшифровка кошельков... {{progress}}%",
       "signingPassword": "Ввести пароль",
       "selectLanguage": "Выбор языка",
       "joinCommunity": "Сообщество Quai",
@@ -614,7 +615,14 @@
     }
   },
   "send": {
-    "balance": "Баланс: {{amount}}"
+    "balance": "Баланс: {{amount}}",
+    "sourceWallet": "Исходный кошелек",
+    "sendTo": "Отправить:",
+    "enterPaymentCode": "Введите платежный код (TL9C...)",
+    "amount": "Сумма",
+    "enterAmount": "Введите сумму",
+    "max": "Макс",
+    "available": "Доступно - {{balance}}"
   },
   "convert_page": {
     "title": "Конвертировать активы",
@@ -753,6 +761,9 @@
     "quai": "Quai",
     "invalidZone": "Неверная зона",
     "noAccountFound": "Аккаунт не найден",
-    "paymentCodeCopiedToClipboard": "Платежный код скопирован в буфер обмена"
+    "paymentCodeCopiedToClipboard": "Платежный код скопирован в буфер обмена",
+    "wrapQiDescription": "Оберните ваш Qi для использования с Quai в EVM.",
+    "minimumQuaiRequiredForGas": "Минимальное количество Quai для комиссии за газ: {{amount}}",
+    "decryptingWallets": "Расшифровка кошельков... {{progress}}%"
   }
 }

@@ -5,12 +5,12 @@ import {
   createAddressOnNetwork,
 } from "../../../tests/factories"
 import { ChainDatabase, initializeChainDatabase } from "../db"
-import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
+import { QuaiOrchardTestnet } from "../../../constants/networks/networks"
 
 describe("Chain Database ", () => {
   let db: ChainDatabase
   const account1 = createAddressOnNetwork()
-  const account2 = createAddressOnNetwork({ network: QuaiGoldenAgeTestnet })
+  const account2 = createAddressOnNetwork({ network: QuaiOrchardTestnet })
 
   beforeEach(() => {
     // Reset state of indexedDB

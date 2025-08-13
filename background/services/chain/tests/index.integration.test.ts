@@ -4,7 +4,7 @@ import { createChainService } from "../../../tests/factories"
 import { ChainDatabase } from "../db"
 import {
   PELAGUS_NETWORKS,
-  QuaiGoldenAgeTestnet,
+  QuaiOrchardTestnet,
 } from "../../../constants/networks/networks"
 import { QuaiTransactionDB } from "../../transactions/types"
 
@@ -35,7 +35,7 @@ describe("ChainService", () => {
       // Startup is simulated in the `beforeEach`
       expect(
         chainService.subscribedNetworks.filter(
-          ({ network }) => network.chainID === QuaiGoldenAgeTestnet.chainID
+          ({ network }) => network.chainID === QuaiOrchardTestnet.chainID
         )
       ).toHaveLength(1)
     })
@@ -94,12 +94,12 @@ describe("ChainService", () => {
     it("Should fetch built-in and custom networks to track", async () => {
       await chainService.addAccountToTrack({
         address: "0x123",
-        network: QuaiGoldenAgeTestnet,
+        network: QuaiOrchardTestnet,
       })
 
       await chainService.addAccountToTrack({
         address: "0x123",
-        network: QuaiGoldenAgeTestnet,
+        network: QuaiOrchardTestnet,
       })
 
       expect(

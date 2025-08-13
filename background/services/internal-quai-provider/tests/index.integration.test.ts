@@ -8,7 +8,7 @@ import {
 import { validateAddEthereumChainParameter } from "../../provider-bridge/utils"
 import { SignTypedDataRequest } from "../../../utils/signing"
 import { EIP712TypedData } from "../../../types"
-import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
+import { QuaiOrchardTestnet } from "../../../constants/networks/networks"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
 
 const TEST_ADDRESS = "0x208e94d5661a73360d9387d3ca169e5c130090cd"
@@ -104,7 +104,7 @@ describe("Internal Quai Provider Service", () => {
       const EIP712ObjectFiltered: SignTypedDataRequest = {
         account: {
           address: TEST_ADDRESS,
-          network: QuaiGoldenAgeTestnet,
+          network: QuaiOrchardTestnet,
         },
         typedData: {
           types,

@@ -83,11 +83,16 @@ const MaxSlippageSelector = () => {
               type="text"
               className="custom-slippage-input"
               placeholder="Custom"
-              value={isCustom ? customValue : ""}
+              value={isCustom ? customValue : (!isPresetValue ? getPercentageValue() : "")}
               onChange={handleCustomInputChange}
-              onFocus={() => {
+              onFocus={(e) => {
                 setIsCustom(true)
-                setCustomValue(getPercentageValue())
+                const currentValue = getPercentageValue()
+                setCustomValue(currentValue)
+                // Select all text for easy replacement
+                setTimeout(() => {
+                  e.target.select()
+                }, 0)
               }}
             />
             <span className="percentage-symbol">%</span>

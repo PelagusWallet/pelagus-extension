@@ -1,8 +1,8 @@
 import React, { useState } from "react"
-import { useHistory } from "react-router-dom"
+import { useHistory, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useBackgroundSelector } from "../../hooks"
-import { wrapQiHandle } from "@pelagus/pelagus-background/redux-slices/convertAssets"
+import { wrapQiHandle, unwrapQiHandle } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import ConfirmWrap from "../../components/_NewDesign/WrapAsset/ConfirmWrap"
 import SharedConfirmationModal from "../../components/Shared/SharedConfirmationModal"
 import SharedButton from "../../components/Shared/SharedButton"
@@ -23,6 +23,7 @@ const ConfirmWrapPage = () => {
     keyPrefix: "drawers.transactionConfirmation",
   })
   const history = useHistory()
+  const location = useLocation()
   const dispatch = useBackgroundDispatch()
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -31,21 +32,29 @@ const ConfirmWrapPage = () => {
   const [transactionHash, setTransactionHash] = useState("")
   const network = useBackgroundSelector(selectCurrentNetwork)
   const blockExplorerUrl = network.blockExplorerURL
+  const isUnwrap = location.pathname === "/unwrap/confirmation"
 
   const { from, amount, to } = useBackgroundSelector((state) => state.convertAssets)
 
   const handleConfirm = async () => {
-    if (!from || !amount || !to) {
-      return
-    }
-
-    if (!isUtxoAccountTypeGuard(from) || !isAccountTotalTypeGuard(to)) {
-      return
+    if (isUnwrap) {
+      // For unwrapping, only need from and amount
+      if (!from || !amount || !isAccountTotalTypeGuard(from)) {
+        return
+      }
+    } else {
+      // For wrapping, need all three
+      if (!from || !amount || !to) {
+        return
+      }
+      if (!isUtxoAccountTypeGuard(from) || !isAccountTotalTypeGuard(to)) {
+        return
+      }
     }
 
     try {
       setIsLoading(true)
-      const result = await dispatch(wrapQiHandle()) as AsyncThunkResult
+      const result = await dispatch(isUnwrap ? unwrapQiHandle() : wrapQiHandle()) as AsyncThunkResult
       if (result?.txHash) {
         setTransactionHash(result.txHash)
       } else {
@@ -56,8 +65,9 @@ const ConfirmWrapPage = () => {
       }
       setIsModalOpen(true)
     } catch (error: any) {
-      console.error("Failed to wrap Qi:", error)
-      setErrorMessage(error?.message || "Failed to wrap Qi")
+      const action = isUnwrap ? "unwrap" : "wrap"
+      console.error(`Failed to ${action} Qi:`, error)
+      setErrorMessage(error?.message || `Failed to ${action} Qi`)
       setIsTransactionError(true)
     } finally {
       setIsLoading(false)
@@ -80,21 +90,26 @@ const ConfirmWrapPage = () => {
         onClose: () => history.push("/"),
       }
     : {
-        headerTitle: t("wrapSuccess"),
-        title: `Qi wrapped successfully`,
-        subtitle: "Please wait a minute to claim your wrapped Qi",
+        headerTitle: isUnwrap ? "Unwrap Success" : t("wrapSuccess"),
+        title: isUnwrap ? "WQI unwrapped successfully" : "Qi wrapped successfully",
+        subtitle: isUnwrap 
+          ? "Your WQI has been unwrapped to native Qi" 
+          : "Please wait a minute to claim your wrapped Qi",
         isOpen: isModalOpen,
-        onClose: () => history.push("/wrap", { sentWrap: true }),
+        onClose: () => history.push(isUnwrap ? "/" : "/wrap", isUnwrap ? {} : { sentWrap: true }),
       }
 
   return (
     <main>
       <div className="header-area">
-        <SharedGoBackPageHeader title={t("confirmWrap")} linkTo="/wrap" />
+        <SharedGoBackPageHeader 
+          title={isUnwrap ? "Confirm Unwrap" : t("confirmWrap")} 
+          linkTo={isUnwrap ? "/unwrap" : "/wrap"} 
+        />
       </div>
 
       <div className="content">
-        <ConfirmWrap />
+        <ConfirmWrap isUnwrap={isUnwrap} />
       </div>
 
       <div className="footer">
@@ -105,7 +120,7 @@ const ConfirmWrapPage = () => {
           isDisabled={isLoading}
           isLoading={isLoading}
         >
-          {t("confirm")}
+          {isUnwrap ? "Confirm Unwrap" : t("confirm")}
         </SharedButton>
       </div>
 

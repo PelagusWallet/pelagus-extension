@@ -153,6 +153,16 @@ const pageList: PageList[] = [
     hasTopBar: false,
   },
   {
+    path: "/unwrap/confirmation",
+    Component: ConfirmWrapPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/unwrap",
+    Component: WrapPage,
+    hasTopBar: false,
+  },
+  {
     path: "/dapp-permission",
     Component: DAppPermissionRequest,
     hasTopBar: false,

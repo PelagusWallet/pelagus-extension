@@ -252,6 +252,31 @@ export const wrapQiHandle = createBackgroundAsyncThunk(
   }
 )
 
+export const unwrapQiHandle = createBackgroundAsyncThunk(
+  "convertAssets/unwrapQiHandle",
+  async (_, { getState }) => {
+    const { convertAssets } = getState() as RootState
+    const { from, amount } = convertAssets
+
+    // For unwrapping, from is a Quai account with WQI
+    // The unwrapQi function automatically finds an unused Qi address
+    if (!from || !amount || !isAccountTotalTypeGuard(from)) {
+      return { error: { message: "Invalid unwrap parameters" } }
+    }
+
+    try {
+      const txHash = await main.transactionService.unwrapQi(amount, from.address)
+      return { txHash }
+    } catch (error: any) {
+      return { 
+        error: {
+          message: typeof error === 'string' ? error : error?.message
+        }
+      }
+    }
+  }
+)
+
 export const claimWrappedQiDepositHandle = createBackgroundAsyncThunk(
   "convertAssets/claimWrappedQiDepositHandle",
   async ({from}: {from: string}, { extra: { main } }) => {

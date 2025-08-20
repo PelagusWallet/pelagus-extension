@@ -1,10 +1,11 @@
 import React, { ReactElement, useState } from "react"
-import { useLocation } from "react-router-dom"
+import { useLocation, useHistory } from "react-router-dom"
 import {
   selectCurrentAccount,
   selectCurrentAccountActivities,
   selectCurrentAccountBalances,
   selectCurrentAccountSigner,
+  selectCurrentAccountTotal,
   selectCurrentNetwork,
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { sameQuaiAddress } from "@pelagus/pelagus-background/lib/utils"
@@ -23,7 +24,9 @@ import {
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { PELAGUS_NETWORKS } from "@pelagus/pelagus-background/constants/networks/networks"
 import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
-import { useBackgroundSelector } from "../hooks"
+import { WRAPPED_QI_CONTRACT_ADDRESS } from "@pelagus/pelagus-background/constants/base-assets"
+import { useBackgroundSelector, useBackgroundDispatch } from "../hooks"
+import { setConvertFrom, setConvertAmount } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import SharedButton from "../components/Shared/SharedButton"
 import WalletActivityList from "../components/Wallet/WalletActivityList"
 import SharedBackButton from "../components/Shared/SharedBackButton"
@@ -32,12 +35,15 @@ import { blockExplorer } from "../utils/constants"
 import AssetVerifyToggler from "../components/Wallet/UnverifiedAsset/AssetVerifyToggler"
 import { trimWithEllipsis } from "../utils/textUtils"
 import AssetWarningWrapper from "../components/Wallet/UnverifiedAsset/AssetWarningWrapper"
+import { isAccountTotalTypeGuard } from "../utils/accounts"
 
 const MAX_SYMBOL_LENGTH = 10
 
 export default function SingleAsset(): ReactElement {
   const { t } = useTranslation()
   const location = useLocation<AnyAsset>()
+  const history = useHistory()
+  const dispatch = useBackgroundDispatch()
   const currentAccount = useBackgroundSelector(selectCurrentAccount)
   const locationAsset = location.state ?? currentAccount.network.baseAsset
 
@@ -50,6 +56,7 @@ export default function SingleAsset(): ReactElement {
   const currentAccountSigner = useBackgroundSelector(selectCurrentAccountSigner)
   const currentNetwork = useBackgroundSelector(selectCurrentNetwork)
   const account = useBackgroundSelector(selectCurrentAccount)
+  const currentAccountTotal = useBackgroundSelector(selectCurrentAccountTotal)
 
   const filteredActivities = useBackgroundSelector((state) =>
     (selectCurrentAccountActivities(state) ?? []).filter((activity) => {
@@ -102,6 +109,27 @@ export default function SingleAsset(): ReactElement {
   const showActionButtons = isEnabled(FeatureFlags.SUPPORT_UNVERIFIED_ASSET)
     ? !isUnverifiedByUser
     : true
+  
+  // Check if this is WQI and if the balance is greater than 0
+  const isWQI = contractAddress && sameQuaiAddress(contractAddress, WRAPPED_QI_CONTRACT_ADDRESS)
+  const hasWQIBalance = isWQI && localizedDecimalAmount && parseFloat(localizedDecimalAmount) > 0
+  
+  const handleUnwrap = () => {
+    if (!currentAccountTotal || !localizedDecimalAmount || !asset) return
+    
+    // Set the from account (current Quai account with WQI)
+    // currentAccountTotal is already an AccountTotal type
+    // Format the balance to include WQI symbol
+    const fromAccount = {
+      ...currentAccountTotal,
+      balance: `${localizedDecimalAmount} WQI`
+    }
+    
+    dispatch(setConvertFrom(fromAccount))
+    
+    // Navigate to unwrap page
+    history.push("/unwrap")
+  }
 
   return (
     <>
@@ -207,7 +235,7 @@ export default function SingleAsset(): ReactElement {
 
             {showActionButtons &&
               currentAccountSigner !== ReadOnlyAccountSigner && (
-                <>
+                <div className="action-buttons">
                   <SharedButton
                     type="primary"
                     size="medium"
@@ -219,7 +247,16 @@ export default function SingleAsset(): ReactElement {
                   >
                     {t("shared.send")}
                   </SharedButton>
-                </>
+                  {hasWQIBalance && (
+                    <SharedButton
+                      type="secondary"
+                      size="medium"
+                      onClick={handleUnwrap}
+                    >
+                      Unwrap
+                    </SharedButton>
+                  )}
+                </div>
               )}
           </div>
         </div>
@@ -285,6 +322,11 @@ export default function SingleAsset(): ReactElement {
             margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
+          }
+          .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
           }
         `}
       </style>

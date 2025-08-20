@@ -3,7 +3,10 @@ import { useHistory, useParams } from "react-router-dom"
 import { FaCircleXmark, FaSpinner } from "react-icons/fa6"
 import { useBackgroundDispatch } from "../../hooks"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
-import { getIntervalConversionHandle } from "@pelagus/pelagus-background/redux-slices/convertAssets"
+import { 
+  getIntervalConversionHandle,
+  getIntervalConversionsHandle 
+} from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import { isUtxoAccountTypeGuard } from "../../utils/accounts"
 
 interface IntervalConversion {
@@ -35,12 +38,48 @@ const IntervalErrorDetails = () => {
 
   const loadIntervalDetails = async () => {
     try {
+      console.log(`[IntervalErrorDetails] Loading interval with ID: ${intervalId}`)
       const result = await dispatch(getIntervalConversionHandle(intervalId)) as any
-      if (result.payload) {
-        setInterval(result.payload)
+      console.log(`[IntervalErrorDetails] Result from dispatch:`, result)
+      
+      // Check if result is the interval directly or wrapped in payload
+      let intervalData = null
+      if (result?.id) {
+        // Result is the interval directly
+        console.log(`[IntervalErrorDetails] Found interval directly in result:`, result)
+        intervalData = result
+      } else if (result?.payload) {
+        // Result is wrapped in payload
+        console.log(`[IntervalErrorDetails] Found interval in payload:`, result.payload)
+        intervalData = result.payload
+      }
+      
+      if (intervalData) {
+        setInterval(intervalData)
+      } else {
+        console.error(`[IntervalErrorDetails] No interval data found for ${intervalId}, trying fallback`)
+        // Try to get all intervals as fallback
+        const allIntervalsResult = await dispatch(getIntervalConversionsHandle()) as any
+        console.log(`[IntervalErrorDetails] All intervals result:`, allIntervalsResult)
+        
+        let intervalsData = []
+        if (Array.isArray(allIntervalsResult)) {
+          intervalsData = allIntervalsResult
+        } else if (allIntervalsResult?.payload) {
+          intervalsData = allIntervalsResult.payload
+        }
+        
+        console.log(`[IntervalErrorDetails] Searching for interval ${intervalId} in ${intervalsData.length} intervals`)
+        const foundInterval = intervalsData.find((i: any) => i.id === intervalId)
+        if (foundInterval) {
+          console.log(`[IntervalErrorDetails] Found interval in all intervals:`, foundInterval)
+          setInterval(foundInterval)
+        } else {
+          console.error(`[IntervalErrorDetails] Interval ${intervalId} not found in all intervals`)
+        }
       }
     } catch (error) {
-      console.error("Failed to load interval details:", error)
+      console.error(`[IntervalErrorDetails] Failed to load interval details for ${intervalId}:`, error)
     } finally {
       setLoading(false)
     }
@@ -201,7 +240,6 @@ const IntervalErrorDetails = () => {
                 </>
               )}
               <li>Retry with smaller transaction amounts</li>
-              <li>Check network status and try again later</li>
             </ul>
           </div>
 

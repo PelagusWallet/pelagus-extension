@@ -6,7 +6,7 @@ import {
 import { formatQi, Zone } from "quais"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
-import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
+import { isAccountTotalTypeGuard, isUtxoAccountTypeGuard } from "../../../../utils/accounts"
 
 // Reserve 0.01 QUAI for transaction fees
 const TRANSACTION_FEE_RESERVE = 0.01
@@ -31,15 +31,34 @@ const ConvertFromAmount = () => {
       return "QI"
     }
 
+    // Check if we're dealing with WQI
+    if (convertFromAccount?.balance?.includes("WQI")) {
+      return "WQI"
+    }
+
     return "QUAI"
   }
 
   const handleInput = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
-    const regex = /^[0-9]*\.?[0-9]*$/
-    if (value === "" || regex.test(value)) {
-      setInputValue(value)
-      await dispatch(setConvertAmount(value))
+    
+    // Check if we're dealing with WQI unwrapping
+    const isWQI = convertFromAccount && isAccountTotalTypeGuard(convertFromAccount) ? convertFromAccount?.balance?.includes("WQI") : false
+    
+    if (isWQI) {
+      // For WQI, only allow whole numbers
+      const wholeNumberRegex = /^[0-9]*$/
+      if (value === "" || wholeNumberRegex.test(value)) {
+        setInputValue(value)
+        await dispatch(setConvertAmount(value))
+      }
+    } else {
+      // For other tokens, allow decimals
+      const regex = /^[0-9]*\.?[0-9]*$/
+      if (value === "" || regex.test(value)) {
+        setInputValue(value)
+        await dispatch(setConvertAmount(value))
+      }
     }
   }
 
@@ -70,22 +89,34 @@ const ConvertFromAmount = () => {
       !isUtxoAccountTypeGuard(convertFromAccount) &&
       convertFromAccount?.balance
     ) {
-      // Extract the numeric part from the balance string (e.g., "93.3690 QUAI")
+      // Extract the numeric part from the balance string (e.g., "93.3690 QUAI" or "10.5 WQI")
       const balanceString = convertFromAccount.balance
-      const numericPart = balanceString.split(" ")[0] // Get the first part before the space
+      const parts = balanceString.split(" ")
+      const numericPart = parts[0]
+      const tokenSymbol = parts[1] || "QUAI"
       const numericAmount = parseFloat(numericPart)
 
-      // Ensure we have a valid number and reserve for transaction fee
-      if (
-        !Number.isNaN(numericAmount) &&
-        numericAmount > TRANSACTION_FEE_RESERVE
-      ) {
-        const adjustedAmount = (
-          numericAmount - TRANSACTION_FEE_RESERVE
-        ).toFixed(4)
-        setInputValue(adjustedAmount)
-        await dispatch(setConvertAmount(adjustedAmount))
-        return
+      // For WQI, use full balance but floor to whole number (gas is paid in QUAI)
+      if (tokenSymbol === "WQI") {
+        if (!Number.isNaN(numericAmount) && numericAmount > 0) {
+          const wholeAmount = Math.floor(numericAmount).toString()
+          setInputValue(wholeAmount)
+          await dispatch(setConvertAmount(wholeAmount))
+          return
+        }
+      } else {
+        // For QUAI, reserve for transaction fee
+        if (
+          !Number.isNaN(numericAmount) &&
+          numericAmount > TRANSACTION_FEE_RESERVE
+        ) {
+          const adjustedAmount = (
+            numericAmount - TRANSACTION_FEE_RESERVE
+          ).toFixed(4)
+          setInputValue(adjustedAmount)
+          await dispatch(setConvertAmount(adjustedAmount))
+          return
+        }
       }
     }
 
@@ -114,11 +145,18 @@ const ConvertFromAmount = () => {
       !isUtxoAccountTypeGuard(convertFromAccount) &&
       convertFromAccount?.balance
     ) {
-      // Show available balance minus transaction fee reserve for QUAI accounts
       const balanceString = convertFromAccount.balance
       const parts = balanceString.split(" ")
       const numericAmount = parseFloat(parts[0])
+      const tokenSymbol = parts[1] || "QUAI"
 
+      // For WQI, show only whole number portion available (gas is paid in QUAI)
+      if (tokenSymbol === "WQI") {
+        const wholeAmount = Math.floor(numericAmount)
+        return `${wholeAmount} WQI`
+      }
+
+      // Show available balance minus transaction fee reserve for QUAI accounts
       if (
         !Number.isNaN(numericAmount) &&
         numericAmount > TRANSACTION_FEE_RESERVE
@@ -126,7 +164,7 @@ const ConvertFromAmount = () => {
         const availableAmount = (
           numericAmount - TRANSACTION_FEE_RESERVE
         ).toFixed(4)
-        return `${availableAmount} ${parts[1] || "QUAI"}`
+        return `${availableAmount} ${tokenSymbol}`
       }
 
       return convertFromAccount.balance

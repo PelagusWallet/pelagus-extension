@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useHistory } from "react-router-dom"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
 import { FaChevronDown, FaChevronUp, FaClock, FaRepeat } from "react-icons/fa6"
@@ -9,6 +9,19 @@ const IntervalSettings = () => {
   const dispatch = useBackgroundDispatch()
   const intervalSettings = useBackgroundSelector((state) => state.convertAssets.intervalSettings)
   const [isExpanded, setIsExpanded] = useState(false)
+  
+  // Local state for input values to allow temporary empty states
+  const [transactionCountInput, setTransactionCountInput] = useState(intervalSettings.transactionCount.toString())
+  const [intervalMinutesInput, setIntervalMinutesInput] = useState(intervalSettings.intervalMinutes.toString())
+  
+  // Update local state when Redux state changes
+  useEffect(() => {
+    setTransactionCountInput(intervalSettings.transactionCount.toString())
+  }, [intervalSettings.transactionCount])
+  
+  useEffect(() => {
+    setIntervalMinutesInput(intervalSettings.intervalMinutes.toString())
+  }, [intervalSettings.intervalMinutes])
 
   const handleToggleInterval = () => {
     dispatch(setIntervalSettings({ enabled: !intervalSettings.enabled }))
@@ -18,13 +31,41 @@ const IntervalSettings = () => {
   }
 
   const handleTransactionCountChange = (value: string) => {
-    const count = parseInt(value) || 1
-    dispatch(setIntervalSettings({ transactionCount: Math.min(100, Math.max(1, count)) }))
+    // Update local state immediately (allows empty string)
+    setTransactionCountInput(value)
+    
+    // Only update Redux if we have a valid number
+    const count = parseInt(value)
+    if (!isNaN(count) && count > 0) {
+      dispatch(setIntervalSettings({ transactionCount: Math.min(100, Math.max(1, count)) }))
+    }
   }
 
   const handleIntervalMinutesChange = (value: string) => {
-    const minutes = parseInt(value) || 1
-    dispatch(setIntervalSettings({ intervalMinutes: Math.min(60, Math.max(1, minutes)) }))
+    // Update local state immediately (allows empty string)
+    setIntervalMinutesInput(value)
+    
+    // Only update Redux if we have a valid number
+    const minutes = parseInt(value)
+    if (!isNaN(minutes) && minutes > 0) {
+      dispatch(setIntervalSettings({ intervalMinutes: Math.min(60, Math.max(1, minutes)) }))
+    }
+  }
+  
+  const handleTransactionCountBlur = () => {
+    // On blur, if empty or invalid, reset to Redux state value
+    const count = parseInt(transactionCountInput)
+    if (isNaN(count) || count < 1) {
+      setTransactionCountInput(intervalSettings.transactionCount.toString())
+    }
+  }
+  
+  const handleIntervalMinutesBlur = () => {
+    // On blur, if empty or invalid, reset to Redux state value
+    const minutes = parseInt(intervalMinutesInput)
+    if (isNaN(minutes) || minutes < 1) {
+      setIntervalMinutesInput(intervalSettings.intervalMinutes.toString())
+    }
   }
 
   return (
@@ -59,8 +100,15 @@ const IntervalSettings = () => {
                 type="number"
                 min="1"
                 max="100"
-                value={intervalSettings.transactionCount}
+                value={transactionCountInput}
                 onChange={(e) => handleTransactionCountChange(e.target.value)}
+                onBlur={handleTransactionCountBlur}
+                onFocus={(e) => {
+                  // Select all text for easy replacement
+                  setTimeout(() => {
+                    e.target.select()
+                  }, 0)
+                }}
                 className="setting-input"
               />
             </div>
@@ -74,8 +122,15 @@ const IntervalSettings = () => {
                 type="number"
                 min="1"
                 max="60"
-                value={intervalSettings.intervalMinutes}
+                value={intervalMinutesInput}
                 onChange={(e) => handleIntervalMinutesChange(e.target.value)}
+                onBlur={handleIntervalMinutesBlur}
+                onFocus={(e) => {
+                  // Select all text for easy replacement
+                  setTimeout(() => {
+                    e.target.select()
+                  }, 0)
+                }}
                 className="setting-input"
               />
             </div>

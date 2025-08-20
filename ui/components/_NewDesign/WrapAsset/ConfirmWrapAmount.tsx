@@ -2,18 +2,22 @@ import React from "react"
 import { useBackgroundSelector } from "../../../hooks"
 import { trimWithEllipsis } from "../../../utils/textUtils"
 
-const ConfirmWrapAmount = () => {
+interface ConfirmWrapAmountProps {
+  isUnwrap?: boolean
+}
+
+const ConfirmWrapAmount: React.FC<ConfirmWrapAmountProps> = ({ isUnwrap = false }) => {
   const { amount, rate } = useBackgroundSelector((state) => state.convertAssets)
 
   return (
     <>
       <div className="amount-wrapper">
-        <h5 className="type">Wrapping</h5>
+        <h5 className="type">{isUnwrap ? "Unwrapping" : "Wrapping"}</h5>
         <h2 className="amount">
-          {trimWithEllipsis(amount, 8)} QI to WQI
+          {trimWithEllipsis(amount, 8)} {isUnwrap ? "WQI to QI" : "QI to WQI"}
         </h2>
         <h5 className="rate">
-          1 QI = 1 WQI
+          1 {isUnwrap ? "WQI" : "QI"} = 1 {isUnwrap ? "QI" : "WQI"}
         </h5>
       </div>
       <style jsx>{`

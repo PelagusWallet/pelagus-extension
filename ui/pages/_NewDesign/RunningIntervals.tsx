@@ -56,6 +56,7 @@ const RunningIntervals = () => {
   const loadIntervals = async () => {
     try {
       const result = await dispatch(getIntervalConversionsHandle()) as any
+      console.log(`[RunningIntervals] Raw result from getIntervalConversionsHandle:`, result)
       
       // Check if result is the array directly or wrapped in payload
       let intervalsData = []
@@ -67,7 +68,14 @@ const RunningIntervals = () => {
         intervalsData = result.payload
       }
       
+      console.log(`[RunningIntervals] Intervals data:`, intervalsData)
+      
       if (Array.isArray(intervalsData) && intervalsData.length > 0) {
+        // Log each interval's ID and status
+        intervalsData.forEach((interval: any) => {
+          console.log(`[RunningIntervals] Interval - ID: ${interval.id}, Status: ${interval.status}, Has Error: ${!!interval.error}`)
+        })
+        
         // Sort by startedAt descending (newest first)
         const sorted = [...intervalsData].sort((a, b) => b.startedAt - a.startedAt)
         setIntervals(sorted)
@@ -75,7 +83,7 @@ const RunningIntervals = () => {
         setIntervals([])
       }
     } catch (error) {
-      console.error("Failed to load intervals:", error)
+      console.error("[RunningIntervals] Failed to load intervals:", error)
       setIntervals([])
     } finally {
       setLoading(false)
@@ -96,6 +104,8 @@ const RunningIntervals = () => {
 
   const handleViewDetails = (interval: IntervalConversion) => {
     if (interval.status === "failed" && interval.error) {
+      console.log(`[RunningIntervals] Navigating to error details for interval:`, interval)
+      console.log(`[RunningIntervals] Interval ID: ${interval.id}`)
       history.push(`/intervals/error/${interval.id}`)
     }
   }

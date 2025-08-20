@@ -358,12 +358,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return this.chainService.jsonRpcProvider.send(method, params)
   }
 
-  public async convertQuaiToQi(
-    from: string,
-    value: string,
-    maxSlippage: number
-  ): Promise<void> {
-    const amount = parseQuai(value)
+  public async getUnusedQiAddress(): Promise<string> {
     const qiWallet = await this.keyringService.getQiHDWallet()
     const gapAddresses = qiWallet.getGapAddressesForZone(Zone.Cyprus1)
     const coinbaseAddresses =
@@ -381,7 +376,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     if (foundedAddress) {
       unusedAddress = foundedAddress.address
     } else {
-      const maxAttempts = 200
+      const maxAttempts = 2000
       let attempts = 0
 
       while (attempts < maxAttempts) {
@@ -399,6 +394,16 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         throw new Error(errorMsg)
       }
     }
+    return unusedAddress
+  }
+
+  public async convertQuaiToQi(
+    from: string,
+    value: string,
+    maxSlippage: number
+  ): Promise<void> {
+    const amount = parseQuai(value)
+    const unusedAddress = await this.getUnusedQiAddress()
 
     // Encode the slippage value in the transaction data
     let slippageData = encodeTwoBytesBigEndian(maxSlippage)
@@ -477,9 +482,72 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return tx.hash
   }
 
+  public async unwrapQi(value: string, from: string): Promise<string | undefined> {
+    const { jsonRpcProvider } = this.chainService
+    try {
+    const amount = parseQuai(value)
+    const unusedAddress = await this.getUnusedQiAddress()
+    const signerWithType = await this.keyringService.getSigner(from)
+    
+    // Connect the signer to the provider
+    // For Wallet (private key), connect() returns a new connected Wallet
+    // For QuaiHDWallet, connect() returns void and modifies the instance
+    let connectedSigner: any
+
+    let tx: QuaiTransactionResponse | null = null
+    if (isSignerPrivateKeyType(signerWithType)) {
+      connectedSigner = signerWithType.signer.connect(jsonRpcProvider)
+      const contract = new Contract(
+        WRAPPED_QI_CONTRACT_ADDRESS,
+        ["function unwrapQi(address,uint256,uint64)"],
+        connectedSigner
+      )
+      tx = await contract.unwrapQi(unusedAddress, amount, 1000000, {
+        gasLimit: 1100000, // 1.1M gas limit to avoid running out of gas when creating outpoints
+      })
+    } else {
+      // For HD wallets, connect() returns void, so we connect in place
+      signerWithType.signer.connect(jsonRpcProvider)
+      connectedSigner = signerWithType.signer
+      // For HD Wallet signers, we need to construct the transaction request
+      const contract = new Contract(
+        WRAPPED_QI_CONTRACT_ADDRESS,
+        ["function unwrapQi(address,uint256,uint64)"],
+        jsonRpcProvider
+      )
+      
+      // Get the encoded function data
+      const data = contract.interface.encodeFunctionData("unwrapQi", [unusedAddress, amount, 1000000])
+      
+      // Construct the transaction request
+      const request = {
+        to: WRAPPED_QI_CONTRACT_ADDRESS,
+        from,
+        data,
+        gasLimit: 1100000, // 1.1M gas limit to avoid running out of gas when creating outpoints
+      }
+      
+      tx = (await connectedSigner.sendTransaction(
+        request, 
+      )) as QuaiTransactionResponse
+    }
+
+    if (!tx) {
+      throw new Error("Failed to send claim transaction")
+    }
+    console.log("claim tx", tx)
+    await this.processQuaiTransactionResponse(tx)
+    return tx.hash
+  } catch (error: any) {
+    logger.error("Failed to unwrap Qi", error.message)
+    throw error
+  }
+  }
+
   public async wrapQi(value: string, to: string): Promise<string | undefined> {
     const { jsonRpcProvider } = this.chainService
     let qiWallet = await this.keyringService.getQiHDWallet()
+    // QiHDWallet.connect() returns void and modifies the instance
     qiWallet.connect(jsonRpcProvider)
     const amount = parseQi(value)
     console.log("amount", amount)
@@ -669,13 +737,35 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         logger.info(`Interval conversion ${intervalId}: executed ${executedCount}/${params.transactionCount} transactions`)
         
       } catch (error: any) {
-        const errorMessage = error?.message || "Unknown error"
+        // Capture detailed error information
+        let errorMessage = "Unknown error"
+        let errorDetails = ""
         
-        // Update database with error
+        if (error instanceof Error) {
+          errorMessage = error.message || "Unknown error"
+          // Capture stack trace for more context
+          errorDetails = error.stack ? ` Stack: ${error.stack.split('\n').slice(0, 3).join(' ')}` : ""
+        } else if (typeof error === 'string') {
+          errorMessage = error
+        } else if (error && typeof error === 'object') {
+          errorMessage = error.message || JSON.stringify(error)
+          errorDetails = error.stack || ""
+        }
+        
+        // Combine message and details for storage
+        const fullErrorMessage = errorMessage + errorDetails
+        
+        logger.error(`Interval conversion ${intervalId} failed with error:`, {
+          message: errorMessage,
+          details: errorDetails,
+          fullError: error
+        })
+        
+        // Update database with detailed error
         await this.db.updateIntervalConversion(intervalId, {
           status: "failed",
           completedAt: Date.now(),
-          error: errorMessage,
+          error: fullErrorMessage.substring(0, 1000), // Limit to 1000 chars for DB storage
           executedCount
         })
         
@@ -760,6 +850,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     let qiWallet = await this.keyringService.getQiHDWallet()
     qiWallet.connect(jsonRpcProvider)
     let transaction: QiTransactionDB | null = null
+    let lastError: any = null
     try {
       const maxAttempts = 3
       let attempts = 0
@@ -804,7 +895,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           )
           break
         } catch (error: any) {
-          logger.error("Failed to convert Qi to Quai", error.message)
+          const errorMsg = error?.message || String(error)
+          logger.error("Failed to convert Qi to Quai", errorMsg, error)
+          
+          // Store the last error for better reporting
+          lastError = error
+          
           if (
             error instanceof Error &&
             error.message.includes("Insufficient funds")
@@ -846,7 +942,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         }
       }
       if (!transaction) {
-        throw new Error("Failed to convert Qi to Quai")
+        const lastErrorMsg = lastError ? (lastError.message || String(lastError)) : "No specific error captured"
+        const detailedError = `Failed to convert Qi to Quai after ${attempts} attempts. Last error: ${lastErrorMsg}. Buffer percentage: ${bufferPercentage}%`
+        logger.error(detailedError, { lastError, attempts, bufferPercentage })
+        throw new Error(detailedError)
       }
       await this.saveQiTransaction(transaction)
       await Promise.all([
@@ -955,10 +1054,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     try {
       const { jsonRpcProvider } = this.chainService
       const signerWithType = await this.keyringService.getSigner(from)
-      signerWithType.signer.connect(jsonRpcProvider)
+      let connectedSigner: any
+      
 
       let tx: QuaiTransactionResponse | null = null
       if (isSignerPrivateKeyType(signerWithType)) {
+        connectedSigner = signerWithType.signer.connect(jsonRpcProvider)
         const contract = new Contract(
           WRAPPED_QI_CONTRACT_ADDRESS,
           ["function claimDeposit() external returns (uint256)"],
@@ -966,6 +1067,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         )
         tx = await contract.claimDeposit()
       } else {
+        signerWithType.signer.connect(jsonRpcProvider)
+        connectedSigner = signerWithType.signer
         // For HD Wallet signers, we need to construct the transaction request
         const contract = new Contract(
           WRAPPED_QI_CONTRACT_ADDRESS,
@@ -983,7 +1086,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           data,
         }
         
-        tx = (await signerWithType.signer.sendTransaction(
+        tx = (await connectedSigner.sendTransaction(
           request
         )) as QuaiTransactionResponse
       }

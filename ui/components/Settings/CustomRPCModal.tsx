@@ -9,7 +9,6 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/networks"
 import { 
   HTTPS_RPC_URL, 
-  GOLDEN_AGE_HTTPS_RPC_URL, 
   ORCHARD_HTTPS_RPC_URL 
 } from "@pelagus/pelagus-background/constants/networks"
 
@@ -371,11 +370,6 @@ function getDefaultRPCsForNetwork(chainID: number): { httpDefault: string; wsDef
       return { 
         httpDefault: HTTPS_RPC_URL,
         wsDefault: HTTPS_RPC_URL.replace('https://', 'wss://')
-      }
-    case 9000:
-      return { 
-        httpDefault: GOLDEN_AGE_HTTPS_RPC_URL,
-        wsDefault: GOLDEN_AGE_HTTPS_RPC_URL.replace('https://', 'wss://')  
       }
     case 15000:
       return { 

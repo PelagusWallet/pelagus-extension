@@ -11,7 +11,6 @@ import {
 import ChainService from "../../chain"
 import PreferenceService from "../../preferences"
 import { initializeIndexingDatabase as getIndexingDB } from "../db"
-import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
 
 type MethodSpy<T extends (...args: unknown[]) => unknown> = jest.SpyInstance<
   ReturnType<T>,

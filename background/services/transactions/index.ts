@@ -40,6 +40,7 @@ import { isSignerPrivateKeyType } from "../keyring/utils"
 import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
 import IndexingService from "../indexing"
+import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 
 const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
@@ -60,6 +61,7 @@ const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
  */
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
   public readonly MAILBOX_CONTRACT_ADDRESS = MAILBOX_CONTRACT_ADDRESS || ""
+  private intervalConversions: Map<string, NodeJS.Timeout> = new Map()
 
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
@@ -95,6 +97,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     await this.initializeQiTransactions()
     await this.initializeQuaiTransactions()
+    
+    // Restart any running interval conversions
+    await this.restartRunningIntervals()
   }
 
   // ------------------------------------ public methods ------------------------------------
@@ -353,12 +358,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return this.chainService.jsonRpcProvider.send(method, params)
   }
 
-  public async convertQuaiToQi(
-    from: string,
-    value: string,
-    maxSlippage: number
-  ): Promise<void> {
-    const amount = parseQuai(value)
+  public async getUnusedQiAddress(): Promise<string> {
     const qiWallet = await this.keyringService.getQiHDWallet()
     const gapAddresses = qiWallet.getGapAddressesForZone(Zone.Cyprus1)
     const coinbaseAddresses =
@@ -376,7 +376,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     if (foundedAddress) {
       unusedAddress = foundedAddress.address
     } else {
-      const maxAttempts = 200
+      const maxAttempts = 2000
       let attempts = 0
 
       while (attempts < maxAttempts) {
@@ -389,12 +389,21 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
 
       if (!unusedAddress) {
-        logger.warn(
-          "Maximum attempts reached without finding an unused address."
-        )
-        return
+        const errorMsg = "Maximum attempts reached without finding an unused address."
+        logger.warn(errorMsg)
+        throw new Error(errorMsg)
       }
     }
+    return unusedAddress
+  }
+
+  public async convertQuaiToQi(
+    from: string,
+    value: string,
+    maxSlippage: number
+  ): Promise<void> {
+    const amount = parseQuai(value)
+    const unusedAddress = await this.getUnusedQiAddress()
 
     // Encode the slippage value in the transaction data
     let slippageData = encodeTwoBytesBigEndian(maxSlippage)
@@ -473,9 +482,72 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     return tx.hash
   }
 
+  public async unwrapQi(value: string, from: string): Promise<string | undefined> {
+    const { jsonRpcProvider } = this.chainService
+    try {
+    const amount = parseQuai(value)
+    const unusedAddress = await this.getUnusedQiAddress()
+    const signerWithType = await this.keyringService.getSigner(from)
+    
+    // Connect the signer to the provider
+    // For Wallet (private key), connect() returns a new connected Wallet
+    // For QuaiHDWallet, connect() returns void and modifies the instance
+    let connectedSigner: any
+
+    let tx: QuaiTransactionResponse | null = null
+    if (isSignerPrivateKeyType(signerWithType)) {
+      connectedSigner = signerWithType.signer.connect(jsonRpcProvider)
+      const contract = new Contract(
+        WRAPPED_QI_CONTRACT_ADDRESS,
+        ["function unwrapQi(address,uint256,uint64)"],
+        connectedSigner
+      )
+      tx = await contract.unwrapQi(unusedAddress, amount, 1000000, {
+        gasLimit: 1100000, // 1.1M gas limit to avoid running out of gas when creating outpoints
+      })
+    } else {
+      // For HD wallets, connect() returns void, so we connect in place
+      signerWithType.signer.connect(jsonRpcProvider)
+      connectedSigner = signerWithType.signer
+      // For HD Wallet signers, we need to construct the transaction request
+      const contract = new Contract(
+        WRAPPED_QI_CONTRACT_ADDRESS,
+        ["function unwrapQi(address,uint256,uint64)"],
+        jsonRpcProvider
+      )
+      
+      // Get the encoded function data
+      const data = contract.interface.encodeFunctionData("unwrapQi", [unusedAddress, amount, 1000000])
+      
+      // Construct the transaction request
+      const request = {
+        to: WRAPPED_QI_CONTRACT_ADDRESS,
+        from,
+        data,
+        gasLimit: 1100000, // 1.1M gas limit to avoid running out of gas when creating outpoints
+      }
+      
+      tx = (await connectedSigner.sendTransaction(
+        request, 
+      )) as QuaiTransactionResponse
+    }
+
+    if (!tx) {
+      throw new Error("Failed to send claim transaction")
+    }
+    console.log("claim tx", tx)
+    await this.processQuaiTransactionResponse(tx)
+    return tx.hash
+  } catch (error: any) {
+    logger.error("Failed to unwrap Qi", error.message)
+    throw error
+  }
+  }
+
   public async wrapQi(value: string, to: string): Promise<string | undefined> {
     const { jsonRpcProvider } = this.chainService
     let qiWallet = await this.keyringService.getQiHDWallet()
+    // QiHDWallet.connect() returns void and modifies the instance
     qiWallet.connect(jsonRpcProvider)
     const amount = parseQi(value)
     console.log("amount", amount)
@@ -585,12 +657,200 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
   }
 
+  public async startIntervalConversion(params: {
+    from: any,
+    to: any,
+    amount: string,
+    maxSlippage: number,
+    transactionCount: number,
+    intervalMinutes: number
+  }): Promise<string> {
+    const intervalId = `interval_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    let executedCount = 0
+    const transactions: string[] = []
+    
+    // Store interval in database
+    await this.db.addIntervalConversion({
+      id: intervalId,
+      from: params.from,
+      to: params.to,
+      amount: params.amount,
+      maxSlippage: params.maxSlippage,
+      transactionCount: params.transactionCount,
+      intervalMinutes: params.intervalMinutes,
+      executedCount: 0,
+      status: "running",
+      startedAt: Date.now(),
+      transactions: []
+    })
+    
+    const executeConversion = async () => {
+      try {
+        // Check if interval was cancelled
+        const intervalData = await this.db.getIntervalConversion(intervalId)
+        if (intervalData?.status === "cancelled") {
+          this.stopIntervalConversion(intervalId)
+          logger.info(`Interval conversion ${intervalId} was cancelled`)
+          return
+        }
+
+        // Check if we should stop
+        if (executedCount >= params.transactionCount) {
+          await this.db.updateIntervalConversion(intervalId, {
+            status: "completed",
+            completedAt: Date.now(),
+            executedCount
+          })
+          this.stopIntervalConversion(intervalId)
+          logger.info(`Interval conversion ${intervalId} completed after ${executedCount} transactions`)
+          return
+        }
+
+        // Check if conversion is from UTXO to Account or vice versa
+        const isFromUtxo = isUtxoAccountTypeGuard(params.from)
+        const isToUtxo = isUtxoAccountTypeGuard(params.to)
+
+        let txHash: string | undefined
+        // Execute the conversion based on type
+        if (isFromUtxo && !isToUtxo) {
+          // Converting Qi to Quai
+          await this.convertQiToQuai(params.to.address, params.amount, params.maxSlippage)
+          // TODO: Get transaction hash from conversion
+          txHash = `tx_${Date.now()}`
+        } else if (!isFromUtxo && isToUtxo) {
+          // Converting Quai to Qi
+          await this.convertQuaiToQi(params.from.address, params.amount, params.maxSlippage)
+          // TODO: Get transaction hash from conversion
+          txHash = `tx_${Date.now()}`
+        } else {
+          throw new Error("Invalid conversion type")
+        }
+
+        executedCount++
+        if (txHash) transactions.push(txHash)
+        
+        await this.db.updateIntervalConversion(intervalId, {
+          executedCount,
+          transactions
+        })
+        
+        logger.info(`Interval conversion ${intervalId}: executed ${executedCount}/${params.transactionCount} transactions`)
+        
+      } catch (error: any) {
+        // Capture detailed error information
+        let errorMessage = "Unknown error"
+        let errorDetails = ""
+        
+        if (error instanceof Error) {
+          errorMessage = error.message || "Unknown error"
+          // Capture stack trace for more context
+          errorDetails = error.stack ? ` Stack: ${error.stack.split('\n').slice(0, 3).join(' ')}` : ""
+        } else if (typeof error === 'string') {
+          errorMessage = error
+        } else if (error && typeof error === 'object') {
+          errorMessage = error.message || JSON.stringify(error)
+          errorDetails = error.stack || ""
+        }
+        
+        // Combine message and details for storage
+        const fullErrorMessage = errorMessage + errorDetails
+        
+        logger.error(`Interval conversion ${intervalId} failed with error:`, {
+          message: errorMessage,
+          details: errorDetails,
+          fullError: error
+        })
+        
+        // Update database with detailed error
+        await this.db.updateIntervalConversion(intervalId, {
+          status: "failed",
+          completedAt: Date.now(),
+          error: fullErrorMessage.substring(0, 1000), // Limit to 1000 chars for DB storage
+          executedCount
+        })
+        
+        // Check for insufficient balance error
+        if (errorMessage.includes("Insufficient") || errorMessage.includes("balance")) {
+          logger.error(`Interval conversion ${intervalId} stopped due to insufficient balance`)
+          this.stopIntervalConversion(intervalId)
+          NotificationsManager.createFailedQiTxNotification()
+        } else {
+          logger.error(`Interval conversion ${intervalId} error: ${errorMessage}`)
+          this.stopIntervalConversion(intervalId)
+        }
+      }
+    }
+
+    // Execute first conversion immediately
+    executeConversion()
+
+    // Set up interval for remaining conversions
+    const intervalMs = params.intervalMinutes * 60 * 1000
+    const interval = setInterval(executeConversion, intervalMs)
+    this.intervalConversions.set(intervalId, interval)
+
+    logger.info(`Started interval conversion ${intervalId}: ${params.transactionCount} transactions every ${params.intervalMinutes} minutes`)
+    return intervalId
+  }
+
+  public async cancelIntervalConversion(intervalId: string): Promise<void> {
+    const interval = this.intervalConversions.get(intervalId)
+    if (interval) {
+      clearInterval(interval)
+      this.intervalConversions.delete(intervalId)
+      
+      await this.db.updateIntervalConversion(intervalId, {
+        status: "cancelled",
+        completedAt: Date.now()
+      })
+      
+      logger.info(`Cancelled interval conversion ${intervalId}`)
+    }
+  }
+
+  public async getIntervalConversions(): Promise<any[]> {
+    return this.db.getAllIntervalConversions()
+  }
+
+  public async getIntervalConversion(intervalId: string): Promise<any> {
+    return this.db.getIntervalConversion(intervalId)
+  }
+
+  private async restartRunningIntervals(): Promise<void> {
+    try {
+      const runningIntervals = await this.db.getRunningIntervalConversions()
+      logger.info(`Found ${runningIntervals.length} running intervals to restart`)
+      
+      for (const interval of runningIntervals) {
+        // Mark as failed if it was running when the service stopped
+        await this.db.updateIntervalConversion(interval.id, {
+          status: "failed",
+          completedAt: Date.now(),
+          error: "Interval was interrupted by extension restart"
+        })
+        logger.info(`Marked interval ${interval.id} as failed due to restart`)
+      }
+    } catch (error) {
+      logger.error("Failed to restart running intervals:", error)
+    }
+  }
+
+  private stopIntervalConversion(intervalId: string): void {
+    const interval = this.intervalConversions.get(intervalId)
+    if (interval) {
+      clearInterval(interval)
+      this.intervalConversions.delete(intervalId)
+      logger.info(`Stopped interval conversion ${intervalId}`)
+    }
+  }
+
   public async convertQiToQuai(to: string, value: string, maxSlippage: number): Promise<void> {
     const amount = parseQi(value)
     const { jsonRpcProvider } = this.chainService
     let qiWallet = await this.keyringService.getQiHDWallet()
     qiWallet.connect(jsonRpcProvider)
     let transaction: QiTransactionDB | null = null
+    let lastError: any = null
     try {
       const maxAttempts = 3
       let attempts = 0
@@ -635,7 +895,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           )
           break
         } catch (error: any) {
-          logger.error("Failed to convert Qi to Quai", error.message)
+          const errorMsg = error?.message || String(error)
+          logger.error("Failed to convert Qi to Quai", errorMsg, error)
+          
+          // Store the last error for better reporting
+          lastError = error
+          
           if (
             error instanceof Error &&
             error.message.includes("Insufficient funds")
@@ -677,7 +942,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         }
       }
       if (!transaction) {
-        throw new Error("Failed to convert Qi to Quai")
+        const lastErrorMsg = lastError ? (lastError.message || String(lastError)) : "No specific error captured"
+        const detailedError = `Failed to convert Qi to Quai after ${attempts} attempts. Last error: ${lastErrorMsg}. Buffer percentage: ${bufferPercentage}%`
+        logger.error(detailedError, { lastError, attempts, bufferPercentage })
+        throw new Error(detailedError)
       }
       await this.saveQiTransaction(transaction)
       await Promise.all([
@@ -687,6 +955,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     } catch (error: any) {
       logger.error("Failed to convert Qi to Quai", error.message)
       NotificationsManager.createFailedQiTxNotification()
+      // Re-throw the error so interval conversions can track it
+      throw error
     }
   }
 
@@ -784,10 +1054,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     try {
       const { jsonRpcProvider } = this.chainService
       const signerWithType = await this.keyringService.getSigner(from)
-      signerWithType.signer.connect(jsonRpcProvider)
+      let connectedSigner: any
+      
 
       let tx: QuaiTransactionResponse | null = null
       if (isSignerPrivateKeyType(signerWithType)) {
+        connectedSigner = signerWithType.signer.connect(jsonRpcProvider)
         const contract = new Contract(
           WRAPPED_QI_CONTRACT_ADDRESS,
           ["function claimDeposit() external returns (uint256)"],
@@ -795,6 +1067,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         )
         tx = await contract.claimDeposit()
       } else {
+        signerWithType.signer.connect(jsonRpcProvider)
+        connectedSigner = signerWithType.signer
         // For HD Wallet signers, we need to construct the transaction request
         const contract = new Contract(
           WRAPPED_QI_CONTRACT_ADDRESS,
@@ -812,7 +1086,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           data,
         }
         
-        tx = (await signerWithType.signer.sendTransaction(
+        tx = (await connectedSigner.sendTransaction(
           request
         )) as QuaiTransactionResponse
       }

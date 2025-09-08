@@ -18,6 +18,7 @@ import { useSelector } from "react-redux"
 
 interface WrapLocationState {
   sentWrap?: boolean
+  isUnwrap?: boolean
 }
 
 const MIN_QUAI_REQUIREMENT = 0.5
@@ -29,6 +30,7 @@ const WrapPage = () => {
   const history = useHistory()
   const dispatch = useBackgroundDispatch()
   const location = useLocation<WrapLocationState>()
+  const isUnwrap = location.pathname === "/unwrap"
   const from = useBackgroundSelector((state) => state.convertAssets.from)
   const amount = useBackgroundSelector((state) => state.convertAssets.amount)
   const to = useBackgroundSelector((state) => state.convertAssets.to)
@@ -42,51 +44,85 @@ const WrapPage = () => {
   }, [to, dispatch])
 
   const isDisabledHandle = () => {
-    if (!from || !amount || !to || !isUtxoAccountTypeGuard(from)) {
+    if (isUnwrap) {
+      // For unwrapping: from is Quai account with WQI
+      if (!from || !amount || !isAccountTotalTypeGuard(from)) {
+        return true
+      }
+
+      const parsedAmount = parseFloat(amount)
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return true
+      }
+
+      // Check if WQI balance is sufficient
+      const wqiBalance = parseFloat(from.balance ?? "0")
+      return wqiBalance < parsedAmount
+    } else {
+      // For wrapping: from is Qi account, to is Quai account
+      if (!from || !amount || !to || !isUtxoAccountTypeGuard(from)) {
+        return true
+      }
+
+      const parsedAmount = parseFloat(amount)
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return true
+      }
+
+      if (!isAccountTotalTypeGuard(to)) {
+        return true
+      }
+
+      const quaiBalance = to.balance ?? "0"
+      if (parseFloat(quaiBalance) < MIN_QUAI_REQUIREMENT) {
+        return true
+      }
+
+      if (
+        from &&
+        isUtxoAccountTypeGuard(from) &&
+        from?.balances[Zone.Cyprus1]
+      ) {
+        return Number(
+          formatQi(
+            from?.balances[Zone.Cyprus1]?.assetAmount?.amount
+          )
+        ) < parsedAmount
+      }
+
       return true
     }
-
-    const parsedAmount = parseFloat(amount)
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      return true
-    }
-
-    if (!isAccountTotalTypeGuard(to)) {
-      return true
-    }
-
-    const quaiBalance = to.balance ?? "0"
-    if (parseFloat(quaiBalance) < MIN_QUAI_REQUIREMENT) {
-      return true
-    }
-
-    if (
-      from &&
-      isUtxoAccountTypeGuard(from) &&
-      from?.balances[Zone.Cyprus1]
-    ) {
-      return Number(
-        formatQi(
-          from?.balances[Zone.Cyprus1]?.assetAmount?.amount
-        )
-      ) < parsedAmount
-    }
-
-    return true
   }
 
   const handleConfirm = () => {
-    if (!from || !amount || !to || !isUtxoAccountTypeGuard(from)) {
-      return
-    }
+    if (isUnwrap) {
+      // For unwrapping
+      if (!from || !amount || !isAccountTotalTypeGuard(from)) {
+        return
+      }
 
-    try {
-      dispatch(setConvertFrom(from))
-      dispatch(setConvertAmount(amount))
-      dispatch(setConvertTo(to))
-      history.push("/wrap/confirmation")
-    } catch (error) {
-      console.error("Failed to navigate to confirmation page:", error)
+      try {
+        dispatch(setConvertFrom(from))
+        dispatch(setConvertAmount(amount))
+        // No need to set 'to' for unwrapping
+        history.push("/unwrap/confirmation")
+      } catch (error) {
+        console.error("Failed to navigate to confirmation page:", error)
+      }
+    } else {
+      // For wrapping
+      if (!from || !amount || !to || !isUtxoAccountTypeGuard(from)) {
+        return
+      }
+
+      try {
+        dispatch(setConvertFrom(from))
+        dispatch(setConvertAmount(amount))
+        dispatch(setConvertTo(to))
+        history.push("/wrap/confirmation")
+      } catch (error) {
+        console.error("Failed to navigate to confirmation page:", error)
+      }
     }
   }
 
@@ -194,25 +230,56 @@ const WrapPage = () => {
   return (
     <div className="wrap_page">
       <div className="header-area">
-          <SharedGoBackPageHeader title="Wrap Qi" linkTo="/" />
+          <SharedGoBackPageHeader 
+            title={isUnwrap ? "Unwrap WQI" : "Wrap Qi"} 
+            linkTo={isUnwrap ? "/" : "/"} 
+          />
           <div className="disclaimer">
-            Wrap your Qi to be used with Quai in the EVM.
+            {isUnwrap 
+              ? "Unwrap your WQI tokens back to native Qi."
+              : "Wrap your Qi to be used with Quai in the EVM."
+            }
           </div>
         </div>
       <div className="content">
-        <ConvertFrom />
+        {isUnwrap ? (
+          // For unwrap, show the from account without allowing changes
+          <section className="convert-from-wallet">
+            <h3 className="convert-from-label">From</h3>
+            {from && (
+              <div className="account-display">
+                <div className="account-info">
+                  <div className="account-name">QUAI Account (WQI)</div>
+                  <div className="account-address">{isAccountTotalTypeGuard(from) && from.address?.slice(0, 10)}...{isAccountTotalTypeGuard(from) && from.address?.slice(-8)}</div>
+                </div>
+              </div>
+            )}
+          </section>
+        ) : (
+          <ConvertFrom />
+        )}
         <ConvertFromAmount />
-        <ConvertTo />
-        {!hasMinimumQuai() && (
+        {!isUnwrap && <ConvertTo />}
+        {!isUnwrap && !hasMinimumQuai() && (
           <div className="error">
             <FaTriangleExclamation className="error-icon" />
             {"Minimum Quai Required for Gas fees: " + MIN_QUAI_REQUIREMENT}
           </div>
         )}
-        {renderDepositBalance()}
+        {!isUnwrap && renderDepositBalance()}
+        {isUnwrap && (
+          <>
+            <div className="info-box">
+              <p>Your unwrapped Qi will be sent to an available address in your Qi wallet.</p>
+            </div>
+            <div className="info-box">
+              <p style={{ fontWeight: "bold" }}>Note: Qi will be locked for two weeks. Only whole numbers of WQI can be unwrapped. Fractional amounts are not supported.</p>
+            </div>
+          </>
+        )}
       </div>
       <SharedActionButtons
-        title={{ confirmTitle: "Wrap", cancelTitle: "Cancel" }}
+        title={{ confirmTitle: isUnwrap ? "Unwrap" : "Wrap", cancelTitle: "Cancel" }}
         onClick={{ onConfirm: handleConfirm, onCancel: () => history.push("/") }}
         isConfirmDisabled={isDisabledHandle()}
         isLoading={qiWalletSyncInProgress}
@@ -266,6 +333,64 @@ const WrapPage = () => {
           align-items: center;
           justify-content: center;
           gap: 5px;
+        }
+        .info-box {
+          padding: 12px;
+          background-color: rgba(33, 150, 243, 0.1);
+          border-radius: 8px;
+          margin: 16px 0;
+        }
+        .info-box p {
+          margin: 0;
+          font-size: 14px;
+          color: var(--primary-text);
+          text-align: center;
+        }
+        .warning-box {
+          padding: 12px;
+          background-color: rgba(255, 193, 7, 0.1);
+          border: 1px solid rgba(255, 193, 7, 0.3);
+          border-radius: 8px;
+          margin: 8px 0;
+        }
+        .warning-box p {
+          margin: 0;
+          font-size: 13px;
+          color: #ffc107;
+          text-align: center;
+        }
+        .convert-from-wallet {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .convert-from-label {
+          margin: 0;
+          font-weight: 500;
+          font-size: 14px;
+          line-height: 20px;
+          color: var(--secondary-text);
+        }
+        .account-display {
+          background: var(--hunter-green);
+          border: 1px solid var(--green-20);
+          border-radius: 12px;
+          padding: 12px 16px;
+        }
+        .account-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .account-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--primary-text);
+        }
+        .account-address {
+          font-size: 12px;
+          color: var(--secondary-text);
         }
       `}</style>
     </div>

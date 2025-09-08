@@ -15,6 +15,22 @@ export type QuaiTransactionDBEntry = QuaiTransactionDB &
 export type QiTransactionDBEntry = QiTransactionDB &
   AdditionalTransactionFieldsForDB
 
+export type IntervalConversionDB = {
+  id: string
+  from: any
+  to: any
+  amount: string
+  maxSlippage: number
+  transactionCount: number
+  intervalMinutes: number
+  executedCount: number
+  status: "running" | "completed" | "failed" | "cancelled"
+  startedAt: UNIXTime
+  completedAt?: UNIXTime
+  error?: string
+  transactions: string[]
+}
+
 export class TransactionsDatabase extends Dexie {
   private quaiTransactions!: Dexie.Table<
     QuaiTransactionDBEntry,
@@ -24,6 +40,8 @@ export class TransactionsDatabase extends Dexie {
   private qiTransactions!: Dexie.Table<QiTransactionDBEntry, [string, string]>
 
   private openedPaymentChannels!: Dexie.Table<{ paymentCode: string }, number>
+
+  intervalConversions!: Dexie.Table<IntervalConversionDB, string>
 
   constructor(options?: DexieOptions) {
     super("pelagus/transactions", options)
@@ -41,6 +59,18 @@ export class TransactionsDatabase extends Dexie {
     this.version(3).stores({
       openedPaymentChannels: "++id,paymentCode",
     })
+
+    this.version(4).stores({
+      quaiTransactions:
+        "&[hash+chainId],hash,from,status,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,firstSeen,dataSource",
+      qiTransactions:
+        "&[hash+chainId],hash,from,status,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,timestamp,firstSeen,dataSource",
+      openedPaymentChannels: "++id,paymentCode",
+      intervalConversions: "&id,status,startedAt,from,to",
+    })
+
+    // Map tables to class properties - only map the new table since others are working
+    this.intervalConversions = this.table("intervalConversions")
   }
 
   // ------------------------------------ quai tx ------------------------------------
@@ -193,6 +223,37 @@ export class TransactionsDatabase extends Dexie {
 
   async getPaymentChannels(): Promise<{ paymentCode: string }[]> {
     return this.openedPaymentChannels.toArray()
+  }
+
+  // ------------------------------------- interval conversions -------------------------------------
+  async addIntervalConversion(
+    intervalConversion: IntervalConversionDB
+  ): Promise<void> {
+    await this.intervalConversions.add(intervalConversion)
+  }
+
+  async updateIntervalConversion(
+    id: string,
+    updates: Partial<IntervalConversionDB>
+  ): Promise<void> {
+    await this.intervalConversions.update(id, updates)
+  }
+
+  async getIntervalConversion(
+    id: string
+  ): Promise<IntervalConversionDB | undefined> {
+    return this.intervalConversions.get(id)
+  }
+
+  async getAllIntervalConversions(): Promise<IntervalConversionDB[]> {
+    return this.intervalConversions.toArray()
+  }
+
+  async getRunningIntervalConversions(): Promise<IntervalConversionDB[]> {
+    return this.intervalConversions
+      .where("status")
+      .equals("running")
+      .toArray()
   }
 }
 

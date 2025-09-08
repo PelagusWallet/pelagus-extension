@@ -21,6 +21,9 @@ import SettingsQiCoinbaseAddress from "../pages/Settings/SettingsQiCoinbaseAddre
 import SettingsAddQiCoinbaseAddress from "../pages/Settings/SettingsAddQiCoinbaseAddress"
 import ConvertPage from "../pages/_NewDesign/ConvertPage"
 import ConfirmConversionPage from "../pages/_NewDesign/ConfirmConversionPage"
+import ConvertIntervalConfirmation from "../pages/_NewDesign/ConvertIntervalConfirmation"
+import RunningIntervals from "../pages/_NewDesign/RunningIntervals"
+import IntervalErrorDetails from "../pages/_NewDesign/IntervalErrorDetails"
 import WrapPage from "../pages/_NewDesign/WrapPage"
 import ConfirmWrapPage from "../pages/_NewDesign/ConfirmWrapPage"
 
@@ -115,6 +118,21 @@ const pageList: PageList[] = [
     hasTopBar: true,
   },
   {
+    path: "/intervals/error/:intervalId",
+    Component: IntervalErrorDetails,
+    hasTopBar: false,
+  },
+  {
+    path: "/intervals",
+    Component: RunningIntervals,
+    hasTopBar: false,
+  },
+  {
+    path: "/convert/interval-confirmation",
+    Component: ConvertIntervalConfirmation,
+    hasTopBar: false,
+  },
+  {
     path: "/convert/confirmation",
     Component: ConfirmConversionPage,
     hasTopBar: false,
@@ -131,6 +149,16 @@ const pageList: PageList[] = [
   },
   {
     path: "/wrap",
+    Component: WrapPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/unwrap/confirmation",
+    Component: ConfirmWrapPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/unwrap",
     Component: WrapPage,
     hasTopBar: false,
   },

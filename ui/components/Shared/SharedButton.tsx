@@ -8,6 +8,7 @@ import { PropsWithIcon } from "./types"
 export type Props = {
   children: React.ReactNode
   id?: string
+  tabIndex?: number
   type:
     | "primary"
     | "primaryGreen"
@@ -37,6 +38,7 @@ export default function SharedButton(
 ): ReactElement {
   const {
     id,
+    tabIndex,
     children,
     type,
     size,
@@ -81,6 +83,7 @@ export default function SharedButton(
   return (
     <button
       id={id}
+      tabIndex={tabIndex}
       type={isFormSubmit ? "submit" : "button"}
       className={classNames(
         type !== "unstyled" && "button",

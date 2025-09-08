@@ -152,11 +152,11 @@ describe("Chain Database ", () => {
     it("should return chainIds corresponding to the networks of accounts being tracked", async () => {
       await db.addAccountToTrack(account1)
       expect(await db.getChainIDsToTrack()).toEqual(
-        new Set(QuaiGoldenAgeTestnet.chainID)
+        new Set(QuaiOrchardTestnet.chainID)
       )
       await db.addAccountToTrack(account2)
       expect(await db.getChainIDsToTrack()).toEqual(
-        new Set([QuaiGoldenAgeTestnet.chainID])
+        new Set([QuaiOrchardTestnet.chainID])
       )
     })
     it("should disallow duplicate chain ids", async () => {

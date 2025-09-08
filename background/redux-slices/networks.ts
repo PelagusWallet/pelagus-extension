@@ -5,7 +5,6 @@ import { NetworkInterface } from "../constants/networks/networkTypes"
 import { LocalNodeNetworkStatusEventTypes } from "../services/provider-factory/events"
 import { 
   HTTPS_RPC_URL, 
-  GOLDEN_AGE_HTTPS_RPC_URL, 
   ORCHARD_HTTPS_RPC_URL 
 } from "../constants/networks"
 
@@ -198,10 +197,6 @@ const networksSlice = createSlice({
           case 9:
             defaultHttpRPC = HTTPS_RPC_URL
             defaultWsRPC = HTTPS_RPC_URL.replace('https://', 'wss://')
-            break
-          case 9000:
-            defaultHttpRPC = GOLDEN_AGE_HTTPS_RPC_URL
-            defaultWsRPC = GOLDEN_AGE_HTTPS_RPC_URL.replace('https://', 'wss://')
             break
           case 15000:
             defaultHttpRPC = ORCHARD_HTTPS_RPC_URL

@@ -4,7 +4,6 @@ import {
   createIndexingService,
   createNameService,
 } from "../../../tests/factories"
-import { QuaiGoldenAgeTestnet } from "../../../constants/networks/networks"
 
 describe("Enrichment Service Transactions", () => {
   const sandbox = sinon.createSandbox()

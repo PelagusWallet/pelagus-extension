@@ -46,7 +46,7 @@ function OnboardingAddWallet(): ReactElement {
           }
 
           .bottom_content {
-            color: white;
+            color: var(--primary-text);
           }
 
           header h1 {

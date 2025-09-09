@@ -14,3 +14,20 @@ export const useTheme = (): void => {
     }
   }, [theme])
 }
+
+// Temporarily force dark theme for the current view without changing user preference.
+// Restores the previous theme attribute on unmount.
+export const useScopedDarkTheme = (): void => {
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.getAttribute("data-theme")
+    root.setAttribute("data-theme", "dark")
+    return () => {
+      if (prev) {
+        root.setAttribute("data-theme", prev)
+      } else {
+        root.removeAttribute("data-theme")
+      }
+    }
+  }, [])
+}

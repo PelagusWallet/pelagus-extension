@@ -21,10 +21,10 @@ function OnboardingStep(props: OnboardingStepProps): ReactElement {
             width: 6px;
             height: 6px;
             border-radius: 100px;
-            background-color: var(--hunter-green);
+            background-color: var(--secondary-text);
           }
           li {
-            color: var(--hunter-green);
+            color: var(--secondary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 24px;
@@ -35,10 +35,10 @@ function OnboardingStep(props: OnboardingStepProps): ReactElement {
             padding: 0px 11px;
           }
           .active {
-            color: var(--trophy-gold);
+            color: var(--accent-color);
           }
           .active:before {
-            background-color: var(--trophy-gold);
+            background-color: var(--accent-color);
             width: 16px;
           }
         `}

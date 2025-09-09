@@ -39,19 +39,19 @@ export default function SharedToggleButton({
             width: 40px;
             height: 24px;
             border-radius: 20px;
-            background-color: var(--primary-bg);
+            background-color: var(--secondary-bg);
             box-sizing: border-box;
             padding: 3px;
             cursor: pointer;
             display: flex;
-            border: 1px solid var(--hunter-green)
+            border: 1px solid var(--border-dark)
               ${leftToRight ? "" : "transform: rotate(180deg);"};
           }
           .bulb {
             width: 16px;
             height: 16px;
             border-radius: 20px;
-            background-color: var(--hunter-green);
+            background-color: var(--white);
             transition: 0.2s ease-in-out;
 
             box-shadow: 0 1px 1px rgba(0, 20, 19, 0.3);
@@ -60,7 +60,7 @@ export default function SharedToggleButton({
             transform: translateX(16px);
           }
           .is_active {
-            background-color: var(--green-80);
+            background-color: var(--accent-color);
           }
         `}
       </style>

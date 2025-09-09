@@ -24,7 +24,7 @@ const defaultPreferences: Preferences = {
   showTestNetworks: false,
   showPelagusNotifications: true,
   showPaymentChannelModal: true,
-  theme: "dark",
+  theme: "light",
 }
 
 export default defaultPreferences

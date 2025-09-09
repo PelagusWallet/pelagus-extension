@@ -27,13 +27,13 @@ export function AddWalletRow({
       onClick={onClick}
     >
       <div className="option">
-        <SharedIcon icon={icon} width={32} color="white" />
+        <SharedIcon icon={icon} width={32} color="currentColor" />
         {label}
         <SharedIcon
           customStyles="margin-left: auto;"
           icon="chevron_right.svg"
           width={16}
-          color="white"
+          color="currentColor"
         />
       </div>
       <style jsx>{`
@@ -42,13 +42,13 @@ export function AddWalletRow({
           width: 100%;
           gap: 16px;
           align-items: center;
-          background: #1C1C1C;
+          background: var(--tertiary-bg);
           border-radius: 4px;
           padding: 16px;
           font-family: "Segment";
           font-size: 16px;
           font-weight: 500;
-          color: white;
+          color: var(--primary-text);
           line-height: 24px;
           transition: opacity 0.2s ease;
         }
@@ -130,7 +130,7 @@ export default function AddWalletOptions(): ReactElement {
 
           .spacer {
             width: 100%;
-            border: 0.5px solid #333333;
+            border: 0.5px solid var(--border-dark);
             margin: 4px 0;
           }
 

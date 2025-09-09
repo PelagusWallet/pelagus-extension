@@ -33,7 +33,7 @@ export const defaultSettings = {
   alphaBannerVersion: 1,
   showPelagusNotifications: true,
   autoLockInterval: 10, // in minutes
-  theme: "dark", // light or dark
+  theme: "light", // light or dark
 }
 
 const defaultSnackbarDuration = 2500

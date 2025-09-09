@@ -371,7 +371,7 @@ export default function Settings(): ReactElement {
               gap: 24px;
             }
             p {
-              color: var(--white);
+              color: var(--primary-text);
               font-size: 14px;
               line-height: 24px;
               margin: 0;
@@ -398,19 +398,19 @@ export default function Settings(): ReactElement {
             }
             .cancel {
               background: transparent;
-              border: 1px solid var(--green-40);
-              color: var(--green-40);
+              border: 1px solid var(--border-dark);
+              color: var(--secondary-text);
             }
             .cancel:hover:not(:disabled) {
-              background: var(--green-120);
+              background: var(--secondary-bg);
             }
             .confirm {
-              background: var(--green-40);
+              background: var(--accent-color);
               border: none;
-              color: var(--hunter-green);
+              color: var(--contrast-text);
             }
             .confirm:hover:not(:disabled) {
-              background: var(--green-20);
+              filter: brightness(1.1);
             }
           `}
         </style>
@@ -497,20 +497,20 @@ export default function Settings(): ReactElement {
                 }
                 .cancel {
                   background: transparent;
-                  border: 1px solid var(--secondary-text);
+                  border: 1px solid var(--border-dark);
                   color: var(--secondary-text);
                   margin-right: 10%;
                 }
                 .cancel:hover:not(:disabled) {
-                  background: var(--primary-bg);
+                  background: var(--secondary-bg);
                 }
                 .confirm {
-                  background: var(--secondary-text);
+                  background: var(--accent-color);
                   border: none;
-                  color: var(--hunter-green);
+                  color: var(--contrast-text);
                 }
                 .confirm:hover:not(:disabled) {
-                  background: var(--green-20);
+                  filter: brightness(1.1);
                 }
               `}
             </style>
@@ -633,8 +633,8 @@ export default function Settings(): ReactElement {
                   overflow: visible;
                 }
                 .confirm_aggregate_text {
-                  color: var(--white);
-                  font-size: 12px;
+                  color: var(--primary-text);
+                  font-size: 14px;
                   line-height: 24px;
                   margin: 0 0 12px 0;
                 }
@@ -646,7 +646,7 @@ export default function Settings(): ReactElement {
                   margin: 0 0 8px 0;
                 }
                 .input_container label {
-                  color: var(--white);
+                  color: var(--primary-text);
                   font-size: 14px;
                   margin-bottom: 0;
                   min-width: 140px;
@@ -681,19 +681,19 @@ export default function Settings(): ReactElement {
                 }
                 .cancel {
                   background: transparent;
-                  border: 1px solid var(--green-40);
-                  color: var(--green-40);
+                  border: 1px solid var(--border-dark);
+                  color: var(--secondary-text);
                 }
                 .cancel:hover:not(:disabled) {
-                  background: var(--green-120);
+                  background: var(--secondary-bg);
                 }
                 .confirm {
-                  background: var(--green-40);
+                  background: var(--accent-color);
                   border: none;
-                  color: var(--hunter-green);
+                  color: var(--contrast-text);
                 }
                 .confirm:hover:not(:disabled) {
-                  background: var(--green-20);
+                  filter: brightness(1.1);
                 }
                 .progress_container {
                   display: flex;
@@ -705,14 +705,14 @@ export default function Settings(): ReactElement {
                 .progress_bar {
                   width: 100%;
                   height: 8px;
-                  background: var(--hunter-green);
+                  background: var(--secondary-bg);
                   border-radius: 4px;
                   overflow: hidden;
-                  border: 1px solid var(--green-40);
+                  border: 1px solid var(--border-dark);
                 }
                 .progress_fill {
                   height: 100%;
-                  background: linear-gradient(90deg, var(--green-40) 0%, var(--green-20) 100%);
+                  background: var(--accent-color);
                   transition: width 0.3s ease;
                   border-radius: 3px;
                 }
@@ -723,17 +723,17 @@ export default function Settings(): ReactElement {
                   text-align: center;
                 }
                 .progress_step {
-                  color: var(--white);
+                  color: var(--primary-text);
                   font-size: 14px;
                   font-weight: 500;
                 }
                 .progress_detail {
-                  color: var(--green-40);
+                  color: var(--secondary-text);
                   font-size: 12px;
                   font-weight: 400;
                 }
                 .progress_percentage {
-                  color: var(--green-20);
+                  color: var(--primary-text);
                   font-size: 16px;
                   font-weight: 600;
                 }
@@ -799,7 +799,7 @@ export default function Settings(): ReactElement {
               overflow: hidden;
             }
             .loading, .error {
-              color: var(--white);
+              color: var(--primary-text);
               font-size: 16px;
               text-align: center;
               margin: auto;
@@ -813,7 +813,7 @@ export default function Settings(): ReactElement {
               gap: 16px;
             }
             .chart_title {
-              color: var(--white);
+              color: var(--primary-text);
               font-size: 18px;
               font-weight: 500;
               margin-bottom: 20px;
@@ -837,23 +837,23 @@ export default function Settings(): ReactElement {
               min-width: 30px;
             }
             .bar {
-              background: var(--green-40);
+              background: var(--accent-color);
               width: 24px;
               min-height: 2px;
               border-radius: 2px 2px 0 0;
               transition: background-color 0.2s;
             }
             .bar:hover {
-              background: var(--green-20);
+              filter: brightness(1.1);
             }
             .bar_label {
-              color: var(--white);
+              color: var(--primary-text);
               font-size: 10px;
               margin-bottom: 4px;
               min-height: 12px;
             }
             .denomination_label {
-              color: var(--green-40);
+              color: var(--secondary-text);
               font-size: 10px;
               margin-top: 4px;
               text-align: center;

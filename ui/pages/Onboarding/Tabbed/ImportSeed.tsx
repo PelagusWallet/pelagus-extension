@@ -265,6 +265,18 @@ export default function ImportSeed(props: Props): ReactElement {
         .help_button {
           margin-top: 16px;
         }
+        .advanced-button {
+          background: none;
+          border: none;
+          margin: 5px 0;
+          text-decoration: underline;
+          color: var(--secondary-text);
+          font-size: 14px;
+          cursor: pointer;
+        }
+        .advanced-button:hover {
+          color: var(--primary-text);
+        }
         .input_wrap {
           position: relative;
         }
@@ -298,13 +310,15 @@ export default function ImportSeed(props: Props): ReactElement {
           width: 320px;
           height: 104px;
           border-radius: 4px;
-          border: 2px solid var(--secondary-bg);
+          border: 2px solid var(--border-dark);
+          background: var(--secondary-bg);
           padding: 12px 16px;
           white-space: pre-wrap;
           word-wrap: break-word;
           color: var(--primary-text);
           font-family: inherit;
           overflow-y: scroll;
+          caret-color: var(--accent-color);
         }
 
         #recovery_phrase * {

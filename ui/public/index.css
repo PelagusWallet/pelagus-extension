@@ -62,7 +62,8 @@
   --success-color: #1CAF4E;
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+.theme-dark {
   /* Main background and text colors */
   --hunter-green: #1B1B1D;
   --castle-black: #1B1B1D;

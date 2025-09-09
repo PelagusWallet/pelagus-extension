@@ -17,8 +17,9 @@ import InfoIntro from "./Intro"
 import ViewOnlyWallet from "./ViewOnlyWallet"
 import OnboardingRoutes from "./Routes"
 import { useIsOnboarding } from "../../../hooks"
+import { useScopedDarkTheme } from "../../../hooks/theme-hooks"
 import ImportPrivateKeyForm from "./ImportPrivateKeyForm"
-import { useTheme } from "../../../hooks/theme-hooks"
+// Onboarding enforces dark theme via scoped CSS; no global theme hook
 
 function Navigation({
   children,
@@ -37,7 +38,7 @@ function Navigation({
   ].filter((path): path is Exclude<typeof path, false> => !!path)
 
   return (
-    <section className="onboarding_container">
+    <section className={classNames("onboarding_container", "theme-dark")}>
       <img 
         src="./images/pelagus_title_horizontal.svg" 
         alt="Pelagus" 
@@ -97,6 +98,27 @@ function Navigation({
         `}
       </style>
 
+      {/* Ensure dark variables within onboarding regardless of global theme */}
+      <style jsx global>
+        {`
+          .onboarding_container.theme-dark {
+            --primary-bg: #1B1B1D;
+            --secondary-bg: #262628;
+            --tertiary-bg: #3E3E41;
+            --accent-color: #1775E4;
+            --contrast-text: #F2F2F2;
+            --primary-text: #F2F2F2;
+            --secondary-text: #7E7E83;
+            --border-light: #4A4A4A;
+            --border-medium: #6A6A6A;
+            --border-dark: #8A8A8A;
+            /* legacy color tokens used by onboarding */
+            --green-60: #6A6A6A;
+            --green-20: #0058b3;
+          }
+        `}
+      </style>
+
       <div className="card_container">
         {!matchPath(location.pathname, {
           path: ROUTES_WITHOUT_BACK_BUTTON,
@@ -114,7 +136,7 @@ function Navigation({
 
 export default function Root(): ReactElement {
   const [isOnboarding] = useState(useIsOnboarding())
-  useTheme()
+  useScopedDarkTheme()
 
   return (
     <Navigation isOnboarding={isOnboarding}>

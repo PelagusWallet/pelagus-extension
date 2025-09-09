@@ -234,14 +234,14 @@ export default class NameService extends BaseService<Events> {
   }
 
   removeAccount(address: HexString): void {
-    const chainIds = Object.keys(this.cachedResolvedNames.EVM)
+    const chainIds = Object.keys(this.cachedResolvedNames)
     chainIds.forEach((chainId) => {
       this.clearNameCacheEntry(chainId, address)
     })
   }
 
   removeActivities(address: HexString): void {
-    const chainIds = Object.keys(this.cachedResolvedNames.EVM)
+    const chainIds = Object.keys(this.cachedResolvedNames)
     chainIds.forEach((chainId) => {
       this.clearNameCacheEntry(chainId, address)
     })

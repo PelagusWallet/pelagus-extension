@@ -10,9 +10,11 @@ import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
 import ChainService from "../chain"
 import { AddressOnNetwork } from "../../accounts"
 import { assertUnreachable } from "../../lib/utils/type-guards"
-import { KeyringAccountSigner, PrivateKeyAccountSigner } from "../keyring/types"
+import { KeyringAccountSigner, PrivateKeyAccountSigner, LedgerAccountSigner } from "../keyring/types"
 import { isSignerPrivateKeyType } from "../keyring/utils"
 import TransactionService from "../transactions"
+import { getLedgerSigner } from "../ledger/ledger-signer"
+import { isLedgerError } from "../ledger/ledger-signer"
 
 type SigningErrorReason = "userRejected" | "genericError"
 type ErrorResponse = {
@@ -56,6 +58,7 @@ export type AccountSigner =
   | typeof ReadOnlyAccountSigner
   | PrivateKeyAccountSigner
   | KeyringAccountSigner
+  | LedgerAccountSigner
 
 export type SignerType = AccountSigner["type"]
 
@@ -129,6 +132,10 @@ export default class SigningService extends BaseService<Events> {
           break
         case "read-only":
           break
+        case "ledger":
+          // Ledger accounts don't need to be removed from keyring
+          // but we should still stop tracking them
+          break
         default:
           assertUnreachable(signerType)
       }
@@ -146,9 +153,10 @@ export default class SigningService extends BaseService<Events> {
     accountSigner: AccountSigner
   ): Promise<QuaiTransactionResponse> {
     try {
-      let transactionResponse: QuaiTransactionResponse | null
+      let transactionResponse: QuaiTransactionResponse | undefined
       switch (accountSigner.type) {
         case "private-key":
+        case "ledger": 
         case "keyring": {
           transactionResponse =
             await this.transactionService.signAndSendQuaiTransaction(
@@ -172,11 +180,17 @@ export default class SigningService extends BaseService<Events> {
       })
 
       return transactionResponse
-    } catch (err) {
-      await this.emitter.emit("sendTransactionResponse", {
-        type: "error",
-        reason: getSigningErrorReason(err),
-      })
+    } catch (err: any) {
+      // Check if this is a Ledger error or insufficient funds that should allow retry
+      const errorMessage = err?.message || ""
+      // For Ledger errors and insufficient funds, don't emit the error response
+      // This keeps the popup open so the user can retry
+      if (!isLedgerError(err) && !errorMessage.includes("insufficient funds")) {
+        await this.emitter.emit("sendTransactionResponse", {
+          type: "error",
+          reason: getSigningErrorReason(err),
+        })
+      }
       throw err
     }
   }
@@ -227,6 +241,14 @@ export default class SigningService extends BaseService<Events> {
         }
         case "read-only":
           throw new Error("Read-only signers cannot sign.")
+        case "ledger": {
+          const ledgerSigner = getLedgerSigner()
+          signedData = await ledgerSigner.signTypedData(
+            typedData,
+            accountSigner
+          )
+          break
+        }
         default:
           assertUnreachable(accountSigner)
       }
@@ -286,6 +308,18 @@ export default class SigningService extends BaseService<Events> {
         }
         case "read-only":
           throw new Error("Read-only signers cannot sign.")
+        case "ledger": {
+          const ledgerSigner = getLedgerSigner()
+          // Convert to Uint8Array for compatibility
+          const messageBytes = hexDataToSign.startsWith("0x") 
+            ? new Uint8Array(Buffer.from(hexDataToSign.slice(2), "hex"))
+            : new Uint8Array(Buffer.from(hexDataToSign, "utf8"))
+          signedData = await ledgerSigner.signMessage(
+            messageBytes,
+            accountSigner
+          )
+          break
+        }
         default:
           assertUnreachable(accountSigner)
       }

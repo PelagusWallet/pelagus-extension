@@ -59,6 +59,11 @@ export default function WalletTypeHeader({
       icon: "./images/stars_grey.svg",
       category: t("accounts.notificationPanel.category.others"),
     },
+    [AccountType.Ledger]: {
+      title: "Ledger",
+      icon: "./images/ledger-logo.png",
+      category: "Hardware Wallets",
+    },
   }
   const { title } = walletTypeDetails[accountType]
   const dispatch = useBackgroundDispatch()
@@ -81,8 +86,14 @@ export default function WalletTypeHeader({
 
     if (sectionCustomName) return `${sectionCustomName}`
 
+    // For Ledger accounts, include the device model if available
+    if (accountType === AccountType.Ledger && accountSigner.type === "ledger") {
+      const deviceModel = accountSigner.deviceModel || "Device"
+      return `Ledger ${deviceModel} ${walletNumber}`
+    }
+
     return `${title} ${walletNumber}`
-  }, [accountType, title, sectionCustomName, walletNumber])
+  }, [accountType, title, sectionCustomName, walletNumber, accountSigner])
 
   return (
     <>

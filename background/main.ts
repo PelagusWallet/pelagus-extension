@@ -5,10 +5,11 @@ import { configureStore, isPlain, Middleware } from "@reduxjs/toolkit"
 import { devToolsEnhancer } from "@redux-devtools/remote"
 import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
-import { formatUnits, JsonRpcProvider, WebSocketProvider, Zone } from "quais"
+import { formatUnits, JsonRpcProvider, WebSocketProvider, Zone, JsonRpcSigner, QuaiTransaction } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import { NeuteredAddressInfo } from "quais/lib/commonjs/wallet"
 import { decodeJSON, encodeJSON, sameQuaiAddress } from "./lib/utils"
+import { isLedgerError } from "./services/ledger/ledger-signer"
 import {
   AnalyticsService,
   BaseService,
@@ -82,6 +83,7 @@ import {
   toggleCollectAnalytics,
   toggleTestNetworks,
 } from "./redux-slices/ui"
+import { SnackBarType } from "./redux-slices/utils"
 import {
   clearCustomGas,
   clearTransactionState,
@@ -112,6 +114,8 @@ import {
   typedDataRequest,
 } from "./redux-slices/signing"
 import { MessageSigningRequest, SignTypedDataRequest } from "./utils/signing"
+import { LedgerAccountSigner } from "./services/keyring/types"
+import { getLedgerSigner } from "./services/ledger/ledger-signer"
 import {
   AccountSigner,
   SendTransactionResponse,
@@ -132,7 +136,10 @@ import {
   removeActivities,
   updateUtxoActivity,
 } from "./redux-slices/activities"
-import { selectActivitiesHashesForEnrichment } from "./redux-slices/selectors"
+import { 
+  selectActivitiesHashesForEnrichment,
+  selectAccountSignersByAddress 
+} from "./redux-slices/selectors"
 import { getActivityDetails } from "./redux-slices/utils/activities-utils"
 import { getRelevantTransactionAddresses } from "./services/enrichment/utils"
 import { AnalyticsPreferences } from "./services/preferences/types"
@@ -266,7 +273,6 @@ export const popupMonitorPortName = "popup-monitor"
 
 export let walletOpen = false
 
-// TODO Rename ReduxService or CoordinationService, move to services/, etc.
 export default class Main extends BaseService<never> {
   /**
    * The redux store for the wallet core. Note that the redux store is used to
@@ -375,7 +381,7 @@ export default class Main extends BaseService<never> {
       await analyticsService,
       await blockService,
       await transactionService,
-      await priceService
+      await priceService,
     )
   }
 
@@ -754,6 +760,7 @@ export default class Main extends BaseService<never> {
     this.store.dispatch(resetProgressStates())
 
     this.connectPopupMonitor()
+    //this.connectLedgerHandler()
   }
 
   public GetShard(): string {
@@ -915,7 +922,31 @@ export default class Main extends BaseService<never> {
 
       this.store.dispatch(quaiTransactionResponse(transactionResponse))
       return true
-    } catch (exception) {
+    } catch (exception: any) {
+      // Handle Ledger-specific errors with user-friendly notifications
+      if (isLedgerError(exception)) {
+        const message = exception.message
+        // Extract the user-friendly message after the error prefix
+        const userMessage = message.split(": ").slice(1).join(": ")
+        
+        this.store.dispatch(setSnackbarConfig({
+          message: userMessage,
+          type: SnackBarType.base,
+          duration: 5000
+        }))
+        
+        // Re-throw to let the UI handle it appropriately
+        throw exception
+      } else if (exception?.message) {
+        // For other errors, show a generic error message
+        logger.error("Transaction signing failed:", exception)
+        this.store.dispatch(setSnackbarConfig({
+          message: "Transaction failed. Please try again.",
+          type: SnackBarType.base,
+          duration: 3000
+        }))
+      }
+      
       this.store.dispatch(
         clearTransactionState(TransactionConstructionStatus.Idle)
       )
@@ -1027,11 +1058,40 @@ export default class Main extends BaseService<never> {
               chainId: transactionResponse.chainId,
             }
           )
-        } catch (exception) {
+        } catch (exception: any) {
           logger.error("Error signing transaction", exception)
-          this.store.dispatch(
-            clearTransactionState(TransactionConstructionStatus.Idle)
-          )
+          
+          // Handle Ledger-specific errors with user-friendly notifications
+          if (isLedgerError(exception)) {
+            const message = exception.message
+            // Extract the user-friendly message after the error prefix (e.g., "LEDGER_LOCKED: " -> "")
+            const userMessage = message.split(": ").slice(1).join(": ")
+            
+            this.store.dispatch(setSnackbarConfig({
+              message: userMessage,
+              type: SnackBarType.base,
+              duration: 5000
+            }))
+            
+            // Don't clear transaction state for Ledger errors - user can retry
+          } else if (exception?.message?.includes("insufficient funds")) {
+            // Handle insufficient funds error specifically
+            this.store.dispatch(setSnackbarConfig({
+              message: "Insufficient funds for transaction gas costs.",
+              type: SnackBarType.base,
+              duration: 7000
+            }))
+            
+            // Don't clear transaction state - let user see the error and potentially adjust
+          } else {
+            // Only clear transaction state for other errors
+            this.store.dispatch(
+              clearTransactionState(TransactionConstructionStatus.Idle)
+            )
+          }
+          
+          // Re-throw the error so it propagates to the UI
+          throw exception
         }
       }
     )
@@ -2107,6 +2167,112 @@ export default class Main extends BaseService<never> {
 
   async importCustomToken(asset: SmartContractFungibleAsset): Promise<boolean> {
     return this.indexingService.importCustomToken(asset)
+  }
+
+  async addLedgerAccount(address: string, deviceModel: string, deviceId: string, path: string): Promise<void> {
+    // Add the Ledger account to be tracked by the chain service
+    const network = this.chainService.supportedNetworks.find(n => n.chainID === "9") // Quai mainnet
+    logger.info("Adding Ledger account:", { address, deviceModel, deviceId, path, network })
+    
+    if (network) {
+      // First, add to signing service so it's recognized as a Ledger account
+      const ledgerSigner: LedgerAccountSigner = {
+        type: "ledger",
+        deviceModel,
+        deviceId,
+        path,
+        zone: Zone.Cyprus1, // Default to Cyprus1 for now
+      }
+
+      // Add to signing service BEFORE adding to chain service
+      this.signingService.addTrackedAddress(address, ledgerSigner.type)
+      logger.info("Added Ledger account to signing service with type:", ledgerSigner.type)
+
+      // Now add to chain service - the keyring service has been updated to handle Ledger accounts
+      await this.chainService.addAccountToTrack({ address, network })
+      logger.info("Added Ledger account to chain service tracking")
+      
+      // Load the initial balance - this will trigger balance events that update the UI
+      const balance = await this.chainService.getLatestBaseAccountBalance({ address, network }).catch((e) => {
+        logger.error("Error getting initial balance for Ledger account:", e)
+        return null
+      })
+      
+      if (balance) {
+        logger.info("Got initial balance for Ledger account:", balance)
+      }
+    } else {
+      logger.error("Could not find network with chainID 9")
+    }
+  }
+
+  async removeLedgerAccount(address: string): Promise<void> {
+    // Remove the account from signing service
+    await this.signingService.removeAccount(address, "ledger")
+    
+    // Remove from chain service tracking
+    await this.chainService.removeAccountToTrack(address)
+    
+    // Remove from Redux accounts state (removes from all networks)
+    this.store.dispatch(deleteAccount(address))
+    
+    logger.info("Removed Ledger account from tracking:", address)
+  }
+  
+  async debugListLedgerAccounts(): Promise<void> {
+    // Debug method to list all Ledger accounts
+    const ledgerState = this.store.getState().ledger
+    logger.info("Current Ledger accounts in Redux:", ledgerState.derivedAddresses)
+    
+    // Also check what the signing service knows about
+    const allAddresses = this.signingService.addressHandlers
+    const ledgerAddresses = allAddresses.filter(h => h.signer === "ledger")
+    logger.info("Ledger accounts in signing service:", ledgerAddresses)
+  }
+
+  async signLedgerTestTransaction(
+    transaction: QuaiTransactionRequest,
+    address: string, 
+    path: string
+  ): Promise<{ serialized: string; signature: any; hash: string }> {
+    logger.info("Signing test transaction for Ledger:", { address, path })
+    
+    // Create the Ledger account signer
+    const ledgerSigner: LedgerAccountSigner = {
+      type: "ledger",
+      deviceModel: "Unknown", // Not critical for test
+      deviceId: "test",
+      path,
+      zone: Zone.Cyprus1,
+    }
+    const { jsonRpcProvider } = this.chainService
+    // Get the Ledger signer instance
+    const signer = getLedgerSigner()
+
+    const tempSigner = new JsonRpcSigner(jsonRpcProvider, address)
+    const populatedTx = await tempSigner.populateQuaiTransaction(transaction)
+    const quaiTx = QuaiTransaction.from(populatedTx)
+    
+    // Sign the transaction
+    const signedTx = await signer.signQuaiTransaction(quaiTx, ledgerSigner)
+    
+    // The hash is the digest of the unsigned transaction (what was signed)
+    // For verification, we'll use the transaction hash
+    const txHash = signedTx.hash || ""
+    
+    // Convert the Signature object to a plain serializable object
+    const serializableSignature = signedTx.signature ? {
+      r: signedTx.signature.r,
+      s: signedTx.signature.s,
+      v: signedTx.signature.v,
+      yParity: signedTx.signature.yParity
+    } : null
+    
+    return {
+      serialized: signedTx.serialized,
+      signature: serializableSignature,
+      hash: txHash
+    }
   }
 
   private connectPopupMonitor() {

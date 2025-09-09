@@ -24,6 +24,9 @@ export default function SignerFrame<T extends SignOperationType>(
     case "private-key":
     case "keyring":
       return <SignerKeyringFrame {...props} />
+    case "ledger":
+      // TODO: Implement Ledger signing frame
+      return <SignerKeyringFrame {...props} />
     case "read-only":
       return <SignerReadOnlyFrame {...props} />
     default:

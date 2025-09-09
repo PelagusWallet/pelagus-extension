@@ -8,6 +8,7 @@ import TabbedOnboardingRoot from "./Onboarding/Tabbed/Root"
 import { useTheme } from "../hooks"
 
 import TabNotFound from "./TabNotFound"
+import LedgerConnect from "./LedgerConnect"
 
 function TabMain(): ReactElement {
   useTheme()
@@ -19,6 +20,9 @@ function TabMain(): ReactElement {
           <Switch>
             <Route path="/onboarding">
               <TabbedOnboardingRoot />
+            </Route>
+            <Route path="/ledger-connect">
+                <LedgerConnect />
             </Route>
             <Route>
               <TabNotFound />

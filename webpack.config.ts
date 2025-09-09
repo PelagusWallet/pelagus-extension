@@ -82,6 +82,10 @@ const baseConfig: Configuration = {
         {
           from: "node_modules/@pelagus/pelagus-ui/public/",
         },
+        {
+          from: "public/ledger-apps/",
+          to: "ledger-apps/",
+        },
       ],
       // FIXME Forced cast below due to an incompatibility between the webpack
       // FIXME version refed in @types/copy-webpack-plugin and our local

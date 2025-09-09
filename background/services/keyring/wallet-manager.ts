@@ -239,8 +239,11 @@ export default class WalletManager {
       (keyring) => keyring.addresses.includes(address)
     )
     if (!foundedKeyring) {
-      logger.error("Associated signer with provided address is not found.")
-      return null
+      // Check if this is a Ledger account by querying the signing service
+      // Ledger accounts aren't managed by the keyring, so return a special source
+      // For now, we'll return "import" as a fallback for Ledger accounts
+      logger.warn("Address not found in keyrings, might be a Ledger or read-only account:", address)
+      return SignerImportSource.import  // Use import as a fallback for external signers
     }
 
     return this.keyringMetadata[foundedKeyring.id].source

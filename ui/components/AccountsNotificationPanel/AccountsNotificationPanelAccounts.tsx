@@ -49,6 +49,7 @@ const shouldAddHeader = (
   switch (currentAccountType) {
     case AccountType.ReadOnly:
     case AccountType.Internal:
+    case AccountType.Ledger:
       return true
     case AccountType.Imported:
       return !existingAccountTypes.includes(AccountType.Internal)

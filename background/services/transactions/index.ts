@@ -15,8 +15,11 @@ import {
   TransactionResponse,
   Wallet,
   Zone,
+  JsonRpcSigner
 } from "quais"
-
+import { getLedgerSigner } from "../ledger/ledger-signer"
+import { LedgerAddress } from "../../redux-slices/ledger"
+import { isLedgerError } from "../ledger/ledger-signer"
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
 import BaseService from "../base"
 import ChainService from "../chain"
@@ -113,32 +116,89 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    */
   public async signAndSendQuaiTransaction(
     request: QuaiTransactionRequest
-  ): Promise<QuaiTransactionResponse | null> {
+  ): Promise<QuaiTransactionResponse | undefined> {
     try {
       const { jsonRpcProvider } = this.chainService
       let transactionResponse: QuaiTransactionResponse
 
       const fromAddress = request.from.toString()
-      const signerWithType = await this.keyringService.getSigner(fromAddress)
-
-      if (isSignerPrivateKeyType(signerWithType)) {
-        transactionResponse = (await signerWithType.signer
-          .connect(jsonRpcProvider)
-          .sendTransaction(request)) as QuaiTransactionResponse
-      } else {
-        signerWithType.signer.connect(jsonRpcProvider)
-        transactionResponse = (await signerWithType.signer.sendTransaction(
-          request
-        )) as QuaiTransactionResponse
+      
+      // Try to get signer from keyring service first
+      let signerWithType: any
+      let isLedgerAccount = false
+      
+      try {
+        signerWithType = await this.keyringService.getSigner(fromAddress)
+      } catch (keyringError) {
+        // If keyring doesn't have the signer, check if it's a Ledger account
+        const state = globalThis.main.store.getState()
+        const ledgerAddresses = state.ledger.derivedAddresses
+        const ledgerAccount = ledgerAddresses.find(
+          (addr: LedgerAddress) => addr.address.toLowerCase() === fromAddress.toLowerCase()
+        )
+        
+        if (ledgerAccount) {
+          isLedgerAccount = true
+          logger.info(`Using Ledger signer for address ${fromAddress}`)
+          
+          // Import Ledger signer dynamically to avoid circular dependencies
+          const ledgerSigner = getLedgerSigner()
+          
+          // Create the Ledger account signer object
+          const ledgerAccountSigner = {
+            type: "ledger" as const,
+            deviceModel: ledgerAccount.deviceModel || "Unknown",
+            deviceId: ledgerAccount.deviceId || "unknown",
+            path: ledgerAccount.path,
+            zone: getZoneForAddress(fromAddress) as Zone,
+          }
+          
+          // Populate the transaction with defaults (gas limit, gas price, nonce, etc.)
+          // This is crucial for Ledger signing to work properly
+          // Hacky way: Create a temporary JsonRpcSigner to use its populateQuaiTransaction method
+          // The JsonRpcSigner has this method even though JsonRpcProvider doesn't expose it
+          const tempSigner = new JsonRpcSigner(jsonRpcProvider, fromAddress)
+          const populatedTx = await tempSigner.populateQuaiTransaction(request)
+          const quaiTx = QuaiTransaction.from(populatedTx)
+          // Sign the populated transaction with Ledger
+          const signedTx = await ledgerSigner.signQuaiTransaction(quaiTx, ledgerAccountSigner)
+          
+          // Send the signed transaction
+          return await this.sendQuaiTransaction(signedTx)
+        } else {
+          // Not found in keyring or Ledger
+          throw keyringError
+        }
       }
-      await this.processQuaiTransactionResponse(transactionResponse)
-      return transactionResponse
+      
+      // If not a Ledger account, use the regular keyring signer
+      if (!isLedgerAccount) {
+        if (isSignerPrivateKeyType(signerWithType)) {
+          transactionResponse = (await signerWithType.signer
+            .connect(jsonRpcProvider)
+            .sendTransaction(request)) as QuaiTransactionResponse
+        } else {
+          signerWithType.signer.connect(jsonRpcProvider)
+          transactionResponse = (await signerWithType.signer.sendTransaction(
+            request
+          )) as QuaiTransactionResponse
+        }
+        await this.processQuaiTransactionResponse(transactionResponse)
+        return transactionResponse
+      }
     } catch (error: any) {
       logger.error(
         `Failed to sign and send Quai transaction: ${error?.message || error}`
       )
+      
+      // For Ledger-specific errors and insufficient funds, re-throw them so they can be handled by the UI
+      if (isLedgerError(error) || error?.message?.includes("insufficient funds")) {
+        throw error
+      }
+      
+      // For other errors, emit the failure event
       this.emitter.emit("transactionSendFailure")
-      return null
+      return undefined
     }
   }
 
@@ -152,16 +212,18 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    */
   public async sendQuaiTransaction(
     quaiTransaction: QuaiTransaction
-  ): Promise<void> {
+  ): Promise<QuaiTransactionResponse> {
     try {
       const { jsonRpcProvider } = this.chainService
       const { to, serialized: signedTransaction } = quaiTransaction
 
+      let zone: Zone
       if (!to) {
-        throw new Error("Transaction 'to' field is not specified.")
+        zone = Zone.Cyprus1
+      } else {
+        zone = getZoneForAddress(to) || Zone.Cyprus1
       }
 
-      const zone = getZoneForAddress(to)
       if (!zone) {
         throw new Error(
           "Invalid address shard: Unable to determine the zone for the given 'to' address."
@@ -173,11 +235,13 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         signedTransaction
       )) as QuaiTransactionResponse
       await this.processQuaiTransactionResponse(transactionResponse)
+      return transactionResponse
     } catch (error: any) {
       logger.error(
         `Failed to send Quai transaction: ${error?.message || error}`
       )
       this.emitter.emit("transactionSendFailure")
+      throw error
     }
   }
 

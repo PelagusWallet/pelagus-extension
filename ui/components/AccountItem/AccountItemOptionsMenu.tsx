@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
 import { exportPrivKey, exportPrivKeyEncryptedJSON } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import { AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -384,6 +385,17 @@ export default function AccountItemOptionsMenu({
               if (signerId != null) moveAccountDown(address, signerId)
             },
           },
+          // Add remove option for read-only and Ledger accounts
+          ...(accountTotal.accountType === AccountType.ReadOnly || accountTotal.accountType === AccountType.Ledger ? [{
+            key: "remove",
+            icon: "garbage@2x.png",
+            label: t("removeAddress"),
+            onClick: () => {
+              setShowAddressRemoveConfirm(true)
+            },
+            color: "var(--error)",
+            hoverColor: "var(--error-80)",
+          }] : []),
           {
             key: "clearHistory",
             icon: "garbage@2x.png",

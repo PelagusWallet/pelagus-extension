@@ -176,11 +176,12 @@ const ConvertPage = () => {
         .disclaimer {
           margin: -15px 0 5px 0;
           padding: 8px;
-          background-color: rgba(255, 246, 214, 0.5);
+          background-color: var(--secondary-bg);
+          border: 1px solid var(--attention);
           border-radius: 8px;
           font-size: 14px;
           text-align: center;
-          color:rgb(254, 200, 64);
+          color: var(--attention);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -188,24 +189,25 @@ const ConvertPage = () => {
         }
 
         .warning-icon {
-          color: #896404;
+          color: var(--attention);
           font-size: 16px;
         }
 
         .slippage-warning {
           margin: 16px 0;
           padding: 8px 12px;
-          background-color: #ffebee;
+          background-color: var(--secondary-bg);
+          border: 1px solid var(--error-color);
           border-radius: 8px;
           font-size: 14px;
-          color: #f44336;
+          color: var(--error-color);
           display: flex;
           align-items: center;
           gap: 8px;
         }
 
         .error-icon {
-          color: #f44336;
+          color: var(--error-color);
           font-size: 18px;
           flex-shrink: 0;
         }

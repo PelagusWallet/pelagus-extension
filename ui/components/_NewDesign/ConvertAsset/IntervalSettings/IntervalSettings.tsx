@@ -159,8 +159,8 @@ const IntervalSettings = () => {
 
       <style jsx>{`
         .interval-settings-container {
-          background: var(--hunter-green);
-          border: 1px solid var(--green-40);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-dark);
           border-radius: 8px;
           margin: 16px 0;
           overflow: hidden;
@@ -176,7 +176,7 @@ const IntervalSettings = () => {
         }
 
         .interval-header:hover {
-          background-color: rgba(255, 255, 255, 0.05);
+          background-color: var(--tertiary-bg);
         }
 
         .header-left {
@@ -222,7 +222,8 @@ const IntervalSettings = () => {
           left: 0;
           right: 0;
           bottom: 0;
-          background-color: var(--green-20);
+          background-color: var(--secondary-bg);
+          border: 1px solid var(--border-dark);
           transition: 0.3s;
           border-radius: 24px;
         }
@@ -234,13 +235,13 @@ const IntervalSettings = () => {
           width: 18px;
           left: 3px;
           bottom: 3px;
-          background-color: white;
+          background-color: var(--white);
           transition: 0.3s;
           border-radius: 50%;
         }
 
         input:checked + .slider {
-          background-color: var(--success);
+          background-color: var(--accent-color);
         }
 
         input:checked + .slider:before {
@@ -249,7 +250,7 @@ const IntervalSettings = () => {
 
         .interval-content {
           padding: 0 16px 16px;
-          border-top: 1px solid var(--green-20);
+          border-top: 1px solid var(--border-dark);
         }
 
         .setting-group {
@@ -272,7 +273,7 @@ const IntervalSettings = () => {
         .setting-input {
           width: 100%;
           padding: 10px 12px;
-          border: 1px solid var(--green-20);
+          border: 1px solid var(--border-dark);
           border-radius: 6px;
           color: var(--primary-text);
           font-size: 14px;
@@ -282,13 +283,14 @@ const IntervalSettings = () => {
 
         .setting-input:focus {
           outline: none;
-          border-color: var(--green-40);
+          border-color: var(--accent-color);
         }
 
         .info-box {
           margin-top: 16px;
           padding: 12px;
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-dark);
           border-radius: 6px;
         }
 
@@ -311,7 +313,7 @@ const IntervalSettings = () => {
           padding: 10px;
           background: transparent;
           color: var(--primary-text);
-          border: 1px solid var(--green-40);
+          border: 1px solid var(--border-dark);
           border-radius: 6px;
           font-size: 13px;
           font-weight: 500;
@@ -321,8 +323,8 @@ const IntervalSettings = () => {
         }
 
         .view-intervals-button:hover {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: var(--green-60);
+          background: var(--secondary-bg);
+          filter: brightness(1.05);
         }
       `}</style>
     </>

@@ -468,7 +468,7 @@ export default function Send(): ReactElement {
           }
 
           .icon_activity_send_medium {
-            background: url("./images/pelagus_send.svg");
+            background: url("./images/pelagus_send.png");
             background-size: 24px 24px;
             width: 24px;
             height: 24px;
@@ -478,7 +478,7 @@ export default function Send(): ReactElement {
           .title {
             flex-grow: 1;
             height: 32px;
-            color: var(--secondary-text);
+            color: var(--trophy-gold);
             font-size: 18px;
             font-weight: 500;
             line-height: 32px;

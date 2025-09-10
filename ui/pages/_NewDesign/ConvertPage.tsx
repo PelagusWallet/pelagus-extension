@@ -38,7 +38,7 @@ const ConvertPage = () => {
     if (isUtxoAccountTypeGuard(from)) {
       if (qiWalletSyncInProgress) return true
       return (
-        Number(amount) < 10 ||
+        Number(amount) < 1 ||
         !from?.balances[Zone.Cyprus1]?.assetAmount?.amount ||
         from?.balances[Zone.Cyprus1]?.assetAmount?.amount < parseQi(amount)
       )
@@ -47,7 +47,7 @@ const ConvertPage = () => {
     const quaiBalance = from?.balance?.split(" ")[0]
     return (
       !quaiBalance ||
-      Number(amount) < 100 ||
+      Number(amount) < 10 ||
       Number(quaiBalance) < Number(amount)
     )
   }

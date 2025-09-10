@@ -56,7 +56,12 @@ const WrapPage = () => {
       }
 
       // Check if WQI balance is sufficient
-      const wqiBalance = parseFloat(from.balance ?? "0")
+      // Parse balance like "48,205.4 WQI" correctly
+      const balanceParts = from.balance?.split(" ") ?? []
+      const balanceStr = balanceParts[0] ?? "0"
+      // Remove commas before parsing
+      const cleanedBalance = balanceStr.replace(/,/g, '')
+      const wqiBalance = parseFloat(cleanedBalance)
       return wqiBalance < parsedAmount
     } else {
       // For wrapping: from is Qi account, to is Quai account

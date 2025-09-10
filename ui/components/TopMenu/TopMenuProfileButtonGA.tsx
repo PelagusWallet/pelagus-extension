@@ -15,22 +15,24 @@ export default function TopMenuProfileButtonGA(props: {
 }): ReactElement {
   const { t } = useTranslation()
   const dispatch = useDispatch()
+  const { onClick } = props
+  
+  const currentAccount = useBackgroundSelector(selectCurrentAccountTotal)
+  const currentUtxoAccount = useBackgroundSelector(selectCurrentUtxoAccount)
+  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
+  
   const {
     name,
     avatarURL,
     address = "",
     shortName = "",
-  } = useBackgroundSelector(selectCurrentAccountTotal) ?? {}
+  } = currentAccount ?? {}
 
   const {
     defaultAvatar = "",
     defaultName = "",
     paymentCode = "",
-  } = useBackgroundSelector(selectCurrentUtxoAccount) ?? {}
-
-  const isUtxoSelected = useBackgroundSelector(selectIsUtxoSelected)
-
-  const { onClick } = props
+  } = currentUtxoAccount ?? {}
 
   const handleClick = () => {
     onClick?.()
@@ -48,8 +50,19 @@ export default function TopMenuProfileButtonGA(props: {
     dispatch(setSnackbarConfig({ message: "Payment code copied to clipboard" }))
   }
 
+  // If no address, return empty fragment but keep style jsx for hook consistency
   if (!address) {
-    return <></>
+    return (
+      <>
+        <style jsx>
+          {`
+            .profile_wrapper {
+              display: none;
+            }
+          `}
+        </style>
+      </>
+    )
   }
 
   return (

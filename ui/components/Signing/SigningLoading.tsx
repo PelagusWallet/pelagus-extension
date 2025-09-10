@@ -25,7 +25,7 @@ export default function SigningLoading(): ReactElement {
         }
         .container {
           border-radius: 16px;
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
           margin: 16px;
           padding: 16px;
           height: 250px;

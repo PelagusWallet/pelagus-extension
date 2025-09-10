@@ -100,7 +100,7 @@ export default function SharedModal({
             position: absolute;
             right: 16px;
             top: 16px;
-            background-color: var(--green-20);
+            background-color: var(--secondary-text);
             z-index: 1;
           }
           .modal_body {
@@ -108,7 +108,7 @@ export default function SharedModal({
             flex: 1;
           }
           .modal_header {
-            color: var(--green-20);
+            color: var(--primary-text);
             font-size: 18px;
             line-height: 24px;
             margin-bottom: 24px;

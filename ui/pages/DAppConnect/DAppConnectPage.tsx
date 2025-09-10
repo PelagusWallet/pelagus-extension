@@ -118,7 +118,7 @@ export default function DAppConnectPage({
         .connection_destination {
           width: 100%;
           height: 88px;
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
           border-radius: 8px;
           display: flex;
           justify-content: center;
@@ -133,7 +133,7 @@ export default function DAppConnectPage({
             center;
           border-radius: 4px;
           background-size: 10px 17px;
-          border: solid 3px var(--hunter-green);
+          border: solid 3px var(--secondary-bg);
           width: 24px;
           height: 24px;
           margin-left: 28px;

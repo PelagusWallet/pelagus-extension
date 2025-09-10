@@ -62,6 +62,22 @@ const ConvertFromAmount = () => {
     }
   }
 
+  // Helper function to parse formatted numbers like "48,205.4" to actual value
+  const parseFormattedNumber = (str: string): number => {
+    // Remove commas from the string before parsing
+    const cleanedStr = str.replace(/,/g, '')
+    
+    // Handle K/M suffixes if present
+    if (cleanedStr.endsWith('K') || cleanedStr.endsWith('k')) {
+      return parseFloat(cleanedStr.slice(0, -1)) * 1000
+    }
+    if (cleanedStr.endsWith('M') || cleanedStr.endsWith('m')) {
+      return parseFloat(cleanedStr.slice(0, -1)) * 1000000
+    }
+    
+    return parseFloat(cleanedStr)
+  }
+
   const onMaxAmount = async () => {
     if (
       convertFromAccount &&
@@ -89,12 +105,12 @@ const ConvertFromAmount = () => {
       !isUtxoAccountTypeGuard(convertFromAccount) &&
       convertFromAccount?.balance
     ) {
-      // Extract the numeric part from the balance string (e.g., "93.3690 QUAI" or "10.5 WQI")
+      // Extract the numeric part from the balance string (e.g., "93.3690 QUAI" or "48.2056K WQI")
       const balanceString = convertFromAccount.balance
       const parts = balanceString.split(" ")
       const numericPart = parts[0]
       const tokenSymbol = parts[1] || "QUAI"
-      const numericAmount = parseFloat(numericPart)
+      const numericAmount = parseFormattedNumber(numericPart)
 
       // For WQI, use full balance but floor to whole number (gas is paid in QUAI)
       if (tokenSymbol === "WQI") {
@@ -147,13 +163,13 @@ const ConvertFromAmount = () => {
     ) {
       const balanceString = convertFromAccount.balance
       const parts = balanceString.split(" ")
-      const numericAmount = parseFloat(parts[0])
+      const numericAmount = parseFormattedNumber(parts[0])
       const tokenSymbol = parts[1] || "QUAI"
 
-      // For WQI, show only whole number portion available (gas is paid in QUAI)
+      // For WQI, show only whole number portion available (must unwrap in whole numbers)
       if (tokenSymbol === "WQI") {
         const wholeAmount = Math.floor(numericAmount)
-        return `${wholeAmount} WQI`
+        return `${wholeAmount.toLocaleString()} WQI`
       }
 
       // Show available balance minus transaction fee reserve for QUAI accounts

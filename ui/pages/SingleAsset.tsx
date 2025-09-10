@@ -244,6 +244,7 @@ export default function SingleAsset(): ReactElement {
                       pathname: "/send",
                       state: asset,
                     }}
+                    style={{ color: 'white' }}
                   >
                     {t("shared.send")}
                   </SharedButton>

@@ -119,6 +119,7 @@ const ConfirmWrapPage = () => {
           onClick={handleConfirm}
           isDisabled={isLoading}
           isLoading={isLoading}
+          style={{ color: 'white' }}
         >
           {isUnwrap ? "Confirm Unwrap" : t("confirm")}
         </SharedButton>

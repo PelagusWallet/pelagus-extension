@@ -328,25 +328,133 @@ export default function Settings(): ReactElement {
           label={t("settings.forceQiWalletRescan")}
           ariaLabel={t("settings.forceQiWalletRescan")}
           icon="continue"
-          onClick={() => history.push("/settings/qi-rescan")}
+          onClick={() => setShowRescanConfirm(true)}
           isLoading={qiWalletSyncInProgress}
         />
       )
     },
   }
 
-  const aggregateQiOutputsDrawer = () => {
-      return (
-        <SharedDrawer
-            title={t("settings.aggregateQiOutputs")}
-            isOpen={showAggregateConfirm}
-            close={() => setShowAggregateConfirm(false)}
+  const forceQiWalletRescanDrawer = () => {
+    return (
+      <>
+        <div className="modal_overlay" onClick={() => setShowRescanConfirm(false)} />
+        <div className="modal_container settings-modal">
+          <SharedDrawer
+            title={t("settings.forceQiWalletRescan")}
+            isOpen={showRescanConfirm}
+            close={() => setShowRescanConfirm(false)}
             gap={0}
             customStyles={{
               overflow: "visible",
-              zIndex: "1050",
-              minHeight: "400px"
+              minHeight: "200px",
+              maxWidth: "450px",
+              width: "80%",
+              margin: "0 auto",
+              position: "relative"
             }}
+          >
+            <div className="confirm_rescan">
+              <p className="confirm_rescan_text">
+                {t("settings.forceQiWalletRescanConfirm")}
+              </p>
+              <div className="rescan_buttons">
+                <button
+                  className="btn_cancel"
+                  onClick={() => setShowRescanConfirm(false)}
+                  disabled={qiWalletSyncInProgress}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn_confirm"
+                  onClick={async () => {
+                    await backgroundDispatch(forceQiWalletFullRescan())
+                    setShowRescanConfirm(false)
+                  }}
+                  disabled={qiWalletSyncInProgress}
+                >
+                  {qiWalletSyncInProgress ? "Rescanning..." : "Confirm"}
+                </button>
+              </div>
+            </div>
+            <style jsx>{
+              `
+                .confirm_rescan {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 24px;
+                  padding: 16px;
+                }
+                .confirm_rescan_text {
+                  font-size: 14px;
+                  line-height: 1.5;
+                  color: var(--primary-text);
+                  margin: 0;
+                }
+                .rescan_buttons {
+                  display: flex;
+                  gap: 12px;
+                  justify-content: flex-end;
+                }
+                .btn_cancel,
+                .btn_confirm {
+                  padding: 8px 24px;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  cursor: pointer;
+                  transition: all 0.2s;
+                }
+                .btn_cancel {
+                  background: transparent;
+                  color: var(--primary-text);
+                  border: 1px solid var(--primary-text);
+                }
+                .btn_cancel:hover:not(:disabled) {
+                  background: var(--primary-text);
+                  color: var(--primary-bg);
+                }
+                .btn_confirm {
+                  background: var(--primary-text);
+                  color: var(--primary-bg);
+                  border: none;
+                }
+                .btn_confirm:hover:not(:disabled) {
+                  background: var(--secondary-text);
+                }
+                .btn_cancel:disabled,
+                .btn_confirm:disabled {
+                  opacity: 0.5;
+                  cursor: not-allowed;
+                }
+              `
+            }
+            </style>
+          </SharedDrawer>
+        </div>
+      </>
+    )
+  }
+
+  const aggregateQiOutputsDrawer = () => {
+      return (
+        <>
+          <div className="modal_overlay" onClick={() => setShowAggregateConfirm(false)} />
+          <div className="modal_container settings-modal">
+            <SharedDrawer
+                title={t("settings.aggregateQiOutputs")}
+                isOpen={showAggregateConfirm}
+                close={() => setShowAggregateConfirm(false)}
+                gap={0}
+                customStyles={{
+                  overflow: "visible",
+                  minHeight: "400px",
+                  maxWidth: "450px",
+                  width: "80%",
+                  margin: "0 auto",
+                  position: "relative"
+                }}
           >
             <div className="confirm_aggregate">
               <p className="confirm_aggregate_text">{t("settings.aggregateQiOutputsConfirm")}</p>
@@ -377,7 +485,7 @@ export default function Settings(): ReactElement {
                       options={denominationOptions.slice(0, 14)} // 0-13 for input
                       onChange={(value) => setMaxDenominationAggregate(parseInt(value))}
                       defaultIndex={maxDenominationAggregate}
-                      placement="bottom"
+                      placement="top"
                     />
                   </div>
                   <div className="input_container input_container_second">
@@ -388,7 +496,7 @@ export default function Settings(): ReactElement {
                       options={denominationOptions} // 0-14 for output
                       onChange={(value) => setMaxDenominationOutput(parseInt(value))}
                       defaultIndex={maxDenominationOutput}
-                      placement="bottom"
+                      placement="top"
                     />
                   </div>
                 </>
@@ -467,12 +575,18 @@ export default function Settings(): ReactElement {
                   min-width: 140px;
                   text-align: right;
                 }
+                /* Ensure dropdown lists are fully scrollable and on top */
+                .input_container .options.show {
+                  max-height: 200px !important;
+                  overflow-y: auto !important;
+                  z-index: 10000 !important;
+                }
                 .input_container_first {
-                  z-index: 1002;
+                  z-index: 1001;
                   position: relative;
                 }
                 .input_container_second {
-                  z-index: 1001;
+                  z-index: 1003;
                   position: relative;
                 }
                 .button_container {
@@ -555,17 +669,30 @@ export default function Settings(): ReactElement {
               `}
             </style>
           </SharedDrawer>
+          </div>
+        </>
       )
   }
 
   const utxoDistributionDrawer = () => {
     return (
-      <SharedDrawer
-        title="Qi UTXO Distribution"
-        isOpen={showUTXODistribution}
-        close={() => setShowUTXODistribution(false)}
-        gap={0}
-      >
+      <>
+        <div className="modal_overlay" onClick={() => setShowUTXODistribution(false)} />
+        <div className="modal_container settings-modal">
+          <SharedDrawer
+            title="Qi UTXO Distribution"
+            isOpen={showUTXODistribution}
+            close={() => setShowUTXODistribution(false)}
+            gap={0}
+            customStyles={{
+              overflow: "visible",
+              minHeight: "400px",
+              maxWidth: "405px",
+              width: "72%",
+              margin: "0 auto",
+              position: "relative"
+            }}
+          >
         <div className="utxo_distribution">
           {utxoDistributionLoading ? (
             <div className="loading">Loading UTXO distribution...</div>
@@ -676,6 +803,8 @@ export default function Settings(): ReactElement {
           `}
         </style>
       </SharedDrawer>
+      </div>
+    </>
     )
   }
 
@@ -865,13 +994,21 @@ export default function Settings(): ReactElement {
         </div>
       </SharedDrawer>
 
-        {showAggregateConfirm && aggregateQiOutputsDrawer()}
-        {showUTXODistribution && utxoDistributionDrawer()}
+      {showRescanConfirm && forceQiWalletRescanDrawer()}
+      {showAggregateConfirm && aggregateQiOutputsDrawer()}
+      {showUTXODistribution && utxoDistributionDrawer()}
       
-      <CustomRPCModal
-        isOpen={showCustomRPCModal}
-        onClose={() => setShowCustomRPCModal(false)}
-      />
+      {showCustomRPCModal && (
+        <>
+          <div className="modal_overlay" onClick={() => setShowCustomRPCModal(false)} />
+          <div className="modal_container settings-modal">
+            <CustomRPCModal
+              isOpen={showCustomRPCModal}
+              onClose={() => setShowCustomRPCModal(false)}
+            />
+          </div>
+        </>
+      )}
 
       <SharedConfirmationModal
         headerTitle={confirmationModalProps.headerTitle}
@@ -883,6 +1020,85 @@ export default function Settings(): ReactElement {
         link={confirmationModalProps.link}
       />
 
+      <style jsx global>
+        {`
+          .modal_overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 9998;
+            animation: fadeIn 0.2s ease-in-out;
+          }
+
+          .modal_container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: slideIn 0.3s ease-out;
+            min-width: 360px;
+          }
+
+          /* Remove background and padding from drawer wrapper for Settings modals */
+          .settings-modal .drawer-wrapper {
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+          }
+
+          /* Hide the drawer's own overlay for Settings modals */
+          .settings-modal .drawer-overlay {
+            display: none !important;
+          }
+
+          /* Add proper styling to the inner content */
+          .settings-modal .drawer-header-wrapper,
+          .settings-modal .drawer-body {
+            background: var(--primary-bg);
+            border-radius: 16px;
+          }
+
+          .settings-modal .drawer-header-wrapper {
+            padding: 24px 24px 0 24px;
+            border-radius: 16px 16px 0 0;
+          }
+
+          .settings-modal .drawer-body {
+            padding: 0 24px 24px 24px;
+            border-radius: 0 0 16px 16px;
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translate(-50%, -45%);
+            }
+            to {
+              opacity: 1;
+              transform: translate(-50%, -50%);
+            }
+          }
+        `}
+      </style>
       <style jsx>
         {`
           section {

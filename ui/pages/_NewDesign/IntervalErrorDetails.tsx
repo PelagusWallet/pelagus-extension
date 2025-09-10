@@ -331,8 +331,8 @@ const IntervalErrorDetails = () => {
         }
 
         .detail-card {
-          background: var(--hunter-green);
-          border: 1px solid var(--green-20);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 16px;
           margin-bottom: 16px;
@@ -463,11 +463,11 @@ const IntervalErrorDetails = () => {
         .back-button {
           background: transparent;
           color: var(--primary-text);
-          border: 1px solid var(--green-40);
+          border: 1px solid var(--border-color);
         }
 
         .back-button:hover {
-          background: rgba(255, 255, 255, 0.05);
+          background: var(--hover-bg);
         }
       `}</style>
     </>

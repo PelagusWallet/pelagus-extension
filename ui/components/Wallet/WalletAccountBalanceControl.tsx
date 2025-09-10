@@ -58,7 +58,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             await dispatch(resetQiSendSlice())
             history.push("/send-qi")
           }}
-          size={75}
+          size={70}
           iconWidth="20"
           iconHeight="26"
           disabled={
@@ -71,7 +71,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           icon="icons/s/receive.svg"
           ariaLabel={t("receive")}
           onClick={onReceive}
-          size={75}
+          size={70}
           iconWidth="20"
           iconHeight="26"
         >
@@ -90,7 +90,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
 
               history.push("/wrap")
             }}
-            size={75}
+            size={70}
             iconWidth="28"
             iconHeight="26"
             disabled={!isQiWalletInit}
@@ -102,7 +102,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           <SharedCircleButton
             icon="icons/s/swap.svg"
             ariaLabel={t("swap")}
-            size={75}
+            size={70}
             iconWidth="28"
             iconHeight="26"
           >
@@ -125,7 +125,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             await dispatch(resetConvertAssetsSlice())
             history.push("/convert")
           }}
-          size={75}
+          size={70}
           iconWidth="28"
           iconHeight="26"
           disabled={

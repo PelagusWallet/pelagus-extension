@@ -126,6 +126,14 @@ const CustomRPCModal: React.FC<CustomRPCModalProps> = ({ isOpen, onClose }) => {
       isOpen={isOpen}
       close={onClose}
       gap={0}
+      customStyles={{
+        overflow: "visible",
+        minHeight: "400px",
+        maxWidth: "450px",
+        width: "80%",
+        margin: "0 auto",
+        position: "relative"
+      }}
     >
       <div className="custom-rpc-modal">
         <div className="network-info">
@@ -219,17 +227,18 @@ const CustomRPCModal: React.FC<CustomRPCModalProps> = ({ isOpen, onClose }) => {
           justify-content: space-between;
           align-items: center;
           padding: 12px;
-          background: var(--green-120);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
         }
         
         .label {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 14px;
         }
         
         .value {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 14px;
           font-weight: 500;
         }
@@ -241,17 +250,17 @@ const CustomRPCModal: React.FC<CustomRPCModalProps> = ({ isOpen, onClose }) => {
         }
         
         .input-group label {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 14px;
           font-weight: 500;
         }
         
         .input-group input {
           padding: 12px;
-          background: var(--hunter-green);
-          border: 1px solid var(--green-60);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-color);
           border-radius: 4px;
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 14px;
           font-family: monospace;
           transition: border-color 0.2s;
@@ -259,7 +268,7 @@ const CustomRPCModal: React.FC<CustomRPCModalProps> = ({ isOpen, onClose }) => {
         
         .input-group input:focus {
           outline: none;
-          border-color: var(--green-40);
+          border-color: var(--accent-color);
         }
         
         .input-group input:disabled {
@@ -277,18 +286,18 @@ const CustomRPCModal: React.FC<CustomRPCModalProps> = ({ isOpen, onClose }) => {
           flex-direction: column;
           gap: 8px;
           padding: 8px 12px;
-          background: var(--green-120);
+          background: var(--secondary-bg);
           border-radius: 4px;
-          border: 1px dashed var(--green-60);
+          border: 1px dashed var(--border-color);
         }
         
         .info-label {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 12px;
         }
         
         .info-value {
-          color: var(--green-20);
+          color: var(--primary-text);
           font-size: 12px;
           font-family: monospace;
         }

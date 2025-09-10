@@ -98,7 +98,7 @@ function BannerWithClose(props: BannerProps & { id: string }): ReactElement {
         ariaLabel="close"
         width={16}
         color="var(--secondary-text)"
-        hoverColor="var(--green-20)"
+        hoverColor="var(--primary-text)"
         customStyles={`
               position: absolute;
               top: 12px;

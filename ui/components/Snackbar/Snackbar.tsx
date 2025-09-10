@@ -133,7 +133,7 @@ export default function Snackbar({
             font-size: 16px;
             font-weight: 500;
             background: var(--primary-bg);
-            color: var(--green-20);
+            color: var(--primary-text);
             box-shadow: 0px 24px 24px rgba(0, 20, 19, 0.14),
               0px 14px 16px rgba(0, 20, 19, 0.24),
               0px 10px 12px rgba(0, 20, 19, 0.34);

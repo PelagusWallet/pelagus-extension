@@ -31,7 +31,7 @@ export default function PersonalSignDetailPanel(): JSX.Element {
         .primary_info_card {
           height: fit-content;
           border-radius: 16px;
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
           margin: 16px 0;
           display: flex;
           flex-direction: column;

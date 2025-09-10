@@ -36,7 +36,7 @@ export default function DataSignatureDetails({
         .primary_info_card {
           height: fit-content;
           border-radius: 16px;
-          background-color: var(--hunter-green);
+          background-color: var(--primary-bg);
           margin: 0 0 16px;
           display: flex;
           flex-direction: column;

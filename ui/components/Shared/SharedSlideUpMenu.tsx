@@ -88,8 +88,8 @@ export default function SharedSlideUpMenu(props: Props): ReactElement {
           <SharedIcon
             icon="close.svg"
             width={12}
-            color="var(--green-20)"
-            hoverColor="var(--white)"
+            color="var(--secondary-text)"
+            hoverColor="var(--primary-text)"
             ariaLabel="Close menu"
             onClick={(e) => {
               close(e)
@@ -138,7 +138,7 @@ export default function SharedSlideUpMenu(props: Props): ReactElement {
             pointer-events: none;
           }
           .dark {
-            background-color: var(--hunter-green);
+            background-color: var(--primary-bg);
           }
           .slide_up_menu.closed {
             transform: translateY(100%);

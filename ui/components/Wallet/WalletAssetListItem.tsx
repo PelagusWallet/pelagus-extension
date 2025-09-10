@@ -47,6 +47,12 @@ export default function WalletAssetListItem(props: Props): ReactElement {
           .asset_icon_send {
             mask-image: url("./images/send_asset.svg");
           }
+          /* Ensure text turns white (contrast) over blue hover background in light mode */
+          .asset_list_item:hover .asset_symbol,
+          .asset_list_item:hover .asset_amount,
+          .asset_list_item:hover .bold_amount_count {
+            color: var(--contrast-text) !important;
+          }
         `}
       </style>
     </li>

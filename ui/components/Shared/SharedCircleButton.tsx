@@ -47,46 +47,41 @@ export default function SharedCircleButton(props: Props): ReactElement {
       aria-label={ariaLabel}
       onClick={onClick}
     >
-      <div className="icon_wrap">
+      <div className="button_square">
         <div className="icon" />
+        <div className="button_text">{children}</div>
       </div>
-      <div>{children}</div>
       <style jsx>
         {`
           button {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 20px;
-            letter-spacing: 0.03em;
-            color: var(--primary-text);
-            transition: color 0.2s;
+            transition: all 0.2s;
             width: ${width ?? "80%"};
+          }
+          .hoverable:hover .button_square {
+            background-color: var(--hover-bg, var(--secondary-bg));
+            filter: brightness(0.95);
+          }
+          .disabled {
+            cursor: not-allowed;
+          }
+          .disabled .button_square {
+            background-color: var(--disabled);
+          }
+          .button_square {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-          }
-          .hoverable:hover {
-            color: var(--primary-text);
-          }
-          .disabled {
-            color: var(--disabled);
-            cursor: not-allowed;
-          }
-          .icon_wrap {
-            display: flex;
-            align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            gap: 6px;
+            border-radius: 16px;
             width: ${size}px;
             height: ${size}px;
             background-color: ${disabled
               ? "var(--disabled)"
-              : "var(--trophy-gold)"};
-            transition: background-color 0.2s;
-          }
-          .hoverable:hover .icon_wrap {
-            background-color: ${iconColor.hoverColor};
+              : "var(--secondary-bg)"};
+            transition: all 0.2s;
+            padding: 8px;
+            box-sizing: border-box;
           }
           .icon {
             mask-image: url("./images/${icon}");
@@ -95,7 +90,16 @@ export default function SharedCircleButton(props: Props): ReactElement {
             mask-size: cover;
             width: ${`${iconWidth}px` ?? "100%"};
             height: ${`${iconHeight}px` ?? "100%"};
-            background-color: var(--secondary-bg);
+            background-color: ${disabled
+              ? "var(--disabled)"
+              : "var(--trophy-gold)"};
+          }
+          .button_text {
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 16px;
+            letter-spacing: 0.03em;
+            color: ${disabled ? "var(--disabled)" : "var(--primary-text)"};
           }
         `}
       </style>

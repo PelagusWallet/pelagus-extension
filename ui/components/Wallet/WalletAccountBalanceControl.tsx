@@ -58,9 +58,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             await dispatch(resetQiSendSlice())
             history.push("/send-qi")
           }}
-          size={55}
-          iconWidth="12"
-          iconHeight="18"
+          size={75}
+          iconWidth="20"
+          iconHeight="26"
           disabled={
             currentSelectedAccount.network.chainID === "9000"
           }
@@ -71,9 +71,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           icon="icons/s/receive.svg"
           ariaLabel={t("receive")}
           onClick={onReceive}
-          size={55}
-          iconWidth="12"
-          iconHeight="18"
+          size={75}
+          iconWidth="20"
+          iconHeight="26"
         >
           {t("receive")}
         </SharedCircleButton>
@@ -90,9 +90,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
 
               history.push("/wrap")
             }}
-            size={55}
-            iconWidth="20"
-            iconHeight="18"
+            size={75}
+            iconWidth="28"
+            iconHeight="26"
             disabled={!isQiWalletInit}
             width="100%"
             >
@@ -102,9 +102,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           <SharedCircleButton
             icon="icons/s/swap.svg"
             ariaLabel={t("swap")}
-            size={55}
-            iconWidth="20"
-            iconHeight="18"
+            size={75}
+            iconWidth="28"
+            iconHeight="26"
           >
             {t("swap")}
           </SharedCircleButton>
@@ -125,9 +125,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             await dispatch(resetConvertAssetsSlice())
             history.push("/convert")
           }}
-          size={55}
-          iconWidth="20"
-          iconHeight="18"
+          size={75}
+          iconWidth="28"
+          iconHeight="26"
           disabled={
             !isQiWalletInit ||
             currentSelectedAccount.network.chainID === "9000"
@@ -151,13 +151,14 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 12px 0;
+            margin: 24px 0 12px 0;
           }
           .action_buttons_wrap {
             display: flex;
             justify-content: center;
-            gap: 24px;
+            gap: 16px;
             margin-bottom: 12px;
+            margin-top: 8px;
           }
           .info_banner {
             display: flex;
@@ -269,7 +270,6 @@ export default function WalletAccountBalanceControl(
           customStyles={isUtxoSelected ? "" : "margin: 12px 0"}
           isLoaded={!shouldIndicateLoadingHandle({ isActionsSkeleton: false })}
         >
-          <div className="balance_label">{t("totalAccountBalance")}</div>
           <span className="balance_area">
             <span className="balance" data-testid="wallet_balance">
               <div className="balance_update_button">

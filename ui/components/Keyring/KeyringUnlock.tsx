@@ -94,7 +94,7 @@ export default function KeyringUnlock(): ReactElement {
       <div className="img_wrap">
         <div className="illustration_unlock" />
       </div>
-      <h1 className="serif_header" style={{ color: "var(--trophy-gold" }}>
+      <h1 className="serif_header" style={{ color: "var(--trophy-gold)" }}>
         {t("title")}
       </h1>
       <div className="simple_text subtitle">{t("subtitle")}</div>
@@ -120,7 +120,7 @@ export default function KeyringUnlock(): ReactElement {
               </div>
             </div>
           )}
-          <div>
+          <div className="unlock_button_wrap">
             <SharedButton
               type="primary"
               size="large"
@@ -190,6 +190,12 @@ export default function KeyringUnlock(): ReactElement {
           }
         `}
       </style>
+      <style jsx global>{`
+        /* Force white text (contrast) on primary button in light mode */
+        .unlock_button_wrap :global(button.button) {
+          color: var(--contrast-text) !important;
+        }
+      `}</style>
     </section>
   )
 }

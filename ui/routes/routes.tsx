@@ -19,6 +19,7 @@ import SendPage from "../pages/_NewDesign/SendPage"
 import ConfirmTransactionPage from "../pages/_NewDesign/ConfirmTransactionPage"
 import SettingsQiCoinbaseAddress from "../pages/Settings/SettingsQiCoinbaseAddress"
 import SettingsAddQiCoinbaseAddress from "../pages/Settings/SettingsAddQiCoinbaseAddress"
+import SettingsForceQiRescan from "../pages/Settings/SettingsForceQiRescan"
 import ConvertPage from "../pages/_NewDesign/ConvertPage"
 import ConfirmConversionPage from "../pages/_NewDesign/ConfirmConversionPage"
 import ConvertIntervalConfirmation from "../pages/_NewDesign/ConvertIntervalConfirmation"
@@ -40,6 +41,11 @@ const pageList: PageList[] = [
   {
     path: "/keyring/set-password",
     Component: KeyringSetPassword,
+    hasTopBar: false,
+  },
+  {
+    path: "/settings/qi-rescan",
+    Component: SettingsForceQiRescan,
     hasTopBar: false,
   },
   {

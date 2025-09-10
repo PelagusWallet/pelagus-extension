@@ -373,8 +373,8 @@ const WrapPage = () => {
           color: var(--secondary-text);
         }
         .account-display {
-          background: var(--hunter-green);
-          border: 1px solid var(--green-20);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-dark);
           border-radius: 12px;
           padding: 12px 16px;
         }

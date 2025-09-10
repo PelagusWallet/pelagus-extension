@@ -140,12 +140,12 @@ export default function SharedAssetItem<T extends AnyAsset>(
             padding: 7.5px 24px;
           }
           .token_group:hover {
-            background-color: var(--hunter-green);
+            background-color: var(--tertiary-bg);
           }
           .token_icon_wrap {
             width: 40px;
             height: 40px;
-            background-color: var(--hunter-green);
+            background-color: var(--secondary-bg);
             border-radius: 80px;
             margin-right: 8px;
             display: flex;
@@ -153,7 +153,7 @@ export default function SharedAssetItem<T extends AnyAsset>(
             justify-content: center;
           }
           .token_group:hover .token_icon_wrap {
-            background-color: var(--primary-bg);
+            background-color: var(--secondary-bg);
           }
           .token_subtitle {
             height: 17px;

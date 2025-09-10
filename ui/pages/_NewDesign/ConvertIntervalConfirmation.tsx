@@ -183,8 +183,8 @@ const ConvertIntervalConfirmation = () => {
         }
 
         .summary-card {
-          background: var(--hunter-green);
-          border: 1px solid var(--green-20);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-dark);
           border-radius: 12px;
           padding: 20px;
           margin-bottom: 16px;
@@ -207,7 +207,8 @@ const ConvertIntervalConfirmation = () => {
         }
 
         .detail-row.highlight {
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-dark);
           padding: 10px 8px;
           border-radius: 6px;
           margin: 4px 0;
@@ -235,7 +236,7 @@ const ConvertIntervalConfirmation = () => {
         }
 
         .divider {
-          border-top: 1px solid var(--green-20);
+          border-top: 1px solid var(--border-dark);
           margin: 16px 0;
         }
 
@@ -249,14 +250,14 @@ const ConvertIntervalConfirmation = () => {
           display: flex;
           gap: 12px;
           padding: 16px;
-          background: rgba(255, 193, 7, 0.1);
-          border: 1px solid rgba(255, 193, 7, 0.3);
+          background: var(--secondary-bg);
+          border: 1px solid var(--attention);
           border-radius: 8px;
           margin-bottom: 16px;
         }
 
         .warning-icon {
-          color: #ffc107;
+          color: var(--attention);
           font-size: 20px;
           flex-shrink: 0;
           margin-top: 2px;
@@ -267,7 +268,7 @@ const ConvertIntervalConfirmation = () => {
         }
 
         .warning-title {
-          color: #ffc107;
+          color: var(--attention);
           font-size: 14px;
           font-weight: 600;
           margin: 0 0 4px 0;
@@ -282,28 +283,28 @@ const ConvertIntervalConfirmation = () => {
 
         .error-box {
           padding: 12px;
-          background: rgba(244, 67, 54, 0.1);
-          border: 1px solid rgba(244, 67, 54, 0.3);
+          background: var(--secondary-bg);
+          border: 1px solid var(--error-color);
           border-radius: 8px;
           margin-bottom: 16px;
         }
 
         .error-text {
-          color: #f44336;
+          color: var(--error-color);
           font-size: 14px;
           margin: 0;
         }
 
         .success-box {
           padding: 12px;
-          background: rgba(76, 175, 80, 0.1);
-          border: 1px solid rgba(76, 175, 80, 0.3);
+          background: var(--secondary-bg);
+          border: 1px solid var(--success-color);
           border-radius: 8px;
           margin-bottom: 16px;
         }
 
         .success-text {
-          color: #4caf50;
+          color: var(--success-color);
           font-size: 14px;
           margin: 0;
         }

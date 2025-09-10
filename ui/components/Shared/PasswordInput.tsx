@@ -64,7 +64,7 @@ export default function PasswordInput(props: PasswordInputProps): ReactElement {
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #2196F3;
+            color: var(--trophy-gold);
             font-size: 14px;
             cursor: pointer;
             padding: 0;

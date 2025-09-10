@@ -327,7 +327,7 @@ const RunningIntervals = () => {
 
         .empty-icon {
           font-size: 48px;
-          color: var(--green-40);
+          color: var(--secondary-text);
           margin-bottom: 16px;
         }
 
@@ -348,8 +348,8 @@ const RunningIntervals = () => {
         }
 
         .interval-card {
-          background: var(--hunter-green);
-          border: 1px solid var(--green-20);
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-dark);
           border-radius: 12px;
           padding: 16px;
           transition: all 0.2s;
@@ -360,7 +360,7 @@ const RunningIntervals = () => {
         }
 
         .interval-card.clickable:hover {
-          border-color: var(--green-40);
+          border-color: var(--border-dark);
           transform: translateY(-1px);
         }
 
@@ -389,26 +389,24 @@ const RunningIntervals = () => {
           font-size: 12px;
           font-weight: 500;
           text-transform: capitalize;
+          border: 1px solid currentColor;
+          background: transparent;
         }
 
         .status-badge.running {
-          background: rgba(33, 150, 243, 0.1);
-          color: #2196f3;
+          color: var(--accent-color);
         }
 
         .status-badge.completed {
-          background: rgba(76, 175, 80, 0.1);
-          color: #4caf50;
+          color: var(--success-color);
         }
 
         .status-badge.failed {
-          background: rgba(244, 67, 54, 0.1);
-          color: #f44336;
+          color: var(--error-color);
         }
 
         .status-badge.cancelled {
-          background: rgba(158, 158, 158, 0.1);
-          color: #9e9e9e;
+          color: var(--secondary-text);
         }
 
         .status-icon {
@@ -456,9 +454,10 @@ const RunningIntervals = () => {
         .progress-bar {
           flex: 1;
           height: 6px;
-          background: var(--green-10);
+          background: var(--secondary-bg);
           border-radius: 3px;
           overflow: hidden;
+          border: 1px solid var(--border-dark);
         }
 
         .progress-fill {
@@ -467,16 +466,16 @@ const RunningIntervals = () => {
         }
 
         .progress-fill.running {
-          background: #2196f3;
+          background: var(--accent-color);
         }
 
         .progress-fill.completed {
-          background: #4caf50;
+          background: var(--success-color);
         }
 
         .progress-fill.failed,
         .progress-fill.cancelled {
-          background: #9e9e9e;
+          background: var(--secondary-text);
         }
 
         .progress-text {
@@ -490,13 +489,13 @@ const RunningIntervals = () => {
           align-items: center;
           gap: 8px;
           padding: 8px;
-          background: rgba(244, 67, 54, 0.05);
+          border: 1px solid var(--error-color);
           border-radius: 6px;
           margin-top: 8px;
         }
 
         .error-label {
-          color: #f44336;
+          color: var(--error-color);
           font-size: 12px;
           font-weight: 600;
         }
@@ -518,15 +517,16 @@ const RunningIntervals = () => {
         .action-buttons {
           margin-top: 12px;
           padding-top: 12px;
-          border-top: 1px solid var(--green-20);
+          border-top: 1px solid var(--border-dark);
+          box-sizing: border-box;
         }
 
         .cancel-button {
           width: 100%;
           padding: 10px;
-          background: rgba(244, 67, 54, 0.1);
-          color: #f44336;
-          border: 1px solid rgba(244, 67, 54, 0.3);
+          background: transparent;
+          color: var(--error-color);
+          border: 1px solid var(--error-color);
           border-radius: 8px;
           font-size: 14px;
           font-weight: 500;
@@ -536,11 +536,12 @@ const RunningIntervals = () => {
           align-items: center;
           justify-content: center;
           gap: 8px;
+          box-sizing: border-box;
+          max-width: 100%;
         }
 
         .cancel-button:hover:not(:disabled) {
-          background: rgba(244, 67, 54, 0.15);
-          border-color: rgba(244, 67, 54, 0.5);
+          filter: brightness(1.1);
         }
 
         .cancel-button:disabled {

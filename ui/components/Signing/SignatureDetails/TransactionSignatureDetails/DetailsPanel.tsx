@@ -278,7 +278,7 @@ export default function DetailPanel({
             flex-direction: column;
           }
           .detail_item_right {
-            color: var(--green-20);
+            color: var(--primary-text);
             font-size: 16px;
             display: flex;
             align-items: center;
@@ -327,10 +327,10 @@ export default function DetailPanel({
             font-weight: 800; 
             font-size: medium;
             margin-right: 4px;
-            color: var(--green-20);
+            color: var(--primary-text);
           }
           .param_type { 
-            color: var(--green-20); 
+            color: var(--secondary-text); 
             font-size: medium;
             font-weight: 800;
           }
@@ -345,7 +345,7 @@ export default function DetailPanel({
           }
           .param_value {
             font-size: 13px;
-            background-color: var(--green-90);
+            background-color: var(--secondary-bg);
             padding: 2px 4px;
             border-radius: 3px;
             display: inline-block;

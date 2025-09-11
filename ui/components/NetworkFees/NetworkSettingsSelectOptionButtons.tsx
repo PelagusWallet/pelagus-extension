@@ -24,7 +24,7 @@ const buttonStyle = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--hunter-green);
+    background: var(--primary-bg);
     box-sizing: border-box;
     margin: 8px 0;
     cursor: pointer;
@@ -33,12 +33,12 @@ const buttonStyle = `
     position: relative;
   }
   .network_option.active {
-    border-color: var(--success);
+    border-color: var(--trophy-gold);
     box-shadow: 0px 16px 16px rgba(0, 20, 19, 0.14),
       0px 6px 8px rgba(0, 20, 19, 0.24), 0px 2px 4px rgba(0, 20, 19, 0.34);
   }
   .network_option.active .name {
-    color: var(--success);
+    color: var(--trophy-gold);
   }
   .network_option_left,
   .network_option_right {
@@ -72,7 +72,7 @@ const buttonStyle = `
     color: var(--secondary-text);
   }
   .currently_selected {
-    color: var(--success);
+    color: var(--trophy-gold);
     opacity: 0.8;
     font-size: 10px;
   }

@@ -66,38 +66,45 @@ export class LedgerSigner {
     if (!this.transport) {
       throw new Error("Transport not connected")
     }
-    
+
     try {
       // Send get app and version command: 0xB0 0x01 0x00 0x00
       const response = await this.transport.send(0xb0, 0x01, 0x00, 0x00)
-      
+
       let i = 0
       const format = response[i++]
-      
+
       if (format !== 1) {
         throw new Error("Unsupported app version format")
       }
-      
+
       const nameLength = response[i++]
       const name = response.subarray(i, i + nameLength).toString("ascii")
       i += nameLength
-      
+
       const versionLength = response[i++]
       const version = response.subarray(i, i + versionLength).toString("ascii")
       i += versionLength
-      
+
       const flagLength = response[i++]
       const flags = response.subarray(i, i + flagLength)
-      
+
       logger.info("LedgerSigner: Current app", { name, version })
       return { name, version, flags }
     } catch (error: any) {
+      // Check for disconnected device error
+      if (error.name === "DisconnectedDeviceDuringOperation" || error.message?.includes("Failed to write the report")) {
+        logger.warn("LedgerSigner: Transport disconnected, resetting connection")
+        await this.disconnect()
+        throw new Error("LEDGER_DISCONNECTED: Transport was disconnected. Please try again.")
+      }
+
       // Error codes that indicate no app is open (on dashboard)
       if (error.statusCode === 0x6e00 || error.statusCode === 0x6d00 || error.statusCode === 0x6a82) {
         logger.info("LedgerSigner: Device is on dashboard (no app open)")
         return null
       }
-      
+
       logger.error("LedgerSigner: Failed to get current app", error)
       throw error
     }
@@ -693,5 +700,7 @@ export function isLedgerError(error: any): boolean {
     errorMessage.includes("APP_LOCKED:") ||
     errorMessage.includes("SECURITY_ERROR:") ||
     errorMessage.includes("WRONG_APP:") ||
-    errorMessage.includes("APP_ERROR:")
+    errorMessage.includes("APP_ERROR:") ||
+    errorMessage.includes("LEDGER_DISCONNECTED:") ||
+    errorMessage.includes("LedgerSigner:")
 }

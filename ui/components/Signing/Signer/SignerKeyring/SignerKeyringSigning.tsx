@@ -34,7 +34,7 @@ export default function SignerKeyringSigning({
       const message = snackbarConfig.message
       
       // Check if this is a Ledger error or insufficient funds message
-      const isRecoverableError = 
+      const isRecoverableError =
         message.includes("unlock your Ledger") ||
         message.includes("rejected on the Ledger") ||
         message.includes("install the Quai app") ||
@@ -44,6 +44,8 @@ export default function SignerKeyringSigning({
         message.includes("Security conditions") ||
         message.includes("Wrong app is open") ||
         message.includes("app might not support") ||
+        message.includes("but need a") || // Device mismatch errors
+        message.includes("Transport was disconnected") || // Transport disconnection errors
         message.toLowerCase().includes("insufficient funds")
       
       if (isRecoverableError) {

@@ -1,14 +1,15 @@
 import React, { ReactElement, useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useBackgroundDispatch } from "../hooks/redux-hooks"
+import { useTheme } from "../hooks"
 import { LEDGER_VENDOR_ID } from "../utils/ledger/constants"
 import { APDUScriptRunner } from "../utils/ledger/APDUScriptRunner"
 import { parseAppList, bytesToHex } from "../utils/ledger/parseAppList"
-import { deriveQuaiAddress, DerivedAddress, openLedgerApp, closeLedgerApp } from "../utils/ledger/addressDerivation"
+import { deriveQuaiAddress, DerivedAddress, openLedgerApp, closeLedgerApp, verifyAddressOnDevice } from "../utils/ledger/addressDerivation"
 import SharedButton from "../components/Shared/SharedButton"
 import SharedLoadingSpinner from "../components/Shared/SharedLoadingSpinner"
-import { 
-  connectLedgerDevice, 
+import {
+  connectLedgerDevice,
   disconnectLedgerDevice,
   storeLedgerAddress,
   deleteLedgerAddress,
@@ -48,10 +49,12 @@ interface InstalledApp {
 }
 
 export default function LedgerConnect(): ReactElement {
+  useTheme()
+
   const dispatch = useDispatch()
   const backgroundDispatch = useBackgroundDispatch()
   const derivedAddresses = useSelector((state: RootState) => state.ledger.derivedAddresses)
-  
+
   const [connectedDevice, setConnectedDevice] = useState<HIDDevice | null>(null)
   const [deviceInfo, setDeviceInfo] = useState<{
     model: string
@@ -76,6 +79,8 @@ export default function LedgerConnect(): ReactElement {
   // Address derivation state
   const [isDeriving, setIsDeriving] = useState(false)
   const [derivedAddress, setDerivedAddress] = useState<DerivedAddress | null>(null)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isVerified, setIsVerified] = useState(false)
   
   // Test transaction state
   const [testingAddress, setTestingAddress] = useState<string | null>(null)
@@ -535,8 +540,10 @@ export default function LedgerConnect(): ReactElement {
       
       // Determine which APDU file to use based on device model
       let apduFile = ""
-      if (deviceInfo.model === "Flex" || deviceInfo.model === "Stax") {
+      if (deviceInfo.model === "Flex") {
         apduFile = "/ledger-apps/quai-flex.apdu"
+      } else if (deviceInfo.model == "Stax") {
+        apduFile = "/ledger-apps/quai-stax.apdu"
       } else if (deviceInfo.model === "Nano S" || deviceInfo.model === "Nano S Plus") {
         apduFile = "/ledger-apps/quai-nanos2.apdu"
       } else {
@@ -576,7 +583,8 @@ export default function LedgerConnect(): ReactElement {
         if (cleanHex.length < 10) continue // Skip invalid lines
         
         // Build APDU command for script runner
-        const result = await scriptRunner.runScript(cleanHex, true) // Use SCP
+        // Use 60 second timeout for app installation (can take time for user interaction)
+        const result = await scriptRunner.runScript(cleanHex, true, undefined, 60000) // Use SCP
         
         if (result.length > 0 && result[0].response) {
           const response = hexToBytes(result[0].response)
@@ -617,51 +625,69 @@ export default function LedgerConnect(): ReactElement {
     }
 
     setIsDeriving(true)
+    setIsVerified(false)
     setError("")
-    
+
     try {
       // Calculate the next account index based on saved addresses for this device
       const deviceId = `${deviceInfo.vendorId}-${deviceInfo.productId}`
       const deviceAddresses = derivedAddresses.filter(addr => addr.deviceId === deviceId)
       const nextAccountIndex = deviceAddresses.length
-      
+
+      // Step 1: Derive address without device verification
       const address = await deriveQuaiAddress(
         scriptRunner,
         nextAccountIndex,
         0,  // Start from index 0
-        true // Verify on device
+        false // Don't verify yet - we'll show it first
       )
-      
+
       setDerivedAddress(address)
       console.log("Derived address:", address)
+
+      // Step 2: Immediately start verification on device
+      setIsDeriving(false)
+      setIsVerifying(true)
+
+      try {
+        await verifyAddressOnDevice(scriptRunner, address.path, 9)
+        setIsVerified(true)
+        console.log("Address verified on device")
+      } catch (verifyErr: any) {
+        console.error("Address verification failed:", verifyErr)
+        setError(`Address verification failed: ${verifyErr.message}`)
+        // Keep the address visible but mark as not verified
+      } finally {
+        setIsVerifying(false)
+      }
     } catch (err: any) {
       console.error("Failed to derive address:", err)
       setError(`Failed to derive address: ${err.message}`)
-    } finally {
       setIsDeriving(false)
     }
   }
 
   const handleSaveAddress = () => {
-    if (!derivedAddress || !deviceInfo) return
-    
+    if (!derivedAddress || !deviceInfo || !isVerified) return
+
     // Create the device model string (e.g., "Flex", "Nano S Plus")
     const deviceModel = deviceInfo.model
-    
+
     // Create a unique device ID from vendor and product IDs
     const deviceId = `${deviceInfo.vendorId}-${deviceInfo.productId}`
-    
+
     // Dispatch action to store address in backend with device info
     const addressWithDevice = {
       ...derivedAddress,
       deviceModel,
       deviceId,
     }
-    
+
     dispatch(storeLedgerAddress(addressWithDevice))
-    
-    // Clear the current derived address to show it's been saved
+
+    // Clear the current derived address and verification state
     setDerivedAddress(null)
+    setIsVerified(false)
     console.log("Address saved to wallet with device info:", deviceModel)
   }
 
@@ -939,35 +965,16 @@ export default function LedgerConnect(): ReactElement {
 
             {connectedDevice && !scpInitialized && (
               <div className="scp_section">
-                <div className="scp_loading_container" style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: '20px',
-                  gap: '15px'
-                }}>
+                <div className="scp_loading_container">
                   <SharedLoadingSpinner size="large" />
-                  <p className="scp_loading" style={{ 
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    marginBottom: '10px'
-                  }}>
+                  <p className="scp_loading">
                     Initializing secure channel with your device...
                   </p>
-                  <p className="scp_instruction" style={{
-                    fontSize: '14px',
-                    color: '#666',
-                    textAlign: 'center'
-                  }}>
+                  <p className="scp_instruction">
                     Please approve the connection on your Ledger device when prompted
                   </p>
                   {scpRetryCount > 0 && (
-                    <p className="scp_retry" style={{
-                      fontSize: '12px',
-                      color: '#ff9900',
-                      textAlign: 'center',
-                      marginTop: '5px'
-                    }}>
+                    <p className="scp_retry">
                       Retry attempt {scpRetryCount}/3...
                     </p>
                   )}
@@ -1014,12 +1021,12 @@ export default function LedgerConnect(): ReactElement {
                 )}
                 
                 {/* Show Install Quai button if Quai is not installed */}
-                {!isLoadingApps && !installedApps.some(app => 
+                {!isLoadingApps && !installedApps.some(app =>
                   app.name.toLowerCase() === 'quai'
                 ) && (
-                  <div className="install_quai_section" style={{ marginTop: '20px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px' }}>
-                    <p className="install_quai_message" style={{ marginBottom: '15px' }}>
-                      {isInstallingQuai 
+                  <div className="install_quai_section">
+                    <p className="install_quai_message">
+                      {isInstallingQuai
                         ? "Do not close your browser or navigate away from this page while the Quai app is installing."
                         : "Quai app is not installed on your device."}
                     </p>
@@ -1034,34 +1041,15 @@ export default function LedgerConnect(): ReactElement {
                       </SharedButton>
                     ) : (
                       <div className="install_progress_container">
-                        <div className="progress_bar_container" style={{ 
-                          width: '100%', 
-                          height: '30px', 
-                          backgroundColor: '#f0f0f0', 
-                          borderRadius: '15px',
-                          overflow: 'hidden',
-                          marginBottom: '10px'
-                        }}>
-                          <div className="progress_bar" style={{ 
-                            width: `${installProgress}%`, 
-                            height: '100%', 
-                            backgroundColor: '#4CAF50',
-                            transition: 'width 0.3s ease',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <span style={{ 
-                              color: 'white', 
-                              fontWeight: 'bold',
-                              fontSize: '14px'
-                            }}>{installProgress}%</span>
+                        <div className="progress_bar_container">
+                          <div className="progress_bar" style={{ width: `${installProgress}%` }}>
+                            <span className="progress_text">{installProgress}%</span>
                           </div>
                         </div>
-                        <p className="install_status" style={{ textAlign: 'center', marginBottom: '10px' }}>
+                        <p className="install_status">
                           Installing Quai app... {installProgress}% complete
                         </p>
-                        <p className="install_note" style={{ fontSize: '12px', color: '#666', textAlign: 'center' }}>
+                        <p className="install_note">
                           Please follow the prompts on your Ledger device
                         </p>
                       </div>
@@ -1077,14 +1065,9 @@ export default function LedgerConnect(): ReactElement {
 
             {/* Address Derivation Section */}
             {scpInitialized && installedApps.some(app => app.name.toLowerCase() === "quai") && (
-              <div className="address_section" style={{ marginBottom: '20px' }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  marginBottom: '15px'
-                }}>
-                  <h3 style={{ margin: 0 }}>Create Account</h3>
+              <div className="address_section">
+                <div className="section_header">
+                  <h3>Create Account</h3>
                   {derivedAddresses.length > 0 && (
                     <SharedButton
                       type="tertiary"
@@ -1100,15 +1083,15 @@ export default function LedgerConnect(): ReactElement {
                     </SharedButton>
                   )}
                 </div>
-                
+
                 {deviceInfo && (() => {
                   const deviceId = `${deviceInfo.vendorId}-${deviceInfo.productId}`
                   const deviceAddresses = derivedAddresses.filter(addr => addr.deviceId === deviceId)
                   const nextAccountIndex = deviceAddresses.length
-                  
+
                   return (
-                    <div style={{ marginBottom: '15px' }}>
-                      <p style={{ fontSize: '14px', color: '#666', margin: '0 0 10px 0' }}>
+                    <div className="account_index_info">
+                      <p>
                         Next account index: {nextAccountIndex}
                       </p>
                     </div>
@@ -1126,21 +1109,37 @@ export default function LedgerConnect(): ReactElement {
                 </SharedButton>
 
                 {derivedAddress && (
-                  <div style={{ 
-                    marginTop: '15px', 
-                    padding: '15px', 
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: '8px',
-                    wordBreak: 'break-all'
-                  }}>
+                  <div className="derived_address_box">
                     <p><strong>Address:</strong> {derivedAddress.address}</p>
                     <p><strong>Path:</strong> {derivedAddress.path}</p>
                     <p><strong>Index:</strong> {derivedAddress.index}</p>
-                    
+
+                    {isVerifying && (
+                      <div className="verification_status verifying">
+                        <SharedLoadingSpinner size="small" />
+                        <span>Please confirm the address on your Ledger device...</span>
+                      </div>
+                    )}
+
+                    {!isVerifying && isVerified && (
+                      <div className="verification_status verified">
+                        <span className="check_icon">✓</span>
+                        <span>Address verified on device</span>
+                      </div>
+                    )}
+
+                    {!isVerifying && !isVerified && error.includes("verification") && (
+                      <div className="verification_status rejected">
+                        <span className="error_icon">✗</span>
+                        <span>Verification rejected or failed</span>
+                      </div>
+                    )}
+
                     <SharedButton
                       type="secondary"
                       size="small"
                       onClick={handleSaveAddress}
+                      isDisabled={!isVerified || isVerifying}
                       style={{ marginTop: '10px' }}
                     >
                       Save to Wallet
@@ -1149,14 +1148,9 @@ export default function LedgerConnect(): ReactElement {
                 )}
 
                 {derivedAddresses.length > 0 && (
-                  <div style={{ marginTop: '20px' }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center',
-                      marginBottom: '10px'
-                    }}>
-                      <h4 style={{ margin: 0 }}>Saved Addresses:</h4>
+                  <div className="saved_addresses_section">
+                    <div className="section_header">
+                      <h4>Saved Addresses:</h4>
                       <SharedButton
                         type="tertiary"
                         size="small"
@@ -1185,51 +1179,23 @@ export default function LedgerConnect(): ReactElement {
                       }, {} as Record<string, { deviceModel: string, addresses: LedgerAddress[] }>)
                       
                       return Object.entries(addressesByDevice).map(([deviceKey, deviceData]) => (
-                        <div key={deviceKey} style={{ marginBottom: '20px' }}>
-                          <h5 style={{ 
-                            margin: '10px 0 10px 0',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            color: '#333'
-                          }}>
+                        <div key={deviceKey} className="device_group">
+                          <h5 className="device_group_title">
                             {deviceData.deviceModel} {deviceData.addresses.length > 0 ? `(${deviceData.addresses.length})` : ''}
                           </h5>
                           {deviceData.addresses.map((addr, i) => (
-                            <div key={i} style={{ 
-                              padding: '10px', 
-                              marginTop: '10px',
-                              backgroundColor: '#fff',
-                              border: '1px solid #ddd',
-                              borderRadius: '5px',
-                              fontSize: '14px'
-                            }}>
-                              <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                              }}>
-                                <div style={{ flex: 1 }}>
-                                  <p style={{ margin: '0 0 5px 0', wordBreak: 'break-all' }}>{addr.address}</p>
-                                  <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Path: {addr.path}</p>
+                            <div key={i} className="address_item">
+                              <div className="address_item_content">
+                                <div className="address_info">
+                                  <p className="address_text">{addr.address}</p>
+                                  <p className="path_text">Path: {addr.path}</p>
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                  <SharedButton
-                                    type="secondary"
-                                    size="small"
-                                    onClick={() => handleTestTransaction(addr.address, addr.path)}
-                                    isDisabled={testingAddress === addr.address || signingTransaction}
-                                    isLoading={testingAddress === addr.address}
-                                    style={{ 
-                                      minWidth: '70px'
-                                    }}
-                                  >
-                                    {testingAddress === addr.address ? "Testing..." : "Test"}
-                                  </SharedButton>
+                                <div className="address_actions">
                                   <SharedButton
                                     type="tertiary"
                                     size="small"
                                     onClick={() => dispatch(deleteLedgerAddress(addr.address))}
-                                    style={{ 
+                                    style={{
                                       color: '#ff4444',
                                       minWidth: '70px'
                                     }}
@@ -1239,14 +1205,7 @@ export default function LedgerConnect(): ReactElement {
                                 </div>
                               </div>
                               {testResults[addr.address] && (
-                                <div style={{
-                                  marginTop: '10px',
-                                  padding: '8px',
-                                  backgroundColor: testResults[addr.address].success ? '#e8f5e9' : '#ffebee',
-                                  borderRadius: '4px',
-                                  fontSize: '13px',
-                                  color: testResults[addr.address].success ? '#2e7d32' : '#c62828'
-                                }}>
+                                <div className={`test_result ${testResults[addr.address].success ? 'success' : 'error'}`}>
                                   {testResults[addr.address].message}
                                 </div>
                               )}
@@ -1295,29 +1254,18 @@ export default function LedgerConnect(): ReactElement {
 
             {/* Troubleshooting dropdown */}
             {connectedDevice && (
-              <div className="troubleshooting_section" style={{ marginTop: '20px' }}>
+              <div className="troubleshooting_section">
                 <button
+                  className="troubleshooting_button"
                   onClick={() => setShowTroubleshooting(!showTroubleshooting)}
-                  style={{
-                    background: 'none',
-                    border: '1px solid #ddd',
-                    padding: '10px',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    fontSize: '14px'
-                  }}
                 >
                   <span>Troubleshooting</span>
-                  <span style={{ transform: showTroubleshooting ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>▼</span>
+                  <span className={`arrow ${showTroubleshooting ? 'open' : ''}`}>▼</span>
                 </button>
-                
+
                 {showTroubleshooting && (
-                  <div style={{ marginTop: '10px', padding: '15px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
-                    <p style={{ marginBottom: '15px', fontSize: '13px', color: '#666' }}>
+                  <div className="troubleshooting_content">
+                    <p className="troubleshooting_text">
                       If you're experiencing issues, you can manually initialize the secure channel:
                     </p>
                     <SharedButton
@@ -1329,7 +1277,7 @@ export default function LedgerConnect(): ReactElement {
                     >
                       {isInitializingScp ? "Initializing..." : scpInitialized ? "Secure Channel Active" : "Initialize Secure Channel"}
                     </SharedButton>
-                    <p style={{ marginTop: '10px', fontSize: '12px', color: '#999' }}>
+                    <p className="troubleshooting_note">
                       This will require approval on your Ledger device.
                     </p>
                   </div>
@@ -1367,11 +1315,15 @@ export default function LedgerConnect(): ReactElement {
       <style jsx>{`
         .ledger_connect_container {
           min-height: 100vh;
-          background: linear-gradient(180deg, var(--hunter-green) 0%, var(--green-120) 100%);
+          background: linear-gradient(180deg, #1668e5 0%, #ffffff 100%);
           padding: 40px;
           display: flex;
           flex-direction: column;
           align-items: center;
+        }
+
+        :global([data-theme="dark"]) .ledger_connect_container {
+          background: linear-gradient(180deg, var(--hunter-green) 0%, var(--green-120) 100%);
         }
 
         .header {
@@ -1380,14 +1332,14 @@ export default function LedgerConnect(): ReactElement {
         }
 
         h1 {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 32px;
           font-weight: 600;
           margin: 0 0 8px 0;
         }
 
         .subtitle {
-          color: var(--green-40);
+          color: rgba(255, 255, 255, 0.9);
           font-size: 16px;
           margin: 0;
         }
@@ -1401,22 +1353,30 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .device_section, .scp_section, .apps_section {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
+          background: var(--primary-bg);
           border-radius: 16px;
           padding: 32px;
+          border: 1px solid var(--border-light);
+          box-shadow: var(--shadow-light);
+        }
+
+        :global([data-theme="dark"]) .device_section,
+        :global([data-theme="dark"]) .scp_section,
+        :global([data-theme="dark"]) .apps_section {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         h2 {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 20px;
           font-weight: 600;
           margin: 0 0 24px 0;
         }
 
         h3 {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 16px;
           font-weight: 600;
           margin: 0 0 16px 0;
@@ -1458,7 +1418,7 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .label {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 12px;
           font-weight: 500;
           text-transform: uppercase;
@@ -1466,7 +1426,7 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .value {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 16px;
           font-weight: 400;
         }
@@ -1483,13 +1443,13 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .no_device p {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 16px;
           margin: 0 0 8px 0;
         }
 
         .hint {
-          color: var(--green-40) !important;
+          color: var(--secondary-text) !important;
           font-size: 14px !important;
         }
 
@@ -1514,7 +1474,7 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .help_text {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 14px;
           margin: 0;
         }
@@ -1533,7 +1493,7 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .scp_info {
-          color: var(--green-40);
+          color: var(--secondary-text);
           font-size: 14px;
           margin-bottom: 20px;
           line-height: 1.5;
@@ -1552,7 +1512,7 @@ export default function LedgerConnect(): ReactElement {
 
         .loading_apps, .no_apps {
           text-align: center;
-          color: var(--green-40);
+          color: var(--secondary-text);
           padding: 20px;
           font-size: 14px;
         }
@@ -1567,14 +1527,19 @@ export default function LedgerConnect(): ReactElement {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: rgba(0, 0, 0, 0.2);
+          background: var(--secondary-bg);
           padding: 12px 16px;
           border-radius: 8px;
+          border: 1px solid var(--border-light);
+        }
+
+        :global([data-theme="dark"]) .app_item {
+          background: rgba(0, 0, 0, 0.2);
           border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .app_name {
-          color: var(--white);
+          color: var(--primary-text);
           font-size: 15px;
           font-weight: 500;
         }
@@ -1599,10 +1564,16 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .instructions {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
+          background: var(--primary-bg);
           border-radius: 16px;
           padding: 32px;
+          border: 1px solid var(--border-light);
+          box-shadow: var(--shadow-light);
+        }
+
+        :global([data-theme="dark"]) .instructions {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -1613,7 +1584,7 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .instructions li {
-          color: var(--green-40);
+          color: var(--primary-text);
           font-size: 14px;
           line-height: 24px;
           margin-bottom: 16px;
@@ -1627,8 +1598,8 @@ export default function LedgerConnect(): ReactElement {
         }
 
         .step_icon {
-          background: var(--green-40);
-          color: var(--hunter-green);
+          background: var(--accent-color);
+          color: var(--white);
           width: 24px;
           height: 24px;
           border-radius: 50%;
@@ -1638,6 +1609,352 @@ export default function LedgerConnect(): ReactElement {
           font-size: 12px;
           font-weight: 600;
           flex-shrink: 0;
+        }
+
+        /* Address Section Styles */
+        .address_section {
+          background: var(--primary-bg);
+          border-radius: 16px;
+          padding: 32px;
+          border: 1px solid var(--border-light);
+          box-shadow: var(--shadow-light);
+          margin-bottom: 20px;
+        }
+
+        :global([data-theme="dark"]) .address_section {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section_header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+        }
+
+        .section_header h3,
+        .section_header h4 {
+          margin: 0;
+        }
+
+        .account_index_info {
+          margin-bottom: 15px;
+        }
+
+        .account_index_info p {
+          fontSize: 14px;
+          color: var(--secondary-text);
+          margin: 0 0 10px 0;
+        }
+
+        .derived_address_box {
+          margin-top: 15px;
+          padding: 15px;
+          background: var(--secondary-bg);
+          border-radius: 8px;
+          word-break: break-all;
+        }
+
+        :global([data-theme="dark"]) .derived_address_box {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .derived_address_box p {
+          color: var(--primary-text);
+          margin: 5px 0;
+        }
+
+        .verification_status {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px;
+          margin-top: 10px;
+          border-radius: 6px;
+          font-size: 14px;
+        }
+
+        .verification_status.verifying {
+          background: rgba(23, 117, 228, 0.1);
+          color: var(--accent-color);
+          border: 1px solid var(--accent-color);
+        }
+
+        :global([data-theme="dark"]) .verification_status.verifying {
+          background: rgba(23, 117, 228, 0.2);
+        }
+
+        .verification_status.verified {
+          background: rgba(28, 175, 78, 0.1);
+          color: var(--success);
+          border: 1px solid var(--success);
+        }
+
+        :global([data-theme="dark"]) .verification_status.verified {
+          background: rgba(28, 175, 78, 0.2);
+        }
+
+        .verification_status.rejected {
+          background: rgba(255, 102, 102, 0.1);
+          color: var(--error);
+          border: 1px solid var(--error);
+        }
+
+        :global([data-theme="dark"]) .verification_status.rejected {
+          background: rgba(255, 102, 102, 0.2);
+        }
+
+        .check_icon {
+          font-size: 18px;
+          font-weight: bold;
+        }
+
+        .error_icon {
+          font-size: 18px;
+          font-weight: bold;
+        }
+
+        .saved_addresses_section {
+          margin-top: 20px;
+        }
+
+        .device_group {
+          margin-bottom: 20px;
+        }
+
+        .device_group_title {
+          margin: 10px 0 10px 0;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--primary-text);
+        }
+
+        .address_item {
+          padding: 10px;
+          margin-top: 10px;
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-light);
+          border-radius: 5px;
+          font-size: 14px;
+        }
+
+        :global([data-theme="dark"]) .address_item {
+          background: rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .address_item_content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .address_info {
+          flex: 1;
+        }
+
+        .address_text {
+          margin: 0 0 5px 0;
+          word-break: break-all;
+          color: var(--primary-text);
+        }
+
+        .path_text {
+          font-size: 12px;
+          color: var(--secondary-text);
+          margin: 0;
+        }
+
+        .address_actions {
+          display: flex;
+          gap: 10px;
+        }
+
+        .test_result {
+          margin-top: 10px;
+          padding: 8px;
+          border-radius: 4px;
+          font-size: 13px;
+        }
+
+        .test_result.success {
+          background: rgba(28, 175, 78, 0.1);
+          color: var(--success);
+        }
+
+        :global([data-theme="dark"]) .test_result.success {
+          background: rgba(28, 175, 78, 0.2);
+        }
+
+        .test_result.error {
+          background: rgba(255, 102, 102, 0.1);
+          color: var(--error);
+        }
+
+        :global([data-theme="dark"]) .test_result.error {
+          background: rgba(255, 102, 102, 0.2);
+        }
+
+        /* Install Quai Section */
+        .install_quai_section {
+          margin-top: 20px;
+          padding: 20px;
+          border: 1px solid var(--border-light);
+          border-radius: 8px;
+          background: var(--secondary-bg);
+        }
+
+        :global([data-theme="dark"]) .install_quai_section {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .install_quai_message {
+          margin-bottom: 15px;
+          color: var(--primary-text);
+        }
+
+        .install_progress_container {
+          width: 100%;
+        }
+
+        .progress_bar_container {
+          width: 100%;
+          height: 30px;
+          background: var(--secondary-bg);
+          border: 1px solid var(--border-light);
+          border-radius: 15px;
+          overflow: hidden;
+          margin-bottom: 10px;
+        }
+
+        :global([data-theme="dark"]) .progress_bar_container {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress_bar {
+          height: 100%;
+          background: linear-gradient(90deg, #1668e5 0%, #4789ec 100%);
+          transition: width 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .progress_text {
+          color: white;
+          font-weight: bold;
+          font-size: 14px;
+        }
+
+        .install_status {
+          text-align: center;
+          margin-bottom: 10px;
+          color: var(--primary-text);
+        }
+
+        .install_note {
+          font-size: 12px;
+          color: var(--secondary-text);
+          text-align: center;
+        }
+
+        /* SCP Loading Section */
+        .scp_loading_container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px;
+          gap: 15px;
+        }
+
+        .scp_loading {
+          font-size: 16px;
+          font-weight: 500;
+          margin-bottom: 10px;
+          color: var(--primary-text);
+        }
+
+        .scp_instruction {
+          font-size: 14px;
+          color: var(--secondary-text);
+          text-align: center;
+        }
+
+        .scp_retry {
+          font-size: 12px;
+          color: var(--attention);
+          text-align: center;
+          margin-top: 5px;
+        }
+
+        /* Troubleshooting Section */
+        .troubleshooting_section {
+          margin-top: 20px;
+        }
+
+        .troubleshooting_button {
+          background: var(--primary-bg);
+          border: 1px solid var(--border-light);
+          padding: 10px;
+          border-radius: 5px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          font-size: 14px;
+          color: var(--primary-text);
+        }
+
+        :global([data-theme="dark"]) .troubleshooting_button {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .troubleshooting_button:hover {
+          background: var(--secondary-bg);
+        }
+
+        :global([data-theme="dark"]) .troubleshooting_button:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .arrow {
+          transform: rotate(0deg);
+          transition: transform 0.3s;
+        }
+
+        .arrow.open {
+          transform: rotate(180deg);
+        }
+
+        .troubleshooting_content {
+          margin-top: 10px;
+          padding: 15px;
+          border: 1px solid var(--border-light);
+          border-radius: 5px;
+          background: var(--secondary-bg);
+        }
+
+        :global([data-theme="dark"]) .troubleshooting_content {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .troubleshooting_text {
+          margin-bottom: 15px;
+          font-size: 13px;
+          color: var(--secondary-text);
+        }
+
+        .troubleshooting_note {
+          margin-top: 10px;
+          font-size: 12px;
+          color: var(--secondary-text);
         }
       `}</style>
     </div>

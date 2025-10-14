@@ -62,6 +62,14 @@ export function useDelayContentChange<T>(
     } else {
       setDelayedContent(storedContent)
     }
+
+    // Cleanup function to clear timeout on unmount or dependency change
+    return () => {
+      if (typeof delayedContentUpdateTimeout.current !== "undefined") {
+        clearTimeout(delayedContentUpdateTimeout.current)
+        delayedContentUpdateTimeout.current = undefined
+      }
+    }
   }, [delayCondition, delayMs, storedContent])
 
   if (!delayCondition) {

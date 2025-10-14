@@ -62,6 +62,52 @@ export interface DerivedAddress {
 }
 
 /**
+ * Verify an address on the Ledger device screen
+ * @param scriptRunner The APDU script runner connected to the device
+ * @param path The full derivation path (e.g., "44'/994'/0'/0/532")
+ * @param chainId The chain ID to display (default 9 for Quai)
+ */
+export async function verifyAddressOnDevice(
+  scriptRunner: APDUScriptRunner,
+  path: string,
+  chainId: number = 9
+): Promise<void> {
+  console.log(`Requesting address verification on device for path: ${path} with chain ID ${chainId}`)
+
+  const verifyPathComponents = path.split('/')
+  const verifyPathBytes = encodeBIP32Path(path)
+
+  // Add 8-byte big-endian chain ID
+  const chainIdBytes = new Uint8Array(8)
+  // Convert chain ID to big-endian 8 bytes
+  for (let i = 7; i >= 0; i--) {
+    chainIdBytes[i] = chainId & 0xff
+    // chainId >>= 8; // Not needed for small values like 9
+  }
+
+  // Data format: [num_components] + [path_bytes] + [8-byte chain_id]
+  const verifyData = new Uint8Array(1 + verifyPathBytes.length + 8)
+  verifyData[0] = verifyPathComponents.length
+  verifyData.set(verifyPathBytes, 1)
+  verifyData.set(chainIdBytes, 1 + verifyPathBytes.length)  // Append chain ID
+
+  // E0 02 01 00 - P1=01 (display address on device), P2=00 (no chain code needed for verification)
+  const verifyCmd = "E0020100" + bytesToHex(new Uint8Array([verifyData.length])) + bytesToHex(verifyData)
+
+  console.log(`Verification command includes chain ID: ${bytesToHex(chainIdBytes)}`)
+
+  // Send WITHOUT SCP since we're in the Quai app context
+  // Use 60 second timeout for address verification (requires user interaction)
+  const result = await scriptRunner.runScript(verifyCmd, false, undefined, 60000)
+
+  if (!result || result.length === 0 || !result[0].success) {
+    throw new Error("User rejected address verification on device")
+  }
+
+  console.log("Address verified on device successfully")
+}
+
+/**
  * Close the current app and return to dashboard
  * @param scriptRunner The APDU script runner connected to the device
  * @returns Promise that resolves when back at dashboard

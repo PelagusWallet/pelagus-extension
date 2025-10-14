@@ -34,44 +34,45 @@ export class APDUScriptRunner {
   }
 
   async runScript(
-    scriptContent: string, 
-    useSCP = false, 
-    onProgress?: ProgressCallback
+    scriptContent: string,
+    useSCP = false,
+    onProgress?: ProgressCallback,
+    timeoutMs: number = 30000
   ): Promise<APDUResult[]> {
     const lines = scriptContent.split('\n');
     const results: APDUResult[] = [];
-    
+
     let lineNum = 0;
     for (const line of lines) {
       lineNum++;
-      
+
       // Skip empty lines and comments
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) {
         continue;
       }
-      
+
       // Parse hex APDU
       const apduHex = trimmed.replace(/\s+/g, '');
       if (!/^[0-9a-fA-F]+$/.test(apduHex) || apduHex.length < 10) {
         console.warn(`Line ${lineNum}: Invalid APDU: ${trimmed}`);
         continue;
       }
-      
+
       // Convert to bytes
       const apdu = new Uint8Array(
         apduHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
       );
-      
+
       let finalApdu: Uint8Array;
       let didWrap = false;
-      
+
       if (useSCP && this.scp && this.scp.isSecure()) {
         // Wrap data part with SCP (like Python runScript)
         const apduData = apdu.slice(5);
         const wrappedData = await this.scp.wrap(apduData);
         didWrap = wrappedData.length > 0;
-        
+
         // Reconstruct APDU with wrapped data
         finalApdu = new Uint8Array(5 + wrappedData.length);
         // Use original CLA, but try manager fallback CLA=0xF0 for INS=0x00 if needed
@@ -85,12 +86,12 @@ export class APDUScriptRunner {
       } else {
         finalApdu = apdu;
       }
-      
+
       // Send APDU
       console.log(`=> ${this.bytesToHex(finalApdu)}`);
-      
+
       try {
-        let response = await this.transport.exchange(finalApdu);
+        let response = await this.transport.exchange(finalApdu, timeoutMs);
         
         // Unwrap response if using SCP
         if (useSCP && this.scp && this.scp.isSecure() && didWrap) {

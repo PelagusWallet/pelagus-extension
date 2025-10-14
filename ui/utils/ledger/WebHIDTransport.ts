@@ -72,15 +72,15 @@ export class WebHIDTransport {
     }
   }
 
-  async exchange(apdu: Uint8Array): Promise<Uint8Array> {
+  async exchange(apdu: Uint8Array, timeoutMs: number = 30000): Promise<Uint8Array> {
     if (!this.device) {
       throw new Error("Device not connected");
     }
-    const response = await this.sendAndReceive(apdu);
+    const response = await this.sendAndReceive(apdu, timeoutMs);
     return response;
   }
 
-  private async sendAndReceive(apdu: Uint8Array): Promise<Uint8Array> {
+  private async sendAndReceive(apdu: Uint8Array, timeoutMs: number = 30000): Promise<Uint8Array> {
     if (!this.device) {
       throw new Error("Device not connected");
     }
@@ -89,7 +89,7 @@ export class WebHIDTransport {
       const timeout = setTimeout(() => {
         this.device?.removeEventListener('inputreport', handleInput);
         reject(new Error('Response timeout'));
-      }, 30000);
+      }, timeoutMs);
 
       const frames: Uint8Array[] = [];
       let expectedLength: number | null = null;

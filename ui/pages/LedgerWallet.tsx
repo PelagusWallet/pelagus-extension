@@ -301,14 +301,14 @@ export default function LedgerWallet(): ReactElement {
           }
 
           h2 {
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 18px;
             font-weight: 600;
             margin: 0 0 16px 0;
           }
 
           h3 {
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 16px;
             font-weight: 600;
             margin: 0 0 12px 0;
@@ -406,7 +406,7 @@ export default function LedgerWallet(): ReactElement {
           }
 
           .note p {
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 14px;
             margin: 0 0 8px 0;
           }
@@ -431,7 +431,7 @@ export default function LedgerWallet(): ReactElement {
           }
 
           .technical_info p {
-            color: var(--white);
+            color: var(--primary-text);
             font-size: 13px;
             margin: 0 0 8px 0;
           }

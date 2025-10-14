@@ -550,6 +550,11 @@ function getNetworkAccountTotalsByCategory(
         desiredDecimals.default
       )
 
+      // Use Ledger logo for Ledger accounts
+      const avatarURL = accountSigner.type === "ledger"
+        ? "./images/ledger-logo.png"
+        : defaultAvatar
+
       return {
         shortName,
         address,
@@ -560,7 +565,7 @@ function getNetworkAccountTotalsByCategory(
         path,
         accountSigner,
         name,
-        avatarURL: defaultAvatar,
+        avatarURL,
         localizedTotalMainCurrencyAmount,
         balance,
       }

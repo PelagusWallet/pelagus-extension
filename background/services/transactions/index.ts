@@ -187,6 +187,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     senderPaymentCode: string,
     receiverPaymentCode: string
   ): Promise<string | undefined> {
+    // DEBUG: Log service method invocation
+    const serviceInvocationId = Date.now()
+    console.log(`[TransactionService.sendQiTransaction] Invoked at ${serviceInvocationId}, amount: ${amount}`)
+
     let txHash: string | undefined = undefined
     let err: any | undefined = undefined
     try {
@@ -217,6 +221,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             qiWallet.openChannel(receiverPaymentCode)
           }
 
+          console.log(`[TransactionService.sendQiTransaction] Calling qiWallet.sendTransaction (attempt ${attempts + 1}, serviceId: ${serviceInvocationId})`)
           const tx = (await qiWallet.sendTransaction(
             receiverPaymentCode,
             amount,
@@ -224,6 +229,13 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             Zone.Cyprus1
           )) as QiTransactionResponse
           txHash = tx?.hash
+          console.log(`[TransactionService.sendQiTransaction] Transaction sent successfully! txHash: ${txHash}`)
+
+          // Immediately remove the used outpoints from the database to prevent reuse
+          // before the next sync completes (critical for interval conversions)
+          await this.chainService.removeQiOutpoints(qiOutpoints)
+          logger.info(`Removed ${qiOutpoints.length} spent outpoints from database after successful sendQiTransaction`)
+
           const senderPaymentCode = qiWallet.getPaymentCode(0)
 
           transaction = processSentQiTransaction(
@@ -683,8 +695,18 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       startedAt: Date.now(),
       transactions: []
     })
-    
+
+    // Guard flag to prevent concurrent execution if interval fires before previous completes
+    let isExecuting = false
+
     const executeConversion = async () => {
+      // Skip if a previous execution is still in progress
+      if (isExecuting) {
+        logger.info(`Interval conversion ${intervalId}: skipping execution - previous conversion still in progress`)
+        return
+      }
+
+      isExecuting = true
       try {
         // Check if interval was cancelled
         const intervalData = await this.db.getIntervalConversion(intervalId)
@@ -778,6 +800,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           logger.error(`Interval conversion ${intervalId} error: ${errorMessage}`)
           this.stopIntervalConversion(intervalId)
         }
+      } finally {
+        // Always reset the execution flag so next interval can run
+        isExecuting = false
       }
     }
 
@@ -884,6 +909,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           const tx = await qiWallet.convertToQuai(to, amount, {
             data: combinedData,
           })
+
+          // Immediately remove the used outpoints from the database to prevent reuse
+          // before the next sync completes (critical for interval conversions)
+          await this.chainService.removeQiOutpoints(qiOutpoints)
+          logger.info(`Removed ${qiOutpoints.length} spent outpoints from database after successful conversion`)
 
           const senderPaymentCode = qiWallet.getPaymentCode(0)
 

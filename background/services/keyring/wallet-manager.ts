@@ -57,29 +57,38 @@ export default class WalletManager {
   }
 
   public async initializeState(): Promise<void> {
+    const vaultGetStart = performance.now()
     const { wallets, qiHDWallet, quaiHDWallets, metadata, hiddenAccounts } =
       await this.vault.get()
+    console.log(`[initializeState] vault.get() took ${(performance.now() - vaultGetStart).toFixed(0)}ms`)
 
+    const parallelStart = performance.now()
     // Run independent async operations in parallel
     const [privateKeysPromise, qiHDWalletPromise, quaiHDWalletsPromise] =
       await Promise.all([
         // Process private keys
-        Promise.all(
-          wallets.map(async (serializedWallet) => {
-            const wallet = new Wallet(serializedWallet.privateKey)
-            return {
-              type: KeyringTypes.singleSECP,
-              addresses: [wallet.address],
-              id: wallet.signingKey.publicKey,
-              path: null,
-            }
-          })
-        ),
+        (async () => {
+          const start = performance.now()
+          const result = await Promise.all(
+            wallets.map(async (serializedWallet) => {
+              const wallet = new Wallet(serializedWallet.privateKey)
+              return {
+                type: KeyringTypes.singleSECP,
+                addresses: [wallet.address],
+                id: wallet.signingKey.publicKey,
+                path: null,
+              }
+            })
+          )
+          console.log(`[initializeState] Private keys processing took ${(performance.now() - start).toFixed(0)}ms (${wallets.length} keys)`)
+          return result
+        })(),
 
         // Process qiHDWallet
         (async () => {
           if (!qiHDWallet) return null
 
+          const start = performance.now()
           let deserializedQiHDWallet
           try {
             deserializedQiHDWallet = await QiHDWallet.deserialize(qiHDWallet)
@@ -93,6 +102,7 @@ export default class WalletManager {
           const paymentCode = deserializedQiHDWallet.getPaymentCode(
             this.qiHDWalletManager.qiHDWalletAccountIndex
           )
+          console.log(`[initializeState] QiHDWallet deserialization took ${(performance.now() - start).toFixed(0)}ms`)
           return {
             id: deserializedQiHDWallet.xPub(),
             path: null,
@@ -103,27 +113,33 @@ export default class WalletManager {
         })(),
 
         // Process quaiHDWallets
-        Promise.all(
-          quaiHDWallets.map(async (quaiHDWallet) => {
-            const deserializedQuaiHDWallet = await QuaiHDWallet.deserialize(
-              quaiHDWallet
-            )
-            return {
-              type: KeyringTypes.mnemonicBIP39S256,
-              addresses: [
-                ...deserializedQuaiHDWallet
-                  .getAddressesForAccount(
-                    this.quaiHDWalletManager.quaiHDWalletAccountIndex
-                  )
-                  .filter(({ address }) => !hiddenAccounts[address])
-                  .map(({ address }) => address),
-              ],
-              id: deserializedQuaiHDWallet.xPub(),
-              path: null,
-            }
-          })
-        ),
+        (async () => {
+          const start = performance.now()
+          const result = await Promise.all(
+            quaiHDWallets.map(async (quaiHDWallet) => {
+              const deserializedQuaiHDWallet = await QuaiHDWallet.deserialize(
+                quaiHDWallet
+              )
+              return {
+                type: KeyringTypes.mnemonicBIP39S256,
+                addresses: [
+                  ...deserializedQuaiHDWallet
+                    .getAddressesForAccount(
+                      this.quaiHDWalletManager.quaiHDWalletAccountIndex
+                    )
+                    .filter(({ address }) => !hiddenAccounts[address])
+                    .map(({ address }) => address),
+                ],
+                id: deserializedQuaiHDWallet.xPub(),
+                path: null,
+              }
+            })
+          )
+          console.log(`[initializeState] QuaiHDWallets deserialization took ${(performance.now() - start).toFixed(0)}ms (${quaiHDWallets.length} wallets)`)
+          return result
+        })(),
       ])
+    console.log(`[initializeState] Total parallel processing took ${(performance.now() - parallelStart).toFixed(0)}ms`)
 
     // Assign results to class properties
     this.privateKeys = privateKeysPromise as PrivateKey[]

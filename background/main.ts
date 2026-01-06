@@ -1247,7 +1247,8 @@ export default class Main extends BaseService<never> {
       this.signingService.addTrackedAddress(address, "keyring")
     })
 
-    this.keyringService.emitter.on("loadQiWallet", (qiWallet) => {
+    this.keyringService.emitter.on("loadQiWallet", async (qiWallet) => {
+      const start = performance.now()
       PELAGUS_NETWORKS.forEach((network) => {
         this.store.dispatch(
           loadUtxoAccount({
@@ -1256,14 +1257,34 @@ export default class Main extends BaseService<never> {
           })
         )
       })
+
+      // Load cached balance from IndexedDB to show immediately while sync runs in background
+      if (qiWallet) {
+        try {
+          const cachedBalance = await this.chainService.getCachedQiBalance()
+          if (cachedBalance) {
+            console.log(`[Post-Unlock] Loading cached Qi balance: ${cachedBalance.assetAmount.amount}`)
+            this.store.dispatch(updateUtxoAccountsBalances({
+              balances: [cachedBalance],
+            }))
+          }
+        } catch (error) {
+          console.error("[Post-Unlock] Failed to load cached Qi balance:", error)
+        }
+      }
+
+      console.log(`[Post-Unlock] loadQiWallet event handler took ${(performance.now() - start).toFixed(0)}ms`)
     })
 
     this.keyringService.emitter.on("locked", async (isLocked) => {
+      const start = performance.now()
       if (isLocked) {
         this.store.dispatch(keyringLocked())
       } else {
         this.store.dispatch(keyringUnlocked())
-        this.store.dispatch(triggerManualBalanceUpdate())
+        console.log(`[Post-Unlock] keyringUnlocked dispatched, now triggering balance update...`)
+        await this.store.dispatch(triggerManualBalanceUpdate())
+        console.log(`[Post-Unlock] triggerManualBalanceUpdate completed in ${(performance.now() - start).toFixed(0)}ms`)
       }
     })
 

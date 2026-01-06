@@ -21,9 +21,17 @@ export interface IVaultManager {
 export class VaultManager implements IVaultManager {
   private vaultSaltedKey: SaltedKey | null = null
 
+  // Cache for encrypted vault to avoid repeated storage reads
+  private cachedEncryptedVault: EncryptedVault | null = null
+
+  // Cache for decrypted vault data to avoid repeated decryption
+  private cachedDecryptedVault: SerializedVaultData | null = null
+
   // -------------------------- public methods --------------------------
   public clearSaltedKey(): void {
     this.vaultSaltedKey = null
+    this.cachedEncryptedVault = null
+    this.cachedDecryptedVault = null
   }
 
   public isSaltedKeyInitialized(): boolean {
@@ -31,19 +39,41 @@ export class VaultManager implements IVaultManager {
   }
 
   public async initializeWithPassword(password: string): Promise<void> {
+    const storageStart = performance.now()
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
+    console.log(`[VaultManager] Storage access took ${(performance.now() - storageStart).toFixed(0)}ms`)
 
+    // Cache the encrypted vault to avoid re-reading from storage
+    this.cachedEncryptedVault = currentEncryptedVault
+
+    const deriveStart = performance.now()
     this.vaultSaltedKey = await deriveSymmetricKeyFromPassword(
       password,
       currentEncryptedVault?.salt
     )
+    console.log(`[VaultManager] PBKDF2 key derivation (1M iterations) took ${(performance.now() - deriveStart).toFixed(0)}ms`)
   }
 
   public async get(): Promise<SerializedVaultData> {
+    // Return cached decrypted vault if available
+    if (this.cachedDecryptedVault) {
+      console.log(`[VaultManager] Using cached decrypted vault`)
+      return this.cachedDecryptedVault
+    }
+
     const saltedKey = this.getSaltedKey()
+    const getVaultStart = performance.now()
     const currentEncryptedVault = await this.getVaultData()
-    return decryptVault<SerializedVaultData>(currentEncryptedVault, saltedKey)
+    console.log(`[VaultManager] getVaultData() took ${(performance.now() - getVaultStart).toFixed(0)}ms`)
+
+    const decryptStart = performance.now()
+    const result = await decryptVault<SerializedVaultData>(currentEncryptedVault, saltedKey)
+    console.log(`[VaultManager] Vault decryption took ${(performance.now() - decryptStart).toFixed(0)}ms`)
+
+    // Cache the decrypted vault
+    this.cachedDecryptedVault = result
+    return result
   }
 
   public async add(
@@ -182,9 +212,16 @@ export class VaultManager implements IVaultManager {
   }
 
   private async getVaultData(): Promise<EncryptedVault> {
+    // Use cached encrypted vault if available
+    if (this.cachedEncryptedVault) {
+      console.log(`[VaultManager] Using cached encrypted vault`)
+      return this.cachedEncryptedVault
+    }
+
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
     if (currentEncryptedVault) {
+      this.cachedEncryptedVault = currentEncryptedVault
       return currentEncryptedVault
     }
 
@@ -203,6 +240,7 @@ export class VaultManager implements IVaultManager {
     )
 
     await writeLatestEncryptedVault(encryptedVault)
+    this.cachedEncryptedVault = encryptedVault
 
     return encryptedVault
   }
@@ -211,5 +249,9 @@ export class VaultManager implements IVaultManager {
     const saltedKey = this.getSaltedKey()
     const encryptedVault = await encryptVault(data, saltedKey)
     await writeLatestEncryptedVault(encryptedVault)
+
+    // Update caches with new data
+    this.cachedEncryptedVault = encryptedVault
+    this.cachedDecryptedVault = data
   }
 }

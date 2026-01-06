@@ -11,6 +11,7 @@ export type QiSendState = {
   receiverPaymentCode: string
   amount: string
   channelExists: boolean
+  isSending: boolean
 }
 
 const initialState: QiSendState = {
@@ -19,6 +20,7 @@ const initialState: QiSendState = {
   amount: "",
   senderQuaiAccount: null,
   channelExists: false,
+  isSending: false,
 }
 
 const qiSendSlice = createSlice({
@@ -49,12 +51,16 @@ const qiSendSlice = createSlice({
     setQiChannelExists: (immerState, { payload }: { payload: boolean }) => {
       immerState.channelExists = payload
     },
+    setQiSending: (immerState, { payload }: { payload: boolean }) => {
+      immerState.isSending = payload
+    },
     resetQiSendSlice: (immerState) => {
       immerState.senderQiAccount = null
       immerState.senderQuaiAccount = null
       immerState.amount = ""
       immerState.receiverPaymentCode = ""
       immerState.channelExists = false
+      immerState.isSending = false
     },
   },
 })
@@ -65,6 +71,7 @@ export const {
   setQiSendAmount,
   setQiSendReceiverPaymentCode,
   setQiChannelExists,
+  setQiSending,
   resetQiSendSlice,
 } = qiSendSlice.actions
 
@@ -74,6 +81,20 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
   "qiSend/sendQiTransaction",
   async (_, { getState, dispatch }) => {
     const { qiSend } = getState() as RootState
+
+    // DEBUG: Log every thunk invocation with timestamp
+    const invocationId = Date.now()
+    console.log(`[sendQiTransaction] Thunk invoked at ${invocationId}, isSending: ${qiSend.isSending}`)
+
+    // Prevent duplicate submissions
+    if (qiSend.isSending) {
+      console.log(`[sendQiTransaction] BLOCKED - Transaction already in progress (invocation ${invocationId})`)
+      return { error: { message: "Transaction already in progress" } }
+    }
+
+    // Mark as sending immediately to prevent race conditions
+    console.log(`[sendQiTransaction] Setting isSending=true (invocation ${invocationId})`)
+    dispatch(setQiSending(true))
 
     const { amount, senderQuaiAccount, senderQiAccount, receiverPaymentCode } =
       qiSend
@@ -96,6 +117,7 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
       return { txHash }
     } catch (error: any) {
       console.log("error in sendQiTransaction", error)
+      dispatch(setQiSending(false))
       return {
         error: {
           message: typeof error === 'string' ? error : error?.message

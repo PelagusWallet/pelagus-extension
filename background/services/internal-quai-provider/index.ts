@@ -7,6 +7,7 @@ import {
   quais,
   Shard,
   getAddress,
+  getZoneForAddress,
   BlockTag,
   Filter,
   FilterByBlockHash,
@@ -226,24 +227,42 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         )
 
       case "quai_blockNumber":
-      case "eth_blockNumber":
-        if (!params[0]) {
-          return this.chainService.jsonRpcProvider.getBlockNumber(
-            "0x00" as Shard
-          )
+      case "eth_blockNumber": {
+        let blockNumShard: Shard
+        if (params[0]) {
+          blockNumShard = params[0] as Shard
         } else {
-          return this.chainService.jsonRpcProvider.getBlockNumber(
-            params[0] as Shard
-          )
+          const { address } = await this.preferenceService.getSelectedAccount()
+          blockNumShard = (getZoneForAddress(address) || "0x00") as Shard
         }
+        return this.chainService.jsonRpcProvider.getBlockNumber(blockNumShard)
+      }
 
       case "quai_getBlockByHash":
-      case "quai_getBlockByNumber":
+      case "quai_getBlockByNumber": {
+        // Support both standard format [blockTag, includeTransactions]
+        // and Quai format [shard, blockTag, includeTransactions].
+        // quais.js and standard dApps send 2 params or fewer.
+        let shard: Shard
+        let blockTag: BlockTag
+        let includeTx: boolean
+        if (params.length <= 2) {
+          // Standard format: derive shard from the selected account
+          const { address } = await this.preferenceService.getSelectedAccount()
+          shard = (getZoneForAddress(address) || "0x00") as Shard
+          blockTag = params[0] as BlockTag
+          includeTx = (params[1] as boolean) ?? false
+        } else {
+          shard = params[0] as Shard
+          blockTag = params[1] as BlockTag
+          includeTx = (params[2] as boolean) ?? false
+        }
         return this.chainService.jsonRpcProvider.getBlock(
-          params[0] as Shard,
-          params[1] as BlockTag,
-          params[2] as boolean
+          shard,
+          blockTag,
+          includeTx
         )
+      }
 
       case "eth_getBlockByHash":
       case "eth_getBlockByNumber":

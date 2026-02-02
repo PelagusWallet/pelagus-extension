@@ -768,6 +768,55 @@ export default class ChainService extends BaseService<Events> {
     return this.jsonRpcProvider.getOutpointsByAddress(address)
   }
 
+  /**
+   * Get outpoints for multiple addresses in a single RPC call.
+   * Falls back to sequential calls if batch method is not available.
+   * 
+   * This significantly improves wallet scan performance when the batch
+   * RPC method (quai_getOutpointsByAddresses) is available on the node.
+   */
+  async getOutpointsForQiAddresses(addresses: string[]): Promise<Map<string, Outpoint[]>> {
+    const results = new Map<string, Outpoint[]>()
+    
+    // Try batch method first (requires go-quai with batch support)
+    try {
+      // @ts-ignore - method may not be in provider types yet
+      if (typeof this.jsonRpcProvider.getOutpointsByAddresses === 'function') {
+        const batchResult = await this.jsonRpcProvider.getOutpointsByAddresses(addresses)
+        for (const [addr, outpoints] of Object.entries(batchResult)) {
+          results.set(addr, outpoints as Outpoint[])
+        }
+        logger.info(`[ChainService] Batch fetched outpoints for ${addresses.length} addresses`)
+        return results
+      }
+    } catch (error) {
+      logger.debug(`[ChainService] Batch RPC not available, falling back to sequential: ${error}`)
+    }
+    
+    // Fallback: fetch sequentially with concurrency limit
+    const CONCURRENCY = 5
+    for (let i = 0; i < addresses.length; i += CONCURRENCY) {
+      const batch = addresses.slice(i, i + CONCURRENCY)
+      const batchResults = await Promise.all(
+        batch.map(async (addr) => {
+          try {
+            const outpoints = await this.jsonRpcProvider.getOutpointsByAddress(addr)
+            return { addr, outpoints }
+          } catch (error) {
+            logger.warn(`[ChainService] Failed to get outpoints for ${addr}: ${error}`)
+            return { addr, outpoints: [] }
+          }
+        })
+      )
+      batchResults.forEach(({ addr, outpoints }) => {
+        results.set(addr, outpoints)
+      })
+    }
+    
+    logger.info(`[ChainService] Sequential fetched outpoints for ${addresses.length} addresses`)
+    return results
+  }
+
   async getOutpointsForSending(
     minimumAmt: bigint,
     bufferPercentage: number = 10

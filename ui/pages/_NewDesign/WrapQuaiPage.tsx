@@ -55,19 +55,6 @@ export default function WrapQuaiPage(): React.ReactElement {
     return !isNaN(val) && val > 0 && val <= parseFloat(sourceBalance)
   }
 
-  const handleMax = () => {
-    // When wrapping QUAI, reserve some for gas fees
-    // When unwrapping WQUAI, no gas reservation needed on the WQUAI side
-    if (!isUnwrap) {
-      const balance = parseFloat(sourceBalance)
-      const gasReserve = 0.01 // Reserve 0.01 QUAI for gas
-      const maxAmount = Math.max(0, balance - gasReserve)
-      setAmount(maxAmount > 0 ? maxAmount.toString() : "0")
-    } else {
-      setAmount(sourceBalance)
-    }
-  }
-
   const handleSubmit = async () => {
     if (!isValidAmount() || !account) return
     setIsLoading(true)
@@ -129,7 +116,6 @@ export default function WrapQuaiPage(): React.ReactElement {
                 }
               }}
             />
-            <button className="max-btn" onClick={handleMax}>MAX</button>
           </div>
         </div>
 
@@ -236,16 +222,7 @@ export default function WrapQuaiPage(): React.ReactElement {
         .input-row input::placeholder {
           color: var(--secondary-text);
         }
-        .max-btn {
-          padding: 4px 10px;
-          border-radius: 6px;
-          border: 1px solid var(--green-60);
-          background: transparent;
-          color: var(--green-60);
-          font-size: 11px;
-          font-weight: 600;
-          cursor: pointer;
-        }
+        
         .action-row {
           margin-top: 16px;
           display: flex;

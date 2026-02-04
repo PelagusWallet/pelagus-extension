@@ -665,7 +665,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           ["function deposit() payable"],
           connectedSigner
         )
-        tx = (await contract.deposit({ value: amount, gasLimit: 100000 })) as QuaiTransactionResponse
+        tx = (await contract.deposit({ value: amount })) as QuaiTransactionResponse
       } else {
         signerWithType.signer.connect(jsonRpcProvider)
         connectedSigner = signerWithType.signer
@@ -680,7 +680,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           from,
           data,
           value: amount,
-          gasLimit: 100000,
         }
         tx = (await connectedSigner.sendTransaction(request)) as QuaiTransactionResponse
       }
@@ -712,7 +711,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           ["function withdraw(uint256 amount)"],
           connectedSigner
         )
-        tx = (await contract.withdraw(amount, { gasLimit: 100000 })) as QuaiTransactionResponse
+        tx = (await contract.withdraw(amount)) as QuaiTransactionResponse
       } else {
         signerWithType.signer.connect(jsonRpcProvider)
         connectedSigner = signerWithType.signer
@@ -726,7 +725,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           to: WRAPPED_QUAI_CONTRACT_ADDRESS,
           from,
           data,
-          gasLimit: 100000,
         }
         tx = (await connectedSigner.sendTransaction(request)) as QuaiTransactionResponse
       }

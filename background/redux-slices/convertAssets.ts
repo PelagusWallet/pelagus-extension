@@ -277,6 +277,48 @@ export const unwrapQiHandle = createBackgroundAsyncThunk(
   }
 )
 
+export const wrapQuaiHandle = createBackgroundAsyncThunk(
+  "convertAssets/wrapQuaiHandle",
+  async (_, { getState, extra: { main } }) => {
+    const { convertAssets } = getState() as RootState
+    const { from, amount } = convertAssets
+
+    if (!from || !amount || !isAccountTotalTypeGuard(from)) {
+      return { error: { message: "Invalid wrap parameters" } }
+    }
+
+    try {
+      const txHash = await main.transactionService.wrapQuai(amount, from.address)
+      return { txHash }
+    } catch (error: any) {
+      return {
+        error: { message: typeof error === 'string' ? error : error?.message }
+      }
+    }
+  }
+)
+
+export const unwrapQuaiHandle = createBackgroundAsyncThunk(
+  "convertAssets/unwrapQuaiHandle",
+  async (_, { getState, extra: { main } }) => {
+    const { convertAssets } = getState() as RootState
+    const { from, amount } = convertAssets
+
+    if (!from || !amount || !isAccountTotalTypeGuard(from)) {
+      return { error: { message: "Invalid unwrap parameters" } }
+    }
+
+    try {
+      const txHash = await main.transactionService.unwrapQuai(amount, from.address)
+      return { txHash }
+    } catch (error: any) {
+      return {
+        error: { message: typeof error === 'string' ? error : error?.message }
+      }
+    }
+  }
+)
+
 export const claimWrappedQiDepositHandle = createBackgroundAsyncThunk(
   "convertAssets/claimWrappedQiDepositHandle",
   async ({from}: {from: string}, { extra: { main } }) => {

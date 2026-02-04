@@ -113,6 +113,7 @@ export default function CommonAssetListItem(
                   path="/send"
                   state={assetAmount.asset}
                   iconClass="asset_icon_send"
+                  asButton
                 />
               </>
             )}

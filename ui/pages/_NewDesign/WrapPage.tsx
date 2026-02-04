@@ -236,7 +236,7 @@ const WrapPage = () => {
     <div className="wrap_page">
       <div className="header-area">
           <SharedGoBackPageHeader 
-            title={isUnwrap ? "Unwrap WQI" : "Wrap Qi"} 
+            title={isUnwrap ? "Unwrap WQI" : "Wrap"} 
             linkTo={isUnwrap ? "/" : "/"} 
           />
           <div className="disclaimer">

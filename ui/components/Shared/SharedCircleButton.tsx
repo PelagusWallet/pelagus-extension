@@ -87,7 +87,7 @@ export default function SharedCircleButton(props: Props): ReactElement {
             mask-image: url("./images/${icon}");
             mask-repeat: no-repeat;
             mask-position: center;
-            mask-size: cover;
+            mask-size: contain;
             width: ${`${iconWidth}px` ?? "100%"};
             height: ${`${iconHeight}px` ?? "100%"};
             background-color: ${disabled

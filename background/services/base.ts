@@ -1,7 +1,7 @@
 import Emittery from "emittery"
 import browser, { Alarms } from "webextension-polyfill"
 import { Service, ServiceLifecycleEvents } from "./types"
-import { stopHeartbeat } from "../../src/background"
+// Avoid importing from the UI background script to prevent circular deps.
 
 /**
  * An alarm schedule for use in the `browser.alarms` API.
@@ -205,7 +205,6 @@ export default abstract class BaseService<Events extends ServiceLifecycleEvents>
       case "starting":
         return
       case "stopped":
-        stopHeartbeat()
         throw new Error("Service is already stopped and cannot be restarted.")
       case "unstarted":
         this.serviceState = "starting"

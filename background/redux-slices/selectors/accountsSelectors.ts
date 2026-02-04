@@ -50,13 +50,80 @@ const EXCEPTION_ASSETS_BY_SYMBOL = ["BTC", "sBTC", "WBTC", "tBTC"].map(
   (symbol) => symbol.toUpperCase()
 )
 
+// Preferred display priority among non-base assets
+const SYMBOL_PRIORITY: string[] = ["WQI", "USDT", "WQUAI"]
+const getSymbolPriority = (symbol: string): number => {
+  const idx = SYMBOL_PRIORITY.indexOf(symbol.toUpperCase())
+  return idx === -1 ? Number.POSITIVE_INFINITY : idx
+}
+
 // TODO Make this a setting.
 export const userValueDustThreshold = 2
+
+const ALWAYS_VISIBLE_SYMBOLS = new Set(["WQI", "WQUAI", "USDT"]) // ensure visible even at 0
 
 const shouldForciblyDisplayAsset = (
   assetAmount: CompleteAssetAmount<AnyAsset>
 ) => {
-  return isNetworkBaseAsset(assetAmount.asset)
+  return (
+    isNetworkBaseAsset(assetAmount.asset) ||
+    ALWAYS_VISIBLE_SYMBOLS.has(assetAmount.asset.symbol.toUpperCase())
+  )
+}
+
+const isImportedAsset = (asset: AnyAsset): boolean => {
+  return (
+    isSmartContractFungibleAsset(asset) &&
+    (asset.metadata?.tokenLists?.length ?? 0) === 0
+  )
+}
+
+const getAssetCategory = (asset: AnyAsset): number => {
+  // 0: base asset, 1: pinned symbol, 2: other non-imported, 3: imported
+  if (isNetworkBaseAsset(asset)) return 0
+  if (SYMBOL_PRIORITY.includes(asset.symbol.toUpperCase())) return 1
+  if (isImportedAsset(asset)) return 3
+  return 2
+}
+
+const compareCompleteAssets = (
+  asset1: CompleteAssetAmount,
+  asset2: CompleteAssetAmount
+) => {
+  const leftCat = getAssetCategory(asset1.asset)
+  const rightCat = getAssetCategory(asset2.asset)
+
+  if (leftCat !== rightCat) return leftCat - rightCat
+
+  // Pinned: honor explicit order
+  if (leftCat === 1) {
+    return (
+      getSymbolPriority(asset1.asset.symbol) -
+      getSymbolPriority(asset2.asset.symbol)
+    )
+  }
+
+  // Otherwise: keep existing value-based ordering
+  if (
+    asset1.mainCurrencyAmount !== undefined &&
+    asset2.mainCurrencyAmount !== undefined
+  ) {
+    const diff = asset2.mainCurrencyAmount - asset1.mainCurrencyAmount
+    if (diff !== 0) return diff
+    const p1 = getSymbolPriority(asset1.asset.symbol)
+    const p2 = getSymbolPriority(asset2.asset.symbol)
+    if (p1 !== p2) return p1 - p2
+    return asset1.asset.symbol.localeCompare(asset2.asset.symbol)
+  }
+
+  if (asset1.mainCurrencyAmount === asset2.mainCurrencyAmount) {
+    const p1 = getSymbolPriority(asset1.asset.symbol)
+    const p2 = getSymbolPriority(asset2.asset.symbol)
+    if (p1 !== p2) return p1 - p2
+    return asset1.asset.symbol.localeCompare(asset2.asset.symbol)
+  }
+
+  return asset1.mainCurrencyAmount === undefined ? 1 : -1
 }
 
 export function determineAssetDisplayAndVerify(
@@ -133,30 +200,7 @@ const computeCombinedAssetAmountsData = (
 
       return fullyEnrichedAssetAmount
     })
-    .sort((asset1, asset2) => {
-      const leftIsBaseAsset = isNetworkBaseAsset(asset1.asset)
-      const rightIsBaseAsset = isNetworkBaseAsset(asset2.asset)
-
-      // Always sort base assets above non-base assets. This also sorts the
-      // current network base asset above the rest
-      if (leftIsBaseAsset !== rightIsBaseAsset) return leftIsBaseAsset ? -1 : 1
-
-      // If the assets are both base assets or neither is a base asset, compare
-      // by main currency amount.
-      if (
-        asset1.mainCurrencyAmount !== undefined &&
-        asset2.mainCurrencyAmount !== undefined
-      )
-        return asset2.mainCurrencyAmount - asset1.mainCurrencyAmount
-
-      if (asset1.mainCurrencyAmount === asset2.mainCurrencyAmount) {
-        // If both assets are missing a main currency amount, compare symbols lexicographically.
-        return asset1.asset.symbol.localeCompare(asset2.asset.symbol)
-      }
-
-      // If only one asset has a main currency amount, it wins.
-      return asset1.mainCurrencyAmount === undefined ? 1 : -1
-    })
+    .sort(compareCompleteAssets)
 
   const allLockedAssetAmounts = lockedAssetAmounts
     .map<CompleteAssetAmount>((assetAmount) => {
@@ -187,30 +231,7 @@ const computeCombinedAssetAmountsData = (
 
       return fullyEnrichedAssetAmount
     })
-    .sort((asset1, asset2) => {
-      const leftIsBaseAsset = isNetworkBaseAsset(asset1.asset)
-      const rightIsBaseAsset = isNetworkBaseAsset(asset2.asset)
-
-      // Always sort base assets above non-base assets. This also sorts the
-      // current network base asset above the rest
-      if (leftIsBaseAsset !== rightIsBaseAsset) return leftIsBaseAsset ? -1 : 1
-
-      // If the assets are both base assets or neither is a base asset, compare
-      // by main currency amount.
-      if (
-        asset1.mainCurrencyAmount !== undefined &&
-        asset2.mainCurrencyAmount !== undefined
-      )
-        return asset2.mainCurrencyAmount - asset1.mainCurrencyAmount
-
-      if (asset1.mainCurrencyAmount === asset2.mainCurrencyAmount) {
-        // If both assets are missing a main currency amount, compare symbols lexicographically.
-        return asset1.asset.symbol.localeCompare(asset2.asset.symbol)
-      }
-
-      // If only one asset has a main currency amount, it wins.
-      return asset1.mainCurrencyAmount === undefined ? 1 : -1
-    })
+    .sort(compareCompleteAssets)
 
   const { combinedAssetAmounts, unverifiedAssetAmounts } =
     allAssetAmounts.reduce<{
@@ -302,24 +323,24 @@ export const selectCurrentAccountBalances = createSelector(
       }
     })
 
-    // Ensure WQI is always present in allAssetAmounts
+    // Ensure pinned assets (WQI, WQUAI, USDT) are always present
     if (currentNetwork) {
-      // Find WQI asset for the current network in the assets list
-      const wqiAsset = assets.find(
-        (a) =>
-          a.symbol === "WQI" &&
-          isSmartContractFungibleAsset(a) &&
-          a.homeNetwork.chainID === currentNetwork.chainID
-      )
-      // If WQI is not in currentAccount.balances, add a zero balance entry
-      const hasWqiBalance = Object.values(currentAccount.balances).some(
-        (b) =>
-          b.assetAmount.asset.symbol === "WQI" &&
-          isSmartContractFungibleAsset(b.assetAmount.asset) &&
-          b.assetAmount.asset.homeNetwork.chainID === currentNetwork.chainID
-      )
-      if (wqiAsset && !hasWqiBalance) {
-        assetAmounts.push({ asset: wqiAsset, amount: BigInt(0) })
+      for (const symbol of ALWAYS_VISIBLE_SYMBOLS) {
+        const pinnedAsset = assets.find(
+          (a) =>
+            a.symbol.toUpperCase() === symbol &&
+            isSmartContractFungibleAsset(a) &&
+            a.homeNetwork.chainID === currentNetwork.chainID
+        )
+        const hasBalance = Object.values(currentAccount.balances).some(
+          (b) =>
+            b.assetAmount.asset.symbol.toUpperCase() === symbol &&
+            isSmartContractFungibleAsset(b.assetAmount.asset) &&
+            b.assetAmount.asset.homeNetwork.chainID === currentNetwork.chainID
+        )
+        if (pinnedAsset && !hasBalance) {
+          assetAmounts.push({ asset: pinnedAsset, amount: BigInt(0) })
+        }
       }
     }
 

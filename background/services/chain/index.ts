@@ -296,11 +296,11 @@ export default class ChainService extends BaseService<Events> {
     const categories: AddressCategory[] = [
       {
         addresses: qiMiningAddresses,
-        callback: this.handleQiWalletBalanceUpdate,
+        callback: this.handleQiWalletBalanceUpdate.bind(this),
       },
       {
         addresses: quaiAddresses,
-        callback: this.handleQuaiAddressBalanceUpdate,
+        callback: this.handleQuaiAddressBalanceUpdate.bind(this),
       },
     ]
     await this.subscribeToAddressBalances(selectedNetwork, categories)
@@ -367,7 +367,7 @@ export default class ChainService extends BaseService<Events> {
     const categories: AddressCategory[] = [
       {
         addresses: qiAddresses,
-        callback: this.handleQiWalletBalanceUpdate,
+        callback: this.handleQiWalletBalanceUpdate.bind(this),
       },
     ]
     await this.subscribeToAddressBalances(selectedNetwork, categories)
@@ -462,7 +462,7 @@ export default class ChainService extends BaseService<Events> {
     await this.subscribeToAddressBalances(this.selectedNetwork, [
       {
         addresses: [qiCoinbaseAddress],
-        callback: this.handleQiWalletBalanceUpdate,
+        callback: this.handleQiWalletBalanceUpdate.bind(this),
       },
     ])
     this.trackActiveSubscriptions(this.selectedNetwork, [qiCoinbaseAddress])
@@ -480,7 +480,7 @@ export default class ChainService extends BaseService<Events> {
       this.subscribeToAddressBalances(network, [
         {
           addresses: [newAccount],
-          callback: this.handleQuaiAddressBalanceUpdate,
+          callback: this.handleQuaiAddressBalanceUpdate.bind(this),
         },
       ])
       subscribedAccountsOnNetwork.push(newAccount.address)
@@ -498,7 +498,7 @@ export default class ChainService extends BaseService<Events> {
       this.subscribeToAddressBalances(network, [
         {
           addresses: accounts,
-          callback: this.handleQuaiAddressBalanceUpdate,
+          callback: this.handleQuaiAddressBalanceUpdate.bind(this),
         },
       ])
       this.trackActiveSubscriptions(network, accounts)

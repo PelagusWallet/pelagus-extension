@@ -169,7 +169,11 @@ export const deriveAddress = createBackgroundAsyncThunk(
 export const unlockKeyrings = createBackgroundAsyncThunk(
   "keyrings/unlockKeyrings",
   async (password: string, { extra: { main } }) => {
-    return { success: await main.unlockKeyrings(password) }
+    const start = performance.now()
+    console.log(`[unlockKeyrings thunk] Starting unlock...`)
+    const success = await main.unlockKeyrings(password)
+    console.log(`[unlockKeyrings thunk] main.unlockKeyrings completed in ${(performance.now() - start).toFixed(0)}ms, success: ${success}`)
+    return { success }
   }
 )
 

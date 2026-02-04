@@ -110,13 +110,29 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
   public async unlock(password: string): Promise<boolean> {
     try {
+      const unlockStart = performance.now()
+
+      const keyDerivationStart = performance.now()
       await this.vaultManager.initializeWithPassword(password)
+      const keyDerivationEnd = performance.now()
+      console.log(`[Unlock] Key derivation took ${(keyDerivationEnd - keyDerivationStart).toFixed(0)}ms`)
+
+      const initStateStart = performance.now()
       await this.walletManager.initializeState()
+      const initStateEnd = performance.now()
+      console.log(`[Unlock] Wallet state initialization took ${(initStateEnd - initStateStart).toFixed(0)}ms`)
 
       this.lastInternalWalletActivity = Date.now()
       this.lastExternalWalletActivity = Date.now()
 
+      const notifyStart = performance.now()
       await this.notifyUIWithUpdates()
+      const notifyEnd = performance.now()
+      console.log(`[Unlock] UI notification took ${(notifyEnd - notifyStart).toFixed(0)}ms`)
+
+      const unlockEnd = performance.now()
+      console.log(`[Unlock] Total unlock time: ${(unlockEnd - unlockStart).toFixed(0)}ms`)
+
       return true
     } catch (error) {
       logger.error("Error while unlocking keyring service", error)

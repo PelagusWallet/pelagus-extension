@@ -612,6 +612,10 @@
         "errorHeadline": "Uh oh!",
         "errorTitle": "An error occurred when submitting your transaction",
         "errorSubtitle": "Make sure the transaction you are submitting is valid and try again"
+      },
+      "sendQi": {
+        "headerTitle": "Transaction Confirmed!",
+        "title": "Your transaction was successfully confirmed"
       }
     }
   }

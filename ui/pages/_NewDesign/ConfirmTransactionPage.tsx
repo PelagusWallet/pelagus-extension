@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import { sendQiTransaction } from "@pelagus/pelagus-background/redux-slices/qiSend"
@@ -38,6 +38,9 @@ const ConfirmTransactionPage = () => {
   const [transactionHash, setTransactionHash] = useState<string>("")
   const [errorMessage, setErrorMessage] = useState<string>("")
 
+  // Synchronous guard to prevent duplicate submissions (refs update immediately, unlike state)
+  const isSubmittingRef = useRef(false)
+
   useEffect(() => {
     if (channelExists) return
 
@@ -52,6 +55,13 @@ const ConfirmTransactionPage = () => {
 
   const onSendQiTransaction = async () => {
     if (!channelExists && isInsufficientQuai) return
+
+    // Synchronous check to prevent duplicate submissions from rapid clicks
+    if (isSubmittingRef.current) {
+      console.log("Transaction submission already in progress, ignoring click")
+      return
+    }
+    isSubmittingRef.current = true
 
     setIsConfirmLoading(true)
     setIsTransactionError(false)
@@ -75,6 +85,7 @@ const ConfirmTransactionPage = () => {
     } finally {
       setIsConfirmLoading(false)
       setIsOpenConfirmationModal(true)
+      isSubmittingRef.current = false
     }
   }
 
@@ -94,10 +105,8 @@ const ConfirmTransactionPage = () => {
         onClose: () => history.push("/"),
       }
     : {
-        headerTitle: confirmationLocales("send.headerTitle", {
-          network: "",
-        }),
-        title: confirmationLocales("send.title"),
+        headerTitle: confirmationLocales("sendQi.headerTitle"),
+        title: confirmationLocales("sendQi.title"),
         link: {
           text: confirmationLocales("viewTransaction"),
           url: `${blockExplorerUrl}/tx/${transactionHash}`,

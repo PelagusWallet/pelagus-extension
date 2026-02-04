@@ -21,17 +21,16 @@ export default function KeyringUnlock(): ReactElement {
   const [isUnlocking, setIsUnlocking] = useState(false)
   const [unlockProgress, setUnlockProgress] = useState(0)
   const [unlockSuccess, setUnlockSuccess] = useState(false)
+  const [unlockStartTime, setUnlockStartTime] = useState<number | null>(null)
 
   useEffect(() => {
-    let navigationTimeout: NodeJS.Timeout
-    if (areKeyringsUnlocked && unlockProgress === 100) {
-      // Add a small delay to ensure the progress bar animation is visible
-      navigationTimeout = setTimeout(() => {
-        history.replace(redirectPath)
-      }, 400) // Matches the transition time in SharedProgressBar
+    // Navigate immediately when unlock succeeds - no artificial delay needed
+    if (areKeyringsUnlocked && unlockSuccess) {
+      const totalTime = unlockStartTime ? (performance.now() - unlockStartTime).toFixed(0) : 'unknown'
+      console.log(`[UI Unlock] Navigating to ${redirectPath} - total time from button click: ${totalTime}ms`)
+      history.replace(redirectPath)
     }
-    return () => clearTimeout(navigationTimeout)
-  }, [areKeyringsUnlocked, unlockProgress, redirectPath, history])
+  }, [areKeyringsUnlocked, unlockSuccess, redirectPath, history, unlockStartTime])
 
   // Simulated progress effect when unlocking
   useEffect(() => {
@@ -73,6 +72,10 @@ export default function KeyringUnlock(): ReactElement {
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault()
+    const startTime = performance.now()
+    setUnlockStartTime(startTime)
+    console.log(`[UI Unlock] User submitted password at ${Date.now()}`)
+
     setIsUnlocking(true)
     setUnlockSuccess(false)
 
@@ -80,12 +83,15 @@ export default function KeyringUnlock(): ReactElement {
       unlockKeyrings(password)
     )) as AsyncThunkFulfillmentType<typeof unlockKeyrings>
 
+    const unlockEndTime = performance.now()
+    console.log(`[UI Unlock] unlockKeyrings dispatch completed in ${(unlockEndTime - startTime).toFixed(0)}ms, success: ${success}`)
+
     if (!success) {
       setIsUnlocking(false)
       setErrorMessage(t("error.incorrect"))
     } else {
       setUnlockSuccess(true)
-      // Progress bar will automatically go to 100% due to unlockSuccess state
+      console.log(`[UI Unlock] Unlock successful, UI will navigate immediately`)
     }
   }
 

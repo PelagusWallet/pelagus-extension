@@ -218,6 +218,7 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedNetworks = []
     this.providerFactory = providerFactoryService
     this.handleQiWalletBalanceUpdate = this.handleQiWalletBalanceUpdate.bind(this)
+    this.handleQuaiAddressBalanceUpdate = this.handleQuaiAddressBalanceUpdate.bind(this)
   }
 
   override async internalStartService(): Promise<void> {
@@ -347,9 +348,10 @@ export default class ChainService extends BaseService<Events> {
     })
   }
 
-  public async subscribeToQiAddresses(): Promise<void> {
+  public async subscribeToQiAddresses(existingWallet?: QiHDWallet): Promise<void> {
     const { selectedNetwork } = this
-    const qiWallet = await this.keyringService.getQiHDWallet()
+    // Use provided wallet or fetch from keyring (avoid redundant deserialization)
+    const qiWallet = existingWallet ?? await this.keyringService.getQiHDWallet()
     const qiAddresses = [
       qiWallet.getGapAddressesForZone(Zone.Cyprus1)[0],
       qiWallet.getGapChangeAddressesForZone(Zone.Cyprus1)[0],
@@ -597,17 +599,37 @@ export default class ChainService extends BaseService<Events> {
       let start = Date.now()
       try {
         const network = this.selectedNetwork
-        const lastScan = await this.db.getQiLastFullScan(network.chainID)
-        
-        const forceFullScan = !lastScan || lastScan.version !== currentVersion || forceFullScan_
+
+        let stepStart = Date.now()
+        const [lastScan, lastSync] = await Promise.all([
+          this.db.getQiLastFullScan(network.chainID),
+          this.db.getQiLastSync(network.chainID),
+        ])
+
+        // Force full scan if:
+        // 1. No previous scan exists
+        // 2. Version mismatch
+        // 3. Explicitly requested
+        // 4. More than 1 hour since last successful scan or sync
+        const ONE_HOUR_MS = 60 * 60 * 1000
+        const now = Date.now()
+        const lastSyncTimestamp = Math.max(lastScan?.timestamp || 0, lastSync?.timestamp || 0)
+        const timeSinceLastSync = now - lastSyncTimestamp
+        const isStale = lastSyncTimestamp > 0 && timeSinceLastSync > ONE_HOUR_MS
+
+        const forceFullScan = !lastScan || lastScan.version !== currentVersion || forceFullScan_ || isStale
+        console.log(`[syncQiWallet] forceFullScan=${forceFullScan}, lastScan=${lastScan?.version}, currentVersion=${currentVersion}, timeSinceLastSync=${(timeSinceLastSync / 1000 / 60).toFixed(1)}min, isStale=${isStale}`)
 
         if (forceFullScan) {
           // Clear outpoints and sync info for fresh scan
+          stepStart = Date.now()
           await this.db.clearQiOutpoints()
           await this.db.clearQiWalletSyncInfo()
         }
 
+        stepStart = Date.now()
         const qiWallet = await this.keyringService.getQiHDWallet()
+
         if (!qiWallet) {
           // it's possible that the wallet does not exist (quai private key was imported)
           // or the wallet has not been initialized yet after wallet creation/restoration
@@ -617,6 +639,7 @@ export default class ChainService extends BaseService<Events> {
         const paymentCode = qiWallet.getPaymentCode(0)
         let notifications: string[] = []
         try {
+          stepStart = Date.now()
           const mailboxContract = new Contract(
             MAILBOX_CONTRACT_ADDRESS || "",
             MAILBOX_INTERFACE,
@@ -633,12 +656,14 @@ export default class ChainService extends BaseService<Events> {
             }`
           )
         }
+
         qiWallet.connect(this.jsonRpcProvider)
         notifications.forEach((paymentCode) => {
           // if the channel is already open, it will be ignored
           qiWallet.openChannel(paymentCode)
         })
 
+        stepStart = Date.now()
         const currentBlock = await this.jsonRpcProvider.getBlock(
           Shard.Cyprus1,
           "latest"
@@ -651,6 +676,8 @@ export default class ChainService extends BaseService<Events> {
         if (forceFullScan) {
           // use immediateJsonRpcProvider to avoid race condition
           qiWallet.connect(this.immediateJsonRpcProvider)
+
+          stepStart = Date.now()
           await qiWallet.scan(Zone.Cyprus1, 0)
 
           // switch back to jsonRpcProvider
@@ -658,6 +685,7 @@ export default class ChainService extends BaseService<Events> {
           storeOutpoints = true
 
           // calculate spendable balance for the current block using in memory outpoints
+          stepStart = Date.now()
           spendableBalance = await qiWallet.getSpendableBalance(
             Zone.Cyprus1,
             currentBlock?.woHeader.number,
@@ -669,13 +697,16 @@ export default class ChainService extends BaseService<Events> {
             true
           )
         } else {
+          stepStart = Date.now()
           await qiWallet.sync(
             Zone.Cyprus1,
             0,
             this.handleOutpointsCreated.bind(this),
             this.handleOutpointsDeleted.bind(this)
           )
+
           // fetch spendable balance for the current block using getBalance RPC
+          stepStart = Date.now()
           const [sBalance, lBalance] = await Promise.all([
             qiWallet.getSpendableBalance(
               Zone.Cyprus1,
@@ -714,7 +745,7 @@ export default class ChainService extends BaseService<Events> {
           },
         })
         await Promise.all([
-          this.subscribeToQiAddresses(),
+          this.subscribeToQiAddresses(qiWallet),
           this.db.addQiLedgerBalance(qiWalletBalance),
           new Promise<void>(async (resolve): Promise<void> => {
             if (storeOutpoints) {
@@ -766,6 +797,14 @@ export default class ChainService extends BaseService<Events> {
 
   async getOutpointsForQiAddress(address: string): Promise<Outpoint[]> {
     return this.jsonRpcProvider.getOutpointsByAddress(address)
+  }
+
+  /**
+   * Get the last persisted Qi balance from IndexedDB.
+   * Used to show cached balance immediately on unlock while sync runs in background.
+   */
+  async getCachedQiBalance(): Promise<QiWalletBalance | null> {
+    return this.db.getLatestQiLedgerBalance(this.selectedNetwork)
   }
 
   async getOutpointsForSending(

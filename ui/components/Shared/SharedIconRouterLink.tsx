@@ -1,15 +1,17 @@
 import React, { ReactElement } from "react"
-import { Link } from "react-router-dom"
+import { Link, useHistory } from "react-router-dom"
 
 type Props = {
   path: string
   state: { [key: string]: unknown }
   iconClass: string
   disabled?: boolean
+  asButton?: boolean
 }
 
 export default function SharedIconRouterLink(props: Props): ReactElement {
-  const { path, state, iconClass, disabled } = props
+  const { path, state, iconClass, disabled, asButton } = props
+  const history = useHistory()
 
   if (disabled) {
     return (
@@ -23,6 +25,35 @@ export default function SharedIconRouterLink(props: Props): ReactElement {
         className="icon_wrapper"
       >
         <i className={`disabled_asset_icon ${iconClass}`} />
+      </div>
+    )
+  }
+
+  if (asButton && !disabled) {
+    return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
+      <div
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          history.push(path, state)
+        }}
+        className="router_link_container"
+      >
+        <div className="icon_wrapper">
+          <i className={`asset_icon hoverable ${iconClass}`} />
+        </div>
+        <style jsx global>{`
+          .router_link_container {
+            margin: auto 4px;
+            border-radius: 4px;
+            cursor: pointer;
+          }
+          .icon_wrapper {
+            display: flex;
+            padding: 0.5em;
+          }
+        `}</style>
       </div>
     )
   }

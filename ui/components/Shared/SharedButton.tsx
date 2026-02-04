@@ -131,6 +131,7 @@ export default function SharedButton(
       <style jsx>
         {`
           .button {
+            position: relative;
             height: 40px;
             border-radius: 4px;
             background-color: var(--trophy-gold);
@@ -350,6 +351,11 @@ export default function SharedButton(
           .hide_me {
             opacity: 0;
             position: absolute;
+          }
+          .spinner_wrap {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
           }
           .unstyled {
             unset: all;

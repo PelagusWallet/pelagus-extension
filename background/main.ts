@@ -165,7 +165,6 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
-import { WRAPPED_QI_CONTRACT_ADDRESS } from "./constants/base-assets"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -525,12 +524,7 @@ export default class Main extends BaseService<never> {
         let newBalance = amount ?? BigInt(0)
         let newLockedBalance = BigInt(0)
         if (isSmartContractFungibleAsset(asset)) {
-          if (
-            getExtendedZoneForAddress(asset.contractAddress, false) !==
-            getExtendedZoneForAddress(selectedAccount.address, false)
-          ) {
-            continue
-          }
+        // Do not skip by shard; token balance helper switches shards per token
           newBalance = (
             await this.chainService.assetData.getTokenBalance(
               selectedAccount,
@@ -596,26 +590,28 @@ export default class Main extends BaseService<never> {
       return
 
     const { balances } = currentAccountState
-    const wQi = this.indexingService.getKnownSmartContractAsset(selectedAccount.network, WRAPPED_QI_CONTRACT_ADDRESS)
-    
-    // Create a new balances object
-    const updatedBalances = { ...balances }
-    
-    if(wQi && !updatedBalances["WQI"]) {
-      updatedBalances["WQI"] = {
-        assetAmount: {
-          amount: BigInt(0),
-          asset: wQi,
-        },
-        network: selectedAccount.network,
-        retrievedAt: Date.now(),
-        dataSource: "local",
-        address: selectedAccount.address,
-      }
-    }
 
-    for (const assetSymbol in updatedBalances) {
-      const { asset } = updatedBalances[assetSymbol].assetAmount
+    // Build a unique set of smart-contract assets to query: existing balances + cached (includes pinned)
+    const cachedSmartAssets = this.indexingService
+      .getCachedAssets(selectedAccount.network)
+      .filter(isSmartContractFungibleAsset)
+
+    const assetsByAddress: { [addr: string]: typeof cachedSmartAssets[number] } = {}
+
+    // Existing balances' smart-contract assets
+    Object.values(balances).forEach(({ assetAmount }) => {
+      const a = assetAmount.asset
+      if (isSmartContractFungibleAsset(a)) {
+        assetsByAddress[a.contractAddress.toLowerCase()] = a
+      }
+    })
+    // Cached assets (includes pinned assets like WQI, WQUAI, USDT)
+    cachedSmartAssets.forEach((a) => {
+      assetsByAddress[a.contractAddress.toLowerCase()] = a
+    })
+
+    for (const addr of Object.keys(assetsByAddress)) {
+      const asset = assetsByAddress[addr]
       let newSpendableBalance = BigInt(0)
       let newLockedBalance = BigInt(0)
       const isSmartContractAsset = isSmartContractFungibleAsset(asset)
@@ -625,12 +621,7 @@ export default class Main extends BaseService<never> {
       )
 
       if (isSmartContractAsset) {
-        if (
-          getExtendedZoneForAddress(asset.contractAddress, false) !==
-          getExtendedZoneForAddress(selectedAccount.address, false)
-        ) {
-          continue
-        }
+        // Do not skip by shard; token balance helper switches shards per token
         newSpendableBalance = (
           await this.chainService.assetData.getTokenBalance(
             selectedAccount,
@@ -645,7 +636,7 @@ export default class Main extends BaseService<never> {
         newLockedBalance = balances.lockedAmount?.amount ?? BigInt(0)
       } else {
         logger.error(
-          `Unknown asset type for balance checker, asset: ${asset.symbol}`
+          "Unknown asset type for balance checker; skipping"
         )
         continue
       }

@@ -62,3 +62,8 @@ export const BASE_ASSETS = Object.values(BASE_ASSETS_BY_CUSTOM_NAME)
 
 export const WRAPPED_QI_CONTRACT_ADDRESS = "0x002b2596EcF05C93a31ff916E8b456DF6C77c750"
 export const WRAPPED_QI_CONTRACT_ADDRESS_BYTES = new Uint8Array(Buffer.from(WRAPPED_QI_CONTRACT_ADDRESS.replace("0x", ""), "hex"))
+// Wrapped QUAI (WQUAI) on Quai mainnet
+export const WRAPPED_QUAI_CONTRACT_ADDRESS = "0x006C3e2AaAE5DB1bCd11A1a097cE572312EADdBB"
+
+// USDT (wrapped via Symbiosis) on Quai mainnet
+export const SYMBIOSIS_USDT_CONTRACT_ADDRESS = "0x0049F7cbCa3556C2DfaE62Aafa7015F99de1b8f5"

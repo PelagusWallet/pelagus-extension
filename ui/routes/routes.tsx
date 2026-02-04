@@ -27,6 +27,7 @@ import RunningIntervals from "../pages/_NewDesign/RunningIntervals"
 import IntervalErrorDetails from "../pages/_NewDesign/IntervalErrorDetails"
 import WrapPage from "../pages/_NewDesign/WrapPage"
 import ConfirmWrapPage from "../pages/_NewDesign/ConfirmWrapPage"
+import WrapQuaiPage from "../pages/_NewDesign/WrapQuaiPage"
 
 type PageList = {
   path: string
@@ -41,6 +42,16 @@ const pageList: PageList[] = [
   {
     path: "/keyring/set-password",
     Component: KeyringSetPassword,
+    hasTopBar: false,
+  },
+  {
+    path: "/unwrap-wquai",
+    Component: WrapQuaiPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/wrap-quai",
+    Component: WrapQuaiPage,
     hasTopBar: false,
   },
   {

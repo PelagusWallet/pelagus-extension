@@ -233,7 +233,13 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           blockNumShard = params[0] as Shard
         } else {
           const { address } = await this.preferenceService.getSelectedAccount()
-          blockNumShard = (getZoneForAddress(address) || "0x00") as Shard
+          const zone = getZoneForAddress(address)
+          if (!zone) {
+            logger.warn(
+              `Could not determine zone for address ${address}, falling back to 0x00`
+            )
+          }
+          blockNumShard = (zone || "0x00") as Shard
         }
         return this.chainService.jsonRpcProvider.getBlockNumber(blockNumShard)
       }
@@ -249,7 +255,13 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         if (params.length <= 2) {
           // Standard format: derive shard from the selected account
           const { address } = await this.preferenceService.getSelectedAccount()
-          shard = (getZoneForAddress(address) || "0x00") as Shard
+          const zone = getZoneForAddress(address)
+          if (!zone) {
+            logger.warn(
+              `Could not determine zone for address ${address}, falling back to 0x00`
+            )
+          }
+          shard = (zone || "0x00") as Shard
           blockTag = params[0] as BlockTag
           includeTx = (params[1] as boolean) ?? false
         } else {

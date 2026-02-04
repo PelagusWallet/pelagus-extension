@@ -16,7 +16,7 @@ import {
   SmartContractAmount,
   SmartContractFungibleAsset,
 } from "../../assets"
-import { HOUR, MINUTE, NETWORK_BY_CHAIN_ID, WRAPPED_QI_CONTRACT_ADDRESS } from "../../constants"
+import { HOUR, MINUTE, NETWORK_BY_CHAIN_ID, WRAPPED_QI_CONTRACT_ADDRESS, WRAPPED_QUAI_CONTRACT_ADDRESS, SYMBIOSIS_USDT_CONTRACT_ADDRESS } from "../../constants"
 import {
   fetchAndValidateTokenList,
   mergeAssets,
@@ -41,6 +41,52 @@ const FAST_TOKEN_REFRESH_BLOCK_RANGE = 10
 // The number of ms to coalesce tokens whose balances are known to have changed
 // before balance-checking them.
 const ACCELERATED_TOKEN_REFRESH_TIMEOUT = 3000
+
+// Pinned/default token definitions (contract address, name, symbol, decimals, logoURL)
+const PINNED_TOKENS: Array<{
+  contractAddress: string
+  name: string
+  symbol: string
+  decimals: number
+  logoURL: string
+}> = [
+  {
+    contractAddress: WRAPPED_QI_CONTRACT_ADDRESS,
+    name: "Wrapped Qi",
+    symbol: "WQI",
+    decimals: 18,
+    logoURL: "./images/WQi.svg",
+  },
+  {
+    contractAddress: WRAPPED_QUAI_CONTRACT_ADDRESS,
+    name: "Wrapped QUAI",
+    symbol: "WQUAI",
+    decimals: 18,
+    logoURL: "./images/networks/quainetwork@2x.png",
+  },
+  {
+    contractAddress: SYMBIOSIS_USDT_CONTRACT_ADDRESS,
+    name: "Tether USD",
+    symbol: "USDT",
+    decimals: 6,
+    logoURL: "./images/usdt_logo.png",
+  },
+]
+
+/** Build pinned SmartContractFungibleAsset array for a given network */
+function buildPinnedAssets(network: NetworkInterface): SmartContractFungibleAsset[] {
+  return PINNED_TOKENS.map((t) => ({
+    name: t.name,
+    symbol: t.symbol,
+    decimals: t.decimals,
+    contractAddress: t.contractAddress,
+    homeNetwork: network,
+    metadata: {
+      verified: true,
+      logoURL: t.logoURL,
+    },
+  }))
+}
 
 interface Events extends ServiceLifecycleEvents {
   accountsWithBalances: {
@@ -152,23 +198,14 @@ export default class IndexingService extends BaseService<Events> {
     })
     setTimeout(() => {
       PELAGUS_NETWORKS.forEach(async (network) => {
-        const exists = this.getKnownSmartContractAsset(network, WRAPPED_QI_CONTRACT_ADDRESS)
-        if (!exists) {
-              console.log("Adding Wrapped Qi to network ", network.chainID)
-              const wrappedQiAsset: SmartContractFungibleAsset = {
-                name: "Wrapped Qi",
-                symbol: "WQI",
-                decimals: 18,
-                contractAddress: WRAPPED_QI_CONTRACT_ADDRESS,
-                homeNetwork: network,
-                metadata: {
-                  verified: true,
-                  logoURL: "./images/WQi.svg",
-                },
+        for (const asset of buildPinnedAssets(network)) {
+          const exists = this.getKnownSmartContractAsset(network, asset.contractAddress)
+          if (!exists) {
+            console.log(`Adding ${asset.symbol} to network`, network.chainID)
+            await this.importCustomToken(asset)
           }
-          await this.importCustomToken(wrappedQiAsset)
-          }
-        })
+        }
+      })
     }, 2000)
   }
 
@@ -242,22 +279,9 @@ export default class IndexingService extends BaseService<Events> {
       await this.preferenceService.getTokenListPreferences()
     const tokenLists = await this.db.getLatestTokenLists(tokenListPrefs.urls)
 
-    // Add Wrapped Qi token to the list of assets
-    const wrappedQiAsset: SmartContractFungibleAsset = {
-      name: "Wrapped Qi",
-      symbol: "WQI",
-      decimals: 18,
-      contractAddress: WRAPPED_QI_CONTRACT_ADDRESS,
-      homeNetwork: network,
-      metadata: {
-        verified: true,
-        logoURL: "./images/WQi.svg",
-      },
-    }
-
     this.cachedAssets[network.chainID] = mergeAssets<FungibleAsset>(
       [network.baseAsset],
-      [wrappedQiAsset],
+      buildPinnedAssets(network),
       customAssets,
       networkAssetsFromLists(network, tokenLists)
     )
@@ -505,21 +529,28 @@ export default class IndexingService extends BaseService<Events> {
     addressNetwork: AddressOnNetwork,
     smartContractAssets?: SmartContractFungibleAsset[]
   ): Promise<SmartContractAmount[]> {
-    const filteredSmartContractAssets = (smartContractAssets ?? []).filter(
-      ({ contractAddress }) =>
-        getExtendedZoneForAddress(contractAddress, false) ===
-        getExtendedZoneForAddress(addressNetwork.address, false)
+    const assets = smartContractAssets ?? []
+
+    // Group assets by shard so we can query balances per-shard
+    const assetsByShard = assets.reduce<Record<string, SmartContractFungibleAsset[]>>(
+      (acc, asset) => {
+        const shard = getExtendedZoneForAddress(asset.contractAddress, false)
+        if (!acc[shard]) acc[shard] = []
+        acc[shard].push(asset)
+        return acc
+      },
+      {}
     )
 
-    const balances = await this.chainService.assetData.getTokenBalances(
-      addressNetwork,
-      filteredSmartContractAssets?.map(({ contractAddress }) =>
-        getExtendedZoneForAddress(contractAddress, false) ===
-        getExtendedZoneForAddress(addressNetwork.address, false)
-          ? contractAddress
-          : ""
+    const balanceGroups = await Promise.all(
+      Object.values(assetsByShard).map((group) =>
+        this.chainService.assetData.getTokenBalances(
+          addressNetwork,
+          group.map(({ contractAddress }) => contractAddress)
+        )
       )
     )
+    const balances = balanceGroups.flat()
 
     const listedAssetByAddress = (smartContractAssets ?? []).reduce<{
       [contractAddress: string]: SmartContractFungibleAsset
@@ -576,19 +607,27 @@ export default class IndexingService extends BaseService<Events> {
       },
       []
     )
-    const accountBalancesHasWQI = accountBalances.find(balance => balance.assetAmount.asset.symbol === "WQI")
-    if(!accountBalancesHasWQI) {
-      const wQi = this.getKnownSmartContractAsset(addressNetwork.network, WRAPPED_QI_CONTRACT_ADDRESS)
-      if(wQi) {
-        accountBalances.push({
-          ...addressNetwork,
-          assetAmount: {
-            asset: wQi,
-            amount: BigInt(0),
-          },
-          retrievedAt: Date.now(),
-          dataSource: "local",
-        })
+    // Add placeholder balances for any missing pinned tokens
+    for (const pinnedAsset of buildPinnedAssets(addressNetwork.network)) {
+      const hasBalance = accountBalances.some(
+        (b) => b.assetAmount.asset.symbol === pinnedAsset.symbol
+      )
+      if (!hasBalance) {
+        const knownAsset = this.getKnownSmartContractAsset(
+          addressNetwork.network,
+          pinnedAsset.contractAddress
+        )
+        if (knownAsset) {
+          accountBalances.push({
+            ...addressNetwork,
+            assetAmount: {
+              asset: knownAsset,
+              amount: BigInt(0),
+            },
+            retrievedAt: Date.now(),
+            dataSource: "local",
+          })
+        }
       }
     }
 

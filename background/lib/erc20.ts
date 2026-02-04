@@ -147,12 +147,16 @@ export const getTokenBalances = async (
   tokenAddresses: HexString[],
   provider: JsonRpcProvider
 ): Promise<SmartContractAmount[]> => {
+  // Determine shard from the token list (assumes all tokens in this batch share the same shard)
+  const first = tokenAddresses.find((t) => !!t)
+  if (!first) return []
+
   let multicallAddress =
     CHAIN_SPECIFIC_MULTICALL_CONTRACT_ADDRESSES[network.chainID] ||
     MULTICALL_CONTRACT_ADDRESS
   if (isQuaiHandle(network)) {
     multicallAddress = ShardToMulticall(
-      getExtendedZoneForAddress(address),
+      getExtendedZoneForAddress(first),
       network
     )
   }
@@ -162,15 +166,16 @@ export const getTokenBalances = async (
     address,
   ])
 
+  // Filter to tokens on the same shard as the first token
+  const filteredTokenAddresses = tokenAddresses.filter(
+    (tokenAddress) =>
+      getExtendedZoneForAddress(tokenAddress, false) ===
+      getExtendedZoneForAddress(first, false)
+  )
+
   const response = (await contract.tryBlockAndAggregate.staticCall(
     false, // false === don't require all calls to succeed
-    tokenAddresses.map((tokenAddress) =>
-      tokenAddress &&
-      getExtendedZoneForAddress(address, false) ===
-        getExtendedZoneForAddress(tokenAddress, false)
-        ? [tokenAddress, balanceOfCallData]
-        : []
-    )
+    filteredTokenAddresses.map((tokenAddress) => [tokenAddress, balanceOfCallData])
   )) as AggregateContractResponse
 
   return response.returnData.flatMap((data, i) => {
@@ -180,7 +185,7 @@ export const getTokenBalances = async (
     return {
       amount: toBigInt(data.returnData),
       smartContract: {
-        contractAddress: tokenAddresses[i],
+        contractAddress: filteredTokenAddresses[i],
         homeNetwork: network,
       },
     }

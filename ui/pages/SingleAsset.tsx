@@ -24,7 +24,7 @@ import {
 import { FeatureFlags, isEnabled } from "@pelagus/pelagus-background/features"
 import { PELAGUS_NETWORKS } from "@pelagus/pelagus-background/constants/networks/networks"
 import { isQuaiHandle } from "@pelagus/pelagus-background/constants/networks/networkUtils"
-import { WRAPPED_QI_CONTRACT_ADDRESS } from "@pelagus/pelagus-background/constants/base-assets"
+import { WRAPPED_QI_CONTRACT_ADDRESS, WRAPPED_QUAI_CONTRACT_ADDRESS } from "@pelagus/pelagus-background/constants/base-assets"
 import { useBackgroundSelector, useBackgroundDispatch } from "../hooks"
 import { setConvertFrom, setConvertAmount } from "@pelagus/pelagus-background/redux-slices/convertAssets"
 import SharedButton from "../components/Shared/SharedButton"
@@ -110,9 +110,11 @@ export default function SingleAsset(): ReactElement {
     ? !isUnverifiedByUser
     : true
   
-  // Check if this is WQI and if the balance is greater than 0
+  // Check if this is WQI/WQUAI and if the balance is greater than 0
   const isWQI = contractAddress && sameQuaiAddress(contractAddress, WRAPPED_QI_CONTRACT_ADDRESS)
   const hasWQIBalance = isWQI && localizedDecimalAmount && parseFloat(localizedDecimalAmount) > 0
+  const isWQUAI = contractAddress && sameQuaiAddress(contractAddress, WRAPPED_QUAI_CONTRACT_ADDRESS)
+  const hasWQUAIBalance = isWQUAI && localizedDecimalAmount && parseFloat(localizedDecimalAmount) > 0
   
   const handleUnwrap = () => {
     if (!currentAccountTotal || !localizedDecimalAmount || !asset) return
@@ -129,6 +131,16 @@ export default function SingleAsset(): ReactElement {
     
     // Navigate to unwrap page
     history.push("/unwrap")
+  }
+
+  const handleUnwrapWQuai = () => {
+    if (!currentAccountTotal || !localizedDecimalAmount || !asset) return
+    const fromAccount = {
+      ...currentAccountTotal,
+      balance: `${localizedDecimalAmount} WQUAI`
+    }
+    dispatch(setConvertFrom(fromAccount))
+    history.push("/unwrap-wquai")
   }
 
   return (
@@ -248,11 +260,11 @@ export default function SingleAsset(): ReactElement {
                   >
                     {t("shared.send")}
                   </SharedButton>
-                  {hasWQIBalance && (
+                  {(hasWQIBalance || hasWQUAIBalance) && (
                     <SharedButton
                       type="secondary"
                       size="medium"
-                      onClick={handleUnwrap}
+                      onClick={hasWQIBalance ? handleUnwrap : handleUnwrapWQuai}
                     >
                       Unwrap
                     </SharedButton>

@@ -23,7 +23,7 @@ import ChainService from "../chain"
 import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
-import { MAILBOX_CONTRACT_ADDRESS, MINUTE, SECOND, WRAPPED_QI_CONTRACT_ADDRESS, WRAPPED_QI_CONTRACT_ADDRESS_BYTES } from "../../constants"
+import { MAILBOX_CONTRACT_ADDRESS, MINUTE, SECOND, WRAPPED_QI_CONTRACT_ADDRESS, WRAPPED_QI_CONTRACT_ADDRESS_BYTES, WRAPPED_QUAI_CONTRACT_ADDRESS } from "../../constants"
 import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
@@ -635,6 +635,97 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       this.chainService.syncQiWallet(),
     ])
     return transaction.hash
+  }
+
+  public async wrapQuai(value: string, from: string): Promise<string | undefined> {
+    const { jsonRpcProvider } = this.chainService
+    try {
+      const amount = parseQuai(value)
+      const signerWithType = await this.keyringService.getSigner(from)
+
+      let connectedSigner: any
+      let tx: QuaiTransactionResponse | null = null
+
+      if (isSignerPrivateKeyType(signerWithType)) {
+        connectedSigner = signerWithType.signer.connect(jsonRpcProvider)
+        const contract = new Contract(
+          WRAPPED_QUAI_CONTRACT_ADDRESS,
+          ["function deposit() payable"],
+          connectedSigner
+        )
+        tx = (await contract.deposit({ value: amount })) as QuaiTransactionResponse
+      } else {
+        signerWithType.signer.connect(jsonRpcProvider)
+        connectedSigner = signerWithType.signer
+        const contract = new Contract(
+          WRAPPED_QUAI_CONTRACT_ADDRESS,
+          ["function deposit() payable"],
+          jsonRpcProvider
+        )
+        const data = contract.interface.encodeFunctionData("deposit", [])
+        const request = {
+          to: WRAPPED_QUAI_CONTRACT_ADDRESS,
+          from,
+          data,
+          value: amount,
+        }
+        tx = (await connectedSigner.sendTransaction(request)) as QuaiTransactionResponse
+      }
+
+      if (!tx) {
+        throw new Error("Failed to send wrap QUAI transaction")
+      }
+      await this.processQuaiTransactionResponse(tx)
+      return tx.hash
+    } catch (error: any) {
+      logger.error("Failed to wrap QUAI", error.message)
+      throw error
+    }
+  }
+
+  public async unwrapQuai(value: string, from: string): Promise<string | undefined> {
+    const { jsonRpcProvider } = this.chainService
+    try {
+      const amount = parseQuai(value)
+      const signerWithType = await this.keyringService.getSigner(from)
+
+      let connectedSigner: any
+      let tx: QuaiTransactionResponse | null = null
+
+      if (isSignerPrivateKeyType(signerWithType)) {
+        connectedSigner = signerWithType.signer.connect(jsonRpcProvider)
+        const contract = new Contract(
+          WRAPPED_QUAI_CONTRACT_ADDRESS,
+          ["function withdraw(uint256 amount)"],
+          connectedSigner
+        )
+        tx = (await contract.withdraw(amount)) as QuaiTransactionResponse
+      } else {
+        signerWithType.signer.connect(jsonRpcProvider)
+        connectedSigner = signerWithType.signer
+        const contract = new Contract(
+          WRAPPED_QUAI_CONTRACT_ADDRESS,
+          ["function withdraw(uint256 amount)"],
+          jsonRpcProvider
+        )
+        const data = contract.interface.encodeFunctionData("withdraw", [amount])
+        const request = {
+          to: WRAPPED_QUAI_CONTRACT_ADDRESS,
+          from,
+          data,
+        }
+        tx = (await connectedSigner.sendTransaction(request)) as QuaiTransactionResponse
+      }
+
+      if (!tx) {
+        throw new Error("Failed to send unwrap WQUAI transaction")
+      }
+      await this.processQuaiTransactionResponse(tx)
+      return tx.hash
+    } catch (error: any) {
+      logger.error("Failed to unwrap WQUAI", error.message)
+      throw error
+    }
   }
 
   public async getWrappedQiDeposit(from: string): Promise<bigint> {

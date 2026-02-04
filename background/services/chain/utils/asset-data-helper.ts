@@ -61,27 +61,47 @@ export default class AssetDataHelper {
     smartContractAddresses?: HexString[]
   ): Promise<SmartContractAmount[]> {
     const prevShard = globalThis.main.GetShard()
-    globalThis.main.SetShard(
-      getExtendedZoneForAddress(addressOnNetwork.address)
-    )
+    // Switch to the shard of the first token address if provided; otherwise, fallback to address shard
+    const first = (smartContractAddresses ?? []).find((t) => !!t)
+    const targetShard = first
+      ? getExtendedZoneForAddress(first)
+      : getExtendedZoneForAddress(addressOnNetwork.address)
+    globalThis.main.SetShard(targetShard)
     const provider = globalThis.main.chainService.jsonRpcProvider
 
     if (!provider) throw new Error("Failed get provider for network")
-    globalThis.main.SetShard(prevShard)
-    if (typeof provider === "undefined") return []
+    // Keep provider bound to targetShard for the duration of the call
 
     try {
-      return await getTokenBalances(
+      const result = await getTokenBalances(
         addressOnNetwork,
         smartContractAddresses || [],
         provider
       )
+      return result
     } catch (error: any) {
       logger.debug(
-        `Problem resolving asset balances; network may not support it: ${
+        `Problem resolving asset balances via multicall; attempting per-token fallback: ${
           error?.message || error
         }`
       )
+      // Fallback: query each token individually
+      if ((smartContractAddresses?.length ?? 0) > 0) {
+        const results: SmartContractAmount[] = []
+        for (const token of smartContractAddresses!) {
+          try {
+            const single = await this.getTokenBalance(addressOnNetwork, token)
+            results.push(single)
+          } catch (innerErr) {
+            // ignore individual failures
+          }
+        }
+        if (results.length > 0) return results
+      }
+    }
+    finally {
+      // Restore previous shard context
+      globalThis.main.SetShard(prevShard)
     }
 
     return []

@@ -81,7 +81,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         {isUtxoSelected ? (
 
           <SharedCircleButton
-            icon="icons/s/convert.svg"
+            icon="icons/s/swap.svg"
             ariaLabel={t("wrap")}
             onClick={async () => {
               if (!isQiWalletInit) {
@@ -91,7 +91,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               history.push("/wrap")
             }}
             size={70}
-            iconWidth="28"
+            iconWidth="20"
             iconHeight="26"
             disabled={!isQiWalletInit}
             width="100%"
@@ -99,15 +99,18 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               {t("wrap")}
           </SharedCircleButton>
         ) : (
-          <SharedCircleButton
-            icon="icons/s/swap.svg"
-            ariaLabel={t("swap")}
-            size={70}
-            iconWidth="28"
-            iconHeight="26"
-          >
-            {t("swap")}
-          </SharedCircleButton>
+          <>
+            <SharedCircleButton
+              icon="icons/s/swap.svg"
+              ariaLabel={t("wrap")}
+              onClick={() => history.push("/wrap-quai")}
+              size={70}
+              iconWidth="20"
+              iconHeight="26"
+            >
+              {t("wrap")}
+            </SharedCircleButton>
+          </>
         )}
 
         <SharedCircleButton

@@ -44,6 +44,21 @@ const pageList: PageList[] = [
     hasTopBar: false,
   },
   {
+    path: "/unwrap-wquai",
+    Component: require("../pages/_NewDesign/WrapQuaiPage").default,
+    hasTopBar: false,
+  },
+  {
+    path: "/wrap-quai/confirmation",
+    Component: require("../pages/_NewDesign/ConfirmWrapQuaiPage").default,
+    hasTopBar: false,
+  },
+  {
+    path: "/wrap-quai",
+    Component: require("../pages/_NewDesign/WrapQuaiPage").default,
+    hasTopBar: false,
+  },
+  {
     path: "/settings/qi-rescan",
     Component: SettingsForceQiRescan,
     hasTopBar: false,

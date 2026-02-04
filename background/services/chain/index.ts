@@ -597,13 +597,6 @@ export default class ChainService extends BaseService<Events> {
 
     setTimeout(async () => {
       let start = Date.now()
-      const timings: { step: string; duration: number }[] = []
-      const logTiming = (step: string, startTime: number) => {
-        const duration = Date.now() - startTime
-        timings.push({ step, duration })
-        console.log(`[syncQiWallet] ${step}: ${duration}ms`)
-      }
-
       try {
         const network = this.selectedNetwork
 
@@ -612,7 +605,6 @@ export default class ChainService extends BaseService<Events> {
           this.db.getQiLastFullScan(network.chainID),
           this.db.getQiLastSync(network.chainID),
         ])
-        logTiming("getQiLastFullScan/Sync", stepStart)
 
         // Force full scan if:
         // 1. No previous scan exists
@@ -633,12 +625,10 @@ export default class ChainService extends BaseService<Events> {
           stepStart = Date.now()
           await this.db.clearQiOutpoints()
           await this.db.clearQiWalletSyncInfo()
-          logTiming("clearOutpointsAndSyncInfo", stepStart)
         }
 
         stepStart = Date.now()
         const qiWallet = await this.keyringService.getQiHDWallet()
-        logTiming("getQiHDWallet", stepStart)
 
         if (!qiWallet) {
           // it's possible that the wallet does not exist (quai private key was imported)
@@ -659,7 +649,6 @@ export default class ChainService extends BaseService<Events> {
             paymentCode
           )
           notifications = notificationsValue
-          logTiming("getMailboxNotifications", stepStart)
         } catch (error: any) {
           logger.error(
             `Error getting notifications. Make sure mailbox contract is deployed on the same network as the wallet. Error: ${
@@ -679,7 +668,6 @@ export default class ChainService extends BaseService<Events> {
           Shard.Cyprus1,
           "latest"
         )
-        logTiming("getCurrentBlock", stepStart)
 
         let storeOutpoints = false
         let spendableBalance = 0n
@@ -691,7 +679,6 @@ export default class ChainService extends BaseService<Events> {
 
           stepStart = Date.now()
           await qiWallet.scan(Zone.Cyprus1, 0)
-          logTiming("qiWallet.scan (FULL)", stepStart)
 
           // switch back to jsonRpcProvider
           qiWallet.connect(this.jsonRpcProvider)
@@ -709,7 +696,6 @@ export default class ChainService extends BaseService<Events> {
             currentBlock?.woHeader.number,
             true
           )
-          logTiming("getBalances (in-memory)", stepStart)
         } else {
           stepStart = Date.now()
           await qiWallet.sync(
@@ -718,7 +704,6 @@ export default class ChainService extends BaseService<Events> {
             this.handleOutpointsCreated.bind(this),
             this.handleOutpointsDeleted.bind(this)
           )
-          logTiming("qiWallet.sync (INCREMENTAL)", stepStart)
 
           // fetch spendable balance for the current block using getBalance RPC
           stepStart = Date.now()
@@ -736,7 +721,6 @@ export default class ChainService extends BaseService<Events> {
           ])
           spendableBalance = sBalance
           lockedBalance = lBalance
-          logTiming("getBalances (RPC)", stepStart)
         }
 
         const qiWalletBalance: QiWalletBalance = {

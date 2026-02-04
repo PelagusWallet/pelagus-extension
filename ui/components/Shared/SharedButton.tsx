@@ -138,7 +138,7 @@ export default function SharedButton(
             display: flex;
             align-items: center;
             justify-content: space-between;
-            color: var(--hunter-green);
+            color: var(--contrast-text);
             font-size: 16px;
             font-weight: 600;
             letter-spacing: 0.48px;
@@ -149,17 +149,17 @@ export default function SharedButton(
           }
           .button:hover {
             background-color: var(--gold-80);
-            color: var(--secondary-bg);
+            color: var(--contrast-text);
           }
           .button:hover .icon_button {
-            background-color: var(--secondary-bg);
+            background-color: var(--contrast-text);
           }
           .button:active {
             background-color: var(--trophy-gold);
-            color: var(--green-120);
+            color: var(--contrast-text);
           }
           .button:active .icon_button {
-            background-color: var(--primary-bg);
+            background-color: var(--contrast-text);
           }
           .button_content {
             display: flex;
@@ -175,7 +175,7 @@ export default function SharedButton(
             width: 16px;
             height: 16px;
             margin-left: 9px;
-            background-color: var(--hunter-green);
+            background-color: var(--contrast-text);
             display: inline-block;
             margin-top: -1px;
           }
@@ -212,7 +212,7 @@ export default function SharedButton(
             border-color: var(--trophy-gold);
           }
           .primaryGreen {
-            color: var(--hunter-green);
+            color: var(--contrast-text);
             background-color: var(--trophy-gold);
           }
           .disabled {

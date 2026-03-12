@@ -12,7 +12,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "window-provider.js"
+        "window-provider.js",
+        "ledger-apps/*.apdu"
       ],
       "matches": [
         "<all_urls>"

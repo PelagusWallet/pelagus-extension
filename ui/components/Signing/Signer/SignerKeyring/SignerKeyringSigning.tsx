@@ -1,4 +1,5 @@
 import { selectKeyringStatus } from "@pelagus/pelagus-background/redux-slices/selectors"
+import { selectSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useEffect, useState } from "react"
 import { AnyAction } from "redux"
 import { useHistory } from "react-router-dom"
@@ -10,51 +11,84 @@ import SharedLoadingSpinner from "../../../Shared/SharedLoadingSpinner"
 type SignerKeyringSigningProps = {
   signActionCreator: () => AnyAction
   redirectToActivityPage?: boolean
+  onSigningError?: () => void
 }
 
 export default function SignerKeyringSigning({
   signActionCreator,
   redirectToActivityPage,
+  onSigningError,
 }: SignerKeyringSigningProps): ReactElement {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const keyringStatus = useBackgroundSelector(selectKeyringStatus)
+  const snackbarConfig = useBackgroundSelector(selectSnackbarConfig)
   const [signingInitiated, setSigningInitiated] = useState(false)
   const [showLoadingScreen, setShowLoadingScreen] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
-  // Uncomment this to prevent window from closing for testing
-  // useEffect(() => {
-  //   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-  //     e.preventDefault()
-  //     return ""
-  //   }
-  //   window.addEventListener("beforeunload", handleBeforeUnload)
-  //   return () => window.removeEventListener("beforeunload", handleBeforeUnload)
-  // }, [])
+
+  // Monitor snackbar for Ledger errors
+  useEffect(() => {
+    if (signingInitiated && showLoadingScreen && snackbarConfig.message) {
+      const message = snackbarConfig.message
+      
+      // Check if this is a Ledger error or insufficient funds message
+      const isRecoverableError =
+        message.includes("unlock your Ledger") ||
+        message.includes("rejected on the Ledger") ||
+        message.includes("install the Quai app") ||
+        message.includes("allow opening the Quai app") ||
+        message.includes("Contract Data is enabled") ||
+        message.includes("app was locked") ||
+        message.includes("Security conditions") ||
+        message.includes("Wrong app is open") ||
+        message.includes("app might not support") ||
+        message.includes("but need a") || // Device mismatch errors
+        message.includes("Transport was disconnected") || // Transport disconnection errors
+        message.toLowerCase().includes("insufficient funds")
+      
+      if (isRecoverableError) {
+        // Reset local states and mark that we had an error
+        setShowLoadingScreen(false)
+        setSigningInitiated(false)
+        setHasError(true)
+        
+        // Call parent callback to reset the UI back to Sign Transaction page
+        // Since we're not clearing transaction state in main.ts for Ledger errors,
+        // the component shouldn't unmount now
+        if (onSigningError) {
+          onSigningError()
+        }
+      }
+    }
+  }, [snackbarConfig.message, signingInitiated, showLoadingScreen, onSigningError])
 
   // Initiate signing once keyring is ready.
   useEffect(() => {
-    if (!signingInitiated && keyringStatus === "unlocked") {
+    if (!signingInitiated && !hasError && keyringStatus === "unlocked") {
       setShowLoadingScreen(true)
-
-      const timer = setTimeout(() => {
-        setShowLoadingScreen(false)
-      }, 10000) // 10 seconds timeout
-
-      dispatch(signActionCreator()).finally(() => {
-        clearTimeout(timer)
-        setShowLoadingScreen(false)
-
-        if (redirectToActivityPage) {
-          history.push("/", { goTo: "activity-page" })
-        }
-      })
-
       setSigningInitiated(true)
+
+      // Dispatch the signing action
+      // Note: sendTransaction thunk just emits an event and returns immediately
+      // It doesn't wait for actual signing or propagate errors
+      dispatch(signActionCreator())
+      
+      // The actual signing happens asynchronously in main.ts
+      // If there's a Ledger error, it will:
+      // 1. Show a snackbar notification (handled in main.ts)
+      // 2. NOT emit a sendTransactionResponse error (handled in signing service)
+      // 3. The popup stays open
+      // 4. The snackbar monitor effect above will detect the error and reset the UI
+      
+      // For successful signing, the signing service will emit a success response
+      // which causes the popup to close or redirect
     }
   }, [
     keyringStatus,
     signingInitiated,
+    hasError,
     setSigningInitiated,
     dispatch,
     signActionCreator,
@@ -70,6 +104,7 @@ export default function SignerKeyringSigning({
   if (keyringStatus === "locked") {
     return <KeyringUnlock />
   }
+
 
   if (showLoadingScreen) {
     return (

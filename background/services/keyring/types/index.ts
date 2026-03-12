@@ -84,6 +84,14 @@ export type PrivateKeyAccountSigner = {
   zone: Zone
 }
 
+export type LedgerAccountSigner = {
+  type: "ledger"
+  deviceModel: string  // "Flex", "Nano S Plus", etc.
+  deviceId: string     // unique identifier for the device
+  path: string         // derivation path
+  zone: Zone
+}
+
 export type SerializedPrivateKey = {
   id: string
   version: number

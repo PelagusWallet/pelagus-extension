@@ -28,6 +28,7 @@ import IntervalErrorDetails from "../pages/_NewDesign/IntervalErrorDetails"
 import WrapPage from "../pages/_NewDesign/WrapPage"
 import ConfirmWrapPage from "../pages/_NewDesign/ConfirmWrapPage"
 import WrapQuaiPage from "../pages/_NewDesign/WrapQuaiPage"
+import LedgerWallet from "../pages/LedgerWallet"
 
 type PageList = {
   path: string
@@ -112,6 +113,11 @@ const pageList: PageList[] = [
   {
     path: "/settings/add-custom-asset",
     Component: SettingsAddCustomAsset,
+    hasTopBar: false,
+  },
+  {
+    path: "/ledger-wallet",
+    Component: LedgerWallet,
     hasTopBar: false,
   },
   {

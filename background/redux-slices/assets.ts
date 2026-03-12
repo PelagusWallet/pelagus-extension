@@ -343,9 +343,12 @@ export const sendAsset = createBackgroundAsyncThunk(
 
       return { success: isSignedAndSent }
     } catch (error: any) {
+      // Preserve Ledger-specific error messages
+      const errorMessage = error?.message || error?.toString() || "Unknown error"
+      
       return {
         success: false,
-        errorMessage: `Transfer failed: ${error?.message || error}`,
+        errorMessage,
       }
     }
   }

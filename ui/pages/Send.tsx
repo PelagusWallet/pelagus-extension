@@ -51,6 +51,7 @@ import ReadOnlyNotice from "../components/Shared/ReadOnlyNotice"
 import SharedIcon from "../components/Shared/SharedIcon"
 import SharedConfirmationModal from "../components/Shared/SharedConfirmationModal"
 import { getBlockExplorerURL } from "../utils/networks"
+import { isLedgerError } from "@pelagus/pelagus-background/services/ledger/ledger-signer"
 
 export default function Send(): ReactElement {
   const { t } = useTranslation()
@@ -202,15 +203,27 @@ export default function Send(): ReactElement {
         transferDetails.nonce = nonce
       }
 
-      const { success } = (await dispatch(
+      const result = (await dispatch(
         sendAsset(transferDetails)
       )) as AsyncThunkFulfillmentType<typeof sendAsset>
-      setIsTransactionError(!success)
+      
+      // Check if this is a Ledger error or insufficient funds that should only show notification
+      const errorMsg = result.errorMessage || ""
+      const isRecoverableError = isLedgerError(result.errorMessage) || 
+        errorMsg.toLowerCase().includes("insufficient funds")
+      
+      // Only show error modal for non-recoverable errors
+      setIsTransactionError(!result.success && !isRecoverableError)
+      
+      // Only open confirmation modal for non-recoverable errors or success
+      if (!isRecoverableError) {
+        setIsOpenConfirmationModal(true)
+      }
     } catch (e) {
       setIsTransactionError(true)
+      setIsOpenConfirmationModal(true)
     } finally {
       setIsSendingTransactionRequest(false)
-      setIsOpenConfirmationModal(true)
     }
   }, [
     assetAmount,

@@ -1,10 +1,11 @@
 import { createSelector } from "@reduxjs/toolkit"
-import { getZoneForAddress } from "quais"
+import { getZoneForAddress, Zone, getAddress } from "quais"
 import { RootState } from ".."
 import { isDefined } from "../../lib/utils/type-guards"
 import {
   KeyringAccountSigner,
   PrivateKeyAccountSigner,
+  LedgerAccountSigner,
 } from "../../services/keyring/types"
 import { AccountSigner, ReadOnlyAccountSigner } from "../../services/signing"
 import { HexString } from "../../types"
@@ -26,11 +27,40 @@ const getAllAddresses = createSelector(
   ]
 )
 
+const selectLedgerAccountsByAddress = createSelector(
+  (state: RootState) => state.ledger,
+  (ledgerState) => {
+    const ledgerAccountsByAddress: { [address: string]: LedgerAccountSigner } = {}
+    
+    ledgerState.derivedAddresses.forEach((ledgerAddress) => {
+      try {
+        // Use checksummed address for consistent lookup
+        const checksummedAddress = getAddress(ledgerAddress.address)
+        const zone = getZoneForAddress(checksummedAddress) as Zone
+        
+        ledgerAccountsByAddress[checksummedAddress] = {
+          type: "ledger",
+          deviceModel: ledgerAddress.deviceModel || "Device",
+          deviceId: ledgerAddress.deviceId || "unknown",
+          path: ledgerAddress.path,
+          zone,
+        }
+      } catch (error) {
+        // Skip invalid addresses
+        console.error("Invalid Ledger address:", ledgerAddress.address, error)
+      }
+    })
+    
+    return ledgerAccountsByAddress
+  }
+)
+
 export const selectAccountSignersByAddress = createSelector(
   getAllAddresses,
   selectKeyringsByAddresses,
   selectPrivateKeyWalletsByAddress,
-  (allAddresses, keyringsByAddress, privateKeyWalletsByAddress) => {
+  selectLedgerAccountsByAddress,
+  (allAddresses, keyringsByAddress, privateKeyWalletsByAddress, ledgerAccountsByAddress) => {
     const allAccountsSeen = new Set<string>()
 
     const keyringEntries = Object.entries(keyringsByAddress)
@@ -76,6 +106,12 @@ export const selectAccountSignersByAddress = createSelector(
       )
       .filter(isDefined)
 
+    const ledgerEntries = Object.entries(ledgerAccountsByAddress)
+      .map(([address, signer]): [HexString, LedgerAccountSigner] => {
+        allAccountsSeen.add(address)
+        return [address, signer]
+      })
+
     const readOnlyEntries: [string, typeof ReadOnlyAccountSigner][] =
       allAddresses
         .filter((address) => !allAccountsSeen.has(address))
@@ -85,6 +121,7 @@ export const selectAccountSignersByAddress = createSelector(
       ...readOnlyEntries,
       ...privateKeyEntries,
       ...keyringEntries,
+      ...ledgerEntries,
     ]
 
     return Object.fromEntries(entriesByPriority)

@@ -40,12 +40,14 @@ export const enum AccountType {
   PrivateKey = "private-key",
   Imported = "imported",
   Internal = "internal",
+  Ledger = "ledger",
 }
 
 export const ACCOUNT_TYPES = [
   AccountType.Internal,
   AccountType.Imported,
   AccountType.PrivateKey,
+  AccountType.Ledger,
   AccountType.ReadOnly,
 ]
 

@@ -14,7 +14,6 @@ export default function SignerKeyringFrame<T extends SignOperationType>({
   redirectToActivityPage,
 }: SignerFrameProps<T>): ReactElement {
   const { t } = useTranslation()
-
   const [isSigning, setIsSigning] = useState(false)
   const dispatch = useBackgroundDispatch()
 
@@ -22,11 +21,20 @@ export default function SignerKeyringFrame<T extends SignOperationType>({
     setIsSigning(true)
   }, [setIsSigning])
 
+  const handleSigningError = useCallback(() => {
+    // Use setTimeout to ensure state update happens in a new tick
+    setTimeout(() => {
+      setIsSigning(false)
+    }, 0)
+  }, [setIsSigning])
+
+  // All hooks are called before any conditional returns
   if (isSigning) {
     return (
       <SignerKeyringSigning
         signActionCreator={signActionCreator}
         redirectToActivityPage={redirectToActivityPage}
+        onSigningError={handleSigningError}
       />
     )
   }

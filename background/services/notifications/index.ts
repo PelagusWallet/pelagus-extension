@@ -139,4 +139,28 @@ export default abstract class NotificationsManager {
       )
     }
   }
+
+  public static createRevertedConversionNotification(): void {
+    if (!this.isNotificationsEnabled()) return
+
+    const options = {
+      ...DEFAULT_NOTIFICATION_OPTIONS,
+      title: "Qi conversion reverted",
+      message: `Your Qi to Quai conversion was reverted. Funds have been returned to your Qi wallet.`,
+    }
+
+    if (!walletOpen) {
+      this.createChromeNotification(options)
+    } else {
+      const { store } = globalThis.main
+      store.dispatch(
+        setSnackbarConfig({
+          message: `Qi conversion reverted. Funds returned to your wallet.`,
+          withSound: true,
+          type: SnackBarType.transactionSettled,
+          duration: DURATION_MS,
+        })
+      )
+    }
+  }
 }

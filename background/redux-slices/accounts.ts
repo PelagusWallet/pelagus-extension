@@ -623,6 +623,13 @@ export const forceQiWalletFullRescan = createBackgroundAsyncThunk(
   }
 )
 
+export const deepRescanQiWallet = createBackgroundAsyncThunk(
+  "account/deepRescanQiWallet",
+  async (extraAddresses: number = 100, { extra: { main } }) => {
+    await main.chainService.deepScanQiWallet(extraAddresses)
+  }
+)
+
 export const aggregateQiOutputs = createBackgroundAsyncThunk(
   "account/aggregateQiOutputs",
   async (params: { maxDenominationAggregate: number; maxDenominationOutput: number }, { extra: { main }, dispatch }) => {

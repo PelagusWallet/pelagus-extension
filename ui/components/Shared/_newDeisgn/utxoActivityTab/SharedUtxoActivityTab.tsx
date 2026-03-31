@@ -65,6 +65,7 @@ const SharedUtxoActivityTab = ({
                 confirmed: status === TransactionStatus.CONFIRMED,
                 pending: status === TransactionStatus.PENDING,
                 failed: status === TransactionStatus.FAILED,
+                reverted: status === TransactionStatus.REVERTED,
               })}
             >
               {utxoActivityStatusHandle(status)}
@@ -108,6 +109,10 @@ const SharedUtxoActivityTab = ({
         }
 
         .failed {
+          color: var(--error-color);
+        }
+
+        .reverted {
           color: var(--error-color);
         }
 

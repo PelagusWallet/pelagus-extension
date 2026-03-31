@@ -9,6 +9,7 @@ export enum TransactionStatus {
   FAILED = 0,
   PENDING = 1,
   CONFIRMED = 2,
+  REVERTED = 3,
 }
 
 export type QuaiTransactionDB = {
@@ -51,6 +52,8 @@ export type QiTransactionDB = {
   timestamp: number
   blockHash: string | null
   blockNumber: number | null
+  refundAddress?: string
+  quaiRecipient?: string
 }
 
 export type EnrichedQuaiTransaction = QuaiTransactionDB & {

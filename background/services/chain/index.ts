@@ -795,6 +795,125 @@ export default class ChainService extends BaseService<Events> {
     }, 0)
   }
 
+  async deepScanQiWallet(extraAddresses: number = 100): Promise<void> {
+    if (this.qiWalletSyncInProgress) {
+      logger.info("Deep scan skipped - sync already in progress")
+      return
+    }
+
+    this.qiWalletSyncInProgress = true
+    main.store.dispatch(setQiWalletSyncInProgress(true))
+
+    try {
+      const network = this.selectedNetwork
+      const totalStart = Date.now()
+      const logStep = (step: string, start: number) =>
+        console.log(`[deepScan] ${step}: ${((Date.now() - start) / 1000).toFixed(1)}s`)
+
+      console.log(`[deepScan] Starting deep scan with ${extraAddresses} extra addresses...`)
+
+      // Clear existing outpoints for a fresh deep scan
+      let stepStart = Date.now()
+      await this.db.clearQiOutpoints()
+      await this.db.clearQiWalletSyncInfo()
+      logStep("clearOutpointsAndSyncInfo", stepStart)
+
+      stepStart = Date.now()
+      const qiWallet = await this.keyringService.getQiHDWallet()
+      logStep("getQiHDWallet", stepStart)
+      if (!qiWallet) {
+        console.log("[deepScan] No Qi wallet found, skipping")
+        return
+      }
+
+      // Open payment channels from mailbox
+      const paymentCode = qiWallet.getPaymentCode(0)
+      stepStart = Date.now()
+      try {
+        const mailboxContract = new Contract(
+          MAILBOX_CONTRACT_ADDRESS || "",
+          MAILBOX_INTERFACE,
+          this.jsonRpcProvider
+        )
+        const notifications = await mailboxContract.getNotifications(paymentCode)
+        notifications.forEach((pc: string) => qiWallet.openChannel(pc))
+        logStep(`getMailboxNotifications (${notifications.length} channels)`, stepStart)
+      } catch (error: any) {
+        logger.error(`[deepScan] Error getting mailbox notifications: ${error?.message}`)
+      }
+
+      qiWallet.connect(this.immediateJsonRpcProvider)
+      stepStart = Date.now()
+      await (qiWallet as any).deepScan(Zone.Cyprus1, 0, extraAddresses)
+      logStep(`qiWallet.deepScan (gap limit ${extraAddresses + 5})`, stepStart)
+
+      qiWallet.connect(this.jsonRpcProvider)
+
+      // Get balance
+      stepStart = Date.now()
+      const currentBlock = await this.jsonRpcProvider.getBlock(Shard.Cyprus1, "latest")
+      const spendableBalance = await qiWallet.getSpendableBalance(
+        Zone.Cyprus1,
+        currentBlock?.woHeader.number,
+        true
+      )
+      const lockedBalance = await qiWallet.getLockedBalance(
+        Zone.Cyprus1,
+        currentBlock?.woHeader.number,
+        true
+      )
+      logStep("getBalances (in-memory)", stepStart)
+
+      // Store outpoints
+      stepStart = Date.now()
+      const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
+      const qiOutpoints = outpoints.map((outpointInfo) => ({
+        outpoint: outpointInfo.outpoint,
+        address: outpointInfo.address,
+        chainID: network.chainID,
+        value: denominations[outpointInfo.outpoint.denomination],
+        derivationPath: outpointInfo.derivationPath,
+      }))
+      await this.db.addQiOutpoints(qiOutpoints)
+      logStep(`storeOutpoints (${outpoints.length} outpoints)`, stepStart)
+
+      // Update balance
+      const qiWalletBalance: QiWalletBalance = {
+        paymentCode,
+        network,
+        assetAmount: { asset: QI, amount: spendableBalance },
+        lockedAmount: { asset: QI, amount: lockedBalance },
+        dataSource: "local",
+        retrievedAt: Date.now(),
+      }
+      this.emitter.emit("updatedQiLedgerBalance", {
+        balances: [qiWalletBalance],
+        addressOnNetwork: { paymentCode, network },
+      })
+      await this.db.addQiLedgerBalance(qiWalletBalance)
+
+      // Update scan info
+      await this.db.setQiLastFullScan(
+        network.chainID,
+        currentBlock?.woHeader.number!,
+        currentBlock?.hash!,
+        currentVersion
+      )
+
+      // Save wallet state (preserves deep scan addresses in serialized wallet)
+      const serializedQiWallet = { qiHDWallet: qiWallet.serialize() }
+      await this.keyringService.vaultManager.add(serializedQiWallet, {})
+
+      logStep(`TOTAL`, totalStart)
+      console.log(`[deepScan] Complete. Found ${outpoints.length} outpoints, balance: ${spendableBalance}`)
+    } catch (error: any) {
+      logger.error("[deepScan] Error:", error.message)
+    } finally {
+      this.qiWalletSyncInProgress = false
+      main.store.dispatch(setQiWalletSyncInProgress(false))
+    }
+  }
+
   async getOutpointsForQiAddress(address: string): Promise<Outpoint[]> {
     return this.jsonRpcProvider.getOutpointsByAddress(address)
   }

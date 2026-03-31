@@ -3,6 +3,8 @@ import {
   QuaiTransactionRequest,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
+// AddressStatus enum values from quais - inlined to avoid module resolution issues
+const QI_ADDRESS_STATUS = { UNUSED: 'UNUSED', USED: 'USED', ATTEMPTED_USE: 'ATTEMPTED_USE', UNKNOWN: 'UNKNOWN' } as const
 import {
   Contract,
   denominations,
@@ -24,7 +26,7 @@ import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
 import { MAILBOX_CONTRACT_ADDRESS, MINUTE, SECOND, WRAPPED_QI_CONTRACT_ADDRESS, WRAPPED_QI_CONTRACT_ADDRESS_BYTES, WRAPPED_QUAI_CONTRACT_ADDRESS } from "../../constants"
-import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
+import { QiTransactionDB, QuaiTransactionDB, TransactionStatus, UtxoActivityType } from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import NotificationsManager from "../notifications"
@@ -62,6 +64,7 @@ const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
   public readonly MAILBOX_CONTRACT_ADDRESS = MAILBOX_CONTRACT_ADDRESS || ""
   private intervalConversions: Map<string, NodeJS.Timeout> = new Map()
+  private conversionMonitors: Map<string, () => void> = new Map()
 
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
@@ -94,10 +97,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     this.checkPendingQiTransactions()
     this.checkPendingQuaiTransactions()
+    this.recoverPendingConversions()
 
     await this.initializeQiTransactions()
     await this.initializeQuaiTransactions()
-    
+
     // Restart any running interval conversions
     await this.restartRunningIntervals()
   }
@@ -235,6 +239,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           // before the next sync completes (critical for interval conversions)
           await this.chainService.removeQiOutpoints(qiOutpoints)
           logger.info(`Removed ${qiOutpoints.length} spent outpoints from database after successful sendQiTransaction`)
+
+          // Persist wallet state so address status changes (USED/ATTEMPTED_USE)
+          // from the send flow are saved to disk
+          await this.keyringService.vaultManager.add(
+            { qiHDWallet: qiWallet.serialize() }, {}
+          )
 
           const senderPaymentCode = qiWallet.getPaymentCode(0)
 
@@ -967,6 +977,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     qiWallet.connect(jsonRpcProvider)
     let transaction: QiTransactionDB | null = null
     let lastError: any = null
+    let txRefundAddress: string | undefined
     try {
       const maxAttempts = 3
       let attempts = 0
@@ -990,6 +1001,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           let slippageData = encodeTwoBytesBigEndian(maxSlippage)
 
           const refundAddress = qiWallet.getNextAddressSync(0, Zone.Cyprus1).address
+          txRefundAddress = refundAddress
           const refundAddressBytes = Buffer.from(refundAddress.replace('0x', ''), 'hex');
 
           const combinedData = new Uint8Array(slippageData.length + refundAddressBytes.length);
@@ -1006,6 +1018,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           await this.chainService.removeQiOutpoints(qiOutpoints)
           logger.info(`Removed ${qiOutpoints.length} spent outpoints from database after successful conversion`)
 
+          // Persist wallet state so address status changes are saved to disk
+          await this.keyringService.vaultManager.add(
+            { qiHDWallet: qiWallet.serialize() }, {}
+          )
+
           const senderPaymentCode = qiWallet.getPaymentCode(0)
 
           transaction = processConvertQiTransaction(
@@ -1013,6 +1030,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             to,
             tx as QiTransactionResponse,
             amount,
+            refundAddress,
           )
           break
         } catch (error: any) {
@@ -1070,7 +1088,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
       await this.saveQiTransaction(transaction)
       await Promise.all([
-        this.subscribeToQiTransaction(transaction.hash),
+        txRefundAddress
+          ? this.monitorConversion(transaction.hash, txRefundAddress, to)
+          : this.subscribeToQiTransaction(transaction.hash),
         this.chainService.syncQiWallet(),
       ])
     } catch (error: any) {
@@ -1284,6 +1304,64 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   /**
+   * Recovers pending Qi-to-Quai conversions after extension restart.
+   * Checks on-chain state to determine if conversions succeeded or reverted.
+   */
+  private async recoverPendingConversions(): Promise<void> {
+    try {
+      const pendingTransactions = await this.db.getPendingQiTransactions()
+      const pendingConversions = pendingTransactions.filter(
+        (tx) =>
+          tx.type === UtxoActivityType.CONVERT &&
+          tx.status === TransactionStatus.PENDING &&
+          tx.refundAddress
+      )
+
+      if (pendingConversions.length === 0) return
+      logger.info(`Recovering ${pendingConversions.length} pending conversions`)
+
+      const { jsonRpcProvider } = this.chainService
+
+      for (const conversion of pendingConversions) {
+        try {
+          const tx = await jsonRpcProvider.getTransaction(conversion.hash)
+          if (tx && tx.blockNumber) {
+            // Transaction was mined while offline — check if reverted
+            const outpoints = await this.chainService.getOutpointsForQiAddress(
+              conversion.refundAddress!
+            )
+            if (outpoints && outpoints.length > 0) {
+              await this.handleConversionReverted(
+                conversion.hash,
+                conversion.refundAddress!
+              )
+            } else {
+              await this.handleConversionSucceeded(
+                conversion.hash,
+                conversion.refundAddress!
+              )
+            }
+          } else if (conversion.quaiRecipient) {
+            // Still pending — re-subscribe
+            this.monitorConversion(
+              conversion.hash,
+              conversion.refundAddress!,
+              conversion.quaiRecipient
+            )
+          }
+        } catch (error) {
+          logger.error(
+            `Failed to recover conversion ${conversion.hash}:`,
+            error
+          )
+        }
+      }
+    } catch (error) {
+      logger.error("Failed to recover pending conversions:", error)
+    }
+  }
+
+  /**
    * Processes a new Quai transaction response by converting it into a transaction object
    * with a `PENDING` status, saving it to the database, and emitting an event with the transaction hash.
    * Subscribes to the transaction for future updates or confirmations.
@@ -1334,8 +1412,16 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async subscribeToQiTransaction(hash: string): Promise<void> {
     let transaction = null
     const { jsonRpcProvider } = this.chainService
+    const startTime = Date.now()
+    const QI_TX_TIMEOUT = 5 * MINUTE
 
     while (!(transaction && transaction.blockNumber && transaction.blockHash)) {
+      if (Date.now() - startTime > QI_TX_TIMEOUT) {
+        logger.warn(`Qi transaction ${hash} timed out after 5 minutes`)
+        await this.handleQiTransactionTimeout(hash)
+        return
+      }
+
       await new Promise((resolve) =>
         setTimeout(resolve, QI_TRANSACTIONS_FETCH_INTERVAL)
       )
@@ -1355,6 +1441,153 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         await this.handleQiTransaction(transaction as TransactionResponse)
       }
     }
+  }
+
+  private async handleQiTransactionTimeout(hash: string): Promise<void> {
+    const transaction = await this.db.getQiTransactionByHash(hash)
+    if (transaction) {
+      transaction.status = TransactionStatus.FAILED
+      await this.updateQiTransaction(transaction)
+    }
+
+    // Scan will naturally mark unfunded addresses as UNUSED
+    this.chainService.syncQiWallet()
+    NotificationsManager.createFailedQiTxNotification()
+  }
+
+  /**
+   * Monitors a Qi-to-Quai conversion by subscribing to both the Qi refund address
+   * and the Quai recipient address. Determines if the conversion succeeded or reverted.
+   */
+  private async monitorConversion(
+    txHash: string,
+    refundAddress: string,
+    quaiRecipient: string
+  ): Promise<void> {
+    const { webSocketProvider } = this.chainService
+    let refundReceived = false
+    let quaiReceived = false
+    let resolved = false
+
+    const cleanup = () => {
+      webSocketProvider.off({ type: "balance", address: refundAddress })
+      webSocketProvider.off({ type: "balance", address: quaiRecipient })
+      this.conversionMonitors.delete(txHash)
+    }
+
+    // Subscribe to Qi refund address — if it receives balance, conversion reverted
+    webSocketProvider.on(
+      { type: "balance", address: refundAddress },
+      async () => {
+        refundReceived = true
+        if (resolved) return
+        resolved = true
+        cleanup()
+        await this.handleConversionReverted(txHash, refundAddress)
+      }
+    )
+
+    // Subscribe to Quai recipient — if it receives balance, conversion likely succeeded
+    webSocketProvider.on(
+      { type: "balance", address: quaiRecipient },
+      async () => {
+        quaiReceived = true
+        // Brief delay to check if refund also arrives (edge case)
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        if (resolved) return
+        resolved = true
+        cleanup()
+        // If refund also received, the address got an unrelated payment — still a success
+        // but don't mark refund address as unused since it has balance
+        if (refundReceived) {
+          await this.handleConversionSucceeded(txHash, undefined)
+        } else {
+          await this.handleConversionSucceeded(txHash, refundAddress)
+        }
+      }
+    )
+
+    // Store cleanup function for service shutdown
+    this.conversionMonitors.set(txHash, cleanup)
+
+    // Timeout fallback: if neither subscription fires within 5 minutes,
+    // check on-chain state directly
+    const CONVERSION_MONITOR_TIMEOUT = 5 * MINUTE
+    setTimeout(async () => {
+      if (resolved) return
+      resolved = true
+      cleanup()
+      logger.info(`Conversion monitor timeout for ${txHash}, checking on-chain state`)
+
+      try {
+        const outpoints = await this.chainService.getOutpointsForQiAddress(refundAddress)
+        if (outpoints && outpoints.length > 0) {
+          await this.handleConversionReverted(txHash, refundAddress)
+        } else {
+          // Check if Qi tx was mined at all
+          const tx = await this.chainService.jsonRpcProvider.getTransaction(txHash)
+          if (tx && tx.blockNumber) {
+            await this.handleConversionSucceeded(txHash, refundAddress)
+          } else {
+            // Tx never mined — fall back to standard polling
+            await this.subscribeToQiTransaction(txHash)
+          }
+        }
+      } catch (error) {
+        logger.error(`Error in conversion monitor fallback for ${txHash}:`, error)
+        await this.subscribeToQiTransaction(txHash)
+      }
+    }, CONVERSION_MONITOR_TIMEOUT)
+  }
+
+  /**
+   * Handles a successful Qi-to-Quai conversion. Marks the refund address as UNUSED
+   * so it can be reused by future transactions.
+   */
+  private async handleConversionSucceeded(
+    txHash: string,
+    refundAddress: string | undefined
+  ): Promise<void> {
+    const transaction = await this.db.getQiTransactionByHash(txHash)
+    if (!transaction) return
+
+    transaction.status = TransactionStatus.CONFIRMED
+    await this.updateQiTransaction(transaction)
+    logger.info(`Conversion ${txHash} succeeded`)
+
+    // Mark refund address as UNUSED so it can be reused
+    if (refundAddress) {
+      try {
+        const qiWallet = await this.keyringService.getQiHDWallet()
+        ;(qiWallet as any).setAddressStatus(refundAddress, QI_ADDRESS_STATUS.UNUSED)
+        const serializedQiWallet = { qiHDWallet: qiWallet.serialize() }
+        await this.keyringService.vaultManager.add(serializedQiWallet, {})
+        logger.info(`Marked refund address ${refundAddress} as UNUSED`)
+      } catch (error) {
+        logger.error(`Failed to mark refund address as UNUSED:`, error)
+      }
+    }
+  }
+
+  /**
+   * Handles a reverted Qi-to-Quai conversion. Updates transaction status and
+   * triggers a wallet sync to pick up the refunded outpoints.
+   */
+  private async handleConversionReverted(
+    txHash: string,
+    refundAddress: string
+  ): Promise<void> {
+    const transaction = await this.db.getQiTransactionByHash(txHash)
+    if (!transaction) return
+
+    transaction.status = TransactionStatus.REVERTED
+    await this.updateQiTransaction(transaction)
+    logger.info(`Conversion ${txHash} reverted — funds returned to ${refundAddress}`)
+
+    NotificationsManager.createRevertedConversionNotification()
+
+    // Sync wallet to pick up the refunded outpoints
+    this.chainService.syncQiWallet()
   }
 
   /**

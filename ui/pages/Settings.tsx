@@ -32,7 +32,7 @@ import SharedDrawer from "../components/Shared/SharedDrawer"
 import SharedToggleButtonGA from "../components/Shared/SharedToggleButtonGA"
 import SharedConfirmationModal from "../components/Shared/SharedConfirmationModal"
 import CustomRPCModal from "../components/Settings/CustomRPCModal"
-import { forceQiWalletFullRescan, aggregateQiOutputs, fetchUTXODenominationDistribution } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { forceQiWalletFullRescan, deepRescanQiWallet, aggregateQiOutputs, fetchUTXODenominationDistribution } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks/redux-hooks"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { denominations } from "quais"
@@ -151,6 +151,8 @@ export default function Settings(): ReactElement {
   const showPelagusNotifications = useSelector(selectShowPelagusNotifications)
   const autoLockInterval = useSelector(selectAutoLockInterval)
   const [showRescanConfirm, setShowRescanConfirm] = useState(false)
+  const [showDeepRescanConfirm, setShowDeepRescanConfirm] = useState(false)
+  const [deepRescanExtraAddresses, setDeepRescanExtraAddresses] = useState("50")
   const [showAggregateConfirm, setShowAggregateConfirm] = useState(false)
   const [showCustomRPCModal, setShowCustomRPCModal] = useState(false)
   const [showUTXODistribution, setShowUTXODistribution] = useState(false)
@@ -431,6 +433,155 @@ export default function Settings(): ReactElement {
               `
             }
             </style>
+          </SharedDrawer>
+        </div>
+      </>
+    )
+  }
+
+  const deepRescanButton = {
+    title: "",
+    component: () => {
+      return (
+        <SettingButton
+          label="Deep Rescan (Recovery)"
+          ariaLabel="Deep Rescan Recovery"
+          icon="continue"
+          onClick={() => setShowDeepRescanConfirm(true)}
+          isLoading={qiWalletSyncInProgress}
+        />
+      )
+    },
+  }
+
+  const deepRescanDrawer = () => {
+    return (
+      <>
+        <div className="modal_overlay" onClick={() => setShowDeepRescanConfirm(false)} />
+        <div className="modal_container settings-modal">
+          <SharedDrawer
+            title="Deep Rescan (Recovery)"
+            isOpen={showDeepRescanConfirm}
+            close={() => setShowDeepRescanConfirm(false)}
+            gap={0}
+            customStyles={{
+              overflow: "visible",
+              minHeight: "200px",
+              maxWidth: "450px",
+              width: "80%",
+              margin: "0 auto",
+              position: "relative"
+            }}
+          >
+            <div className="confirm_rescan">
+              <p className="confirm_rescan_text">
+                Scans extra addresses beyond the normal limit for all wallets and payment channels to recover any missed UTXOs. This may take several minutes.
+              </p>
+              <div className="deep_rescan_input">
+                <label htmlFor="extraAddresses">Extra addresses to scan:</label>
+                <input
+                  id="extraAddresses"
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={deepRescanExtraAddresses}
+                  onChange={(e) => setDeepRescanExtraAddresses(e.target.value)}
+                  onBlur={() => {
+                    const num = parseInt(deepRescanExtraAddresses) || 1
+                    setDeepRescanExtraAddresses(String(Math.max(1, Math.min(500, num))))
+                  }}
+                  disabled={qiWalletSyncInProgress}
+                />
+              </div>
+              <div className="rescan_buttons">
+                <button
+                  className="btn_cancel"
+                  onClick={() => setShowDeepRescanConfirm(false)}
+                  disabled={qiWalletSyncInProgress}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn_confirm"
+                  onClick={async () => {
+                    await backgroundDispatch(deepRescanQiWallet(parseInt(deepRescanExtraAddresses) || 50))
+                    setShowDeepRescanConfirm(false)
+                  }}
+                  disabled={qiWalletSyncInProgress}
+                >
+                  {qiWalletSyncInProgress ? "Scanning..." : "Confirm"}
+                </button>
+              </div>
+            </div>
+            <style jsx>{`
+              .confirm_rescan {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                padding: 16px;
+              }
+              .confirm_rescan_text {
+                font-size: 14px;
+                line-height: 1.5;
+                color: var(--primary-text);
+                margin: 0;
+              }
+              .deep_rescan_input {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+              }
+              .deep_rescan_input label {
+                font-size: 14px;
+                color: var(--primary-text);
+                white-space: nowrap;
+              }
+              .deep_rescan_input input {
+                width: 80px;
+                padding: 6px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--primary-text);
+                background: transparent;
+                color: var(--primary-text);
+                font-size: 14px;
+              }
+              .rescan_buttons {
+                display: flex;
+                gap: 12px;
+                justify-content: flex-end;
+              }
+              .btn_cancel,
+              .btn_confirm {
+                padding: 8px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+              }
+              .btn_cancel {
+                background: transparent;
+                color: var(--primary-text);
+                border: 1px solid var(--primary-text);
+              }
+              .btn_cancel:hover:not(:disabled) {
+                background: var(--primary-text);
+                color: var(--primary-bg);
+              }
+              .btn_confirm {
+                background: var(--primary-text);
+                color: var(--primary-bg);
+                border: none;
+              }
+              .btn_confirm:hover:not(:disabled) {
+                background: var(--secondary-text);
+              }
+              .btn_cancel:disabled,
+              .btn_confirm:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+              }
+            `}</style>
           </SharedDrawer>
         </div>
       </>
@@ -936,7 +1087,7 @@ export default function Settings(): ReactElement {
     },
     walletOptions: {
       title: t("settings.group.walletOptions"),
-      items: [customRPCUrl, addCustomAsset, forceQiWalletRescan, aggregateQiOutputsButton, showQiUTXODistributionButton, historicalConversionIntervals],
+      items: [customRPCUrl, addCustomAsset, deepRescanButton, aggregateQiOutputsButton, showQiUTXODistributionButton, historicalConversionIntervals],
     },
     helpCenter: {
       title: t("settings.group.helpCenter"),
@@ -994,7 +1145,7 @@ export default function Settings(): ReactElement {
         </div>
       </SharedDrawer>
 
-      {showRescanConfirm && forceQiWalletRescanDrawer()}
+      {showDeepRescanConfirm && deepRescanDrawer()}
       {showAggregateConfirm && aggregateQiOutputsDrawer()}
       {showUTXODistribution && utxoDistributionDrawer()}
       

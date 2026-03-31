@@ -81,7 +81,8 @@ export const processConvertQiTransaction = (
   senderPaymentCode: string,
   receiverAddress: string,
   tx: QiTransactionResponse,
-  amount: bigint
+  amount: bigint,
+  refundAddress?: string
 ): QiTransactionDB => {
   return {
     senderPaymentCode,
@@ -94,6 +95,8 @@ export const processConvertQiTransaction = (
     status: TransactionStatus.PENDING,
     blockHash: tx.blockHash || null,
     blockNumber: tx.blockNumber || null,
+    refundAddress,
+    quaiRecipient: receiverAddress,
   }
 }
 

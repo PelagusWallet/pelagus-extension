@@ -26,6 +26,8 @@ export const utxoActivityStatusHandle = (status: TransactionStatus) => {
       return "Failed"
     case TransactionStatus.PENDING:
       return "Pending..."
+    case TransactionStatus.REVERTED:
+      return "Reverted"
     default:
       return ""
   }

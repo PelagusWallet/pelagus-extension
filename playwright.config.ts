@@ -69,6 +69,14 @@ const config: PlaywrightTestConfig = {
         // See `utils.ts` for additional options passed to setup extension
       },
     },
+    {
+      name: "qi-transactions",
+      testMatch: "qi-transactions.spec.ts",
+      timeout: 300 * SECOND,
+      use: {
+        ...devices["Desktop Chrome"],
+      },
+    },
   ],
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */

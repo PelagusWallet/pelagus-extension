@@ -1,0 +1,6 @@
+export const DEFAULT_PASSWORD = "12345678"
+export const PROFILE_DIR_A = ".e2e-profiles/wallet-a"
+export const PROFILE_DIR_B = ".e2e-profiles/wallet-b"
+export const QI_SEND_AMOUNT = "5"
+export const QI_CONVERT_AMOUNT = "5"
+export const ORCHARD_CHAIN_ID = "15000"

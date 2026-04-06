@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { getExtendedZoneForAddress } from "@pelagus/pelagus-background/services/chain/utils"
-import { ACCOUNT_TYPES } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { ACCOUNT_TYPES, AccountType } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { selectCurrentNetworkAccountTotalsByCategory } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { setQiSendQuaiAcc } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedAccountTab from "../../../Shared/_newDeisgn/accountTab/SharedAccountTab"
@@ -21,6 +21,9 @@ const QuaiAccount = () => {
 
   useEffect(() => {
     ACCOUNT_TYPES.forEach((accountType) => {
+      // Read-only accounts can't sign the payment channel notification tx
+      if (accountType === AccountType.ReadOnly) return
+
       const accountTypeTotals = accountTotals[accountType]
       if (accountTypeTotals && accountTypeTotals.length && !quiAccount) {
         dispatch(setQiSendQuaiAcc(accountTypeTotals[0]))

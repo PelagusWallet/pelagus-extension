@@ -8,7 +8,7 @@ const PRESET_OPTIONS = [
   { label: "5%", value: 500 },
 ]
 
-const MIN_SLIPPAGE = 30 // 0.3%
+const MIN_SLIPPAGE = 0 // 0%
 const MAX_SLIPPAGE = 9000 // 90%
 
 const MaxSlippageSelector = () => {
@@ -100,8 +100,8 @@ const MaxSlippageSelector = () => {
         </div>
 
         {/* Display warnings if needed */}
-        {maxSlippage < MIN_SLIPPAGE && isCustom && (
-          <p className="slippage-warning">Minimum slippage is 0.3%</p>
+        {maxSlippage === 0 && isCustom && (
+          <p className="slippage-warning">0% slippage: transaction will likely revert</p>
         )}
         {maxSlippage > MAX_SLIPPAGE && isCustom && (
           <p className="slippage-warning">Maximum slippage is 90%</p>

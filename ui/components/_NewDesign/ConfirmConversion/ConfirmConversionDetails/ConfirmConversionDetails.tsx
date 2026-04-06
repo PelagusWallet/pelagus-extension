@@ -5,7 +5,7 @@ import { useBackgroundSelector } from "../../../../hooks"
 import { isUtxoAccountTypeGuard } from "../../../../utils/accounts"
 
 const ConfirmConversionDetails = () => {
-  const { from, to, amount, expectedResult } = useBackgroundSelector(
+  const { from, to, amount, expectedResult, maxSlippage } = useBackgroundSelector(
     (state) => state.convertAssets
   )
 
@@ -47,6 +47,12 @@ const ConfirmConversionDetails = () => {
           <p className="details-row-key">Receive</p>
           <p className="details-row-value">
             {receiveAmountHandle()} {tokenSymbolHandle(to)}
+          </p>
+        </div>
+        <div className="details-row">
+          <p className="details-row-key">Max Slippage</p>
+          <p className="details-row-value">
+            {(maxSlippage / 100).toFixed(2)}%
           </p>
         </div>
       </div>

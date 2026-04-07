@@ -32,7 +32,7 @@ import SharedDrawer from "../components/Shared/SharedDrawer"
 import SharedToggleButtonGA from "../components/Shared/SharedToggleButtonGA"
 import SharedConfirmationModal from "../components/Shared/SharedConfirmationModal"
 import CustomRPCModal from "../components/Settings/CustomRPCModal"
-import { forceQiWalletFullRescan, deepRescanQiWallet, aggregateQiOutputs, fetchUTXODenominationDistribution } from "@pelagus/pelagus-background/redux-slices/accounts"
+import { deepRescanQiWallet, aggregateQiOutputs, fetchUTXODenominationDistribution } from "@pelagus/pelagus-background/redux-slices/accounts"
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks/redux-hooks"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { denominations } from "quais"
@@ -150,7 +150,6 @@ export default function Settings(): ReactElement {
   const defaultWallet = useSelector(selectDefaultWallet)
   const showPelagusNotifications = useSelector(selectShowPelagusNotifications)
   const autoLockInterval = useSelector(selectAutoLockInterval)
-  const [showRescanConfirm, setShowRescanConfirm] = useState(false)
   const [showDeepRescanConfirm, setShowDeepRescanConfirm] = useState(false)
   const [deepRescanExtraAddresses, setDeepRescanExtraAddresses] = useState("50")
   const [showAggregateConfirm, setShowAggregateConfirm] = useState(false)
@@ -171,7 +170,6 @@ export default function Settings(): ReactElement {
 
   useEffect(() => {
     if (!qiWalletSyncInProgress && !aggregateQiOutputsInProgress) {
-      setShowRescanConfirm(false)
       setShowAggregateConfirm(false)
     }
   }, [qiWalletSyncInProgress, aggregateQiOutputsInProgress])
@@ -320,124 +318,6 @@ export default function Settings(): ReactElement {
     ),
   }
 
-  // Rescan confirmation moved to its own page; no drawer in Settings anymore
-
-  const forceQiWalletRescan = {
-    title: "",
-    component: () => {
-      return (
-        <SettingButton
-          label={t("settings.forceQiWalletRescan")}
-          ariaLabel={t("settings.forceQiWalletRescan")}
-          icon="continue"
-          onClick={() => setShowRescanConfirm(true)}
-          isLoading={qiWalletSyncInProgress}
-        />
-      )
-    },
-  }
-
-  const forceQiWalletRescanDrawer = () => {
-    return (
-      <>
-        <div className="modal_overlay" onClick={() => setShowRescanConfirm(false)} />
-        <div className="modal_container settings-modal">
-          <SharedDrawer
-            title={t("settings.forceQiWalletRescan")}
-            isOpen={showRescanConfirm}
-            close={() => setShowRescanConfirm(false)}
-            gap={0}
-            customStyles={{
-              overflow: "visible",
-              minHeight: "200px",
-              maxWidth: "450px",
-              width: "80%",
-              margin: "0 auto",
-              position: "relative"
-            }}
-          >
-            <div className="confirm_rescan">
-              <p className="confirm_rescan_text">
-                {t("settings.forceQiWalletRescanConfirm")}
-              </p>
-              <div className="rescan_buttons">
-                <button
-                  className="btn_cancel"
-                  onClick={() => setShowRescanConfirm(false)}
-                  disabled={qiWalletSyncInProgress}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn_confirm"
-                  onClick={async () => {
-                    await backgroundDispatch(forceQiWalletFullRescan())
-                    setShowRescanConfirm(false)
-                  }}
-                  disabled={qiWalletSyncInProgress}
-                >
-                  {qiWalletSyncInProgress ? "Rescanning..." : "Confirm"}
-                </button>
-              </div>
-            </div>
-            <style jsx>{
-              `
-                .confirm_rescan {
-                  display: flex;
-                  flex-direction: column;
-                  gap: 24px;
-                  padding: 16px;
-                }
-                .confirm_rescan_text {
-                  font-size: 14px;
-                  line-height: 1.5;
-                  color: var(--primary-text);
-                  margin: 0;
-                }
-                .rescan_buttons {
-                  display: flex;
-                  gap: 12px;
-                  justify-content: flex-end;
-                }
-                .btn_cancel,
-                .btn_confirm {
-                  padding: 8px 24px;
-                  border-radius: 8px;
-                  font-size: 14px;
-                  font-weight: 500;
-                  cursor: pointer;
-                  transition: all 0.2s;
-                }
-                .btn_cancel {
-                  background: transparent;
-                  color: var(--primary-text);
-                  border: 1px solid var(--primary-text);
-                }
-                .btn_cancel:hover:not(:disabled) {
-                  background: var(--primary-text);
-                  color: var(--primary-bg);
-                }
-                .btn_confirm {
-                  background: var(--primary-text);
-                  color: var(--primary-bg);
-                  border: none;
-                }
-                .btn_confirm:hover:not(:disabled) {
-                  background: var(--secondary-text);
-                }
-                .btn_cancel:disabled,
-                .btn_confirm:disabled {
-                  opacity: 0.5;
-                  cursor: not-allowed;
-                }
-              `
-            }
-            </style>
-          </SharedDrawer>
-        </div>
-      </>
-    )
-  }
 
   const deepRescanButton = {
     title: "",
@@ -504,7 +384,9 @@ export default function Settings(): ReactElement {
                 <button
                   className="btn_confirm"
                   onClick={async () => {
-                    await backgroundDispatch(deepRescanQiWallet(parseInt(deepRescanExtraAddresses) || 50))
+                    const parsed = parseInt(deepRescanExtraAddresses) || 50
+                    const clamped = Math.max(1, Math.min(500, parsed))
+                    await backgroundDispatch(deepRescanQiWallet(clamped))
                     setShowDeepRescanConfirm(false)
                   }}
                   disabled={qiWalletSyncInProgress}

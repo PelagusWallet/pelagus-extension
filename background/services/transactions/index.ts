@@ -97,13 +97,34 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     this.checkPendingQiTransactions()
     this.checkPendingQuaiTransactions()
-    this.recoverPendingConversions()
+
+    // Await conversion recovery before initializing transactions to ensure
+    // deterministic startup ordering and catch any errors.
+    try {
+      await this.recoverPendingConversions()
+    } catch (error) {
+      logger.error("Failed to recover pending conversions:", error)
+    }
 
     await this.initializeQiTransactions()
     await this.initializeQuaiTransactions()
 
     // Restart any running interval conversions
     await this.restartRunningIntervals()
+  }
+
+  override async internalStopService(): Promise<void> {
+    // Clean up any active conversion monitors
+    for (const cleanup of this.conversionMonitors.values()) {
+      try {
+        cleanup()
+      } catch (error) {
+        logger.error("Error cleaning up conversion monitor:", error)
+      }
+    }
+    this.conversionMonitors.clear()
+
+    await super.internalStopService()
   }
 
   // ------------------------------------ public methods ------------------------------------
@@ -1466,7 +1487,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   ): Promise<void> {
     const { webSocketProvider } = this.chainService
     let refundReceived = false
-    let quaiReceived = false
     let resolved = false
 
     const cleanup = () => {
@@ -1491,7 +1511,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     webSocketProvider.on(
       { type: "balance", address: quaiRecipient },
       async () => {
-        quaiReceived = true
         // Brief delay to check if refund also arrives (edge case)
         await new Promise((resolve) => setTimeout(resolve, 2000))
         if (resolved) return

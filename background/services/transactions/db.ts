@@ -69,15 +69,6 @@ export class TransactionsDatabase extends Dexie {
       intervalConversions: "&id,status,startedAt,from,to",
     })
 
-    this.version(5).stores({
-      quaiTransactions:
-        "&[hash+chainId],hash,from,status,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,firstSeen,dataSource",
-      qiTransactions:
-        "&[hash+chainId],hash,from,status,[from+chainId],to,[to+chainId],nonce,[nonce+from+chainId],blockHash,blockNumber,chainId,timestamp,firstSeen,dataSource",
-      openedPaymentChannels: "++id,paymentCode",
-      intervalConversions: "&id,status,startedAt,from,to",
-    })
-
     // Map tables to class properties - only map the new table since others are working
     this.intervalConversions = this.table("intervalConversions")
   }

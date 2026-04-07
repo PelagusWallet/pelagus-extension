@@ -141,7 +141,7 @@ export default function WalletActivityListItem(props: Props): ReactElement {
                   failed: status === TransactionStatus.FAILED,
                 })}
               >
-                {utxoActivityStatusHandle(status ?? 3)}
+                {utxoActivityStatusHandle(status ?? -1)}
               </h5>
             </div>
           </div>

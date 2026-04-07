@@ -812,11 +812,17 @@ export default class ChainService extends BaseService<Events> {
 
       console.log(`[deepScan] Starting deep scan with ${extraAddresses} extra addresses...`)
 
-      // Clear existing outpoints for a fresh deep scan
+      // Fetch current block FIRST so we can bail early without touching DB state
+      // if the RPC is unreachable
       let stepStart = Date.now()
-      await this.db.clearQiOutpoints()
-      await this.db.clearQiWalletSyncInfo()
-      logStep("clearOutpointsAndSyncInfo", stepStart)
+      const currentBlock = await this.jsonRpcProvider.getBlock(Shard.Cyprus1, "latest")
+      logStep("getBlock", stepStart)
+      if (!currentBlock?.hash || currentBlock.woHeader?.number === undefined) {
+        logger.error("[deepScan] Failed to fetch current block — aborting")
+        return
+      }
+      const currentBlockNumber = currentBlock.woHeader.number
+      const currentBlockHash = currentBlock.hash
 
       stepStart = Date.now()
       const qiWallet = await this.keyringService.getQiHDWallet()
@@ -825,6 +831,12 @@ export default class ChainService extends BaseService<Events> {
         console.log("[deepScan] No Qi wallet found, skipping")
         return
       }
+
+      // Clear existing outpoints for a fresh deep scan
+      stepStart = Date.now()
+      await this.db.clearQiOutpoints()
+      await this.db.clearQiWalletSyncInfo()
+      logStep("clearOutpointsAndSyncInfo", stepStart)
 
       // Open payment channels from mailbox
       const paymentCode = qiWallet.getPaymentCode(0)
@@ -849,17 +861,16 @@ export default class ChainService extends BaseService<Events> {
 
       qiWallet.connect(this.jsonRpcProvider)
 
-      // Get balance
+      // Get balance using the block we fetched upfront
       stepStart = Date.now()
-      const currentBlock = await this.jsonRpcProvider.getBlock(Shard.Cyprus1, "latest")
       const spendableBalance = await qiWallet.getSpendableBalance(
         Zone.Cyprus1,
-        currentBlock?.woHeader.number,
+        currentBlockNumber,
         true
       )
       const lockedBalance = await qiWallet.getLockedBalance(
         Zone.Cyprus1,
-        currentBlock?.woHeader.number,
+        currentBlockNumber,
         true
       )
       logStep("getBalances (in-memory)", stepStart)
@@ -895,8 +906,8 @@ export default class ChainService extends BaseService<Events> {
       // Update scan info
       await this.db.setQiLastFullScan(
         network.chainID,
-        currentBlock?.woHeader.number!,
-        currentBlock?.hash!,
+        currentBlockNumber,
+        currentBlockHash,
         currentVersion
       )
 

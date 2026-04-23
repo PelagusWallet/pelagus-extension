@@ -62,6 +62,30 @@ export default class WalletManager {
       await this.vault.get()
     console.log(`[initializeState] vault.get() took ${(performance.now() - vaultGetStart).toFixed(0)}ms`)
 
+    const migratedMetadata = { ...metadata }
+    let metadataMigrated = false
+
+    const migrateLegacyHDWalletMetadata = (
+      wallet: QiHDWallet | QuaiHDWallet
+    ): string => {
+      const currentId = wallet.xPub()
+      const legacyId = (wallet as unknown as { _root?: { extendedKey?: string } })
+        ._root?.extendedKey
+
+      if (
+        legacyId &&
+        legacyId !== currentId &&
+        migratedMetadata[legacyId] &&
+        !migratedMetadata[currentId]
+      ) {
+        migratedMetadata[currentId] = migratedMetadata[legacyId]
+        delete migratedMetadata[legacyId]
+        metadataMigrated = true
+      }
+
+      return currentId
+    }
+
     const parallelStart = performance.now()
     // Run independent async operations in parallel
     const [privateKeysPromise, qiHDWalletPromise, quaiHDWalletsPromise] =
@@ -102,9 +126,10 @@ export default class WalletManager {
           const paymentCode = deserializedQiHDWallet.getPaymentCode(
             this.qiHDWalletManager.qiHDWalletAccountIndex
           )
+          const id = migrateLegacyHDWalletMetadata(deserializedQiHDWallet)
           console.log(`[initializeState] QiHDWallet deserialization took ${(performance.now() - start).toFixed(0)}ms`)
           return {
-            id: deserializedQiHDWallet.xPub(),
+            id,
             path: null,
             type: KeyringTypes.mnemonicBIP47,
             addresses: [],
@@ -130,7 +155,7 @@ export default class WalletManager {
                     .filter(({ address }) => !hiddenAccounts[address])
                     .map(({ address }) => address),
                 ],
-                id: deserializedQuaiHDWallet.xPub(),
+                id: migrateLegacyHDWalletMetadata(deserializedQuaiHDWallet),
                 path: null,
               }
             })
@@ -145,8 +170,15 @@ export default class WalletManager {
     this.privateKeys = privateKeysPromise as PrivateKey[]
     this.qiHDWallet = qiHDWalletPromise
     this.quaiHDWallets = quaiHDWalletsPromise
-    this.keyringMetadata = metadata
+    this.keyringMetadata = migratedMetadata
     this.hiddenAccounts = hiddenAccounts
+
+    if (metadataMigrated) {
+      await this.vault.add(
+        { metadata: migratedMetadata },
+        { overwriteMetadata: true }
+      )
+    }
   }
 
   public clearState(): void {

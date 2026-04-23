@@ -71,8 +71,6 @@ export default class PelagusWindowProvider extends EventEmitter {
 
   providerInfo = providerInfo
 
-  private requestID = 0n
-
   constructor(public transport: ProviderTransport) {
     super()
 
@@ -265,7 +263,7 @@ export default class PelagusWindowProvider extends EventEmitter {
     const { method, params = [] } = arg
 
     const sendData = {
-      id: this.requestID.toString(),
+      id: this.generateRequestID(),
       target: PROVIDER_BRIDGE_TARGET,
       request: {
         method,
@@ -273,7 +271,6 @@ export default class PelagusWindowProvider extends EventEmitter {
       },
     }
 
-    this.requestID += 1n
     this.transport.postMessage(sendData)
 
     return new Promise<unknown>((resolve, reject) => {
@@ -283,5 +280,14 @@ export default class PelagusWindowProvider extends EventEmitter {
         sendData,
       })
     })
+  }
+
+  private generateRequestID(): string {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID()
+    }
+
+    const randomPart = Math.random().toString(36).slice(2)
+    return `${Date.now().toString(36)}-${randomPart}`
   }
 }

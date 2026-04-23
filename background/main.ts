@@ -184,12 +184,26 @@ const devToolsSanitizer = (input: unknown) => {
   }
 }
 
-const persistStoreFn = <T>(state: T) => {
+const getPersistableState = (state: ReturnType<typeof rootReducer>) => ({
+  ...state,
+  keyrings: {
+    ...state.keyrings,
+    keyringToVerify: null,
+  },
+  signing: {
+    ...state.signing,
+    typedDataRequest: undefined,
+    signDataRequest: undefined,
+    additionalSigningStatus: undefined,
+  },
+})
+
+const persistStoreFn = (state: ReturnType<typeof rootReducer>) => {
   if (process.env.WRITE_REDUX_CACHE === "true") {
     // Browser extension storage supports JSON natively, despite that we have
     // to stringify to preserve BigInts
     browser.storage.local.set({
-      state: encodeJSON(state),
+      state: encodeJSON(getPersistableState(state)),
       version: REDUX_STATE_VERSION,
     })
   }

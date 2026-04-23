@@ -24,7 +24,11 @@ export default function ExportPasswordPrompt({
   onBack,
 }: ExportPasswordPromptProps): ReactElement {
   return (
-    <li className="account_container">
+    <li
+      className="account_container"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
       <div className="item-summary">
         <div className="title">{title}</div>
         {description ? <div className="description">{description}</div> : null}
@@ -39,13 +43,23 @@ export default function ExportPasswordPrompt({
           />
         </div>
         <div className="button_container">
-          <SharedButton type="secondary" size="small" onClick={() => onBack()}>
+          <SharedButton
+            type="secondary"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation()
+              onBack()
+            }}
+          >
             Back
           </SharedButton>
           <SharedButton
             type="primary"
             size="small"
-            onClick={() => onConfirm()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onConfirm()
+            }}
             isDisabled={!password}
           >
             {confirmLabel}

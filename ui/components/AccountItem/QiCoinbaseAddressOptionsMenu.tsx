@@ -2,6 +2,7 @@ import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
 import { exportQiCoinbaseAddress } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -58,30 +59,39 @@ export default function QiCoinbaseAddressOptionsMenu({
   const handleWalletPasswordSubmit = async () => {
     if (!walletPassword) return
 
-    const result = (await dispatch(
-      exportQiCoinbaseAddress({
-        password: walletPassword,
-        address: qiCoinbaseAddress.address,
-      })
-    )) as
-      | ReturnType<typeof exportQiCoinbaseAddress.fulfilled>
-      | ReturnType<typeof exportQiCoinbaseAddress.rejected>
+    try {
+      const { key } = (await dispatch(
+        exportQiCoinbaseAddress({
+          password: walletPassword,
+          address: qiCoinbaseAddress.address,
+        })
+      )) as AsyncThunkFulfillmentType<typeof exportQiCoinbaseAddress>
 
-    if (
-      exportQiCoinbaseAddress.fulfilled.match(result) &&
-      result.payload.key
-    ) {
-      setKey(result.payload.key)
+      if (!key) {
+        setWalletPasswordError("Unable to export private key")
+        return
+      }
+
+      setKey(key)
       setShowExportPrivateKey(true)
       resetWalletPasswordPrompt()
       return
+    } catch (error: any) {
+      setWalletPasswordError(
+        error?.message === "Invalid password"
+          ? "Incorrect wallet password"
+          : error?.message || "Unable to export private key"
+      )
     }
-
-    setWalletPasswordError("Incorrect wallet password")
   }
 
   return (
-    <div className="options_menu_wrap">
+    <div
+      className="options_menu_wrap"
+      role="presentation"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
       <SharedSlideUpMenu
         size="custom"
         customSize="235px"

@@ -26,7 +26,7 @@ const pelagusWindowProvider: PelagusWindowProvider = new PelagusWindowProvider({
 // https://speakerdeck.com/fransrosen/owasp-appseceu-2018-attacking-modern-web-technologies?slide=95
 Object.defineProperty(window, PELAGUS_OBJECT_PROPERTY, {
   value: pelagusWindowProvider,
-  writable: true,
+  writable: false,
   configurable: false,
 })
 
@@ -65,7 +65,7 @@ Object.defineProperty(window, WALLET_ROUTER_OBJECT_PROPERTY, {
       this.lastInjectedProvider = newProvider
     },
   },
-  writable: true,
+  writable: false,
   configurable: false,
 })
 

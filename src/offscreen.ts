@@ -65,6 +65,7 @@ async function handleMessages(message: {
 //  1. preserve the formatting of multiline text,
 //  2. select the node's content using this element's `.select()` method.
 const textEl = document.querySelector("#text") as any
+const SENSITIVE_CLIPBOARD_CLEAR_DELAY_MS = 15000
 
 // Use the offscreen document's `document` interface to write a new value to the
 // system clipboard.
@@ -85,7 +86,7 @@ async function handleClipboardWrite(data: string) {
       textEl.value = " "
       textEl?.select()
       document.execCommand("copy")
-    }, 60000)
+    }, SENSITIVE_CLIPBOARD_CLEAR_DELAY_MS)
   } catch (e) {
     console.error(e)
   }

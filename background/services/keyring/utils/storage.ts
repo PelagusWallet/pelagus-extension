@@ -66,8 +66,9 @@ function equalVaults(vault1: EncryptedVault, vault2: EncryptedVault): boolean {
  *
  * @param encryptedVault - an encrypted keyring vault
  */
-// Maximum number of vault snapshots to keep (for backup/recovery purposes)
-const MAX_VAULT_HISTORY = 3
+// Keep only the latest encrypted vault so deleted secrets are not retained in
+// older snapshots.
+const MAX_VAULT_HISTORY = 1
 
 export async function writeLatestEncryptedVault(
   encryptedVault: EncryptedVault

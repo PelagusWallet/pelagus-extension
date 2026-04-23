@@ -8,6 +8,7 @@ import {
   exportPrivKey,
   exportPrivKeyEncryptedJSON,
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
+import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -95,29 +96,36 @@ export default function AccountItemOptionsMenu({
     if (!walletPassword) return
 
     if (exportMode === "plaintext") {
-      const result = (await dispatch(
-        exportPrivKey({ password: walletPassword, address })
-      )) as
-        | ReturnType<typeof exportPrivKey.fulfilled>
-        | ReturnType<typeof exportPrivKey.rejected>
+      try {
+        const { key } = (await dispatch(
+          exportPrivKey({ password: walletPassword, address })
+        )) as AsyncThunkFulfillmentType<typeof exportPrivKey>
 
-      if (exportPrivKey.fulfilled.match(result) && result.payload.key) {
-        setKey(result.payload.key)
+        if (!key) {
+          setWalletPasswordError("Unable to export private key")
+          return
+        }
+
+        setKey(key)
         setShowExportPrivateKey(true)
         resetWalletPasswordPrompt()
         return
+      } catch (error: any) {
+        setWalletPasswordError(
+          error?.message === "Invalid password"
+            ? "Incorrect wallet password"
+            : error?.message || "Unable to export private key"
+        )
       }
-
-      setWalletPasswordError("Incorrect wallet password")
       return
     }
 
     if (exportMode === "encrypted") {
-      const result = (await dispatch(confirmPassword(walletPassword))) as
-        | ReturnType<typeof confirmPassword.fulfilled>
-        | ReturnType<typeof confirmPassword.rejected>
+      const { success } = (await dispatch(
+        confirmPassword(walletPassword)
+      )) as AsyncThunkFulfillmentType<typeof confirmPassword>
 
-      if (!confirmPassword.fulfilled.match(result) || !result.payload.success) {
+      if (!success) {
         setWalletPasswordError("Incorrect wallet password")
         return
       }
@@ -133,24 +141,29 @@ export default function AccountItemOptionsMenu({
   const handleExportEncrypted = async () => {
     if (!encryptPassword || !confirmedWalletPassword) return
 
-    const result = (await dispatch(
-      exportPrivKeyEncryptedJSON({
-        walletPassword: confirmedWalletPassword,
-        password: encryptPassword,
-        address,
-      })
-    )) as
-      | ReturnType<typeof exportPrivKeyEncryptedJSON.fulfilled>
-      | ReturnType<typeof exportPrivKeyEncryptedJSON.rejected>
+    let encryptedKey = ""
+    try {
+      const result = (await dispatch(
+        exportPrivKeyEncryptedJSON({
+          walletPassword: confirmedWalletPassword,
+          password: encryptPassword,
+          address,
+        })
+      )) as AsyncThunkFulfillmentType<typeof exportPrivKeyEncryptedJSON>
 
-    if (!exportPrivKeyEncryptedJSON.fulfilled.match(result) || !result.payload.key) {
-      setWalletPasswordError("Incorrect wallet password")
+      encryptedKey = result.key
+
+      if (!encryptedKey) {
+        throw new Error("Unable to export encrypted private key")
+      }
+    } catch (error: any) {
+      setWalletPasswordError(
+        error?.message || "Unable to export encrypted private key"
+      )
       setShowEncryptPasswordModal(false)
       setShowWalletPasswordModal(true)
       return
     }
-
-    const encryptedKey = result.payload.key
 
     // Create a download link for the encrypted JSON
     const blob = new Blob([encryptedKey], { type: "application/json" })
@@ -190,7 +203,12 @@ export default function AccountItemOptionsMenu({
   }
 
   return (
-    <div className="options_menu_wrap">
+    <div
+      className="options_menu_wrap"
+      role="presentation"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
       <SharedSlideUpMenu
         size="custom"
         customSize="304px"

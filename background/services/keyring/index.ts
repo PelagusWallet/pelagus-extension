@@ -297,17 +297,34 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
     const signerWithType = await this.walletManager.findSigner(address)
     if (!signerWithType) {
-      logger.error(`Export private key for address ${address} failed`)
-      return ""
+      const error = new Error(`Signer not found for address ${address}`)
+      logger.error("Export private key failed:", error)
+      throw error
     }
 
     if (isSignerPrivateKeyType(signerWithType)) {
       return signerWithType.signer.privateKey
     }
 
-    // export private key from HDWallet address
-    const privateKey = signerWithType.signer.getPrivateKey(address)
-    return privateKey ?? "Not found"
+    try {
+      const privateKey = signerWithType.signer.getPrivateKey(
+        signerWithType.address
+      )
+
+      if (!privateKey) {
+        throw new Error(
+          `No private key returned for address ${signerWithType.address}`
+        )
+      }
+
+      return privateKey
+    } catch (error) {
+      logger.error(
+        `Export private key derivation failed for ${signerWithType.address}:`,
+        error
+      )
+      throw error
+    }
   }
 
   public async exportWalletPrivateKeyEncryptedJSON(
@@ -319,19 +336,36 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
     const signerWithType = await this.walletManager.findSigner(address)
     if (!signerWithType) {
-      logger.error(`Export private key for address ${address} failed`)
-      return "Not found"
+      const error = new Error(`Signer not found for address ${address}`)
+      logger.error("Export encrypted private key failed:", error)
+      throw error
     }
 
     if (isSignerPrivateKeyType(signerWithType)) {
       const jsonKeystore = await signerWithType.signer.encrypt(password)
       return jsonKeystore
     }
-    
-    // export private key from HDWallet address
-    const jsonKeystore = await new Wallet(signerWithType.signer.getPrivateKey(address)).encrypt(password)
-    return jsonKeystore ?? "Not found"
-    
+
+    try {
+      const privateKey = signerWithType.signer.getPrivateKey(
+        signerWithType.address
+      )
+
+      if (!privateKey) {
+        throw new Error(
+          `No private key returned for address ${signerWithType.address}`
+        )
+      }
+
+      const jsonKeystore = await new Wallet(privateKey).encrypt(password)
+      return jsonKeystore
+    } catch (error) {
+      logger.error(
+        `Export encrypted private key derivation failed for ${signerWithType.address}:`,
+        error
+      )
+      throw error
+    }
   }
 
   public async exportQiCoinbaseAddress(
@@ -342,10 +376,17 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
     const qiHDWallet = await this.walletManager.getQiHDWallet()
     if (qiHDWallet) {
-      return qiHDWallet.getPrivateKey(address)
+      try {
+        return qiHDWallet.getPrivateKey(address)
+      } catch (error) {
+        logger.error(`Export Qi private key failed for ${address}:`, error)
+        throw error
+      }
     }
 
-    return ""
+    const error = new Error("Qi HD wallet not found")
+    logger.error("Export Qi private key failed:", error)
+    throw error
   }
 
   private async requirePasswordConfirmation(password: string): Promise<void> {

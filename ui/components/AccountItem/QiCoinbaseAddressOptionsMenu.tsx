@@ -2,7 +2,6 @@ import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
 import { exportQiCoinbaseAddress } from "@pelagus/pelagus-background/redux-slices/keyrings"
-import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -11,6 +10,7 @@ import SharedBanner from "../Shared/SharedBanner"
 import { addToOffscreenClipboardSensitiveData } from "../../../src/offscreen"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { QiCoinbaseAddress } from "@pelagus/pelagus-background/accounts"
+import ExportPasswordPrompt from "./ExportPasswordPrompt"
 
 type QiCoinbaseAddressOptionsMenuProps = {
   qiCoinbaseAddress: QiCoinbaseAddress
@@ -30,6 +30,9 @@ export default function QiCoinbaseAddressOptionsMenu({
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
   const [key, setKey] = useState("")
   const [showExportPrivateKey, setShowExportPrivateKey] = useState(false)
+  const [showWalletPasswordModal, setShowWalletPasswordModal] = useState(false)
+  const [walletPassword, setWalletPassword] = useState("")
+  const [walletPasswordError, setWalletPasswordError] = useState("")
 
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(qiCoinbaseAddress.address)
@@ -44,6 +47,37 @@ export default function QiCoinbaseAddressOptionsMenu({
   const onClosePrivateKeyModal = () => {
     setKey("")
     setShowExportPrivateKey(false)
+  }
+
+  const resetWalletPasswordPrompt = () => {
+    setWalletPassword("")
+    setWalletPasswordError("")
+    setShowWalletPasswordModal(false)
+  }
+
+  const handleWalletPasswordSubmit = async () => {
+    if (!walletPassword) return
+
+    const result = (await dispatch(
+      exportQiCoinbaseAddress({
+        password: walletPassword,
+        address: qiCoinbaseAddress.address,
+      })
+    )) as
+      | ReturnType<typeof exportQiCoinbaseAddress.fulfilled>
+      | ReturnType<typeof exportQiCoinbaseAddress.rejected>
+
+    if (
+      exportQiCoinbaseAddress.fulfilled.match(result) &&
+      result.payload.key
+    ) {
+      setKey(result.payload.key)
+      setShowExportPrivateKey(true)
+      resetWalletPasswordPrompt()
+      return
+    }
+
+    setWalletPasswordError("Incorrect wallet password")
   }
 
   return (
@@ -92,6 +126,35 @@ export default function QiCoinbaseAddressOptionsMenu({
           </SharedBanner>
         </li>
       </SharedSlideUpMenu>
+      <SharedSlideUpMenu
+        size="custom"
+        customSize="336px"
+        isOpen={showWalletPasswordModal}
+        close={(e) => {
+          e?.stopPropagation()
+          resetWalletPasswordPrompt()
+        }}
+      >
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          style={{ cursor: "default" }}
+        >
+          <ExportPasswordPrompt
+            title="Confirm Wallet Password"
+            description="Re-enter your wallet password before exporting this private key."
+            password={walletPassword}
+            errorMessage={walletPasswordError}
+            confirmLabel="Export"
+            onPasswordChange={(value) => {
+              setWalletPassword(value)
+              if (walletPasswordError) setWalletPasswordError("")
+            }}
+            onConfirm={handleWalletPasswordSubmit}
+            onBack={resetWalletPasswordPrompt}
+          />
+        </div>
+      </SharedSlideUpMenu>
       <SharedDropdown
         toggler={(toggle) => (
           <button
@@ -117,11 +180,9 @@ export default function QiCoinbaseAddressOptionsMenu({
             label: t("exportAccount"),
             onClick: async () => {
               if (areKeyringsUnlocked) {
-                const { key: keyFromRedux } = (await dispatch(
-                  exportQiCoinbaseAddress(qiCoinbaseAddress.address)
-                )) as AsyncThunkFulfillmentType<typeof exportQiCoinbaseAddress>
-                setKey(keyFromRedux)
-                setShowExportPrivateKey(true)
+                setWalletPassword("")
+                setWalletPasswordError("")
+                setShowWalletPasswordModal(true)
               } else {
                 history.push("/keyring/unlock")
               }

@@ -3,8 +3,11 @@ import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import React, { ReactElement, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useHistory } from "react-router-dom"
-import { exportPrivKey, exportPrivKeyEncryptedJSON } from "@pelagus/pelagus-background/redux-slices/keyrings"
-import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import {
+  confirmPassword,
+  exportPrivKey,
+  exportPrivKeyEncryptedJSON,
+} from "@pelagus/pelagus-background/redux-slices/keyrings"
 import { useAreKeyringsUnlocked, useBackgroundDispatch } from "../../hooks"
 import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
@@ -14,6 +17,9 @@ import AccountitemOptionLabel from "./AccountItemOptionLabel"
 import AccountHistoryRemovalConfirm from "./AccountHistoryRemovalConfirm"
 import SharedBanner from "../Shared/SharedBanner"
 import { addToOffscreenClipboardSensitiveData } from "../../../src/offscreen"
+import ExportPasswordPrompt from "./ExportPasswordPrompt"
+
+type ExportMode = "plaintext" | "encrypted" | null
 
 type AccountItemOptionsMenuProps = {
   accountTotal: AccountTotal
@@ -47,7 +53,12 @@ export default function AccountItemOptionsMenu({
   const [showExportOptions, setShowExportOptions] = useState(false)
   const [encryptPassword, setEncryptPassword] = useState("")
   const [showEncryptPasswordModal, setShowEncryptPasswordModal] = useState(false)
-  
+  const [showWalletPasswordModal, setShowWalletPasswordModal] = useState(false)
+  const [walletPassword, setWalletPassword] = useState("")
+  const [confirmedWalletPassword, setConfirmedWalletPassword] = useState("")
+  const [walletPasswordError, setWalletPasswordError] = useState("")
+  const [exportMode, setExportMode] = useState<ExportMode>(null)
+
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(address)
     dispatch(setSnackbarConfig({ message: "Address copied to clipboard" }))
@@ -63,41 +74,119 @@ export default function AccountItemOptionsMenu({
     setShowExportPrivateKey(false)
   }
 
-  const handleExportPlaintext = async () => {
+  const resetWalletPasswordPrompt = () => {
+    setWalletPassword("")
+    setConfirmedWalletPassword("")
+    setWalletPasswordError("")
+    setExportMode(null)
+    setShowWalletPasswordModal(false)
+  }
+
+  const openWalletPasswordPrompt = (mode: Exclude<ExportMode, null>) => {
     setShowExportOptions(false)
-    const { key: keyFromRedux } = (await dispatch(
-      exportPrivKey(address)
-    )) as AsyncThunkFulfillmentType<typeof exportPrivKey>
-    setKey(keyFromRedux)
-    setShowExportPrivateKey(true)
+    setWalletPassword("")
+    setWalletPasswordError("")
+    setConfirmedWalletPassword("")
+    setExportMode(mode)
+    setShowWalletPasswordModal(true)
+  }
+
+  const handleWalletPasswordSubmit = async () => {
+    if (!walletPassword) return
+
+    if (exportMode === "plaintext") {
+      const result = (await dispatch(
+        exportPrivKey({ password: walletPassword, address })
+      )) as
+        | ReturnType<typeof exportPrivKey.fulfilled>
+        | ReturnType<typeof exportPrivKey.rejected>
+
+      if (exportPrivKey.fulfilled.match(result) && result.payload.key) {
+        setKey(result.payload.key)
+        setShowExportPrivateKey(true)
+        resetWalletPasswordPrompt()
+        return
+      }
+
+      setWalletPasswordError("Incorrect wallet password")
+      return
+    }
+
+    if (exportMode === "encrypted") {
+      const result = (await dispatch(confirmPassword(walletPassword))) as
+        | ReturnType<typeof confirmPassword.fulfilled>
+        | ReturnType<typeof confirmPassword.rejected>
+
+      if (!confirmPassword.fulfilled.match(result) || !result.payload.success) {
+        setWalletPasswordError("Incorrect wallet password")
+        return
+      }
+
+      setConfirmedWalletPassword(walletPassword)
+      setWalletPassword("")
+      setWalletPasswordError("")
+      setShowWalletPasswordModal(false)
+      setShowEncryptPasswordModal(true)
+    }
   }
 
   const handleExportEncrypted = async () => {
-    setShowExportOptions(false)
-    setShowEncryptPasswordModal(true)
-  }
+    if (!encryptPassword || !confirmedWalletPassword) return
 
-  const handleEncryptPasswordSubmit = async () => {
-    if (!encryptPassword) return
-    
-    const { key: encryptedKey } = (await dispatch(
-      exportPrivKeyEncryptedJSON({ password: encryptPassword, address })
-    )) as AsyncThunkFulfillmentType<typeof exportPrivKeyEncryptedJSON>
-    
+    const result = (await dispatch(
+      exportPrivKeyEncryptedJSON({
+        walletPassword: confirmedWalletPassword,
+        password: encryptPassword,
+        address,
+      })
+    )) as
+      | ReturnType<typeof exportPrivKeyEncryptedJSON.fulfilled>
+      | ReturnType<typeof exportPrivKeyEncryptedJSON.rejected>
+
+    if (!exportPrivKeyEncryptedJSON.fulfilled.match(result) || !result.payload.key) {
+      setWalletPasswordError("Incorrect wallet password")
+      setShowEncryptPasswordModal(false)
+      setShowWalletPasswordModal(true)
+      return
+    }
+
+    const encryptedKey = result.payload.key
+
     // Create a download link for the encrypted JSON
-    const blob = new Blob([encryptedKey], { type: 'application/json' })
+    const blob = new Blob([encryptedKey], { type: "application/json" })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const a = document.createElement("a")
     a.href = url
     a.download = `account-${address.substring(0, 8)}-encrypted.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    
+
     setEncryptPassword("")
+    setConfirmedWalletPassword("")
     setShowEncryptPasswordModal(false)
-    dispatch(setSnackbarConfig({ message: "Encrypted key file downloaded", duration: 5000 }))
+    setExportMode(null)
+    dispatch(
+      setSnackbarConfig({
+        message: "Encrypted key file downloaded",
+        duration: 5000,
+      })
+    )
+  }
+
+  const handleWalletPasswordChange = (value: string) => {
+    setWalletPassword(value)
+    if (walletPasswordError) {
+      setWalletPasswordError("")
+    }
+  }
+
+  const closeEncryptPasswordModal = () => {
+    setShowEncryptPasswordModal(false)
+    setEncryptPassword("")
+    setConfirmedWalletPassword("")
+    setExportMode(null)
   }
 
   return (
@@ -207,6 +296,35 @@ export default function AccountItemOptionsMenu({
           </SharedBanner>
         </li>
       </SharedSlideUpMenu>
+      <SharedSlideUpMenu
+        size="custom"
+        customSize="336px"
+        isOpen={showWalletPasswordModal}
+        close={(e) => {
+          e?.stopPropagation()
+          resetWalletPasswordPrompt()
+        }}
+      >
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          style={{ cursor: "default" }}
+        >
+          <ExportPasswordPrompt
+            title="Confirm Wallet Password"
+            description="Re-enter your wallet password before exporting private key material."
+            password={walletPassword}
+            errorMessage={walletPasswordError}
+            confirmLabel={exportMode === "encrypted" ? "Continue" : "Export"}
+            onPasswordChange={handleWalletPasswordChange}
+            onConfirm={handleWalletPasswordSubmit}
+            onBack={() => {
+              resetWalletPasswordPrompt()
+              setShowExportOptions(true)
+            }}
+          />
+        </div>
+      </SharedSlideUpMenu>
       
       {/* Export Options Modal */}
       <SharedSlideUpMenu
@@ -231,7 +349,7 @@ export default function AccountItemOptionsMenu({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleExportPlaintext()
+                    openWalletPasswordPrompt("plaintext")
                   }}
                   className="export_option_button"
                 >
@@ -247,7 +365,7 @@ export default function AccountItemOptionsMenu({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleExportEncrypted()
+                    openWalletPasswordPrompt("encrypted")
                   }}
                   className="export_option_button"
                 >
@@ -268,12 +386,11 @@ export default function AccountItemOptionsMenu({
       {/* Encrypt Password Modal */}
       <SharedSlideUpMenu
         size="custom"
-        customSize="200px"
+        customSize="336px"
         isOpen={showEncryptPasswordModal}
         close={(e) => {
           e?.stopPropagation()
-          setShowEncryptPasswordModal(false)
-          setEncryptPassword("")
+          closeEncryptPasswordModal()
         }}
       >
         <div
@@ -281,51 +398,19 @@ export default function AccountItemOptionsMenu({
           onClick={(e) => e.stopPropagation()}
           style={{ cursor: "default" }}
         >
-          <li className="account_container">
-            <div className="item-summary">
-              <div className="address_name">Encrypt Private Key</div>
-              <div className="password_input_container">
-                <input
-                  type="password"
-                  placeholder="Enter password to encrypt"
-                  value={encryptPassword}
-                  onChange={(e) => setEncryptPassword(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && encryptPassword) {
-                      e.preventDefault()
-                      handleEncryptPasswordSubmit()
-                    }
-                  }}
-                  className="password_input"
-                />
-              </div>
-              <div className="button_container">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowEncryptPasswordModal(false)
-                    setEncryptPassword("")
-                    setShowExportOptions(true)
-                  }}
-                  className="cancel_button"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleEncryptPasswordSubmit()
-                  }}
-                  className="submit_button"
-                  disabled={!encryptPassword}
-                >
-                  Export
-                </button>
-              </div>
-            </div>
-          </li>
+          <ExportPasswordPrompt
+            title="Encrypt Private Key"
+            description="Choose a password for the exported JSON file."
+            password={encryptPassword}
+            confirmLabel="Export"
+            onPasswordChange={(value) => setEncryptPassword(value)}
+            onConfirm={handleExportEncrypted}
+            onBack={() => {
+              setShowEncryptPasswordModal(false)
+              setEncryptPassword("")
+              setShowWalletPasswordModal(true)
+            }}
+          />
         </div>
       </SharedSlideUpMenu>
       
@@ -474,43 +559,6 @@ export default function AccountItemOptionsMenu({
           }
           .export_option_button:hover :global(.option_label .icon) {
             background-color: white !important;
-          }
-          .password_input_container {
-            width: 100%;
-            margin-top: 20px;
-          }
-          .password_input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--secondary-text);
-            background-color: var(--hunter-green);
-            color: var(--primary-text);
-          }
-          .button_container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 20px;
-          }
-          .cancel_button, .submit_button {
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-          }
-          .cancel_button {
-            background-color: var(--secondary-text);
-            color: white;
-          }
-          .submit_button {
-            background-color: var(--green-20);
-            color: white;
-          }
-          .submit_button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
           }
         `}
       </style>

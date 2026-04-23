@@ -1801,16 +1801,31 @@ export default class Main extends BaseService<never> {
     return this.keyringService.unlock(password)
   }
 
-  async exportPrivKey(address: string): Promise<string> {
-    return this.keyringService.exportWalletPrivateKey(address)
+  async confirmPassword(password: string): Promise<boolean> {
+    return this.keyringService.confirmPassword(password)
   }
 
-  async exportPrivKeyEncryptedJSON(password: string, address: string): Promise<string> {
-    return this.keyringService.exportWalletPrivateKeyEncryptedJSON(password, address)
+  async exportPrivKey(password: string, address: string): Promise<string> {
+    return this.keyringService.exportWalletPrivateKey(password, address)
   }
 
-  async exportQiCoinbaseAddress(address: string): Promise<string> {
-    return this.keyringService.exportQiCoinbaseAddress(address)
+  async exportPrivKeyEncryptedJSON(
+    walletPassword: string,
+    password: string,
+    address: string
+  ): Promise<string> {
+    return this.keyringService.exportWalletPrivateKeyEncryptedJSON(
+      walletPassword,
+      password,
+      address
+    )
+  }
+
+  async exportQiCoinbaseAddress(
+    password: string,
+    address: string
+  ): Promise<string> {
+    return this.keyringService.exportQiCoinbaseAddress(password, address)
   }
 
   async importSigner(

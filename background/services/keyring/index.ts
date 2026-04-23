@@ -141,6 +141,11 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     }
   }
 
+  public async confirmPassword(password: string): Promise<boolean> {
+    this.verifyKeyringIsUnlocked()
+    return this.vaultManager.verifyPassword(password)
+  }
+
   /**
    * Restarts the wallet extension background worker.
    * This function is triggered every 12 hours.
@@ -284,8 +289,11 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     }
   }
 
-  public async exportWalletPrivateKey(address: string): Promise<string> {
-    this.verifyKeyringIsUnlocked()
+  public async exportWalletPrivateKey(
+    password: string,
+    address: string
+  ): Promise<string> {
+    await this.requirePasswordConfirmation(password)
 
     const signerWithType = await this.walletManager.findSigner(address)
     if (!signerWithType) {
@@ -302,8 +310,12 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     return privateKey ?? "Not found"
   }
 
-  public async exportWalletPrivateKeyEncryptedJSON(password: string, address: string): Promise<string> {
-    this.verifyKeyringIsUnlocked()
+  public async exportWalletPrivateKeyEncryptedJSON(
+    walletPassword: string,
+    password: string,
+    address: string
+  ): Promise<string> {
+    await this.requirePasswordConfirmation(walletPassword)
 
     const signerWithType = await this.walletManager.findSigner(address)
     if (!signerWithType) {
@@ -322,8 +334,11 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     
   }
 
-  public async exportQiCoinbaseAddress(address: string): Promise<string> {
-    this.verifyKeyringIsUnlocked()
+  public async exportQiCoinbaseAddress(
+    password: string,
+    address: string
+  ): Promise<string> {
+    await this.requirePasswordConfirmation(password)
 
     const qiHDWallet = await this.walletManager.getQiHDWallet()
     if (qiHDWallet) {
@@ -331,6 +346,14 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     }
 
     return ""
+  }
+
+  private async requirePasswordConfirmation(password: string): Promise<void> {
+    this.verifyKeyringIsUnlocked()
+
+    if (!(await this.vaultManager.verifyPassword(password))) {
+      throw new Error("Invalid password")
+    }
   }
 
   public async signMessageWithAllQiAddresses(

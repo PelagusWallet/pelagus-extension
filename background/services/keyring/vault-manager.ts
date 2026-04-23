@@ -13,6 +13,7 @@ export interface IVaultManager {
   add(data: Partial<SerializedVaultData>, options: AddOptions): Promise<void>
   delete(options: DeleteProps): Promise<void>
   update(data: Partial<SerializedVaultData>): Promise<void>
+  verifyPassword(password: string): Promise<boolean>
   clearSaltedKey(): void
   isSaltedKeyInitialized(): boolean
   initializeWithPassword(password: string): Promise<void>
@@ -53,6 +54,22 @@ export class VaultManager implements IVaultManager {
       currentEncryptedVault?.salt
     )
     console.log(`[VaultManager] PBKDF2 key derivation (1M iterations) took ${(performance.now() - deriveStart).toFixed(0)}ms`)
+  }
+
+  public async verifyPassword(password: string): Promise<boolean> {
+    const { vaults } = await getEncryptedVaults()
+    const currentEncryptedVault = vaults.slice(-1)[0]?.vault
+
+    if (!currentEncryptedVault) {
+      return false
+    }
+
+    try {
+      await decryptVault<SerializedVaultData>(currentEncryptedVault, password)
+      return true
+    } catch {
+      return false
+    }
   }
 
   public async get(): Promise<SerializedVaultData> {

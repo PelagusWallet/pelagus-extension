@@ -177,6 +177,13 @@ export const unlockKeyrings = createBackgroundAsyncThunk(
   }
 )
 
+export const confirmPassword = createBackgroundAsyncThunk(
+  "keyrings/confirmPassword",
+  async (password: string, { extra: { main } }) => {
+    return { success: await main.confirmPassword(password) }
+  }
+)
+
 export const lockKeyrings = createBackgroundAsyncThunk(
   "keyrings/lockKeyrings",
   async () => {
@@ -193,22 +200,35 @@ export const createPassword = createBackgroundAsyncThunk(
 
 export const exportPrivKey = createBackgroundAsyncThunk(
   "keyrings/exportPrivKey",
-  async (address: string) => {
-    return { key: await main.exportPrivKey(address) }
+  async ({ password, address }: { password: string; address: string }) => {
+    return { key: await main.exportPrivKey(password, address) }
   }
 )
 
 export const exportPrivKeyEncryptedJSON = createBackgroundAsyncThunk(
   "keyrings/exportPrivKeyEncryptedJSON",
-  async ({ password, address }: { password: string; address: string }, { extra: { main } }) => {
-    return { key: await main.exportPrivKeyEncryptedJSON(password, address) }
+  async (
+    {
+      walletPassword,
+      password,
+      address,
+    }: { walletPassword: string; password: string; address: string },
+    { extra: { main } }
+  ) => {
+    return {
+      key: await main.exportPrivKeyEncryptedJSON(
+        walletPassword,
+        password,
+        address
+      ),
+    }
   }
 )
 
 export const exportQiCoinbaseAddress = createBackgroundAsyncThunk(
   "keyrings/exportQiCoinbaseAddress",
-  async (address: string) => {
-    return { key: await main.exportQiCoinbaseAddress(address) }
+  async ({ password, address }: { password: string; address: string }) => {
+    return { key: await main.exportQiCoinbaseAddress(password, address) }
   }
 )
 

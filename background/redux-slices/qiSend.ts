@@ -1,9 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit"
+import Emittery from "emittery"
 import { parseQi } from "quais"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
 import { UtxoAccountData } from "./accounts"
+import { NormalizedQiSendToOutputsRequest } from "../services/transactions/types"
 
 export type QiSendState = {
   senderQiAccount: UtxoAccountData | null
@@ -12,6 +14,7 @@ export type QiSendState = {
   amount: string
   channelExists: boolean
   isSending: boolean
+  dappRequest: NormalizedQiSendToOutputsRequest | null
 }
 
 const initialState: QiSendState = {
@@ -21,7 +24,15 @@ const initialState: QiSendState = {
   senderQuaiAccount: null,
   channelExists: false,
   isSending: false,
+  dappRequest: null,
 }
+
+type Events = {
+  dappSendTransactionResponse: { txHash: string }
+  dappSendTransactionRejected: { message?: string }
+}
+
+export const emitter = new Emittery<Events>()
 
 const qiSendSlice = createSlice({
   name: "qiSend",
@@ -54,6 +65,19 @@ const qiSendSlice = createSlice({
     setQiSending: (immerState, { payload }: { payload: boolean }) => {
       immerState.isSending = payload
     },
+    setQiDappSendRequest: (
+      immerState,
+      { payload }: { payload: NormalizedQiSendToOutputsRequest }
+    ) => {
+      immerState.dappRequest = payload
+      immerState.amount = payload.amountQit
+      immerState.receiverPaymentCode =
+        payload.outputs.length === 1
+          ? payload.outputs[0].address
+          : `${payload.outputs.length} Qi outputs`
+      immerState.channelExists = true
+      immerState.isSending = false
+    },
     resetQiSendSlice: (immerState) => {
       immerState.senderQiAccount = null
       immerState.senderQuaiAccount = null
@@ -61,6 +85,7 @@ const qiSendSlice = createSlice({
       immerState.receiverPaymentCode = ""
       immerState.channelExists = false
       immerState.isSending = false
+      immerState.dappRequest = null
     },
   },
 })
@@ -72,6 +97,7 @@ export const {
   setQiSendReceiverPaymentCode,
   setQiChannelExists,
   setQiSending,
+  setQiDappSendRequest,
   resetQiSendSlice,
 } = qiSendSlice.actions
 
@@ -124,6 +150,47 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
         }
       }
     }
+  }
+)
+
+export const sendDappQiTransaction = createBackgroundAsyncThunk(
+  "qiSend/sendDappQiTransaction",
+  async (_, { getState, dispatch }) => {
+    const { qiSend } = getState() as RootState
+    if (!qiSend.dappRequest) {
+      const message = "No pending Qi dapp transaction"
+      await emitter.emit("dappSendTransactionRejected", { message })
+      return { error: { message } }
+    }
+    if (qiSend.isSending) {
+      const message = "Transaction already in progress"
+      return { error: { message } }
+    }
+
+    dispatch(setQiSending(true))
+    try {
+      const txHash = await main.transactionService.sendQiToOutputs(
+        qiSend.dappRequest
+      )
+      await emitter.emit("dappSendTransactionResponse", { txHash })
+      dispatch(resetQiSendSlice())
+      return { txHash }
+    } catch (error: any) {
+      const message = typeof error === "string" ? error : error?.message
+      await emitter.emit("dappSendTransactionRejected", { message })
+      dispatch(setQiSending(false))
+      return { error: { message } }
+    }
+  }
+)
+
+export const rejectDappQiTransaction = createBackgroundAsyncThunk(
+  "qiSend/rejectDappQiTransaction",
+  async (_, { dispatch }) => {
+    await emitter.emit("dappSendTransactionRejected", {
+      message: "Qi transaction rejected",
+    })
+    dispatch(resetQiSendSlice())
   }
 )
 

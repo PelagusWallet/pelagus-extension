@@ -512,6 +512,31 @@ export default class ProviderBridgeService extends BaseService<Events> {
       })
   }
 
+  async routeQiSendRequest(
+    method: string,
+    params: unknown[],
+    origin: string
+  ): Promise<unknown> {
+    const popupPromise = showExtensionPopup(
+      AllowedQueryParamPage.qiSendTransaction,
+      {},
+      () => this.internalQuaiProviderService.rejectQiSendToOutputs(origin)
+    )
+
+    try {
+      return await this.internalQuaiProviderService.routeSafeRPCRequest(
+        method,
+        params,
+        origin
+      )
+    } finally {
+      const popup = await popupPromise
+      if (typeof popup.id !== "undefined") {
+        await browser.windows.remove(popup.id).catch(() => undefined)
+      }
+    }
+  }
+
   async routeContentScriptRPCRequest(
     enablingPermission: PermissionRequest,
     method: string,
@@ -576,6 +601,18 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
+
+        case "qi_getReceiveAddresses":
+          return await this.internalQuaiProviderService.routeSafeRPCRequest(
+            method,
+            params,
+            origin
+          )
+
+        case "qi_sendToOutputs":
+        case "qi_sendTransaction":
+          return await this.routeQiSendRequest(method, params, origin)
+
         case "quai_sendTransaction":
         case "eth_sendTransaction":
           // TODO check this checkPermissionSignTransaction function in future

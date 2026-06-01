@@ -8,9 +8,13 @@ const QI_ADDRESS_STATUS = { UNUSED: 'UNUSED', USED: 'USED', ATTEMPTED_USE: 'ATTE
 import {
   Contract,
   denominations,
+  getBytes,
   getZoneForAddress,
+  isHexString,
+  isQiAddress,
   parseQi,
   parseQuai,
+  QiTransaction,
   QuaiTransaction,
   Shard,
   TransactionReceipt,
@@ -22,6 +26,7 @@ import {
 import { MAILBOX_INTERFACE } from "../../contracts/payment-channel-mailbox"
 import BaseService from "../base"
 import ChainService from "../chain"
+import { QiOutpoint } from "../chain/db"
 import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
@@ -43,10 +48,199 @@ import { getRelevantTransactionAddresses } from "../enrichment/utils"
 import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
 import IndexingService from "../indexing"
 import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
+import {
+  NormalizedQiSendToOutputsRequest,
+  QiOutputRequest,
+  QiSendToOutputsRequest,
+} from "./types"
 
 const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
+const QI_DAPP_SEND_MAX_OUTPUTS = 128
+
+const ZONE_ALIASES: Record<string, Zone> = {
+  "0x00": Zone.Cyprus1,
+  cyprus1: Zone.Cyprus1,
+  "cyprus-1": Zone.Cyprus1,
+  "zone-0-0": Zone.Cyprus1,
+  "0x01": Zone.Cyprus2,
+  cyprus2: Zone.Cyprus2,
+  "cyprus-2": Zone.Cyprus2,
+  "zone-0-1": Zone.Cyprus2,
+  "0x02": Zone.Cyprus3,
+  cyprus3: Zone.Cyprus3,
+  "cyprus-3": Zone.Cyprus3,
+  "zone-0-2": Zone.Cyprus3,
+  "0x10": Zone.Paxos1,
+  paxos1: Zone.Paxos1,
+  "paxos-1": Zone.Paxos1,
+  "zone-1-0": Zone.Paxos1,
+  "0x11": Zone.Paxos2,
+  paxos2: Zone.Paxos2,
+  "paxos-2": Zone.Paxos2,
+  "zone-1-1": Zone.Paxos2,
+  "0x12": Zone.Paxos3,
+  paxos3: Zone.Paxos3,
+  "paxos-3": Zone.Paxos3,
+  "zone-1-2": Zone.Paxos3,
+  "0x20": Zone.Hydra1,
+  hydra1: Zone.Hydra1,
+  "hydra-1": Zone.Hydra1,
+  "zone-2-0": Zone.Hydra1,
+  "0x21": Zone.Hydra2,
+  hydra2: Zone.Hydra2,
+  "hydra-2": Zone.Hydra2,
+  "zone-2-1": Zone.Hydra2,
+  "0x22": Zone.Hydra3,
+  hydra3: Zone.Hydra3,
+  "hydra-3": Zone.Hydra3,
+  "zone-2-2": Zone.Hydra3,
+}
+
+function normalizeQiZone(value?: unknown): Zone {
+  if (value === undefined || value === null || value === "") {
+    return Zone.Cyprus1
+  }
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, "")
+  const zone = ZONE_ALIASES[normalized]
+  if (!zone) throw new Error(`Unsupported Qi zone: ${String(value)}`)
+  return zone
+}
+
+function normalizePositiveQit(value: unknown, field: string): bigint {
+  if (value === undefined || value === null || value === "") {
+    throw new Error(`${field} is required`)
+  }
+  let amount: bigint
+  try {
+    amount = BigInt(value as string | number | bigint)
+  } catch {
+    throw new Error(`${field} must be an integer qit amount`)
+  }
+  if (amount <= 0n) throw new Error(`${field} must be greater than 0`)
+  return amount
+}
+
+function denominationValue(index: number): bigint {
+  return BigInt(denominations[index])
+}
+
+function denominationIndexForQit(amount: bigint): number {
+  return denominations.findIndex((denomination) => BigInt(denomination) === amount)
+}
+
+function normalizeDenomination(value: unknown, field: string): number {
+  const denomination = Number(value)
+  if (
+    !Number.isInteger(denomination) ||
+    denomination < 0 ||
+    denomination >= denominations.length
+  ) {
+    throw new Error(`${field} must be a Qi denomination index`)
+  }
+  return denomination
+}
+
+function denominateQit(value: bigint): number[] {
+  let remaining = value
+  const out: number[] = []
+  for (let i = denominations.length - 1; i >= 0; i -= 1) {
+    const denomination = BigInt(denominations[i])
+    while (remaining >= denomination) {
+      out.push(i)
+      remaining -= denomination
+    }
+  }
+  if (remaining !== 0n) {
+    throw new Error(`${value.toString()} qit cannot be represented as Qi denominations`)
+  }
+  return out
+}
+
+function toQuantity(value: number | bigint): string {
+  return `0x${BigInt(value).toString(16)}`
+}
+
+function normalizeQiOutput(
+  output: QiOutputRequest,
+  index: number,
+  zone: Zone
+): { address: string; denomination: number } {
+  if (!output || typeof output !== "object") {
+    throw new Error(`outputs[${index}] must be an object`)
+  }
+  const address = String(output.address || "")
+  if (!isQiAddress(address)) {
+    throw new Error(`outputs[${index}].address must be a Qi address`)
+  }
+  const addressZone = getZoneForAddress(address)
+  if (addressZone !== zone) {
+    throw new Error(`outputs[${index}].address is not in the requested Qi zone`)
+  }
+
+  if (output.denomination !== undefined && output.denomination !== null && output.denomination !== "") {
+    return {
+      address,
+      denomination: normalizeDenomination(output.denomination, `outputs[${index}].denomination`),
+    }
+  }
+
+  const amountQit = normalizePositiveQit(
+    output.amountQit ?? output.valueQit,
+    `outputs[${index}].amountQit`
+  )
+  const denomination = denominationIndexForQit(amountQit)
+  if (denomination < 0) {
+    throw new Error(
+      `outputs[${index}].amountQit must be one exact Qi denomination; split it into unique-address outputs`
+    )
+  }
+  return { address, denomination }
+}
+
+function normalizeQiOutputsRequest(
+  input: QiSendToOutputsRequest
+): NormalizedQiSendToOutputsRequest {
+  const zone = normalizeQiZone(input.zone)
+  const rawOutputs =
+    input.outputs || input.txOutputs || input.qiOutputs || input.qiEscrowOutputs
+  if (!Array.isArray(rawOutputs) || rawOutputs.length === 0) {
+    throw new Error("outputs is required and must contain at least one Qi output")
+  }
+  if (rawOutputs.length > QI_DAPP_SEND_MAX_OUTPUTS) {
+    throw new Error(`outputs cannot contain more than ${QI_DAPP_SEND_MAX_OUTPUTS} entries`)
+  }
+
+  const outputs = rawOutputs.map((output, index) =>
+    normalizeQiOutput(output, index, zone)
+  )
+  const seen = new Set<string>()
+  for (const output of outputs) {
+    if (seen.has(output.address)) {
+      throw new Error(`Qi output address reused: ${output.address}`)
+    }
+    seen.add(output.address)
+  }
+
+  const amountQit = outputs
+    .reduce((sum, output) => sum + denominationValue(output.denomination), 0n)
+    .toString()
+
+  return {
+    outputs,
+    amountQit,
+    zone,
+    account:
+      input.account === undefined || input.account === null
+        ? 0
+        : Number(input.account),
+    data: input.data,
+    origin: input.origin,
+    label: input.label,
+    tradeHash: input.tradeHash,
+  }
+}
 
 /**
  * The `TransactionService` class is responsible for handling user transactions, including sending,
@@ -438,6 +632,281 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
     }
     return unusedAddress
+  }
+
+  public async getQiReceiveAddresses(input: {
+    count?: number | string
+    zone?: string
+    account?: number | string
+  } = {}): Promise<string[]> {
+    const zone = normalizeQiZone(input.zone)
+    const count = input.count === undefined ? 1 : Number(input.count)
+    const account = input.account === undefined ? 0 : Number(input.account)
+
+    if (!Number.isInteger(count) || count <= 0 || count > 128) {
+      throw new Error("count must be an integer between 1 and 128")
+    }
+    if (!Number.isInteger(account) || account < 0) {
+      throw new Error("account must be a non-negative integer")
+    }
+
+    const qiWallet = await this.keyringService.getQiHDWallet()
+    const coinbaseAddresses = await this.indexingService.getQiCoinbaseAddresses()
+    const excluded = new Set(coinbaseAddresses.map((addr) => addr.address))
+    const addresses = this.reserveQiWalletAddresses(
+      qiWallet,
+      count,
+      zone,
+      account,
+      "external",
+      excluded
+    )
+
+    await this.keyringService.vaultManager.add(
+      { qiHDWallet: qiWallet.serialize() },
+      {}
+    )
+    return addresses
+  }
+
+  public async sendQiToOutputs(
+    input: QiSendToOutputsRequest
+  ): Promise<string> {
+    const request = normalizeQiOutputsRequest(input)
+    if (!Number.isInteger(request.account) || request.account < 0) {
+      throw new Error("account must be a non-negative integer")
+    }
+
+    const { jsonRpcProvider } = this.chainService
+    let qiWallet = await this.keyringService.getQiHDWallet()
+    qiWallet.connect(jsonRpcProvider)
+
+    const amountQit = BigInt(request.amountQit)
+    const outputAddresses = new Set(request.outputs.map((output) => output.address))
+    let selectedOutpoints: QiOutpoint[] = []
+    let feeQit = 0n
+    let signedTransactionHash = ""
+    let lastReservedChange: string[] = []
+    let finalTx: QiTransaction | null = null
+
+    try {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        for (const address of lastReservedChange) {
+          ;(qiWallet as any).setAddressStatus(address, QI_ADDRESS_STATUS.UNUSED)
+        }
+        lastReservedChange = []
+
+        selectedOutpoints = await this.chainService.getOutpointsForSending(
+          amountQit + feeQit,
+          10 + attempt * 10
+        )
+        qiWallet.importOutpoints(
+          selectedOutpoints.map((outpoint) => ({
+            outpoint: outpoint.outpoint,
+            address: outpoint.address,
+            zone: request.zone as Zone,
+            derivationPath: outpoint.derivationPath,
+          }))
+        )
+
+        const inputTotalQit = selectedOutpoints.reduce(
+          (sum, outpoint) => sum + outpoint.value,
+          0n
+        )
+        const changeQit = inputTotalQit - amountQit - feeQit
+        if (changeQit < 0n) {
+          throw new Error("Insufficient Qi inputs for outputs plus fee")
+        }
+
+        const inputAddresses = new Set(selectedOutpoints.map((outpoint) => outpoint.address))
+        for (const outputAddress of outputAddresses) {
+          if (inputAddresses.has(outputAddress)) {
+            throw new Error(`Qi output address ${outputAddress} also appears in inputs`)
+          }
+        }
+
+        const changeDenominations = denominateQit(changeQit)
+        const changeAddresses = this.reserveQiWalletAddresses(
+          qiWallet,
+          changeDenominations.length,
+          request.zone as Zone,
+          request.account,
+          "change",
+          new Set([...outputAddresses, ...inputAddresses])
+        )
+        lastReservedChange = changeAddresses
+
+        const tx = this.buildQiOutputsTransaction(
+          qiWallet,
+          selectedOutpoints,
+          request.outputs,
+          changeAddresses.map((address, index) => ({
+            address,
+            denomination: changeDenominations[index],
+          })),
+          request
+        )
+
+        const estimatedFee = await jsonRpcProvider.estimateFeeForQi(
+          this.toQiFeeEstimationTx(tx)
+        )
+        const nextFeeQit =
+          estimatedFee < 10n ? 10n : (BigInt(estimatedFee) * 11n) / 10n
+
+        if (feeQit >= nextFeeQit) {
+          finalTx = tx
+          break
+        }
+        feeQit = nextFeeQit
+      }
+
+      if (!finalTx) throw new Error("Failed to build Qi transaction")
+
+      const signedTx = await qiWallet.signTransaction(finalTx)
+      const response = (await jsonRpcProvider.broadcastTransaction(
+        request.zone as Zone,
+        signedTx
+      )) as QiTransactionResponse
+      signedTransactionHash = response.hash
+
+      await this.chainService.removeQiOutpoints(selectedOutpoints)
+      await this.keyringService.vaultManager.add(
+        { qiHDWallet: qiWallet.serialize() },
+        {}
+      )
+
+      const transaction = processSentQiTransaction(
+        qiWallet.getPaymentCode(0),
+        request.outputs.length === 1
+          ? request.outputs[0].address
+          : `${request.outputs.length} Qi outputs`,
+        response,
+        amountQit
+      )
+
+      await Promise.all([
+        this.saveQiTransaction(transaction),
+        this.subscribeToQiTransaction(transaction.hash),
+        this.chainService.syncQiWallet(),
+      ])
+      NotificationsManager.createSendQiTxNotification()
+      return signedTransactionHash
+    } catch (error: any) {
+      logger.error(`Failed to send Qi outputs: ${error?.message || error}`)
+      for (const address of lastReservedChange) {
+        try {
+          ;(qiWallet as any).setAddressStatus(address, QI_ADDRESS_STATUS.UNUSED)
+        } catch (_) {
+          // Best-effort address release on failure.
+        }
+      }
+      await this.keyringService.vaultManager.add(
+        { qiHDWallet: qiWallet.serialize() },
+        {}
+      )
+      await this.chainService.syncQiWallet()
+      throw error
+    }
+  }
+
+  public normalizeQiSendToOutputsRequest(
+    input: QiSendToOutputsRequest
+  ): NormalizedQiSendToOutputsRequest {
+    return normalizeQiOutputsRequest(input)
+  }
+
+  private reserveQiWalletAddresses(
+    qiWallet: any,
+    count: number,
+    zone: Zone,
+    account: number,
+    path: "external" | "change",
+    exclude: Set<string> = new Set()
+  ): string[] {
+    if (count === 0) return []
+    const wallet = path === "change" ? qiWallet.changeBip44 : qiWallet.externalBip44
+    if (!wallet) throw new Error(`Qi ${path} wallet is unavailable`)
+
+    const reserved: string[] = []
+    const take = (addressInfo: { address: string }) => {
+      if (reserved.includes(addressInfo.address) || exclude.has(addressInfo.address)) {
+        return false
+      }
+      reserved.push(addressInfo.address)
+      ;(qiWallet as any).setAddressStatus(
+        addressInfo.address,
+        QI_ADDRESS_STATUS.ATTEMPTED_USE
+      )
+      return true
+    }
+
+    for (const addressInfo of wallet.getAddressesInZone(zone)) {
+      if (reserved.length >= count) break
+      if (addressInfo.account !== account) continue
+      if (addressInfo.status !== QI_ADDRESS_STATUS.UNUSED) continue
+      take(addressInfo)
+    }
+
+    while (reserved.length < count) {
+      take(wallet.deriveNewAddress(zone, account))
+    }
+
+    return reserved
+  }
+
+  private buildQiOutputsTransaction(
+    qiWallet: any,
+    selectedOutpoints: QiOutpoint[],
+    outputs: NormalizedQiSendToOutputsRequest["outputs"],
+    changeOutputs: NormalizedQiSendToOutputsRequest["outputs"],
+    request: NormalizedQiSendToOutputsRequest
+  ): QiTransaction {
+    const tx = new QiTransaction()
+    tx.type = 2
+    tx.chainId = Number(this.chainService.selectedNetwork.chainID)
+    tx.txInputs = selectedOutpoints.map((outpoint) => {
+      const addressInfo = qiWallet.getAddressInfo(outpoint.address)
+      if (!addressInfo?.pubKey) {
+        throw new Error(`Missing public key for Qi input address ${outpoint.address}`)
+      }
+      return {
+        txhash: outpoint.outpoint.txhash,
+        index: outpoint.outpoint.index,
+        pubkey: addressInfo.pubKey,
+      }
+    })
+    tx.txOutputs = [...outputs, ...changeOutputs]
+    if (request.data) {
+      if (!isHexString(request.data)) {
+        throw new Error("Qi transaction data must be a hex string")
+      }
+      tx.data = getBytes(request.data)
+    }
+    return tx
+  }
+
+  private toQiFeeEstimationTx(tx: QiTransaction): {
+    txType: number
+    txIn: Array<{
+      previousOutpoint: { txHash: string; index: string }
+      pubkey: string
+    }>
+    txOut: Array<{ address: string; denomination: string }>
+  } {
+    return {
+      txType: 2,
+      txIn: tx.txInputs.map((input) => ({
+        previousOutpoint: {
+          txHash: input.txhash,
+          index: toQuantity(input.index),
+        },
+        pubkey: input.pubkey,
+      })),
+      txOut: tx.txOutputs.map((output) => ({
+        address: output.address,
+        denomination: toQuantity(output.denomination),
+      })),
+    }
   }
 
   public async convertQuaiToQi(

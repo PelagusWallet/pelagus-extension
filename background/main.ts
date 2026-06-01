@@ -94,6 +94,11 @@ import {
   transactionSigned,
   updateTransactionData,
 } from "./redux-slices/transaction-construction"
+import {
+  emitter as qiSendSliceEmitter,
+  clearQiDappRequest,
+  setQiDappSendRequest,
+} from "./redux-slices/qiSend"
 import { allAliases } from "./redux-slices/utils"
 import {
   emitter as providerBridgeSliceEmitter,
@@ -461,6 +466,11 @@ export default class Main extends BaseService<never> {
 
     // Start up the redux store and set it up for proxying.
     this.store = initializeStore(savedReduxState, this)
+
+    // A pending dapp Qi request may have been persisted before a restart; its
+    // in-memory promise/listeners are gone, so drop it to prevent a stale
+    // rehydrated request from being broadcast with no dapp awaiting it.
+    this.store.dispatch(clearQiDappRequest())
 
     wrapStore(this.store, {
       serializer: encodeJSON,
@@ -1356,6 +1366,74 @@ export default class Main extends BaseService<never> {
         transactionConstructionSliceEmitter.on(
           "sendTransactionRejected",
           rejectAndClear
+        )
+      }
+    )
+    this.internalQuaiProviderService.emitter.on(
+      "qiSendToOutputsRequest",
+      async ({ payload, resolver, rejecter }) => {
+        const { requestId } = payload
+        this.store.dispatch(setQiDappSendRequest(payload))
+
+        const clear = () => {
+          qiSendSliceEmitter.off(
+            "dappSendTransactionResponse",
+            // Mutual dependency to handleAndClear.
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            handleAndClear
+          )
+          qiSendSliceEmitter.off(
+            "dappSendTransactionRejected",
+            // Mutual dependency to rejectAndClear.
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            rejectAndClear
+          )
+          this.internalQuaiProviderService.emitter.off(
+            "qiSendToOutputsRejected",
+            // Mutual dependency to onProviderReject.
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            onProviderReject
+          )
+        }
+
+        // Clear only the dapp request slot — never the manual send flow's
+        // state — then detach this request's listeners.
+        const finish = () => {
+          clear()
+          this.store.dispatch(clearQiDappRequest())
+        }
+
+        const handleAndClear = (data: {
+          requestId: string
+          txHash: string
+        }) => {
+          if (data.requestId !== requestId) return
+          finish()
+          resolver(data.txHash)
+        }
+
+        const rejectAndClear = (data: {
+          requestId: string
+          message?: string
+        }) => {
+          if (data.requestId !== requestId) return
+          finish()
+          // Forward the real failure reason so the dapp can tell a send error
+          // apart from a user rejection.
+          rejecter(data.message ? new Error(data.message) : undefined)
+        }
+
+        const onProviderReject = (data: { requestId: string }) => {
+          if (data.requestId !== requestId) return
+          finish()
+          rejecter()
+        }
+
+        qiSendSliceEmitter.on("dappSendTransactionResponse", handleAndClear)
+        qiSendSliceEmitter.on("dappSendTransactionRejected", rejectAndClear)
+        this.internalQuaiProviderService.emitter.on(
+          "qiSendToOutputsRejected",
+          onProviderReject
         )
       }
     )

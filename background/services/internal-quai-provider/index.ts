@@ -49,7 +49,11 @@ import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
-import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
+import {
+  NormalizedQiSendToOutputsRequest,
+  QuaiTransactionRequestWithAnnotation,
+  QiSendToOutputsRequest,
+} from "../transactions/types"
 import { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { ProviderBridgeDatabase } from "../provider-bridge/db"
 
@@ -103,11 +107,26 @@ type Events = ServiceLifecycleEvents & {
   >
   signTypedDataRequest: DAppRequestEvent<SignTypedDataRequest, string>
   signDataRequest: DAppRequestEvent<MessageSigningRequest, string>
+  // Bespoke shape (not DAppRequestEvent) because the Qi rejecter carries the
+  // real failure reason so the dapp can distinguish a send error from a
+  // user rejection.
+  qiSendToOutputsRequest: {
+    payload: NormalizedQiSendToOutputsRequest & { requestId: string }
+    resolver: (result: string | PromiseLike<string>) => void
+    rejecter: (reason?: Error) => void
+  }
+  qiSendToOutputsRejected: { requestId: string }
   selectedNetwork: NetworkInterface
   watchAssetRequest: { contractAddress: string; network: NetworkInterface }
 }
 
 export default class InternalQuaiProviderService extends BaseService<Events> {
+  // Pending dapp Qi send requests, keyed by a unique per-request id. Only one
+  // request may be in flight at a time (the confirmation UI has a single slot).
+  private qiSendRejecters = new Map<string, (reason?: Error) => void>()
+
+  private qiSendRequestCounter = 0
+
   static create: ServiceCreatorFunction<
     Events,
     InternalQuaiProviderService,
@@ -225,6 +244,16 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           },
           origin
         )
+
+      case "qi_getReceiveAddresses":
+        return this.transactionsService.getQiReceiveAddresses(
+          (params[0] as { count?: number; zone?: string; account?: number }) || {}
+        )
+
+      // qi_sendToOutputs / qi_sendTransaction are handled by the provider
+      // bridge's routeQiSendRequest, which owns the confirmation popup and
+      // drives prepareQiSendRequest + awaitQiSendConfirmation directly. They
+      // never flow through this generic dispatch.
 
       case "quai_blockNumber":
       case "eth_blockNumber": {
@@ -605,6 +634,79 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         rejecter: reject,
       })
     })
+  }
+
+  /**
+   * Validates a Qi send request and reserves the single in-flight slot,
+   * returning a unique request id and the normalized request. Runs
+   * synchronously so that invalid params or a busy wallet throw BEFORE any
+   * confirmation popup is opened (no focus-stealing strobe, no hang). The
+   * returned id scopes the popup's close-to-reject so it can only cancel its
+   * own request.
+   */
+  prepareQiSendRequest(
+    request: QiSendToOutputsRequest,
+    origin: string
+  ): {
+    requestId: string
+    normalized: NormalizedQiSendToOutputsRequest
+  } {
+    if (this.qiSendRejecters.size > 0) {
+      throw new Error("Another Qi transaction is awaiting confirmation")
+    }
+    const normalized = this.transactionsService.normalizeQiSendToOutputsRequest({
+      ...(request || {}),
+      origin,
+    })
+    this.qiSendRequestCounter += 1
+    const requestId = `qi-send-${this.qiSendRequestCounter}`
+    return { requestId, normalized }
+  }
+
+  /**
+   * Emits the confirmation request and resolves/rejects once the user acts.
+   * Must be called synchronously right after prepareQiSendRequest so the
+   * rejecter is registered before the popup can be closed.
+   */
+  awaitQiSendConfirmation(
+    requestId: string,
+    normalized: NormalizedQiSendToOutputsRequest
+  ): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      const doReject = (reason?: Error) => {
+        if (this.qiSendRejecters.get(requestId) === doReject) {
+          this.qiSendRejecters.delete(requestId)
+        }
+        reject(reason ?? new Error("Qi transaction rejected"))
+      }
+      const doResolve = (txHash: string | PromiseLike<string>) => {
+        if (this.qiSendRejecters.get(requestId) === doReject) {
+          this.qiSendRejecters.delete(requestId)
+        }
+        resolve(txHash)
+      }
+      this.qiSendRejecters.set(requestId, doReject)
+
+      this.emitter.emit("qiSendToOutputsRequest", {
+        payload: { ...normalized, requestId },
+        resolver: doResolve,
+        rejecter: doReject,
+      })
+    })
+  }
+
+  /**
+   * Rejects the pending Qi send request identified by requestId, if any. A
+   * no-op when nothing is pending for that id (e.g. the popup being closed
+   * programmatically after the request already settled), so it can't cancel an
+   * unrelated request.
+   */
+  rejectQiSendToOutputs(requestId: string): void {
+    const rejecter = this.qiSendRejecters.get(requestId)
+    if (!rejecter) return
+    this.emitter.emit("qiSendToOutputsRejected", { requestId })
+    // doReject() removes its own map entry and rejects the pending promise.
+    rejecter()
   }
 
   private async signTypedData(params: SignTypedDataRequest) {

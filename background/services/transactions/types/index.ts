@@ -65,3 +65,40 @@ export type QuaiTransactionRequestWithAnnotation = QuaiTransactionRequest & {
   annotation?: TransactionAnnotation
   network: NetworkInterface
 }
+
+export type QiOutputRequest = {
+  address: string
+  denomination?: number | string
+  amountQit?: BigNumberish
+  valueQit?: BigNumberish
+}
+
+export type QiSendToOutputsRequest = {
+  outputs?: QiOutputRequest[]
+  txOutputs?: QiOutputRequest[]
+  qiOutputs?: QiOutputRequest[]
+  qiEscrowOutputs?: QiOutputRequest[]
+  zone?: string
+  account?: number
+  data?: string
+  origin?: string
+  label?: string
+  tradeHash?: string
+}
+
+export type NormalizedQiSendToOutputsRequest = {
+  outputs: Array<{
+    address: string
+    denomination: number
+  }>
+  amountQit: string
+  zone: string
+  account: number
+  data?: string
+  origin?: string
+  label?: string
+  tradeHash?: string
+  // Unique id assigned when the request enters the confirmation flow; used to
+  // correlate the confirmation/rejection back to the exact pending request.
+  requestId?: string
+}

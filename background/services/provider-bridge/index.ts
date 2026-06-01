@@ -31,6 +31,7 @@ import {
   checkPermissionSignTypedData,
 } from "./authorization"
 import showExtensionPopup from "./show-popup"
+import { QiSendToOutputsRequest } from "../transactions/types"
 import { HexString } from "../../types"
 import {
   handleRPCErrorResponse,
@@ -512,6 +513,47 @@ export default class ProviderBridgeService extends BaseService<Events> {
       })
   }
 
+  async routeQiSendRequest(
+    params: unknown[],
+    origin: string
+  ): Promise<unknown> {
+    // Validate + reserve the single in-flight slot BEFORE opening a popup, so
+    // invalid params or a busy wallet reject the dapp without flashing a
+    // focus-stealing window. Throws propagate straight back to the dapp.
+    const { requestId, normalized } =
+      this.internalQuaiProviderService.prepareQiSendRequest(
+        params[0] as QiSendToOutputsRequest,
+        origin
+      )
+
+    const popupPromise = showExtensionPopup(
+      AllowedQueryParamPage.qiSendTransaction,
+      {},
+      // Scoped to this request id, so closing this popup can only reject this
+      // request — never a newer one that arrived after it settled.
+      () => this.internalQuaiProviderService.rejectQiSendToOutputs(requestId)
+    )
+    // If the popup can't be created, reject the pending request so the dapp
+    // doesn't hang forever waiting on a confirmation UI that never appeared.
+    popupPromise.catch(() =>
+      this.internalQuaiProviderService.rejectQiSendToOutputs(requestId)
+    )
+
+    try {
+      return await this.internalQuaiProviderService.awaitQiSendConfirmation(
+        requestId,
+        normalized
+      )
+    } finally {
+      // Swallow popup-creation failures so they can't mask the RPC
+      // request's actual result or error.
+      const popup = await popupPromise.catch(() => undefined)
+      if (popup && typeof popup.id !== "undefined") {
+        await browser.windows.remove(popup.id).catch(() => undefined)
+      }
+    }
+  }
+
   async routeContentScriptRPCRequest(
     enablingPermission: PermissionRequest,
     method: string,
@@ -576,6 +618,18 @@ export default class ProviderBridgeService extends BaseService<Events> {
             origin,
             showExtensionPopup(AllowedQueryParamPage.personalSignData)
           )
+
+        case "qi_getReceiveAddresses":
+          return await this.internalQuaiProviderService.routeSafeRPCRequest(
+            method,
+            params,
+            origin
+          )
+
+        case "qi_sendToOutputs":
+        case "qi_sendTransaction":
+          return await this.routeQiSendRequest(params, origin)
+
         case "quai_sendTransaction":
         case "eth_sendTransaction":
           // TODO check this checkPermissionSignTransaction function in future

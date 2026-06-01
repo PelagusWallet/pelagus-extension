@@ -616,6 +616,12 @@
       "sendQi": {
         "headerTitle": "Transaction Confirmed!",
         "title": "Your transaction was successfully confirmed"
+      },
+      "dappQi": {
+        "title": "Native Qi transaction",
+        "denomination": "denom {{denomination}}",
+        "trade": "Trade {{tradeHash}}",
+        "qitUnit": "qit"
       }
     }
   }

@@ -49,7 +49,11 @@ import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
-import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
+import {
+  NormalizedQiSendToOutputsRequest,
+  QuaiTransactionRequestWithAnnotation,
+  QiSendToOutputsRequest,
+} from "../transactions/types"
 import { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { ProviderBridgeDatabase } from "../provider-bridge/db"
 
@@ -103,11 +107,18 @@ type Events = ServiceLifecycleEvents & {
   >
   signTypedDataRequest: DAppRequestEvent<SignTypedDataRequest, string>
   signDataRequest: DAppRequestEvent<MessageSigningRequest, string>
+  qiSendToOutputsRequest: DAppRequestEvent<
+    NormalizedQiSendToOutputsRequest,
+    string
+  >
+  qiSendToOutputsRejected: { origin: string }
   selectedNetwork: NetworkInterface
   watchAssetRequest: { contractAddress: string; network: NetworkInterface }
 }
 
 export default class InternalQuaiProviderService extends BaseService<Events> {
+  private qiSendRejecters = new Map<string, () => void>()
+
   static create: ServiceCreatorFunction<
     Events,
     InternalQuaiProviderService,
@@ -225,6 +236,15 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           },
           origin
         )
+
+      case "qi_getReceiveAddresses":
+        return this.transactionsService.getQiReceiveAddresses(
+          (params[0] as { count?: number; zone?: string; account?: number }) || {}
+        )
+
+      case "qi_sendToOutputs":
+      case "qi_sendTransaction":
+        return this.sendQiToOutputs(params[0] as QiSendToOutputsRequest, origin)
 
       case "quai_blockNumber":
       case "eth_blockNumber": {
@@ -605,6 +625,39 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         rejecter: reject,
       })
     })
+  }
+
+  private async sendQiToOutputs(
+    request: QiSendToOutputsRequest,
+    origin: string
+  ): Promise<string> {
+    const normalized = this.transactionsService.normalizeQiSendToOutputsRequest({
+      ...(request || {}),
+      origin,
+    })
+
+    return new Promise<string>((resolve, reject) => {
+      this.qiSendRejecters.set(origin, reject)
+      this.emitter.emit("qiSendToOutputsRequest", {
+        payload: normalized,
+        resolver: (txHash) => {
+          this.qiSendRejecters.delete(origin)
+          resolve(txHash)
+        },
+        rejecter: () => {
+          this.qiSendRejecters.delete(origin)
+          reject(new Error("Qi transaction rejected"))
+        },
+      })
+    })
+  }
+
+  rejectQiSendToOutputs(origin: string): void {
+    this.emitter.emit("qiSendToOutputsRejected", { origin })
+    const rejecter = this.qiSendRejecters.get(origin)
+    if (!rejecter) return
+    this.qiSendRejecters.delete(origin)
+    rejecter()
   }
 
   private async signTypedData(params: SignTypedDataRequest) {

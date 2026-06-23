@@ -92,3 +92,71 @@ export type PelagusAccountPayload = {
   method: typeof PELAGUS_ACCOUNT_CHANGED_METHOD
   address: Array<string>
 }
+
+export type PelagusQNSAnchorPayload = {
+  version: number
+  flags: number
+  chainId: string
+  moduleAddress: string
+  topology: string
+  manifestHash: string
+  encodedAnchor: string
+}
+
+export type PelagusQNSResolveNameResult = {
+  active: boolean | null
+  name: string
+  normalizedName: string
+  nameHash: string
+  owner: string | null
+  anchor: PelagusQNSAnchorPayload | null
+  chainId: string
+  qnnsAddress: string | null
+  qnsNameResolverAddress: string | null
+  qnsAnchorRegistryAddress: string | null
+}
+
+export type PelagusQNSModuleManifestPayload = {
+  version: number
+  topology: string
+  rendererId: string
+  contentMode: string
+  title: string
+  defaultRoute: string
+  permissionPolicy: {
+    flags: number
+    providerMethodIds: string[]
+  }
+  resourceBudget: {
+    maxManifestBytes: number
+    maxRoutePayloadBytes: number
+    maxContractReads: number
+    maxTotalLoadedBytes: number
+    maxRenderMillis: number
+  }
+  topologyData: string
+}
+
+export type PelagusQNSGetModuleResult = {
+  nameHash: string
+  anchor: PelagusQNSAnchorPayload | null
+  moduleAddress: string
+  moduleVersion: number
+  topology: string
+  manifestHash: string
+  manifest: string
+  manifestDecoded: PelagusQNSModuleManifestPayload
+  title: string
+  defaultRoute: string
+  rendererId: string
+  supported: boolean
+  verified: boolean
+  chainId: string
+}
+
+export type PelagusQNSOpenResult = {
+  url: string
+  chainId: string
+  resolution?: PelagusQNSResolveNameResult
+  module?: PelagusQNSGetModuleResult
+}

@@ -94,6 +94,11 @@ import {
   transactionSigned,
   updateTransactionData,
 } from "./redux-slices/transaction-construction"
+import {
+  emitter as qiSendSliceEmitter,
+  resetQiSendSlice,
+  setQiDappSendRequest,
+} from "./redux-slices/qiSend"
 import { allAliases } from "./redux-slices/utils"
 import {
   emitter as providerBridgeSliceEmitter,
@@ -1357,6 +1362,55 @@ export default class Main extends BaseService<never> {
           "sendTransactionRejected",
           rejectAndClear
         )
+      }
+    )
+    this.internalQuaiProviderService.emitter.on(
+      "qiSendToOutputsRequest",
+      async ({ payload, resolver, rejecter }) => {
+        this.store.dispatch(setQiDappSendRequest(payload))
+
+        const clear = () => {
+          qiSendSliceEmitter.off(
+            "dappSendTransactionResponse",
+            // Mutual dependency to handleAndClear.
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            handleAndClear
+          )
+          qiSendSliceEmitter.off(
+            "dappSendTransactionRejected",
+            // Mutual dependency to rejectAndClear.
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            rejectAndClear
+          )
+        }
+
+        const handleAndClear = ({ txHash }: { txHash: string }) => {
+          clear()
+          resolver(txHash)
+        }
+
+        const rejectAndClear = () => {
+          clear()
+          rejecter()
+        }
+
+        qiSendSliceEmitter.on(
+          "dappSendTransactionResponse",
+          handleAndClear
+        )
+        qiSendSliceEmitter.on(
+          "dappSendTransactionRejected",
+          rejectAndClear
+        )
+      }
+    )
+    this.internalQuaiProviderService.emitter.on(
+      "qiSendToOutputsRejected",
+      async () => {
+        this.store.dispatch(resetQiSendSlice())
+        await qiSendSliceEmitter.emit("dappSendTransactionRejected", {
+          message: "Qi transaction rejected",
+        })
       }
     )
     this.internalQuaiProviderService.emitter.on(

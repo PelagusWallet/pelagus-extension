@@ -1,8 +1,14 @@
 import React, { useEffect, useState, useRef } from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
-import { sendQiTransaction } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import {
+  rejectDappQiTransaction,
+  sendDappQiTransaction,
+  sendQiTransaction,
+} from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { NormalizedQiSendToOutputsRequest } from "@pelagus/pelagus-background/services/transactions/types"
 import { useTranslation } from "react-i18next"
+import { formatQi } from "quais"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import AccountsNotificationPanel from "../../components/AccountsNotificationPanel/AccountsNotificationPanel"
@@ -16,6 +22,89 @@ interface AsyncThunkResult {
   error?: { message: string }
 }
 
+const short = (value: string) =>
+  value.length > 18 ? `${value.slice(0, 8)}...${value.slice(-6)}` : value
+
+const formatQit = (value: string) => {
+  try {
+    return `${formatQi(BigInt(value))} QI`
+  } catch (_) {
+    return `${value} qit`
+  }
+}
+
+function DappQiTransactionDetails({
+  request,
+}: {
+  request: NormalizedQiSendToOutputsRequest
+}) {
+  return (
+    <>
+      <section className="dapp-qi">
+        <p className="eyebrow">Native Qi transaction</p>
+        <h1>{formatQit(request.amountQit)}</h1>
+        {request.origin && <p className="origin">{request.origin}</p>}
+        <div className="outputs">
+          {request.outputs.map((output, index) => (
+            <div className="output" key={`${output.address}-${index}`}>
+              <span>{short(output.address)}</span>
+              <b>denom {output.denomination}</b>
+            </div>
+          ))}
+        </div>
+        {request.tradeHash && (
+          <p className="trade">Trade {short(request.tradeHash)}</p>
+        )}
+      </section>
+      <style jsx>{`
+        .dapp-qi {
+          padding: 20px 16px;
+          margin: 8px 0 14px;
+          border-radius: 8px;
+          background: var(--secondary-bg);
+        }
+        .eyebrow,
+        .origin,
+        .trade {
+          margin: 0;
+          color: var(--secondary-text);
+          font-size: 12px;
+          line-height: 18px;
+          font-weight: 500;
+        }
+        h1 {
+          margin: 4px 0 8px;
+          color: var(--primary-text);
+          font-size: 28px;
+          line-height: 34px;
+          font-weight: 600;
+        }
+        .outputs {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin: 16px 0 0;
+        }
+        .output {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 10px 0;
+          border-top: 1px solid var(--tertiary-bg);
+          color: var(--primary-text);
+          font-size: 13px;
+        }
+        .output b {
+          white-space: nowrap;
+        }
+        .trade {
+          margin-top: 12px;
+        }
+      `}</style>
+    </>
+  )
+}
+
 const ConfirmTransactionPage = () => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
@@ -26,7 +115,7 @@ const ConfirmTransactionPage = () => {
     keyPrefix: "drawers.transactionConfirmation",
   })
 
-  const { senderQuaiAccount, channelExists } = useBackgroundSelector(
+  const { senderQuaiAccount, channelExists, dappRequest } = useBackgroundSelector(
     (state) => state.qiSend
   )
   const { balance: quaiBalance = "" } = senderQuaiAccount ?? {}
@@ -68,7 +157,9 @@ const ConfirmTransactionPage = () => {
     setTransactionHash("")
 
     try {
-      const result = await dispatch(sendQiTransaction()) as AsyncThunkResult
+      const result = (await dispatch(
+        dappRequest ? sendDappQiTransaction() : sendQiTransaction()
+      )) as AsyncThunkResult
       console.log("result", result)
       if (result?.txHash) {
         setTransactionHash(result.txHash)
@@ -119,15 +210,28 @@ const ConfirmTransactionPage = () => {
     <>
       <main className="confirm-transaction-wrapper">
         <SharedGoBackPageHeader title="Confirm Transaction" />
-        <ConfirmTransaction isInsufficientQuai={isInsufficientQuai} />
+        {dappRequest ? (
+          <DappQiTransactionDetails request={dappRequest} />
+        ) : (
+          <ConfirmTransaction isInsufficientQuai={isInsufficientQuai} />
+        )}
         <SharedActionButtons
           title={{ confirmTitle: "Send", cancelTitle: "Back" }}
           isConfirmDisabled={
-            !channelExists && (!senderQuaiAccount || isInsufficientQuai)
+            !dappRequest &&
+            !channelExists &&
+            (!senderQuaiAccount || isInsufficientQuai)
           }
           onClick={{
             onConfirm: onSendQiTransaction,
-            onCancel: () => history.push("-1"),
+            onCancel: () => {
+              if (dappRequest) {
+                dispatch(rejectDappQiTransaction())
+                window.close()
+                return
+              }
+              history.push("-1")
+            },
           }}
           isLoading={isConfirmLoading}
         />

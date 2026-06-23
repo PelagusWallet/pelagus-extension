@@ -24,6 +24,7 @@ const baseConfig: Configuration = {
     popup: "./src/popup.ts",
     tab: "./src/tab.ts",
     background: "./src/background.ts",
+    "qns-renderer": "./src/qns-renderer.ts",
     offscreen: "./src/offscreen.ts",
     "window-provider": "./src/window-provider.ts",
     "provider-bridge": "./src/provider-bridge.ts",

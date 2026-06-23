@@ -51,6 +51,9 @@
     "default_title": "Pelagus",
     "default_popup": "popup.html"
   },
+  "omnibox": {
+    "keyword": "qns"
+  },
   "permissions": [
     "alarms",
     "storage",
@@ -58,7 +61,12 @@
     "activeTab",
     "offscreen",
     "clipboardWrite",
-    "notifications"
+    "notifications",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "http://*.quai/*",
+    "https://*.quai/*"
   ],
   "background": {
     "service_worker": "background.js"

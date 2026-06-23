@@ -7,6 +7,9 @@ import {
   PELAGUS_GET_CONFIG_METHOD,
   PELAGUS_HEALTH_CHECK_METHOD,
   PELAGUS_METHODS_PREFIX,
+  PELAGUS_QNS_GET_MODULE_METHOD,
+  PELAGUS_QNS_OPEN_METHOD,
+  PELAGUS_QNS_RESOLVE_NAME_METHOD,
   PELAGUS_ACCOUNT_CHANGED_METHOD,
   isPelagusConfigPayload,
   isPelagusPortHealthCheck,
@@ -39,6 +42,7 @@ import {
   validateAddEthereumChainParameter,
   ValidatedAddEthereumChainParameter,
 } from "./utils"
+import { handleQNSProviderMethod } from "./qns-modules"
 import { toHexChainID } from "../../networks"
 import { PELAGUS_INTERNAL_ORIGIN } from "../internal-quai-provider/constants"
 
@@ -180,13 +184,30 @@ export default class ProviderBridgeService extends BaseService<Events> {
       }
     } else if (event.request.method.startsWith(PELAGUS_METHODS_PREFIX)) {
       switch (event.request.method) {
+        case PELAGUS_QNS_RESOLVE_NAME_METHOD:
+        case PELAGUS_QNS_GET_MODULE_METHOD:
+        case PELAGUS_QNS_OPEN_METHOD:
+          try {
+            response.result = await handleQNSProviderMethod({
+              method: event.request.method,
+              params: event.request.params,
+              origin,
+              chainId: network.chainID,
+              routeSafeRPCRequest:
+                this.internalQuaiProviderService.routeSafeRPCRequest.bind(
+                  this.internalQuaiProviderService
+                ),
+            })
+          } catch (error) {
+            response.result = handleRPCErrorResponse(error)
+          }
+          break
         default:
           logger.debug(
             `Unknown method ${event.request.method} in 'ProviderBridgeService'`
           )
+          response.result = null
       }
-
-      response.result = null
     } else if (
       event.request.method === "quai_chainId" ||
       event.request.method === "eth_chainId" ||

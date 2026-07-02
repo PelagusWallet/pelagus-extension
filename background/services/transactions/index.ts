@@ -2144,8 +2144,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   /**
-   * Handles a successful Qi-to-Quai conversion. Marks the refund address as UNUSED
-   * so it can be reused by future transactions.
+   * Handles a successful Qi-to-Quai conversion by marking the local transaction
+   * record as confirmed.
    */
   private async handleConversionSucceeded(txHash: string): Promise<void> {
     const transaction = await this.db.getQiTransactionByHash(txHash)

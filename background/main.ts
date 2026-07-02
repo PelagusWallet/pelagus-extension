@@ -1426,7 +1426,6 @@ export default class Main extends BaseService<never> {
         const onProviderReject = (data: { requestId: string }) => {
           if (data.requestId !== requestId) return
           finish()
-          rejecter()
         }
 
         qiSendSliceEmitter.on("dappSendTransactionResponse", handleAndClear)

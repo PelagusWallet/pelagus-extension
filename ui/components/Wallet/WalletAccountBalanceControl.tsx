@@ -11,7 +11,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { resetConvertAssetsSlice } from "@pelagus/pelagus-background/redux-slices/convertAssets"
-import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { resetManualQiSendState } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
@@ -55,15 +55,13 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               return
             }
 
-            await dispatch(resetQiSendSlice())
+            await dispatch(resetManualQiSendState())
             history.push("/send-qi")
           }}
           size={70}
           iconWidth="20"
           iconHeight="26"
-          disabled={
-            currentSelectedAccount.network.chainID === "9000"
-          }
+          disabled={currentSelectedAccount.network.chainID === "9000"}
         >
           {t("send")}
         </SharedCircleButton>
@@ -79,7 +77,6 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         </SharedCircleButton>
 
         {isUtxoSelected ? (
-
           <SharedCircleButton
             icon="icons/s/swap.svg"
             ariaLabel={t("wrap")}
@@ -95,8 +92,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             iconHeight="26"
             disabled={!isQiWalletInit}
             width="100%"
-            >
-              {t("wrap")}
+          >
+            {t("wrap")}
           </SharedCircleButton>
         ) : (
           <>
@@ -132,8 +129,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           iconWidth="28"
           iconHeight="26"
           disabled={
-            !isQiWalletInit ||
-            currentSelectedAccount.network.chainID === "9000"
+            !isQiWalletInit || currentSelectedAccount.network.chainID === "9000"
           }
         >
           {t("convert")}

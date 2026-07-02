@@ -78,6 +78,14 @@ const qiSendSlice = createSlice({
     clearQiDappRequest: (immerState) => {
       immerState.dappRequest = null
     },
+    resetManualQiSendState: (immerState) => {
+      immerState.senderQiAccount = null
+      immerState.senderQuaiAccount = null
+      immerState.amount = ""
+      immerState.receiverPaymentCode = ""
+      immerState.channelExists = false
+      immerState.isSending = false
+    },
     resetQiSendSlice: (immerState) => {
       immerState.senderQiAccount = null
       immerState.senderQuaiAccount = null
@@ -99,6 +107,7 @@ export const {
   setQiSending,
   setQiDappSendRequest,
   clearQiDappRequest,
+  resetManualQiSendState,
   resetQiSendSlice,
 } = qiSendSlice.actions
 
@@ -140,7 +149,7 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
         receiverPaymentCode
       )
 
-      dispatch(resetQiSendSlice())
+      dispatch(resetManualQiSendState())
       return { txHash }
     } catch (error: any) {
       console.log("error in sendQiTransaction", error)
@@ -163,11 +172,18 @@ export const sendDappQiTransaction = createBackgroundAsyncThunk(
       // Nothing pending to settle; surface the error to the UI only.
       return { error: { message: "No pending Qi dapp transaction" } }
     }
-    if (qiSend.isSending) {
-      return { error: { message: "Transaction already in progress" } }
-    }
 
     const requestId = request.requestId ?? ""
+    if (qiSend.isSending) {
+      // Another send (manual or dapp) owns the wallet. Settle the dapp promise
+      // and release the in-flight slot instead of returning silently — leaving
+      // it pending would hang the dapp and block every future Qi send as "busy".
+      // Do NOT touch isSending here: it belongs to the send already running.
+      const message = "Transaction already in progress"
+      await emitter.emit("dappSendTransactionRejected", { requestId, message })
+      return { error: { message } }
+    }
+
     dispatch(setQiSending(true))
     try {
       const txHash = await main.transactionService.sendQiToOutputs(request)

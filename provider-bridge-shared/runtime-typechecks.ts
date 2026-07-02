@@ -67,11 +67,11 @@ export const AllowedQueryParamPage = {
   dappPermission: "/dapp-permission",
   signData: "/sign-data",
   personalSignData: "/personal-sign",
-  qiSendTransaction: "/send-qi/confirmation",
+  qiSendTransaction: "/send-qi/dapp-confirmation",
 } as const
 
 export type AllowedQueryParamPageType =
-  typeof AllowedQueryParamPage[keyof typeof AllowedQueryParamPage]
+  (typeof AllowedQueryParamPage)[keyof typeof AllowedQueryParamPage]
 
 export function isAllowedQueryParamPage(
   url: unknown

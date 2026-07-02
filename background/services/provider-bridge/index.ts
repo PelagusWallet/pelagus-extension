@@ -526,6 +526,11 @@ export default class ProviderBridgeService extends BaseService<Events> {
         origin
       )
 
+    const confirmationPromise =
+      this.internalQuaiProviderService.awaitQiSendConfirmation(
+        requestId,
+        normalized
+      )
     const popupPromise = showExtensionPopup(
       AllowedQueryParamPage.qiSendTransaction,
       {},
@@ -540,10 +545,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     )
 
     try {
-      return await this.internalQuaiProviderService.awaitQiSendConfirmation(
-        requestId,
-        normalized
-      )
+      return await confirmationPromise
     } finally {
       // Swallow popup-creation failures so they can't mask the RPC
       // request's actual result or error.

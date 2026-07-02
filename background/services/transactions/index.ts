@@ -3,9 +3,8 @@ import {
   QuaiTransactionRequest,
   QuaiTransactionResponse,
 } from "quais/lib/commonjs/providers"
-// AddressStatus enum values from quais - inlined to avoid module resolution issues
-const QI_ADDRESS_STATUS = { UNUSED: 'UNUSED', USED: 'USED', ATTEMPTED_USE: 'ATTEMPTED_USE', UNKNOWN: 'UNKNOWN' } as const
 import {
+  AddressStatus,
   Contract,
   denominations,
   getBytes,
@@ -58,6 +57,7 @@ const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
 const QI_DAPP_SEND_MAX_OUTPUTS = 128
+const QI_RECEIVE_ADDRESS_MAX_COUNT = 32
 
 const ZONE_ALIASES: Record<string, Zone> = {
   "0x00": Zone.Cyprus1,
@@ -185,6 +185,32 @@ function normalizeAccount(value: unknown): number {
     throw new Error("account must be a non-negative integer")
   }
   return account
+}
+
+function normalizeQiReceiveCount(value: unknown): number {
+  if (value === undefined || value === null || value === "") return 1
+  // Reject values Number() would silently coerce (arrays, booleans, hex, blank).
+  if (typeof value !== "number" && typeof value !== "string") {
+    throw new Error(
+      `count must be an integer between 1 and ${QI_RECEIVE_ADDRESS_MAX_COUNT}`
+    )
+  }
+  if (typeof value === "string" && !/^\d+$/.test(value.trim())) {
+    throw new Error(
+      `count must be an integer between 1 and ${QI_RECEIVE_ADDRESS_MAX_COUNT}`
+    )
+  }
+  const count = typeof value === "number" ? value : Number(value.trim())
+  if (
+    !Number.isInteger(count) ||
+    count <= 0 ||
+    count > QI_RECEIVE_ADDRESS_MAX_COUNT
+  ) {
+    throw new Error(
+      `count must be an integer between 1 and ${QI_RECEIVE_ADDRESS_MAX_COUNT}`
+    )
+  }
+  return count
 }
 
 function denominateQit(value: bigint): number[] {
@@ -685,19 +711,24 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   public async getQiReceiveAddresses(input: {
-    count?: number | string
-    zone?: string
-    account?: number | string
+    count?: unknown
+    zone?: unknown
+    account?: unknown
   } = {}): Promise<string[]> {
     const zone = normalizeQiZone(input.zone, Zone.Cyprus1)
-    const count = input.count === undefined ? 1 : Number(input.count)
-    const account = input.account === undefined ? 0 : Number(input.account)
-
-    if (!Number.isInteger(count) || count <= 0 || count > 128) {
-      throw new Error("count must be an integer between 1 and 128")
+    // The wallet only syncs/scans Cyprus1, so handing out receive addresses in
+    // any other zone would produce funds the wallet can never see or spend.
+    if (!VALID_ZONES.includes(zone)) {
+      throw new Error(`Qi is not supported in zone ${String(input.zone)}`)
     }
-    if (!Number.isInteger(account) || account < 0) {
-      throw new Error("account must be a non-negative integer")
+    const count = normalizeQiReceiveCount(input.count)
+    const account = normalizeAccount(input.account)
+
+    // Public dapp-facing receive address requests are intentionally pinned to
+    // account 0. Without a consent/rate-limit layer, arbitrary account indexes
+    // let a permissioned origin grow the encrypted vault by looping accounts.
+    if (account !== 0) {
+      throw new Error("account must be 0")
     }
 
     const qiWallet = await this.keyringService.getQiHDWallet()
@@ -898,25 +929,36 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       reservedSet.add(address)
     }
 
-    // Reuse already-derived, still-unused EXTERNAL (receive) addresses first so
-    // a dapp hammering qi_getReceiveAddresses doesn't grow the derivation index
-    // without bound and push funded addresses past the restore gap limit.
+    // Reuse already-derived, not-yet-used addresses first (for BOTH receive and
+    // change) so repeated sends / qi_getReceiveAddresses calls don't advance the
+    // derivation index without bound. This is critical: quais' restore/rescan
+    // stops after `gapLimit` (5) consecutive unused addresses, so a run of
+    // derived-but-unfunded addresses ahead of a funded one makes the funded
+    // address (e.g. change) unrecoverable on restore.
     //
-    // CHANGE addresses are intentionally NOT reused: an unfunded change address
-    // stays UNUSED until its tx is mined, so reusing it would route two
-    // different transactions' change to the same address (reuse/privacy bug).
-    if (path === "external") {
-      const existing: Array<{
-        address: string
-        account: number
-        status: string
-      }> = qiWallet.getAddressesForZone(zone)
-      for (const info of existing) {
-        if (reserved.length >= count) break
-        if (info.account !== account) continue
-        if (info.status !== QI_ADDRESS_STATUS.UNUSED) continue
-        take(info.address)
+    // A freshly derived address has status UNKNOWN and only becomes UNUSED after
+    // a sync confirms it, so we must treat UNKNOWN as reusable too — otherwise
+    // (before the next sync) reuse never fires and every call derives afresh.
+    // Reusing an as-yet-unmined change address across two sends is a minor
+    // address-reuse tradeoff, far preferable to losing funds past the gap limit.
+    const existing: Array<{
+      address: string
+      account: number
+      status: string
+    }> =
+      path === "change"
+        ? qiWallet.getChangeAddressesForZone(zone)
+        : qiWallet.getAddressesForZone(zone)
+    for (const info of existing) {
+      if (reserved.length >= count) break
+      if (info.account !== account) continue
+      if (
+        info.status !== AddressStatus.UNUSED &&
+        info.status !== AddressStatus.UNKNOWN
+      ) {
+        continue
       }
+      take(info.address)
     }
 
     // Derive fresh addresses (public API: advances the index and persists via

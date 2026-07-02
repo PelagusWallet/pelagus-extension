@@ -1,34 +1,41 @@
-import React, { useEffect, useState } from "react"
+import React, { ReactElement, useCallback, useEffect, useState } from "react"
 import {
   setShowingAccountsModal,
   setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
-import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { resetManualQiSendState } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedDropdown, { DropdownOption } from "../../../../SharedDropDown"
 import {
   useBackgroundDispatch,
   useBackgroundSelector,
 } from "../../../../../../hooks"
-import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 
-const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
+const QiAccountOptionMenu = ({
+  paymentCode,
+}: {
+  paymentCode: string
+}): ReactElement => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
 
   const [options, setOptions] = useState<DropdownOption[]>([])
 
-  const onCopyData = async ({
-    data = "",
-    notificationMessage = "",
-  }: {
-    data: string
-    notificationMessage?: string
-  }) => {
-    await navigator.clipboard.writeText(data)
-    await dispatch(setSnackbarConfig({ message: notificationMessage }))
-  }
+  const onCopyData = useCallback(
+    async ({
+      data = "",
+      notificationMessage = "",
+    }: {
+      data: string
+      notificationMessage?: string
+    }) => {
+      await navigator.clipboard.writeText(data)
+      await dispatch(setSnackbarConfig({ message: notificationMessage }))
+    },
+    [dispatch]
+  )
 
   useEffect(() => {
     // Only show copy option for mainnet and Golden Age
@@ -56,7 +63,7 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
           icon: "icons/s/arrow-up.svg",
           label: "Send asset",
           onClick: async () => {
-            await dispatch(resetQiSendSlice())
+            await dispatch(resetManualQiSendState())
             history.push("/send-qi")
             await dispatch(setShowingAccountsModal(false))
           },
@@ -74,7 +81,7 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
         },
       ])
     }
-  }, [currentSelectedAccount])
+  }, [currentSelectedAccount, dispatch, history, onCopyData, paymentCode])
 
   return (
     <div className="options_menu_wrap">

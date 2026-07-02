@@ -621,7 +621,8 @@
         "title": "Native Qi transaction",
         "denomination": "denom {{denomination}}",
         "trade": "Trade {{tradeHash}}",
-        "qitUnit": "qit"
+        "qitUnit": "qit",
+        "noPending": "No pending Qi dapp transaction"
       }
     }
   }

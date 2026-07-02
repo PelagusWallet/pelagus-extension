@@ -34,6 +34,16 @@ type Events = {
 
 export const emitter = new Emittery<Events>()
 
+const errorMessageFromUnknown = (error: unknown, fallback: string): string => {
+  if (error instanceof Error && error.message) return error.message
+  if (typeof error === "string" && error) return error
+  if (error && typeof error === "object" && "message" in error) {
+    const { message } = error as { message?: unknown }
+    if (typeof message === "string" && message) return message
+  }
+  return fallback
+}
+
 const qiSendSlice = createSlice({
   name: "qiSend",
   initialState,
@@ -191,12 +201,15 @@ export const sendDappQiTransaction = createBackgroundAsyncThunk(
       dispatch(clearQiDappRequest())
       dispatch(setQiSending(false))
       return { txHash }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Settle the dapp promise with the REAL error message (not the generic
       // "rejected") and release the in-flight slot. The confirmation UI has no
       // reachable retry affordance, so leaving the request pending would hang
       // the dapp and block every future Qi send as "busy".
-      const message = typeof error === "string" ? error : error?.message
+      const message = errorMessageFromUnknown(
+        error,
+        "Failed to send Qi transaction"
+      )
       await emitter.emit("dappSendTransactionRejected", { requestId, message })
       dispatch(setQiSending(false))
       return { error: { message } }

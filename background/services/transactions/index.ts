@@ -58,6 +58,7 @@ const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
 const QI_DAPP_SEND_MAX_OUTPUTS = 128
 const QI_RECEIVE_ADDRESS_MAX_COUNT = 32
+const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER)
 
 const ZONE_ALIASES: Record<string, Zone> = {
   "0x00": Zone.Cyprus1,
@@ -124,7 +125,10 @@ function normalizePositiveQit(value: unknown, field: string): bigint {
   ) {
     throw new Error(`${field} must be an integer qit amount`)
   }
-  if (typeof value === "number" && !Number.isInteger(value)) {
+  if (
+    typeof value === "number" &&
+    (!Number.isInteger(value) || !Number.isSafeInteger(value))
+  ) {
     throw new Error(`${field} must be an integer qit amount`)
   }
   if (
@@ -180,11 +184,18 @@ function normalizeAccount(value: unknown): number {
   if (typeof value === "string" && !/^\d+$/.test(value.trim())) {
     throw new Error("account must be a non-negative integer")
   }
-  const account = typeof value === "number" ? value : Number(value.trim())
-  if (!Number.isInteger(account) || account < 0) {
+  if (typeof value === "number") {
+    if (!Number.isInteger(value) || !Number.isSafeInteger(value) || value < 0) {
+      throw new Error("account must be a non-negative integer")
+    }
+    return value
+  }
+
+  const account = BigInt(value.trim())
+  if (account > MAX_SAFE_INTEGER_BIGINT) {
     throw new Error("account must be a non-negative integer")
   }
-  return account
+  return Number(account)
 }
 
 function normalizeQiReceiveCount(value: unknown): number {

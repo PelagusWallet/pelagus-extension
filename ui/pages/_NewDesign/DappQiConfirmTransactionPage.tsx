@@ -7,7 +7,7 @@ import {
 import { NormalizedQiSendToOutputsRequest } from "@pelagus/pelagus-background/services/transactions/types"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
-import { formatQi } from "quais"
+import { denominations, formatQi } from "quais"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
@@ -29,6 +29,12 @@ const formatQit = (value: string, fallbackUnit: string) => {
   }
 }
 
+const formatDenomination = (denomination: number, fallbackUnit: string) => {
+  const qitValue = denominations[denomination]
+  if (qitValue === undefined) return `${fallbackUnit} ${denomination}`
+  return formatQit(BigInt(qitValue).toString(), fallbackUnit)
+}
+
 function DappQiTransactionDetails({
   request,
 }: {
@@ -43,19 +49,42 @@ function DappQiTransactionDetails({
       <section className="dapp-qi">
         <p className="eyebrow">{t("title")}</p>
         <h1>{formatQit(request.amountQit, t("qitUnit"))}</h1>
-        {request.origin && <p className="origin">{request.origin}</p>}
+        {request.origin && (
+          <p className="origin">
+            {t("requestedBy", { origin: request.origin })}
+          </p>
+        )}
         <div className="outputs">
           {request.outputs.map((output) => (
             <div className="output" key={output.address}>
-              <span>{short(output.address)}</span>
-              <b>{t("denomination", { denomination: output.denomination })}</b>
+              <div className="output-address">
+                <span>{t("toLabel")}</span>
+                <b title={output.address}>{short(output.address)}</b>
+              </div>
+              <div className="output-amount">
+                <b>{formatDenomination(output.denomination, t("qitUnit"))}</b>
+                <span>
+                  {t("denomination", { denomination: output.denomination })}
+                </span>
+              </div>
             </div>
           ))}
         </div>
-        {request.tradeHash && (
-          <p className="trade">
-            {t("trade", { tradeHash: short(request.tradeHash) })}
-          </p>
+        {(request.label || request.tradeHash) && (
+          <div className="details">
+            {request.label && (
+              <div className="detail">
+                <span>{t("actionLabel")}</span>
+                <b title={request.label}>{request.label}</b>
+              </div>
+            )}
+            {request.tradeHash && (
+              <div className="detail">
+                <span>{t("referenceLabel")}</span>
+                <b title={request.tradeHash}>{short(request.tradeHash)}</b>
+              </div>
+            )}
+          </div>
         )}
       </section>
       <style jsx>{`
@@ -67,7 +96,13 @@ function DappQiTransactionDetails({
         }
         .eyebrow,
         .origin,
-        .trade {
+        .details {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 14px;
+        }
+        .detail {
           margin: 0;
           color: var(--secondary-text);
           font-size: 12px;
@@ -84,23 +119,53 @@ function DappQiTransactionDetails({
         .outputs {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 0;
           margin: 16px 0 0;
+          border-top: 1px solid var(--tertiary-bg);
         }
         .output {
           display: flex;
           justify-content: space-between;
-          gap: 12px;
-          padding: 10px 0;
-          border-top: 1px solid var(--tertiary-bg);
+          align-items: flex-start;
+          gap: 16px;
+          padding: 14px 0;
+          border-bottom: 1px solid var(--tertiary-bg);
           color: var(--primary-text);
           font-size: 13px;
         }
-        .output b {
-          white-space: nowrap;
+        .output-address,
+        .output-amount,
+        .detail {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 0;
         }
-        .trade {
-          margin-top: 12px;
+        .output-address span,
+        .output-amount span,
+        .detail span {
+          color: var(--secondary-text);
+          font-size: 12px;
+          line-height: 16px;
+          font-weight: 500;
+        }
+        .output-address b,
+        .output-amount b,
+        .detail b {
+          color: var(--primary-text);
+          font-size: 14px;
+          line-height: 20px;
+          font-weight: 600;
+        }
+        .output-address b,
+        .detail b {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .output-amount {
+          align-items: flex-end;
+          text-align: right;
+          white-space: nowrap;
         }
       `}</style>
     </>
@@ -246,7 +311,8 @@ const DappQiConfirmTransactionPage = (): ReactElement => {
             onConfirm: dappRequest ? onSendQiTransaction : closeDappPopup,
             onCancel: () => {
               if (dappRequest) {
-                dispatch(rejectDappQiTransaction())
+                dispatch(rejectDappQiTransaction()).finally(closeDappPopup)
+                return
               }
               closeDappPopup()
             },

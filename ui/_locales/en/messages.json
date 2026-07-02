@@ -619,7 +619,11 @@
       },
       "dappQi": {
         "title": "Native Qi transaction",
-        "denomination": "denom {{denomination}}",
+        "requestedBy": "Requested by {{origin}}",
+        "toLabel": "To",
+        "denomination": "Denomination {{denomination}}",
+        "actionLabel": "Action",
+        "referenceLabel": "Reference",
         "trade": "Trade {{tradeHash}}",
         "qitUnit": "qit",
         "noPending": "No pending Qi dapp transaction"

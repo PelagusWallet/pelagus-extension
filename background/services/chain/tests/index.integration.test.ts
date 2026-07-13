@@ -33,9 +33,11 @@ describe("ChainService", () => {
   describe("internalStartService", () => {
     it("should not add duplicate networks on startup", async () => {
       // Startup is simulated in the `beforeEach`
+      expect(chainService.subscribedNetworks).toHaveLength(1)
       expect(
         chainService.subscribedNetworks.filter(
-          ({ network }) => network.chainID === QuaiOrchardTestnet.chainID
+          ({ network }) =>
+            network.chainID === chainService.selectedNetwork.chainID
         )
       ).toHaveLength(1)
     })

@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Shard, toZone } from "quais"
+import { JsonRpcProvider, Shard, toZone, WebSocketProvider, Zone } from "quais"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
 import { AnyEVMBlock, BlockPrices } from "../../networks"
@@ -9,10 +9,6 @@ import { blockFromProviderBlock } from "./utils"
 import ChainService from "../chain"
 import { BlockDatabase, initializeBlockDatabase } from "./db"
 import { getExtendedZoneForAddress } from "../chain/utils"
-import { blockSeen } from "../../redux-slices/networks"
-
-const GAS_POLLS_PER_PERIOD = 1 // 1 time per 1 minute
-const BLOCK_POLL_INTERVAL = 1 // 1 time per 1 minute
 
 interface Events extends ServiceLifecycleEvents {
   block: AnyEVMBlock
@@ -20,6 +16,8 @@ interface Events extends ServiceLifecycleEvents {
 }
 
 export default class BlockService extends BaseService<Events> {
+  private newHeadProvider?: WebSocketProvider
+
   static create: ServiceCreatorFunction<
     Events,
     BlockService,
@@ -37,30 +35,28 @@ export default class BlockService extends BaseService<Events> {
     private chainService: ChainService,
     private preferenceService: PreferenceService
   ) {
-    super({
-      blockPrices: {
-        runAtStart: false,
-        schedule: {
-          periodInMinutes: GAS_POLLS_PER_PERIOD,
-        },
-        handler: () => {
-          this.pollBlockPrices()
-        },
-      },
-      blockNumber: {
-        runAtStart: true,
-        schedule: {
-          periodInMinutes: BLOCK_POLL_INTERVAL,
-        },
-        handler: () => {
-          this.pollBlockNumber()
-        },
-      },
-    })
+    super()
   }
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
+    await this.subscribeToNewHeads()
+  }
+
+  override async internalStopService(): Promise<void> {
+    if (this.newHeadProvider) {
+      try {
+        await this.newHeadProvider.off(
+          "block",
+          this.handleNewHead,
+          Zone.Cyprus1
+        )
+      } catch (error) {
+        logger.warn("Failed to remove new-head subscription", error)
+      }
+      this.newHeadProvider = undefined
+    }
+    await super.internalStopService()
   }
 
   async getBlockHeight(network: NetworkInterface): Promise<number> {
@@ -78,33 +74,37 @@ export default class BlockService extends BaseService<Events> {
     }
   }
 
-  private async pollBlockNumber(): Promise<void> {
-    try {
-      // Only poll block number if keyring is unlocked
-      const { status } = globalThis.main.store.getState().keyrings
-      if (status !== "unlocked") return
-
-      const { network } = await this.preferenceService.getSelectedAccount()
-      const { jsonRpcProvider } = this.chainService
-
-      const blockNumber = await jsonRpcProvider.getBlockNumber(Shard.Cyprus1)
-
-      if (blockNumber) {
-        const block: AnyEVMBlock = {
-          hash: "",
-          parentHash: "",
-          blockHeight: blockNumber,
-          difficulty: 0n,
-          timestamp: Date.now(),
-          baseFeePerGas: 0n,
-          network,
-        }
-
-        globalThis.main.store.dispatch(blockSeen(block))
-      }
-    } catch (e) {
-      logger.error("Error getting block number", e)
+  private handleNewHead = async (blockNumber: number): Promise<void> => {
+    const block: AnyEVMBlock = {
+      hash: "",
+      parentHash: "",
+      blockHeight: blockNumber,
+      difficulty: 0n,
+      timestamp: Date.now(),
+      baseFeePerGas: 0n,
+      network: this.chainService.selectedNetwork,
     }
+    await this.emitter.emit("block", block)
+  }
+
+  async subscribeToNewHeads(): Promise<void> {
+    const provider = this.chainService.webSocketProvider
+    if (provider === this.newHeadProvider) return
+
+    if (this.newHeadProvider) {
+      try {
+        await this.newHeadProvider.off(
+          "block",
+          this.handleNewHead,
+          Zone.Cyprus1
+        )
+      } catch (error) {
+        logger.warn("Failed to move new-head subscription", error)
+      }
+      this.newHeadProvider = undefined
+    }
+    await provider.on("block", this.handleNewHead, Zone.Cyprus1)
+    this.newHeadProvider = provider
   }
 
   async pollLatestBlock(network: NetworkInterface): Promise<void> {
@@ -156,9 +156,8 @@ export default class BlockService extends BaseService<Events> {
   }
 
   async pollBlockPrices(): Promise<void> {
-    this.chainService.subscribedNetworks.forEach((subscribedNetworks) => {
-      this.pollBlockPricesForNetwork(subscribedNetworks)
-    })
+    const { network } = await this.preferenceService.getSelectedAccount()
+    await this.pollBlockPricesForNetwork({ network })
   }
 
   async getBlockPrices(
@@ -167,20 +166,22 @@ export default class BlockService extends BaseService<Events> {
     shard: Shard
   ): Promise<BlockPrices> {
     const zone = toZone(shard)
-    const [currentBlock, feeData] = await Promise.all([
-      provider.getBlock(shard, "latest"),
-      provider.getFeeData(zone),
-    ])
+    const feeData = await provider.getFeeData(zone)
 
     if (feeData.gasPrice === null) {
       logger.warn("Not receiving accurate gas prices from provider", feeData)
     }
 
     const gasPrice = feeData?.gasPrice || 10000000n
+    const blockNumber =
+      this.chainService.selectedNetwork.chainID === network.chainID
+        ? globalThis.main.store.getState().networks.blockInfo[network.chainID]
+            ?.blockHeight ?? 0
+        : 0
 
     return {
       network,
-      blockNumber: Number(currentBlock?.header.number[2]),
+      blockNumber,
       baseFeePerGas: gasPrice,
       estimatedPrices: [
         {

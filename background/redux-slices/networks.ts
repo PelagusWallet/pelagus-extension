@@ -57,7 +57,7 @@ export const setCustomRPCWithRefresh = createBackgroundAsyncThunk(
     
     // Refresh ChainService providers
     if (main.chainService) {
-      main.chainService.refreshProviders()
+      await main.chainService.refreshProviders()
     }
     
     return { chainID, httpRpcUrl, wsRpcUrl }
@@ -78,7 +78,7 @@ export const resetToDefaultRPCWithRefresh = createBackgroundAsyncThunk(
     
     // Refresh ChainService providers
     if (main.chainService) {
-      main.chainService.refreshProviders()
+      await main.chainService.refreshProviders()
     }
     
     return { chainID }

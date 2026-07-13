@@ -17,14 +17,16 @@ const DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS = 7000
 const shouldUsePathingJsonRpc = (rpcUrls: string | string[]) => {
   if (typeof rpcUrls === "string") {
     // Don't use pathing if the URL already contains a path (like "/cyprus1" or "/ws/cyprus1")
-    if (rpcUrls.includes("/", 8)) { // Skip protocol part (https://)
+    if (rpcUrls.includes("/", 8)) {
+      // Skip protocol part (https://)
       return false
     }
     return rpcUrls.includes("https") || rpcUrls.includes("wss")
   }
   return rpcUrls.some((url) => {
     // Don't use pathing if the URL already contains a path (like "/cyprus1" or "/ws/cyprus1")
-    if (url.includes("/", 8)) { // Skip protocol part (https://)
+    if (url.includes("/", 8)) {
+      // Skip protocol part (https://)
       return false
     }
     return url.includes("https") || url.includes("wss")
@@ -39,6 +41,8 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
   private isLocalNodeNetworkProvidersInitialized = false
 
   private providersForNetworks: Map<string, NetworkProviders> = new Map()
+
+  private providerConfigByNetwork: Map<string, string> = new Map()
 
   static create: ServiceCreatorFunction<
     ProviderFactoryEvents,
@@ -58,48 +62,56 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
     const networks = PELAGUS_NETWORKS.filter(
       (network) => !network.isTestNetwork && !network.isLocalNode
     )
-    await this.initializeProviders(networks)
+    this.initializeProviders(networks)
   }
 
-  private async initializeProviders(
-    networks: NetworkInterface[]
-  ): Promise<void> {
+  private initializeProviders(networks: NetworkInterface[]): void {
     networks.forEach(({ chainID, jsonRpcUrls, webSocketRpcUrls }) => {
-      const providersForNetwork = this.providersForNetworks.get(chainID)
-      if (providersForNetwork) return
-
       // Check for custom RPC URLs from Redux store
       let customJsonRpcUrls = jsonRpcUrls
       let customWebSocketRpcUrls = webSocketRpcUrls
-      
+
       if (globalThis.main?.store) {
         const state = globalThis.main.store.getState()
         // Convert chainID to number for customRPCs lookup
         const chainIdNumber = Number(chainID)
         const customRPC = state.networks?.customRPCs?.[chainIdNumber]
-        
+
         if (customRPC) {
           // Use custom RPC URLs if provided
           customJsonRpcUrls = [customRPC.httpRpcUrl]
           customWebSocketRpcUrls = [customRPC.wsRpcUrl]
-          console.log(`[ProviderFactory] Using custom RPC for chain ${chainID}:`, {
-            http: customRPC.httpRpcUrl,
-            ws: customRPC.wsRpcUrl
-          })
-        } else {
-          console.log(`[ProviderFactory] Using default RPC for chain ${chainID}:`, {
-            http: Array.isArray(jsonRpcUrls) ? jsonRpcUrls[0] : jsonRpcUrls,
-            ws: Array.isArray(webSocketRpcUrls) ? webSocketRpcUrls[0] : webSocketRpcUrls
-          })
         }
       }
 
-      const usePathingJsonRpc = shouldUsePathingJsonRpc(customJsonRpcUrls)
-      const usePathingWebSocketRpc = shouldUsePathingJsonRpc(customWebSocketRpcUrls)
+      const configKey = JSON.stringify([
+        Array.isArray(customJsonRpcUrls)
+          ? customJsonRpcUrls
+          : [customJsonRpcUrls],
+        Array.isArray(customWebSocketRpcUrls)
+          ? customWebSocketRpcUrls
+          : [customWebSocketRpcUrls],
+      ])
+      const providersForNetwork = this.providersForNetworks.get(chainID)
+      if (
+        providersForNetwork &&
+        this.providerConfigByNetwork.get(chainID) === configKey
+      ) {
+        return
+      }
 
-      const jsonRpcProvider = new JsonRpcProvider(customJsonRpcUrls, undefined, {
-        usePathing: usePathingJsonRpc,
-      })
+      const usePathingJsonRpc = shouldUsePathingJsonRpc(customJsonRpcUrls)
+      const usePathingWebSocketRpc = shouldUsePathingJsonRpc(
+        customWebSocketRpcUrls
+      )
+
+      const jsonRpcProvider = new JsonRpcProvider(
+        customJsonRpcUrls,
+        undefined,
+        {
+          usePathing: usePathingJsonRpc,
+        }
+      )
 
       // Add provider than does not batch requests (useful when dealing with potentially large responses)
       const immediateJsonRpcProvider = new JsonRpcProvider(
@@ -118,8 +130,12 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
         }
       )
 
-      const baseUrl = Array.isArray(customJsonRpcUrls) ? customJsonRpcUrls[0] : customJsonRpcUrls
-      const ethRpcUrl = baseUrl.endsWith("/cyprus1") ? baseUrl : `${baseUrl}/cyprus1`
+      const baseUrl = Array.isArray(customJsonRpcUrls)
+        ? customJsonRpcUrls[0]
+        : customJsonRpcUrls
+      const ethRpcUrl = baseUrl.endsWith("/cyprus1")
+        ? baseUrl
+        : `${baseUrl}/cyprus1`
       const ethJsonRpcProvider = new EthJsonRpcProvider(ethRpcUrl)
 
       const networkProviders: NetworkProviders = {
@@ -129,7 +145,33 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
         ethJsonRpcProvider,
       }
       this.providersForNetworks.set(chainID, networkProviders)
+      this.providerConfigByNetwork.set(chainID, configKey)
+      if (providersForNetwork)
+        ProviderFactory.destroyProviders(providersForNetwork)
     })
+  }
+
+  private static destroyProviders(providers: NetworkProviders): void {
+    providers.jsonRpcProvider.destroy()
+    providers.immediateJsonRpcProvider?.destroy()
+    providers.ethJsonRpcProvider?.destroy()
+
+    // Quais reconnects every socket closed by WebSocketProvider.destroy().
+    // Clear the close handlers first so intentional cleanup stays intentional.
+    providers.webSocketProvider.websocket.forEach((socket) => {
+      Object.assign(socket, { onclose: null })
+    })
+    providers.webSocketProvider.destroy().catch(() => undefined)
+  }
+
+  protected override async internalStopService(): Promise<void> {
+    this.stopLocalNodeCheckingInterval()
+    this.providersForNetworks.forEach((providers) =>
+      ProviderFactory.destroyProviders(providers)
+    )
+    this.providersForNetworks.clear()
+    this.providerConfigByNetwork.clear()
+    await super.internalStopService()
   }
 
   public onShowTestNetworks(): void {
@@ -148,31 +190,20 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
     // Check if this is the local network and start local node checking if needed
     if (networkChainId === QuaiLocalNodeNetwork.chainID) {
       if (!this.localNodeCheckerInterval) {
-        console.log(`[ProviderFactory] Starting local node checking for chain ${networkChainId}`)
+        console.log(
+          `[ProviderFactory] Starting local node checking for chain ${networkChainId}`
+        )
         this.startLocalNodeCheckingInterval()
       }
     }
-    
-    // Check if we need to reinitialize with custom RPC
-    if (globalThis.main?.store) {
-      const state = globalThis.main.store.getState()
-      // Convert chainId to number for customRPCs lookup
-      const chainIdNumber = Number(networkChainId)
-      const customRPC = state.networks?.customRPCs?.[chainIdNumber]
-      
-      if (customRPC) {
-        console.log(`[ProviderFactory] Found custom RPC for chain ${networkChainId}, reinitializing providers`)
-        // Find the network configuration
-        const network = PELAGUS_NETWORKS.find(n => n.chainID === networkChainId)
-        if (network) {
-          // Remove existing provider to force reinitialization
-          this.providersForNetworks.delete(networkChainId)
-          // Reinitialize with potentially updated custom RPC
-          this.initializeProviders([network])
-        }
-      }
+
+    const network = PELAGUS_NETWORKS.find(
+      ({ chainID }) => chainID === networkChainId
+    )
+    if (network && this.providersForNetworks.has(networkChainId)) {
+      this.initializeProviders([network])
     }
-    
+
     const providers = this.providersForNetworks.get(networkChainId)
     if (!providers) {
       throw new Error(`Provider not found for chainID: ${networkChainId}`)
@@ -181,15 +212,10 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
   }
 
   public refreshProvidersForNetwork(networkChainId: string): void {
-    console.log(`[ProviderFactory] Refreshing providers for chain ${networkChainId}`)
-    // Find the network configuration
-    const network = PELAGUS_NETWORKS.find(n => n.chainID === networkChainId)
-    if (network) {
-      // Remove existing provider to force reinitialization
-      this.providersForNetworks.delete(networkChainId)
-      // Reinitialize with current state (custom or default)
-      this.initializeProviders([network])
-    }
+    const network = PELAGUS_NETWORKS.find(
+      ({ chainID }) => chainID === networkChainId
+    )
+    if (network) this.initializeProviders([network])
   }
 
   // --------------------------------- local node methods ---------------------------------
@@ -200,8 +226,7 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
 
       const { chainID, jsonRpcUrls, webSocketRpcUrls } = QuaiLocalNodeNetwork
 
-      // TODO temp solution, delete after provider fix
-      this.providersForNetworks.delete(chainID)
+      const existingProviders = this.providersForNetworks.get(chainID)
 
       const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, undefined, {
         usePathing: false,
@@ -217,6 +242,11 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
         webSocketProvider,
       }
       this.providersForNetworks.set(chainID, localNodeNetworkProviders)
+      this.providerConfigByNetwork.set(
+        chainID,
+        JSON.stringify([jsonRpcUrls, webSocketRpcUrls])
+      )
+      if (existingProviders) ProviderFactory.destroyProviders(existingProviders)
 
       this.isLocalNodeNetworkProvidersInitialized = true
       this.lastLocalNodeStatus = null

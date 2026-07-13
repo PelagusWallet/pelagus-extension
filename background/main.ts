@@ -137,6 +137,7 @@ import { getActivityDetails } from "./redux-slices/utils/activities-utils"
 import { getRelevantTransactionAddresses } from "./services/enrichment/utils"
 import { AnalyticsPreferences } from "./services/preferences/types"
 import {
+  AnyAsset,
   AnyAssetMetadata,
   isSmartContractFungibleAsset,
   SmartContractAsset,
@@ -165,6 +166,7 @@ import { LocalNodeNetworkStatusEventTypes } from "./services/provider-factory/ev
 import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
+import { MINUTE } from "./constants"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -298,6 +300,8 @@ export default class Main extends BaseService<never> {
   public ready: Promise<boolean>
 
   balanceChecker: NodeJS.Timeout
+
+  private balanceCheckInProgress = false
 
   static create: ServiceCreatorFunction<never, Main, []> = async () => {
     const preferenceService = PreferenceService.create()
@@ -516,87 +520,30 @@ export default class Main extends BaseService<never> {
 
   async startBalanceChecker(): Promise<void> {
     const interval = setInterval(async () => {
-      if (!walletOpen) return
-
-      // Also refresh the transactions in the account
-      this.enrichActivitiesForSelectedAccount()
-
-      const { selectedAccount } = this.store.getState().ui
-      const currentAccountState =
-        this.store.getState().account.accountsData.evm[
-          selectedAccount.network.chainID
-        ]?.[selectedAccount.address]
       if (
-        currentAccountState === undefined ||
-        currentAccountState === "loading"
-      )
+        !walletOpen ||
+        this.keyringService.isLocked() ||
+        this.balanceCheckInProgress
+      ) {
         return
-
-      const { balances } = currentAccountState
-      for (const assetSymbol in balances) {
-        const { asset, amount } = balances[assetSymbol].assetAmount
-        let newBalance = amount ?? BigInt(0)
-        let newLockedBalance = BigInt(0)
-        if (isSmartContractFungibleAsset(asset)) {
-        // Do not skip by shard; token balance helper switches shards per token
-          newBalance = (
-            await this.chainService.assetData.getTokenBalance(
-              selectedAccount,
-              asset.contractAddress
-            )
-          ).amount
-        } else if (isBuiltInNetworkBaseAsset(asset, selectedAccount.network)) {
-          const balances = await this.chainService.getLatestBaseAccountBalance(
-            selectedAccount
-          )
-          newBalance = balances.assetAmount.amount
-          newLockedBalance = balances.lockedAmount?.amount ?? BigInt(0)
-        } else {
-          logger.error(
-            `Unknown asset type for balance checker, asset: ${asset.symbol}`
-          )
-          continue
-        }
-
-        if (newBalance > amount && !this.keyringService.isLocked()) {
-          const parsedAmount = bigIntToDecimal(newBalance - amount)
-          NotificationsManager.createIncomingAssetsNotification(
-            parsedAmount,
-            asset.symbol,
-            selectedAccount.address
-          )
-        }
-
-        this.store.dispatch(
-          updateAccountBalance({
-            balances: [
-              {
-                address: selectedAccount.address,
-                assetAmount: {
-                  amount: newBalance,
-                  asset,
-                },
-                lockedAmount: {
-                  amount: newLockedBalance,
-                  asset,
-                },
-                network: selectedAccount.network,
-                retrievedAt: Date.now(),
-                dataSource: "local",
-              },
-            ],
-            addressOnNetwork: {
-              address: selectedAccount.address,
-              network: selectedAccount.network,
-            },
-          })
-        )
       }
-    }, 10000)
+
+      this.balanceCheckInProgress = true
+      try {
+        await Promise.all([
+          this.enrichActivitiesForSelectedAccount(),
+          this.manuallyCheckBalances(true),
+        ])
+      } finally {
+        this.balanceCheckInProgress = false
+      }
+    }, MINUTE)
     this.balanceChecker = interval
   }
 
-  async manuallyCheckBalances(): Promise<void> {
+  async manuallyCheckBalances(notifyOnIncrease = false): Promise<void> {
+    if (this.keyringService.isLocked()) return
+
     const selectedAccount = await this.store.getState().ui.selectedAccount
     const currentAccountState = await this.store.getState().account.accountsData
       .evm[selectedAccount.network.chainID]?.[selectedAccount.address]
@@ -610,7 +557,9 @@ export default class Main extends BaseService<never> {
       .getCachedAssets(selectedAccount.network)
       .filter(isSmartContractFungibleAsset)
 
-    const assetsByAddress: { [addr: string]: typeof cachedSmartAssets[number] } = {}
+    const assetsByAddress: {
+      [addr: string]: (typeof cachedSmartAssets)[number]
+    } = {}
 
     // Existing balances' smart-contract assets
     Object.values(balances).forEach(({ assetAmount }) => {
@@ -624,71 +573,53 @@ export default class Main extends BaseService<never> {
       assetsByAddress[a.contractAddress.toLowerCase()] = a
     })
 
-    for (const addr of Object.keys(assetsByAddress)) {
-      const asset = assetsByAddress[addr]
-      let newSpendableBalance = BigInt(0)
-      let newLockedBalance = BigInt(0)
-      const isSmartContractAsset = isSmartContractFungibleAsset(asset)
-      const isNativeAsset = isBuiltInNetworkBaseAsset(
-        asset,
-        selectedAccount.network
-      )
+    const smartAssets = Object.values(assetsByAddress)
+    const [baseBalance, tokenBalances] = await Promise.all([
+      this.chainService.getLatestBaseAccountBalance(selectedAccount),
+      this.indexingService.retrieveTokenBalances(selectedAccount, smartAssets),
+    ])
 
-      if (isSmartContractAsset) {
-        // Do not skip by shard; token balance helper switches shards per token
-        newSpendableBalance = (
-          await this.chainService.assetData.getTokenBalance(
-            selectedAccount,
-            asset.contractAddress
-          )
-        ).amount
-      } else if (isNativeAsset) {
-        const balances = await this.chainService.getLatestBaseAccountBalance(
-          selectedAccount
-        )
-        newSpendableBalance = balances.assetAmount.amount
-        newLockedBalance = balances.lockedAmount?.amount ?? BigInt(0)
-      } else {
-        logger.error(
-          "Unknown asset type for balance checker; skipping"
-        )
-        continue
-      }
+    if (!notifyOnIncrease) return
 
-      // Create the updated balance object
-      const updatedBalance: AccountBalance = {
-        address: selectedAccount.address,
-        assetAmount: {
-          amount: newSpendableBalance,
-          asset,
-        },
-        network: selectedAccount.network,
-        retrievedAt: Date.now(),
-        dataSource: "local",
-      }
+    const currentBalances = Object.values(balances)
+    const notifyIfIncreased = (
+      asset: AnyAsset,
+      previousAmount: bigint | undefined,
+      amount: bigint
+    ) => {
+      if (typeof previousAmount === "undefined" || amount <= previousAmount)
+        return
 
-      if (isNativeAsset) {
-        // Include lockedAmount only for native assets
-        updatedBalance.lockedAmount = {
-          amount: newLockedBalance,
-          asset,
-        }
-        logger.info(
-          `Balance checker: ${asset.symbol} ${newSpendableBalance} (spendable) ${newLockedBalance} (locked)`
-        )
-      } else if (isSmartContractAsset) {
-        logger.info(
-          `Balance checker: ${asset.symbol} ${newSpendableBalance} (spendable)`
-        )
-      }
-
-      this.store.dispatch(
-        updateAccountBalance({
-          balances: [updatedBalance],
-          addressOnNetwork: selectedAccount,
-        })
+      NotificationsManager.createIncomingAssetsNotification(
+        bigIntToDecimal(amount - previousAmount),
+        asset.symbol,
+        selectedAccount.address
       )
     }
+
+    const currentBaseBalance = currentBalances.find(({ assetAmount }) =>
+      isBuiltInNetworkBaseAsset(assetAmount.asset, selectedAccount.network)
+    )
+    notifyIfIncreased(
+      baseBalance.assetAmount.asset,
+      currentBaseBalance?.assetAmount.amount,
+      baseBalance.assetAmount.amount
+    )
+
+    tokenBalances.forEach(({ amount, smartContract }) => {
+      const asset = assetsByAddress[smartContract.contractAddress.toLowerCase()]
+      if (!asset) return
+
+      const currentBalance = currentBalances.find(
+        ({ assetAmount }) =>
+          isSmartContractFungibleAsset(assetAmount.asset) &&
+          sameQuaiAddress(
+            assetAmount.asset.contractAddress,
+            smartContract.contractAddress
+          )
+      )
+      notifyIfIncreased(asset, currentBalance?.assetAmount.amount, amount)
+    })
   }
 
   protected override async internalStartService(): Promise<void> {
@@ -723,7 +654,6 @@ export default class Main extends BaseService<never> {
   protected override async internalStopService(): Promise<void> {
     const servicesToBeStopped = [
       this.preferenceService.stopService(),
-      this.providerFactoryService.stopService(),
       this.chainService.stopService(),
       this.indexingService.stopService(),
       this.enrichmentService.stopService(),
@@ -740,6 +670,7 @@ export default class Main extends BaseService<never> {
     ]
 
     await Promise.all(servicesToBeStopped)
+    await this.providerFactoryService.stopService()
     await super.internalStopService()
   }
 
@@ -757,13 +688,11 @@ export default class Main extends BaseService<never> {
 
     await this.connectChainService()
 
-    await this.connectBlockService()
-
     // FIXME Should no longer be necessary once transaction queueing enters the
     this.store.dispatch(
       clearTransactionState(TransactionConstructionStatus.Idle)
     )
-    
+
     // Reset progress states that may have been stuck due to interrupted operations
     this.store.dispatch(resetProgressStates())
 
@@ -1014,6 +943,9 @@ export default class Main extends BaseService<never> {
     transactionConstructionSliceEmitter.on(
       "updateTransaction",
       async (transaction) => {
+        await this.blockService
+          .pollBlockPricesForNetwork({ network: transaction.network })
+          .catch((error) => logger.error("Failed to refresh gas prices", error))
         this.store.dispatch(
           transactionRequest({
             transactionRequest: transaction,
@@ -1087,10 +1019,6 @@ export default class Main extends BaseService<never> {
         )
       }
     )
-  }
-
-  async connectBlockService(): Promise<void> {
-    await this.blockService.pollBlockPrices()
   }
 
   async connectProviderFactoryService(): Promise<void> {
@@ -1287,6 +1215,9 @@ export default class Main extends BaseService<never> {
         this.store.dispatch(keyringLocked())
       } else {
         this.store.dispatch(keyringUnlocked())
+        this.priceService.updateQuaiPrice().catch((error) => {
+          logger.error("Failed to refresh price after unlock", error)
+        })
         console.log(`[Post-Unlock] keyringUnlocked dispatched, now triggering balance update...`)
         await this.store.dispatch(triggerManualBalanceUpdate())
         console.log(`[Post-Unlock] triggerManualBalanceUpdate completed in ${(performance.now() - start).toFixed(0)}ms`)
@@ -1490,14 +1421,17 @@ export default class Main extends BaseService<never> {
       }
     )
 
-    uiSliceEmitter.on("newSelectedNetwork", (network) => {
+    uiSliceEmitter.on("newSelectedNetwork", async (network) => {
       this.internalQuaiProviderService.routeSafeRPCRequest(
         "wallet_switchEthereumChain",
         [{ chainId: network.chainID }],
         PELAGUS_INTERNAL_ORIGIN
       )
-      this.blockService.pollBlockPricesForNetwork({ network })
       this.chainService.switchNetwork(network)
+      await Promise.allSettled([
+        this.blockService.subscribeToNewHeads(),
+        this.blockService.pollBlockPricesForNetwork({ network }),
+      ])
       this.store.dispatch(clearCustomGas())
     })
 

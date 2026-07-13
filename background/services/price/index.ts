@@ -61,8 +61,8 @@ export default class PriceService extends BaseService<PriceServiceEvents> {
   private static getAlarmSchedules(): AlarmHandlerScheduleMap {
     return {
       [QUAI_USD_PRICE_ALARM]: {
-        // Schedule to run every 5 minutes
-        schedule: { periodInMinutes: 2 },
+        // Schedule to run every 10 minutes
+        schedule: { periodInMinutes: 10 },
         handler: async () => {
           // The actual handler is implemented in handleAlarm
         },
@@ -87,7 +87,9 @@ export default class PriceService extends BaseService<PriceServiceEvents> {
   /**
    * Update the QUAI price and emit an event with the updated price
    */
-  private async updateQuaiPrice(): Promise<void> {
+  async updateQuaiPrice(): Promise<void> {
+    if (globalThis.main.store.getState().keyrings.status !== "unlocked") return
+
     try {
       const rate = await this.fetchExchangeRate()
       const pricePoint = await this.buildQuaiUsdPricePoint(rate)

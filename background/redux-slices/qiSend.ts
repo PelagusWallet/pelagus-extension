@@ -219,14 +219,20 @@ export const sendDappQiTransaction = createBackgroundAsyncThunk(
 
 export const rejectDappQiTransaction = createBackgroundAsyncThunk(
   "qiSend/rejectDappQiTransaction",
-  async (_, { getState, dispatch }) => {
+  async (args: { requestId?: string } | undefined, { getState, dispatch }) => {
     const { qiSend } = getState() as RootState
-    const requestId = qiSend.dappRequest?.requestId ?? ""
+    // The UI captures the request id before it starts closing. Do not use a
+    // later state value for the provider response: a close event must only
+    // settle the exact dapp request this popup was created for.
+    const requestId = args?.requestId ?? qiSend.dappRequest?.requestId
+    if (!requestId) return
     await emitter.emit("dappSendTransactionRejected", {
       requestId,
       message: "Qi transaction rejected",
     })
-    dispatch(clearQiDappRequest())
+    if (qiSend.dappRequest?.requestId === requestId) {
+      dispatch(clearQiDappRequest())
+    }
   }
 )
 

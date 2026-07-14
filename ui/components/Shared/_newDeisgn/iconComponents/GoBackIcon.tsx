@@ -1,4 +1,4 @@
-import React, { CSSProperties } from "react"
+import React, { CSSProperties, MouseEvent } from "react"
 import { Link } from "react-router-dom"
 
 const GoBackIcon = ({
@@ -8,6 +8,7 @@ const GoBackIcon = ({
   style = {},
   linkTo = "-1",
   onClick = () => {},
+  preventNavigation = false,
 }: {
   width?: number
   height?: number
@@ -22,9 +23,20 @@ const GoBackIcon = ({
       }
     | string
   onClick?: () => void
+  /**
+   * Some confirmation flows must settle an external request before the view
+   * can disappear. Keep the familiar back affordance, but let those flows
+   * suppress the Link navigation until their asynchronous dismissal finishes.
+   */
+  preventNavigation?: boolean
 }) => {
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (preventNavigation) event.preventDefault()
+    onClick()
+  }
+
   return (
-    <Link to={linkTo} onClick={onClick}>
+    <Link to={linkTo} onClick={handleClick}>
       <div role="button" aria-label="back-icon" style={style}>
         <svg
           aria-label="back-icon"

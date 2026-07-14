@@ -14,6 +14,7 @@ type MockState = {
     dappRequest: {
       outputs: Array<{ address: string; denomination: number }>
       amountQit: string
+      chainId: string
       zone: string
       account: number
       origin: string
@@ -115,6 +116,7 @@ describe("ConfirmTransactionPage", () => {
             },
           ],
           amountQit: "1000",
+          chainId: "15000",
           zone: "0x00",
           account: 0,
           origin: "https://app.test",

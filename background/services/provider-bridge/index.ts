@@ -521,7 +521,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     // invalid params or a busy wallet reject the dapp without flashing a
     // focus-stealing window. Throws propagate straight back to the dapp.
     const { requestId, normalized } =
-      this.internalQuaiProviderService.prepareQiSendRequest(
+      await this.internalQuaiProviderService.prepareQiSendRequest(
         params[0] as QiSendToOutputsRequest,
         origin
       )
@@ -622,6 +622,8 @@ export default class ProviderBridgeService extends BaseService<Events> {
           )
 
         case "qi_getReceiveAddresses":
+        case "qi_commitReceiveAddressReservation":
+        case "qi_releaseReceiveAddressReservation":
           return await this.internalQuaiProviderService.routeSafeRPCRequest(
             method,
             params,
@@ -629,7 +631,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
           )
 
         case "qi_sendToOutputs":
-        case "qi_sendTransaction":
           return await this.routeQiSendRequest(params, origin)
 
         case "quai_sendTransaction":

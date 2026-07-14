@@ -52,6 +52,9 @@ import TransactionService from "../transactions"
 import {
   NormalizedQiSendToOutputsRequest,
   QuaiTransactionRequestWithAnnotation,
+  QiReceiveAddressReservationControlRequest,
+  QiReceiveAddressReservationReleaseRequest,
+  QiReceiveAddressesRequest,
   QiSendToOutputsRequest,
 } from "../transactions/types"
 import { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
@@ -124,6 +127,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
   // Pending dapp Qi send requests, keyed by a unique per-request id. Only one
   // request may be in flight at a time (the confirmation UI has a single slot).
   private qiSendRejecters = new Map<string, (reason?: Error) => void>()
+
+  private qiSendActiveRequestIds = new Set<string>()
 
   private qiSendRequestCounter = 0
 
@@ -246,14 +251,31 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         )
 
       case "qi_getReceiveAddresses":
-        return this.transactionsService.getQiReceiveAddresses(
-          (params[0] as { count?: number; zone?: string; account?: number }) || {}
-        )
+        return this.transactionsService.getQiReceiveAddresses({
+          ...((params[0] || {}) as QiReceiveAddressesRequest),
+          // Never trust a dapp-supplied origin field. Reservations are bound
+          // to the origin observed by the provider bridge.
+          origin,
+        })
 
-      // qi_sendToOutputs / qi_sendTransaction are handled by the provider
-      // bridge's routeQiSendRequest, which owns the confirmation popup and
-      // drives prepareQiSendRequest + awaitQiSendConfirmation directly. They
-      // never flow through this generic dispatch.
+      case "qi_commitReceiveAddressReservation":
+        return this.transactionsService.commitQiReceiveAddressReservation({
+          ...((params[0] as QiReceiveAddressReservationControlRequest) || {}),
+          // Lifecycle authorization is the same trusted origin binding used
+          // when the address reservation was created.
+          origin,
+        })
+
+      case "qi_releaseReceiveAddressReservation":
+        return this.transactionsService.releaseQiReceiveAddressReservation({
+          ...((params[0] as QiReceiveAddressReservationReleaseRequest) || {}),
+          origin,
+        })
+
+      // qi_sendToOutputs is handled by the provider bridge's
+      // routeQiSendRequest, which owns the confirmation popup and drives
+      // prepareQiSendRequest + awaitQiSendConfirmation directly. It never
+      // flows through this generic dispatch.
 
       case "quai_blockNumber":
       case "eth_blockNumber": {
@@ -638,34 +660,48 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
 
   /**
    * Validates a Qi send request and reserves the single in-flight slot,
-   * returning a unique request id and the normalized request. Runs
-   * synchronously so that invalid params or a busy wallet throw BEFORE any
-   * confirmation popup is opened (no focus-stealing strobe, no hang). The
-   * returned id scopes the popup's close-to-reject so it can only cancel its
-   * own request.
+   * returning a unique request id and the normalized request. The wallet also
+   * selects inputs and calculates the exact bounded fee before any confirmation
+   * popup is opened (no focus-stealing strobe, no hang). The returned id scopes
+   * the popup's close-to-reject so it can only cancel its own request.
    */
-  prepareQiSendRequest(
+  async prepareQiSendRequest(
     request: QiSendToOutputsRequest,
     origin: string
-  ): {
+  ): Promise<{
     requestId: string
     normalized: NormalizedQiSendToOutputsRequest
-  } {
-    if (this.qiSendRejecters.size > 0) {
+  }> {
+    if (this.qiSendActiveRequestIds.size > 0) {
       throw new Error("Another Qi transaction is awaiting confirmation")
     }
-    const normalized = this.transactionsService.normalizeQiSendToOutputsRequest({
-      ...(request || {}),
-      origin,
-    })
+    const normalized = this.transactionsService.normalizeQiSendToOutputsRequest(
+      {
+        ...(request || {}),
+        origin,
+      }
+    )
     this.qiSendRequestCounter += 1
     const requestId = `qi-send-${this.qiSendRequestCounter}`
-    return { requestId, normalized }
+    this.qiSendActiveRequestIds.add(requestId)
+    try {
+      const prepared = await this.transactionsService.prepareQiSendToOutputs(
+        normalized
+      )
+      return {
+        requestId,
+        normalized: { ...normalized, prepared },
+      }
+    } catch (error) {
+      this.qiSendActiveRequestIds.delete(requestId)
+      this.transactionsService.discardPreparedDappQiSend()
+      throw error
+    }
   }
 
   /**
    * Emits the confirmation request and resolves/rejects once the user acts.
-   * Must be called synchronously right after prepareQiSendRequest so the
+   * Must be called immediately after prepareQiSendRequest resolves so the
    * rejecter is registered before the popup can be closed.
    */
   awaitQiSendConfirmation(
@@ -673,25 +709,73 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     normalized: NormalizedQiSendToOutputsRequest
   ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
+      let expiryTimer: ReturnType<typeof setTimeout> | undefined
+      const clearExpiryTimer = () => {
+        if (expiryTimer !== undefined) clearTimeout(expiryTimer)
+        expiryTimer = undefined
+      }
       const doReject = (reason?: Error) => {
+        clearExpiryTimer()
         if (this.qiSendRejecters.get(requestId) === doReject) {
           this.qiSendRejecters.delete(requestId)
         }
+        this.qiSendActiveRequestIds.delete(requestId)
+        this.transactionsService.discardPreparedDappQiSend(
+          normalized.prepared?.preparedId
+        )
         reject(reason ?? new Error("Qi transaction rejected"))
       }
       const doResolve = (txHash: string | PromiseLike<string>) => {
+        clearExpiryTimer()
         if (this.qiSendRejecters.get(requestId) === doReject) {
           this.qiSendRejecters.delete(requestId)
         }
+        this.qiSendActiveRequestIds.delete(requestId)
+        this.transactionsService.discardPreparedDappQiSend(
+          normalized.prepared?.preparedId
+        )
         resolve(txHash)
       }
       this.qiSendRejecters.set(requestId, doReject)
+
+      if (
+        normalized.validUntil !== undefined &&
+        normalized.validUntil <= Date.now()
+      ) {
+        this.emitter.emit("qiSendToOutputsRejected", { requestId })
+        doReject(
+          new Error(
+            "Qi request funding deadline expired before confirmation; request a fresh confirmation"
+          )
+        )
+        return
+      }
 
       this.emitter.emit("qiSendToOutputsRequest", {
         payload: { ...normalized, requestId },
         resolver: doResolve,
         rejecter: doReject,
       })
+
+      const expiresAt = normalized.prepared?.expiresAt
+      if (expiresAt !== undefined) {
+        expiryTimer = setTimeout(() => {
+          if (this.qiSendRejecters.get(requestId) !== doReject) return
+          // A send that began before expiry owns the result. Rejecting because
+          // the popup closes or the timer fires mid-broadcast would tell the
+          // dapp to retry a transaction that may already be on-chain.
+          if (this.transactionsService.isSendingPreparedDappQiSend()) return
+          this.emitter.emit("qiSendToOutputsRejected", { requestId })
+          doReject(
+            new Error(
+              normalized.validUntil !== undefined &&
+              normalized.validUntil <= Date.now()
+                ? "Qi request funding deadline expired while awaiting confirmation; request a fresh confirmation"
+                : "Prepared Qi transaction expired; request a fresh confirmation"
+            )
+          )
+        }, Math.max(0, expiresAt - Date.now()))
+      }
     })
   }
 
@@ -702,6 +786,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
    * unrelated request.
    */
   rejectQiSendToOutputs(requestId: string): void {
+    if (this.transactionsService.isSendingPreparedDappQiSend()) return
     const rejecter = this.qiSendRejecters.get(requestId)
     if (!rejecter) return
     this.emitter.emit("qiSendToOutputsRejected", { requestId })

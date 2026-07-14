@@ -4,6 +4,8 @@ import GoBackIcon from "../iconComponents/GoBackIcon"
 const SharedGoBackPageHeader = ({
   title,
   linkTo,
+  onBack,
+  preventNavigation = false,
 }: {
   title: string
   linkTo?:
@@ -14,6 +16,8 @@ const SharedGoBackPageHeader = ({
         state: unknown
       }
     | string
+  onBack?: () => void
+  preventNavigation?: boolean
 }) => {
   return (
     <>
@@ -27,6 +31,8 @@ const SharedGoBackPageHeader = ({
             cursor: "pointer",
           }}
           linkTo={linkTo}
+          onClick={onBack}
+          preventNavigation={preventNavigation}
         />
         <h2>{title}</h2>
       </header>

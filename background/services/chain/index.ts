@@ -217,8 +217,10 @@ export default class ChainService extends BaseService<Events> {
     this.subscribedAccounts = []
     this.subscribedNetworks = []
     this.providerFactory = providerFactoryService
-    this.handleQiWalletBalanceUpdate = this.handleQiWalletBalanceUpdate.bind(this)
-    this.handleQuaiAddressBalanceUpdate = this.handleQuaiAddressBalanceUpdate.bind(this)
+    this.handleQiWalletBalanceUpdate =
+      this.handleQiWalletBalanceUpdate.bind(this)
+    this.handleQuaiAddressBalanceUpdate =
+      this.handleQuaiAddressBalanceUpdate.bind(this)
   }
 
   override async internalStartService(): Promise<void> {
@@ -273,13 +275,18 @@ export default class ChainService extends BaseService<Events> {
 
   public refreshProviders(): void {
     if (this.selectedNetwork) {
-      console.log(`[ChainService] Refreshing providers for current network: ${this.selectedNetwork.chainID}`)
+      console.log(
+        `[ChainService] Refreshing providers for current network: ${this.selectedNetwork.chainID}`
+      )
       const { jsonRpcProvider, webSocketProvider, immediateJsonRpcProvider } =
-        this.providerFactory.getProvidersForNetwork(this.selectedNetwork.chainID)
+        this.providerFactory.getProvidersForNetwork(
+          this.selectedNetwork.chainID
+        )
 
       this.jsonRpcProvider = jsonRpcProvider
       this.webSocketProvider = webSocketProvider
-      this.immediateJsonRpcProvider = immediateJsonRpcProvider ?? jsonRpcProvider
+      this.immediateJsonRpcProvider =
+        immediateJsonRpcProvider ?? jsonRpcProvider
     }
   }
 
@@ -348,10 +355,13 @@ export default class ChainService extends BaseService<Events> {
     })
   }
 
-  public async subscribeToQiAddresses(existingWallet?: QiHDWallet): Promise<void> {
+  public async subscribeToQiAddresses(
+    existingWallet?: QiHDWallet
+  ): Promise<void> {
     const { selectedNetwork } = this
     // Use provided wallet or fetch from keyring (avoid redundant deserialization)
-    const qiWallet = existingWallet ?? await this.keyringService.getQiHDWallet()
+    const qiWallet =
+      existingWallet ?? (await this.keyringService.getQiHDWallet())
     const qiAddresses = [
       qiWallet.getGapAddressesForZone(Zone.Cyprus1)[0],
       qiWallet.getGapChangeAddressesForZone(Zone.Cyprus1)[0],
@@ -613,12 +623,27 @@ export default class ChainService extends BaseService<Events> {
         // 4. More than 1 hour since last successful scan or sync
         const ONE_HOUR_MS = 60 * 60 * 1000
         const now = Date.now()
-        const lastSyncTimestamp = Math.max(lastScan?.timestamp || 0, lastSync?.timestamp || 0)
+        const lastSyncTimestamp = Math.max(
+          lastScan?.timestamp || 0,
+          lastSync?.timestamp || 0
+        )
         const timeSinceLastSync = now - lastSyncTimestamp
         const isStale = lastSyncTimestamp > 0 && timeSinceLastSync > ONE_HOUR_MS
 
-        const forceFullScan = !lastScan || lastScan.version !== currentVersion || forceFullScan_ || isStale
-        console.log(`[syncQiWallet] forceFullScan=${forceFullScan}, lastScan=${lastScan?.version}, currentVersion=${currentVersion}, timeSinceLastSync=${(timeSinceLastSync / 1000 / 60).toFixed(1)}min, isStale=${isStale}`)
+        const forceFullScan =
+          !lastScan ||
+          lastScan.version !== currentVersion ||
+          forceFullScan_ ||
+          isStale
+        console.log(
+          `[syncQiWallet] forceFullScan=${forceFullScan}, lastScan=${
+            lastScan?.version
+          }, currentVersion=${currentVersion}, timeSinceLastSync=${(
+            timeSinceLastSync /
+            1000 /
+            60
+          ).toFixed(1)}min, isStale=${isStale}`
+        )
 
         if (forceFullScan) {
           // Clear outpoints and sync info for fresh scan
@@ -784,7 +809,15 @@ export default class ChainService extends BaseService<Events> {
         // save the wallet to the vault
         const serializedQiWallet = { qiHDWallet: qiWallet.serialize() }
         await this.keyringService.vaultManager.add(serializedQiWallet, {})
-        console.log("Completed syncQiWallet. Balance: ", spendableBalance, "Took ", (Date.now() - start) / 1000, "seconds", "ForceFullScan: ", forceFullScan)
+        console.log(
+          "Completed syncQiWallet. Balance: ",
+          spendableBalance,
+          "Took ",
+          (Date.now() - start) / 1000,
+          "seconds",
+          "ForceFullScan: ",
+          forceFullScan
+        )
       } catch (error: any) {
         logger.error("Error occurred during Qi wallet sync", error.message)
       } finally {
@@ -808,14 +841,21 @@ export default class ChainService extends BaseService<Events> {
       const network = this.selectedNetwork
       const totalStart = Date.now()
       const logStep = (step: string, start: number) =>
-        console.log(`[deepScan] ${step}: ${((Date.now() - start) / 1000).toFixed(1)}s`)
+        console.log(
+          `[deepScan] ${step}: ${((Date.now() - start) / 1000).toFixed(1)}s`
+        )
 
-      console.log(`[deepScan] Starting deep scan with ${extraAddresses} extra addresses...`)
+      console.log(
+        `[deepScan] Starting deep scan with ${extraAddresses} extra addresses...`
+      )
 
       // Fetch current block FIRST so we can bail early without touching DB state
       // if the RPC is unreachable
       let stepStart = Date.now()
-      const currentBlock = await this.jsonRpcProvider.getBlock(Shard.Cyprus1, "latest")
+      const currentBlock = await this.jsonRpcProvider.getBlock(
+        Shard.Cyprus1,
+        "latest"
+      )
       logStep("getBlock", stepStart)
       if (!currentBlock?.hash || currentBlock.woHeader?.number === undefined) {
         logger.error("[deepScan] Failed to fetch current block — aborting")
@@ -847,11 +887,18 @@ export default class ChainService extends BaseService<Events> {
           MAILBOX_INTERFACE,
           this.jsonRpcProvider
         )
-        const notifications = await mailboxContract.getNotifications(paymentCode)
+        const notifications = await mailboxContract.getNotifications(
+          paymentCode
+        )
         notifications.forEach((pc: string) => qiWallet.openChannel(pc))
-        logStep(`getMailboxNotifications (${notifications.length} channels)`, stepStart)
+        logStep(
+          `getMailboxNotifications (${notifications.length} channels)`,
+          stepStart
+        )
       } catch (error: any) {
-        logger.error(`[deepScan] Error getting mailbox notifications: ${error?.message}`)
+        logger.error(
+          `[deepScan] Error getting mailbox notifications: ${error?.message}`
+        )
       }
 
       qiWallet.connect(this.immediateJsonRpcProvider)
@@ -916,7 +963,9 @@ export default class ChainService extends BaseService<Events> {
       await this.keyringService.vaultManager.add(serializedQiWallet, {})
 
       logStep(`TOTAL`, totalStart)
-      console.log(`[deepScan] Complete. Found ${outpoints.length} outpoints, balance: ${spendableBalance}`)
+      console.log(
+        `[deepScan] Complete. Found ${outpoints.length} outpoints, balance: ${spendableBalance}`
+      )
     } catch (error: any) {
       logger.error("[deepScan] Error:", error.message)
     } finally {
@@ -949,8 +998,20 @@ export default class ChainService extends BaseService<Events> {
     )
   }
 
-  async getQiOutpointsLessThanDenomination(denomination: number, chainID: string, currentBlockNumber: number): Promise<QiOutpoint[]> {
-    return this.db.getUnlockedQiOutpointsLessThanDenomination(denomination, chainID, currentBlockNumber)
+  async getAllQiOutpoints(chainID: string): Promise<QiOutpoint[]> {
+    return this.db.getAllQiOutpoints(chainID)
+  }
+
+  async getQiOutpointsLessThanDenomination(
+    denomination: number,
+    chainID: string,
+    currentBlockNumber: number
+  ): Promise<QiOutpoint[]> {
+    return this.db.getUnlockedQiOutpointsLessThanDenomination(
+      denomination,
+      chainID,
+      currentBlockNumber
+    )
   }
 
   async removeQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
@@ -1203,11 +1264,19 @@ export default class ChainService extends BaseService<Events> {
   }
 
   private isCurrentlyActiveChainID(chainID: string): boolean {
-    return Date.now() < globalThis.main.store.getState().ui.lastUserActivityOnNetwork[chainID] + NETWORK_POLLING_TIMEOUT
+    return (
+      Date.now() <
+      globalThis.main.store.getState().ui.lastUserActivityOnNetwork[chainID] +
+        NETWORK_POLLING_TIMEOUT
+    )
   }
 
   private isCurrentlyActiveAddress(address: HexString): boolean {
-    return Date.now() < globalThis.main.store.getState().ui.lastUserActivityOnAddress[address] + NETWORK_POLLING_TIMEOUT
+    return (
+      Date.now() <
+      globalThis.main.store.getState().ui.lastUserActivityOnAddress[address] +
+        NETWORK_POLLING_TIMEOUT
+    )
   }
 
   /**

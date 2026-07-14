@@ -12,8 +12,10 @@ const dappRequest: NormalizedQiSendToOutputsRequest = {
     },
   ],
   amountQit: "1000",
+  chainId: "15000",
   zone: "0x00",
   account: 0,
+  maxFeeQit: "100",
   origin: "https://app.test",
   requestId: "qi-send-1",
 }

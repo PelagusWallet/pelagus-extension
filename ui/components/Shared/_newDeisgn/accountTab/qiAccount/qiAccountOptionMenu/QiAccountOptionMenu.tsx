@@ -1,41 +1,34 @@
-import React, { ReactElement, useCallback, useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
   setShowingAccountsModal,
   setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import { resetManualQiSendState } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import SharedDropdown, { DropdownOption } from "../../../../SharedDropDown"
 import {
   useBackgroundDispatch,
   useBackgroundSelector,
 } from "../../../../../../hooks"
+import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 
-const QiAccountOptionMenu = ({
-  paymentCode,
-}: {
-  paymentCode: string
-}): ReactElement => {
+const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const currentSelectedAccount = useBackgroundSelector(selectCurrentAccount)
 
   const [options, setOptions] = useState<DropdownOption[]>([])
 
-  const onCopyData = useCallback(
-    async ({
-      data = "",
-      notificationMessage = "",
-    }: {
-      data: string
-      notificationMessage?: string
-    }) => {
-      await navigator.clipboard.writeText(data)
-      await dispatch(setSnackbarConfig({ message: notificationMessage }))
-    },
-    [dispatch]
-  )
+  const onCopyData = async ({
+    data = "",
+    notificationMessage = "",
+  }: {
+    data: string
+    notificationMessage?: string
+  }) => {
+    await navigator.clipboard.writeText(data)
+    await dispatch(setSnackbarConfig({ message: notificationMessage }))
+  }
 
   useEffect(() => {
     // Only show copy option for mainnet and Golden Age
@@ -81,7 +74,7 @@ const QiAccountOptionMenu = ({
         },
       ])
     }
-  }, [currentSelectedAccount, dispatch, history, onCopyData, paymentCode])
+  }, [currentSelectedAccount])
 
   return (
     <div className="options_menu_wrap">

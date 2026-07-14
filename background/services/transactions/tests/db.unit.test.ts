@@ -40,6 +40,9 @@ describe("TransactionsDatabase Qi receive reservations", () => {
     await expect(
       db.getUnreleasedQiReceiveAddressReservations()
     ).resolves.toEqual([reservation])
+    await expect(db.getAllQiReceiveAddressReservations()).resolves.toEqual([
+      reservation,
+    ])
 
     await db.expireActiveQiReceiveAddressReservations(now + 1000)
     await expect(
@@ -56,6 +59,14 @@ describe("TransactionsDatabase Qi receive reservations", () => {
     await expect(
       db.getUnreleasedQiReceiveAddressReservations()
     ).resolves.toEqual([])
+    await expect(db.getAllQiReceiveAddressReservations()).resolves.toEqual([
+      {
+        ...reservation,
+        status: "released",
+        releasedAt: now + 1000,
+        releaseReason: "lease-expired",
+      },
+    ])
   })
 
   it("never expires a committed reservation", async () => {

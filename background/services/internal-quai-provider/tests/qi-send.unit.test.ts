@@ -130,7 +130,7 @@ describe("InternalQuaiProviderService Qi confirmation lifecycle", () => {
     ).toHaveBeenCalledWith("0xprepared")
   })
 
-  it("binds every reservation lifecycle RPC to the trusted provider origin", async () => {
+  it("binds reservation allocation and commit RPCs to the trusted provider origin", async () => {
     const service = createService()
     service.transactionsService.getQiReceiveAddresses = jest
       .fn()
@@ -138,10 +138,6 @@ describe("InternalQuaiProviderService Qi confirmation lifecycle", () => {
     service.transactionsService.commitQiReceiveAddressReservation = jest
       .fn()
       .mockResolvedValue({ reservationId: "fill:payout", status: "committed" })
-    service.transactionsService.releaseQiReceiveAddressReservation = jest
-      .fn()
-      .mockResolvedValue({ reservationId: "fill:payout", status: "released" })
-
     const lifecycleParams = {
       reservationId: "fill:payout",
       origin: "https://attacker.test",
@@ -160,12 +156,6 @@ describe("InternalQuaiProviderService Qi confirmation lifecycle", () => {
       [lifecycleParams],
       "https://trusted.test"
     )
-    await service.routeSafeRPCRequest(
-      "qi_releaseReceiveAddressReservation",
-      [{ ...lifecycleParams, reason: "terminal" }],
-      "https://trusted.test"
-    )
-
     expect(
       service.transactionsService.getQiReceiveAddresses
     ).toHaveBeenCalledWith({
@@ -183,16 +173,6 @@ describe("InternalQuaiProviderService Qi confirmation lifecycle", () => {
       count: 1,
       zone: "cyprus1",
       account: 0,
-    })
-    expect(
-      service.transactionsService.releaseQiReceiveAddressReservation
-    ).toHaveBeenCalledWith({
-      reservationId: "fill:payout",
-      origin: "https://trusted.test",
-      count: 1,
-      zone: "cyprus1",
-      account: 0,
-      reason: "terminal",
     })
   })
 })

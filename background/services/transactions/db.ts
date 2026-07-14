@@ -285,7 +285,10 @@ export class TransactionsDatabase extends Dexie {
   }
 
   async getRunningIntervalConversions(): Promise<IntervalConversionDB[]> {
-    return this.intervalConversions.where("status").equals("running").toArray()
+    return this.intervalConversions
+      .where("status")
+      .equals("running")
+      .toArray()
   }
 
   // --------------------------- Qi receive reservations ---------------------------
@@ -300,6 +303,12 @@ export class TransactionsDatabase extends Dexie {
     reservation: QiReceiveAddressReservationDB
   ): Promise<void> {
     await this.qiReceiveAddressReservations.put(reservation)
+  }
+
+  async getAllQiReceiveAddressReservations(): Promise<
+    QiReceiveAddressReservationDB[]
+  > {
+    return this.qiReceiveAddressReservations.toArray()
   }
 
   async getUnreleasedQiReceiveAddressReservations(): Promise<

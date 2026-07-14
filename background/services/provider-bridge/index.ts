@@ -31,8 +31,14 @@ import {
   checkPermissionSignTypedData,
 } from "./authorization"
 import showExtensionPopup from "./show-popup"
-import { QiSendToOutputsRequest } from "../transactions/types"
+import {
+  NormalizedQiReceiveAddressReservationReleaseRequest,
+  QiReceiveAddressReservationReleaseRequest,
+  QiReceiveAddressReservationReleaseResponse,
+  QiSendToOutputsRequest,
+} from "../transactions/types"
 import { HexString } from "../../types"
+import { sameQuaiAddress } from "../../lib/utils"
 import {
   handleRPCErrorResponse,
   parseRPCRequestParams,
@@ -46,6 +52,21 @@ import { PELAGUS_INTERNAL_ORIGIN } from "../internal-quai-provider/constants"
 type Events = ServiceLifecycleEvents & {
   requestPermission: PermissionRequest
   initializeAllowedPages: PermissionMap
+  qiReceiveAddressReservationReleaseRequest: {
+    payload: NormalizedQiReceiveAddressReservationReleaseRequest & {
+      requestId: string
+    }
+  }
+  qiReceiveAddressReservationReleaseSettled: { requestId: string }
+}
+
+type PendingQiReceiveAddressReservationRelease = {
+  requestId: string
+  request: NormalizedQiReceiveAddressReservationReleaseRequest
+  state: "pending" | "confirming" | "settled"
+  confirmationPromise?: Promise<QiReceiveAddressReservationReleaseResponse>
+  resolve: (result: QiReceiveAddressReservationReleaseResponse) => void
+  reject: (error: Error) => void
 }
 
 export type AddChainRequestData = ValidatedAddEthereumChainParameter & {
@@ -80,6 +101,15 @@ export default class ProviderBridgeService extends BaseService<Events> {
   } = {}
 
   private addNetworkRequestId = 0
+
+  private qiReservationReleaseRequestId = 0
+
+  private qiReservationReleaseRequestActive = false
+
+  private pendingQiReservationReleases = new Map<
+    string,
+    PendingQiReceiveAddressReservationRelease
+  >()
 
   openPorts: Array<Runtime.Port> = []
 
@@ -556,6 +586,211 @@ export default class ProviderBridgeService extends BaseService<Events> {
     }
   }
 
+  private static isExactQiReservationPermission(
+    permission: PermissionRequest | undefined,
+    origin: string,
+    owner: string,
+    chainId: string
+  ): boolean {
+    if (
+      permission?.state !== "allow" ||
+      permission.origin !== origin ||
+      !sameQuaiAddress(permission.accountAddress, owner)
+    ) {
+      return false
+    }
+
+    return (
+      toHexChainID(Number(permission.chainID)) === toHexChainID(Number(chainId))
+    )
+  }
+
+  private static rejectPendingQiReservationRelease(
+    pending: PendingQiReceiveAddressReservationRelease,
+    error: Error
+  ): void {
+    if (pending.state === "settled") return
+    Object.assign(pending, { state: "settled" as const })
+    pending.reject(error)
+  }
+
+  async routeQiReservationReleaseRequest(
+    enablingPermission: PermissionRequest,
+    params: unknown[],
+    origin: string
+  ): Promise<QiReceiveAddressReservationReleaseResponse> {
+    if (this.qiReservationReleaseRequestActive) {
+      throw new Error(
+        "Another Qi receive-address release is awaiting confirmation"
+      )
+    }
+    this.qiReservationReleaseRequestActive = true
+
+    let prepared: NormalizedQiReceiveAddressReservationReleaseRequest
+    try {
+      const [{ address: selectedAddress }, network] = await Promise.all([
+        this.preferenceService.getSelectedAccount(),
+        this.internalQuaiProviderService.getCurrentOrDefaultNetworkForOrigin(
+          origin
+        ),
+      ])
+      if (
+        !sameQuaiAddress(selectedAddress, enablingPermission.accountAddress) ||
+        !ProviderBridgeService.isExactQiReservationPermission(
+          enablingPermission,
+          origin,
+          selectedAddress,
+          network.chainID
+        )
+      ) {
+        throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
+      }
+
+      prepared =
+        await this.internalQuaiProviderService.prepareQiReceiveAddressReservationRelease(
+          {
+            ...((params[0] as QiReceiveAddressReservationReleaseRequest) || {}),
+            origin,
+            owner: enablingPermission.accountAddress,
+            chainId: network.chainID,
+          }
+        )
+    } catch (error) {
+      this.qiReservationReleaseRequestActive = false
+      throw error
+    }
+
+    this.qiReservationReleaseRequestId += 1
+    const requestId = `qi-reservation-release-${this.qiReservationReleaseRequestId}`
+    let resolveRequest!: (
+      result: QiReceiveAddressReservationReleaseResponse
+    ) => void
+    let rejectRequest!: (error: Error) => void
+    const responsePromise =
+      new Promise<QiReceiveAddressReservationReleaseResponse>(
+        (resolve, reject) => {
+          resolveRequest = resolve
+          rejectRequest = reject
+        }
+      )
+    const pending: PendingQiReceiveAddressReservationRelease = {
+      requestId,
+      request: prepared,
+      state: "pending",
+      resolve: resolveRequest,
+      reject: rejectRequest,
+    }
+    this.pendingQiReservationReleases.set(requestId, pending)
+
+    this.emitter
+      .emit("qiReceiveAddressReservationReleaseRequest", {
+        payload: { ...prepared, requestId },
+      })
+      .catch((error: unknown) => {
+        ProviderBridgeService.rejectPendingQiReservationRelease(
+          pending,
+          error instanceof Error
+            ? error
+            : new Error("Unable to open Qi reservation release confirmation")
+        )
+      })
+
+    const popupPromise = showExtensionPopup(
+      AllowedQueryParamPage.qiReservationRelease,
+      {},
+      () => this.rejectQiReservationRelease(requestId)
+    )
+    popupPromise.catch((error: unknown) => {
+      ProviderBridgeService.rejectPendingQiReservationRelease(
+        pending,
+        error instanceof Error
+          ? error
+          : new Error("Unable to open Qi reservation release confirmation")
+      )
+    })
+
+    try {
+      return await responsePromise
+    } finally {
+      this.qiReservationReleaseRequestActive = false
+      if (this.pendingQiReservationReleases.get(requestId) === pending) {
+        this.pendingQiReservationReleases.delete(requestId)
+      }
+      await this.emitter
+        .emit("qiReceiveAddressReservationReleaseSettled", { requestId })
+        .catch(() => undefined)
+      const popup = await popupPromise.catch(() => undefined)
+      if (popup && typeof popup.id !== "undefined") {
+        await browser.windows.remove(popup.id).catch(() => undefined)
+      }
+    }
+  }
+
+  async confirmQiReservationRelease(
+    requestId: string
+  ): Promise<QiReceiveAddressReservationReleaseResponse | undefined> {
+    const pending = this.pendingQiReservationReleases.get(requestId)
+    if (!pending) return undefined
+    if (pending.confirmationPromise) return pending.confirmationPromise
+    if (pending.state !== "pending") return undefined
+
+    pending.state = "confirming"
+    pending.confirmationPromise = (async () => {
+      try {
+        const [{ address: selectedAddress }, network] = await Promise.all([
+          this.preferenceService.getSelectedAccount(),
+          this.internalQuaiProviderService.getCurrentOrDefaultNetworkForOrigin(
+            pending.request.origin
+          ),
+        ])
+        const livePermission = await this.checkPermission(
+          pending.request.origin,
+          network.chainID
+        )
+        if (
+          !sameQuaiAddress(selectedAddress, pending.request.owner) ||
+          toHexChainID(Number(network.chainID)) !==
+            toHexChainID(Number(pending.request.chainId)) ||
+          !ProviderBridgeService.isExactQiReservationPermission(
+            livePermission,
+            pending.request.origin,
+            pending.request.owner,
+            pending.request.chainId
+          )
+        ) {
+          throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
+        }
+
+        const result =
+          await this.internalQuaiProviderService.releaseQiReceiveAddressReservation(
+            pending.request
+          )
+        pending.state = "settled"
+        pending.resolve(result)
+        return result
+      } catch (error: unknown) {
+        const reason =
+          error instanceof Error
+            ? error
+            : new Error("Unable to release the reserved Qi addresses")
+        ProviderBridgeService.rejectPendingQiReservationRelease(pending, reason)
+        throw reason
+      }
+    })()
+    return pending.confirmationPromise
+  }
+
+  rejectQiReservationRelease(requestId: string): void {
+    const pending = this.pendingQiReservationReleases.get(requestId)
+    // Once confirmation begins, popup teardown must not race the approved
+    // mutation and report a false rejection to the dapp.
+    if (!pending || pending.state !== "pending") return
+    ProviderBridgeService.rejectPendingQiReservationRelease(
+      pending,
+      new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest)
+    )
+  }
+
   async routeContentScriptRPCRequest(
     enablingPermission: PermissionRequest,
     method: string,
@@ -623,9 +858,15 @@ export default class ProviderBridgeService extends BaseService<Events> {
 
         case "qi_getReceiveAddresses":
         case "qi_commitReceiveAddressReservation":
-        case "qi_releaseReceiveAddressReservation":
           return await this.internalQuaiProviderService.routeSafeRPCRequest(
             method,
+            params,
+            origin
+          )
+
+        case "qi_releaseReceiveAddressReservation":
+          return await this.routeQiReservationReleaseRequest(
+            enablingPermission,
             params,
             origin
           )

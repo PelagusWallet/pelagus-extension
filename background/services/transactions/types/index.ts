@@ -1,4 +1,4 @@
-import { BigNumberish, LogParams } from "quais"
+import { BigNumberish, LogParams, Zone } from "quais"
 import { EtxParams } from "quais/lib/commonjs/providers/formatting"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 
@@ -88,7 +88,9 @@ export type QiReceiveAddressReservationStatus =
   | "committed"
   | "released"
 
-export type QiReceiveAddressReservationReleaseReason = "terminal"
+export type QiReceiveAddressReservationReleaseReason =
+  | "terminal"
+  | "accepted-fill-timeout"
 
 export type QiReceiveAddressReservationControlRequest = {
   reservationId?: unknown
@@ -102,7 +104,28 @@ export type QiReceiveAddressReservationControlRequest = {
 export type QiReceiveAddressReservationReleaseRequest =
   QiReceiveAddressReservationControlRequest & {
     reason?: unknown
+    /** Set only by the provider bridge from the selected permitted account. */
+    owner?: unknown
+    /** Set only by the provider bridge from the selected wallet network. */
+    chainId?: unknown
   }
+
+/**
+ * Canonical request approved by the user in the release confirmation popup.
+ * `owner`, `origin`, and `chainId` are trusted provider context carried so the
+ * provider can revalidate that context immediately before applying the release.
+ * They are intentionally not persisted in the reservation database.
+ */
+export type NormalizedQiReceiveAddressReservationReleaseRequest = {
+  reservationId: string
+  count: number
+  zone: Zone
+  account: number
+  origin: string
+  owner: string
+  chainId: string
+  reason: QiReceiveAddressReservationReleaseReason
+}
 
 export type QiReceiveAddressReservationResponse = {
   reservationId: string
@@ -118,6 +141,7 @@ export type QiReceiveAddressReservationReleaseResponse = {
   status: "released"
   releasedAt: number
   alreadyReleased: boolean
+  reason: QiReceiveAddressReservationReleaseReason
 }
 
 export type QiSendToOutputsRequest = {

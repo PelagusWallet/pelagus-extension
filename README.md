@@ -27,6 +27,9 @@ Once the build is running, you can install the extension in your browser of choi
 
 Extension bundles for each browser are in `dist/<browser>`.
 
+The narrow Quainance P2P Qi dapp integration and its storage limits are documented in
+[P2P_QI_DAPP.md](P2P_QI_DAPP.md).
+
 By default, the `yarn start` command rebuilds the extension for each browser on
 save. You can target a particular browser by specifying it in the command, e.g.
 to only rebuild the Firefox extension on change:

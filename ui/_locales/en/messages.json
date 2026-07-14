@@ -664,6 +664,31 @@
         "trade": "Trade {{tradeHash}}",
         "qitUnit": "qit",
         "noPending": "No pending Qi dapp transaction"
+      },
+      "qiReservationRelease": {
+        "headerTitle": "Retire receive addresses",
+        "eyebrow": "Address safety request",
+        "title": "Retire reserved addresses?",
+        "requestedBy": "Requested by {{origin}}",
+        "timeoutSummary": "This site says the trade was not created before funding closed and wants Pelagus to retire the receive addresses it reserved.",
+        "terminalSummary": "This site says the completed trade no longer needs its reserved receive addresses.",
+        "irreversibleTitle": "This cannot be undone in this profile",
+        "irreversibleBody": "Pelagus will keep these addresses out of future reservations. This does not delete the addresses or move any funds.",
+        "recoveryWarning": "This retirement record is stored with this browser profile. Restoring an older profile or recovering from the seed alone may not include it, so do not reuse these addresses after recovery.",
+        "requestDetailsTitle": "Request details",
+        "originLabel": "Site",
+        "reservationLabel": "Reservation ID",
+        "countLabel": "Addresses",
+        "reasonLabel": "Reason",
+        "zoneLabel": "Zone",
+        "accountLabel": "Qi account",
+        "terminalReason": "Trade completed",
+        "timeoutReason": "Trade was not created before funding closed",
+        "retireButton": "Retire addresses",
+        "keepButton": "Keep addresses",
+        "closeButton": "Close",
+        "noPending": "There is no pending address retirement request.",
+        "confirmError": "Pelagus could not retire these addresses. Keep this window open and try again."
       }
     }
   }

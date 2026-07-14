@@ -99,6 +99,11 @@ import {
   clearQiDappRequest,
   setQiDappSendRequest,
 } from "./redux-slices/qiSend"
+import {
+  clearQiReservationReleaseRequest,
+  emitter as qiReservationSliceEmitter,
+  setQiReservationReleaseRequest,
+} from "./redux-slices/qiReservation"
 import { allAliases } from "./redux-slices/utils"
 import {
   emitter as providerBridgeSliceEmitter,
@@ -1604,6 +1609,34 @@ export default class Main extends BaseService<never> {
       "initializeAllowedPages",
       async (allowedPages: PermissionMap) => {
         this.store.dispatch(initializePermissions(allowedPages))
+      }
+    )
+
+    this.providerBridgeService.emitter.on(
+      "qiReceiveAddressReservationReleaseRequest",
+      ({ payload }) => {
+        this.store.dispatch(setQiReservationReleaseRequest(payload))
+      }
+    )
+
+    this.providerBridgeService.emitter.on(
+      "qiReceiveAddressReservationReleaseSettled",
+      ({ requestId }) => {
+        this.store.dispatch(clearQiReservationReleaseRequest({ requestId }))
+      }
+    )
+
+    qiReservationSliceEmitter.on(
+      "confirmQiReservationRelease",
+      async ({ requestId }) => {
+        await this.providerBridgeService.confirmQiReservationRelease(requestId)
+      }
+    )
+
+    qiReservationSliceEmitter.on(
+      "rejectQiReservationRelease",
+      ({ requestId }) => {
+        this.providerBridgeService.rejectQiReservationRelease(requestId)
       }
     )
 

@@ -61,7 +61,9 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           size={70}
           iconWidth="20"
           iconHeight="26"
-          disabled={currentSelectedAccount.network.chainID === "9000"}
+          disabled={
+            currentSelectedAccount.network.chainID === "9000"
+          }
         >
           {t("send")}
         </SharedCircleButton>
@@ -77,6 +79,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
         </SharedCircleButton>
 
         {isUtxoSelected ? (
+
           <SharedCircleButton
             icon="icons/s/swap.svg"
             ariaLabel={t("wrap")}
@@ -92,8 +95,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             iconHeight="26"
             disabled={!isQiWalletInit}
             width="100%"
-          >
-            {t("wrap")}
+            >
+              {t("wrap")}
           </SharedCircleButton>
         ) : (
           <>
@@ -129,7 +132,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
           iconWidth="28"
           iconHeight="26"
           disabled={
-            !isQiWalletInit || currentSelectedAccount.network.chainID === "9000"
+            !isQiWalletInit ||
+            currentSelectedAccount.network.chainID === "9000"
           }
         >
           {t("convert")}

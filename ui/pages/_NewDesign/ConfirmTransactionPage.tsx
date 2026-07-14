@@ -1,8 +1,7 @@
-import React, { ReactElement, useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { setShowingAccountsModal } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
 import { sendQiTransaction } from "@pelagus/pelagus-background/redux-slices/qiSend"
-import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import SharedGoBackPageHeader from "../../components/Shared/_newDeisgn/pageHeaders/SharedGoBackPageHeader"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
@@ -10,13 +9,14 @@ import AccountsNotificationPanel from "../../components/AccountsNotificationPane
 import ConfirmTransaction from "../../components/_NewDesign/ConfirmTransaction/ConfirmTransaction"
 import SharedActionButtons from "../../components/Shared/_newDeisgn/actionButtons/SharedActionButtons"
 import SharedConfirmationModal from "../../components/Shared/SharedConfirmationModal"
+import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 
 interface AsyncThunkResult {
   txHash?: string
   error?: { message: string }
 }
 
-const ConfirmTransactionPage = (): ReactElement => {
+const ConfirmTransactionPage = () => {
   const dispatch = useBackgroundDispatch()
   const history = useHistory()
   const network = useBackgroundSelector(selectCurrentNetwork)
@@ -42,10 +42,7 @@ const ConfirmTransactionPage = (): ReactElement => {
   const isSubmittingRef = useRef(false)
 
   useEffect(() => {
-    if (channelExists) {
-      setInsufficientQuai(false)
-      return
-    }
+    if (channelExists) return
 
     const serializedBalance = Number(quaiBalance.split(" ")[0])
 
@@ -61,6 +58,7 @@ const ConfirmTransactionPage = (): ReactElement => {
 
     // Synchronous check to prevent duplicate submissions from rapid clicks
     if (isSubmittingRef.current) {
+      console.log("Transaction submission already in progress, ignoring click")
       return
     }
     isSubmittingRef.current = true
@@ -70,7 +68,8 @@ const ConfirmTransactionPage = (): ReactElement => {
     setTransactionHash("")
 
     try {
-      const result = (await dispatch(sendQiTransaction())) as AsyncThunkResult
+      const result = await dispatch(sendQiTransaction()) as AsyncThunkResult
+      console.log("result", result)
       if (result?.txHash) {
         setTransactionHash(result.txHash)
       } else {
@@ -79,12 +78,9 @@ const ConfirmTransactionPage = (): ReactElement => {
         }
         setIsTransactionError(true)
       }
-    } catch (error: unknown) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : confirmationLocales("send.errorSubtitle")
-      )
+    } catch (error: any) {
+      console.error("Transaction error:", error)
+      setErrorMessage(error?.message || confirmationLocales("send.errorSubtitle"))
       setIsTransactionError(true)
     } finally {
       setIsConfirmLoading(false)

@@ -49,6 +49,10 @@ const normalizeQiSendToOutputsRequest = (input: unknown) =>
 
 const qiAddress = "0x0080000000000000000000000000000000000000"
 const qiAddress2 = "0x0080000000000000000000000000000000000001"
+const reservationReleaseContext = {
+  owner: "0x0000000000000000000000000000000000000001",
+  chainId: "15000",
+}
 
 const normalizedRequest: NormalizedQiSendToOutputsRequest = {
   outputs: [{ address: qiAddress, denomination: 0 }],
@@ -105,7 +109,7 @@ function createReceiveReservationHarness() {
     status: "active" | "committed" | "released"
     committedAt?: number
     releasedAt?: number
-    releaseReason?: "terminal" | "lease-expired"
+    releaseReason?: "terminal" | "accepted-fill-timeout" | "lease-expired"
   }
   const records = new Map<string, Reservation>()
   const addressInfos: Array<{
@@ -166,6 +170,9 @@ function createReceiveReservationHarness() {
         (record) => record.status === "active" || record.status === "committed"
       )
     ),
+    getAllQiReceiveAddressReservations: jest.fn(async () => [
+      ...records.values(),
+    ]),
   }
   const vaultManager = { add: jest.fn().mockResolvedValue(undefined) }
   const createService = () => {
@@ -287,65 +294,92 @@ describe("TransactionService", () => {
       }
     })
 
-    it("releases only committed terminal reservations and is idempotent after restart", async () => {
-      const now = jest.spyOn(Date, "now").mockReturnValue(5000)
-      try {
-        const harness = createReceiveReservationHarness()
-        const request = {
-          reservationId: "fill-terminal:refund",
-          origin: "https://app.test",
-          count: 1,
-          zone: "cyprus1",
-          account: 0,
-        }
-        const service = harness.createService()
-        const active = (await service.getQiReceiveAddresses(request)) as {
-          addresses: string[]
-        }
+    it.each(["terminal", "accepted-fill-timeout"] as const)(
+      "releases a committed reservation as %s and is idempotent after restart",
+      async (reason) => {
+        const now = jest.spyOn(Date, "now").mockReturnValue(5000)
+        try {
+          const harness = createReceiveReservationHarness()
+          const request = {
+            reservationId: "fill-terminal:refund",
+            origin: "https://app.test",
+            count: 1,
+            zone: "cyprus1",
+            account: 0,
+          }
+          const service = harness.createService()
+          const active = (await service.getQiReceiveAddresses(request)) as {
+            addresses: string[]
+          }
 
-        await expect(
-          service.releaseQiReceiveAddressReservation({
+          await expect(
+            service.prepareQiReceiveAddressReservationRelease({
+              ...request,
+              ...reservationReleaseContext,
+              reason,
+            })
+          ).rejects.toThrow("Only a committed reservation")
+          await service.commitQiReceiveAddressReservation(request)
+          const prepared =
+            await service.prepareQiReceiveAddressReservationRelease({
+              ...request,
+              ...reservationReleaseContext,
+              reason,
+            })
+          expect(prepared).toEqual({
             ...request,
-            reason: "terminal",
+            ...reservationReleaseContext,
+            zone: "0x00",
+            reason,
           })
-        ).rejects.toThrow("Only a committed reservation")
-        await service.commitQiReceiveAddressReservation(request)
-        const released = await service.releaseQiReceiveAddressReservation({
-          ...request,
-          reason: "terminal",
-        })
-        const releasedRetry = await harness
-          .createService()
-          .releaseQiReceiveAddressReservation({
-            ...request,
-            reason: "terminal",
+          const released = await service.releaseQiReceiveAddressReservation(
+            prepared
+          )
+          const restarted = harness.createService()
+          const preparedRetry =
+            await restarted.prepareQiReceiveAddressReservationRelease({
+              ...request,
+              ...reservationReleaseContext,
+              reason,
+            })
+          const releasedRetry =
+            await restarted.releaseQiReceiveAddressReservation(preparedRetry)
+
+          expect(released).toEqual({
+            reservationId: request.reservationId,
+            status: "released",
+            releasedAt: 5000,
+            alreadyReleased: false,
+            reason,
           })
+          expect(releasedRetry).toEqual({
+            ...released,
+            alreadyReleased: true,
+          })
+          await expect(
+            restarted.prepareQiReceiveAddressReservationRelease({
+              ...request,
+              ...reservationReleaseContext,
+              reason:
+                reason === "terminal" ? "accepted-fill-timeout" : "terminal",
+            })
+          ).rejects.toThrow(`already released as ${reason}`)
+          await expect(
+            harness.createService().getQiReceiveAddresses(request)
+          ).rejects.toThrow("released and cannot be reused")
 
-        expect(released).toEqual({
-          reservationId: request.reservationId,
-          status: "released",
-          releasedAt: 5000,
-          alreadyReleased: false,
-        })
-        expect(releasedRetry).toEqual({
-          ...released,
-          alreadyReleased: true,
-        })
-        await expect(
-          harness.createService().getQiReceiveAddresses(request)
-        ).rejects.toThrow("released and cannot be reused")
-
-        const replacement = (await harness
-          .createService()
-          .getQiReceiveAddresses({
-            ...request,
-            reservationId: "fill-replacement:refund",
-          })) as { addresses: string[] }
-        expect(replacement.addresses).toEqual(active.addresses)
-      } finally {
-        now.mockRestore()
+          const replacement = (await harness
+            .createService()
+            .getQiReceiveAddresses({
+              ...request,
+              reservationId: "fill-replacement:refund",
+            })) as { addresses: string[] }
+          expect(replacement.addresses).not.toEqual(active.addresses)
+        } finally {
+          now.mockRestore()
+        }
       }
-    })
+    )
 
     it("turns an expired active reservation into a non-replayable tombstone", async () => {
       const now = jest.spyOn(Date, "now").mockReturnValue(1000)
@@ -358,7 +392,9 @@ describe("TransactionService", () => {
           zone: "cyprus1",
           account: 0,
         }
-        await harness.createService().getQiReceiveAddresses(request)
+        const expired = (await harness
+          .createService()
+          .getQiReceiveAddresses(request)) as { addresses: string[] }
         now.mockReturnValue(1000 + 24 * 60 * 60 * 1000 + 1)
 
         await expect(
@@ -371,6 +407,13 @@ describe("TransactionService", () => {
           harness.records.get(`${request.origin}\u0000${request.reservationId}`)
             ?.releaseReason
         ).toBe("lease-expired")
+        const replacement = (await harness
+          .createService()
+          .getQiReceiveAddresses({
+            ...request,
+            reservationId: "quote-after-expiry:payout",
+          })) as { addresses: string[] }
+        expect(replacement.addresses).not.toEqual(expired.addresses)
       } finally {
         now.mockRestore()
       }
@@ -409,18 +452,47 @@ describe("TransactionService", () => {
 
       await service.commitQiReceiveAddressReservation(request)
       await expect(
-        service.releaseQiReceiveAddressReservation({
+        service.prepareQiReceiveAddressReservationRelease({
           ...request,
           origin: "https://other.test",
+          ...reservationReleaseContext,
           reason: "terminal",
         })
       ).rejects.toThrow("was not found")
       await expect(
-        service.releaseQiReceiveAddressReservation({
+        service.prepareQiReceiveAddressReservationRelease({
           ...request,
+          ...reservationReleaseContext,
           reason: "abandoned-before-acceptance",
         })
-      ).rejects.toThrow('reason must be "terminal"')
+      ).rejects.toThrow('reason must be "terminal" or "accepted-fill-timeout"')
+    })
+
+    it("revalidates the exact committed reservation under the release lock", async () => {
+      const harness = createReceiveReservationHarness()
+      const service = harness.createService()
+      const request = {
+        reservationId: "fill-race:payout",
+        origin: "https://app.test",
+        count: 1,
+        zone: "cyprus1",
+        account: 0,
+      }
+      await service.getQiReceiveAddresses(request)
+      await service.commitQiReceiveAddressReservation(request)
+      const prepared = await service.prepareQiReceiveAddressReservationRelease({
+        ...request,
+        ...reservationReleaseContext,
+        reason: "accepted-fill-timeout",
+      })
+      const recordKey = `${request.origin}\u0000${request.reservationId}`
+      const committed = harness.records.get(recordKey)
+      if (!committed) throw new Error("missing committed test reservation")
+      harness.records.set(recordKey, { ...committed, count: 2 })
+
+      await expect(
+        service.releaseQiReceiveAddressReservation(prepared)
+      ).rejects.toThrow("different count, zone, or account")
     })
 
     it("returns distinct addresses for distinct reservations", async () => {
@@ -469,7 +541,35 @@ describe("TransactionService", () => {
           origin: "https://app.test",
           count: 1,
         })
-      ).rejects.toThrow("cannot exceed 4 unresolved addresses")
+      ).rejects.toThrow("cannot exceed 4 unused historical")
+    })
+
+    it("counts released unused addresses against the restore-gap budget", async () => {
+      const harness = createReceiveReservationHarness()
+      const service = harness.createService()
+      const request = {
+        reservationId: "fill-gap:refund",
+        origin: "https://app.test",
+        count: 4,
+        zone: "cyprus1",
+        account: 0,
+      }
+      await service.getQiReceiveAddresses(request)
+      await service.commitQiReceiveAddressReservation(request)
+      const prepared = await service.prepareQiReceiveAddressReservationRelease({
+        ...request,
+        ...reservationReleaseContext,
+        reason: "terminal",
+      })
+      await service.releaseQiReceiveAddressReservation(prepared)
+
+      await expect(
+        service.getQiReceiveAddresses({
+          ...request,
+          reservationId: "fill-after-gap:refund",
+          count: 1,
+        })
+      ).rejects.toThrow("cannot exceed 4 unused historical")
     })
 
     it("binds the same reservationId independently to each trusted origin", async () => {

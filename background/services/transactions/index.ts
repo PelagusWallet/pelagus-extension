@@ -41,6 +41,7 @@ import {
   WRAPPED_QUAI_CONTRACT_ADDRESS,
 } from "../../constants"
 import {
+  NormalizedQiReceiveAddressReservationReleaseRequest,
   NormalizedQiSendToOutputsRequest,
   PreparedQiSendToOutputs,
   QiOutputRequest,
@@ -83,8 +84,8 @@ const QI_DAPP_SEND_MAX_OUTPUTS = 128
 const QI_DAPP_SEND_MAX_INPUTS = 128
 const QI_DAPP_SEND_MAX_CHANGE_OUTPUTS = 128
 // The Qi restore scanner stops after five consecutive unused addresses. Keep
-// every outstanding reservation within four unresolved addresses so a later
-// funded address is always discoverable from the seed alone.
+// every historically exposed, still-unused reservation address within four
+// addresses so a later funded address is always discoverable from the seed.
 const QI_RECEIVE_SHARED_GAP_BUDGET = 4
 const QI_RECEIVE_ADDRESS_MAX_COUNT = QI_RECEIVE_SHARED_GAP_BUDGET
 const QI_RECEIVE_RESERVATION_ID_MAX_LENGTH = 128
@@ -448,6 +449,13 @@ type NormalizedQiReceiveReservationControl = {
   origin: string
 }
 
+function normalizeQiReceiveReservationOwner(value: unknown): string {
+  if (typeof value !== "string" || !/^0x[0-9a-fA-F]{40}$/.test(value)) {
+    throw new Error("owner must be a 20-byte 0x-prefixed address")
+  }
+  return value.toLowerCase()
+}
+
 function normalizeQiReceiveReservationControl(
   input: QiReceiveAddressReservationControlRequest
 ): NormalizedQiReceiveReservationControl {
@@ -478,6 +486,27 @@ function normalizeQiReceiveReservationControl(
     throw new Error("origin is required for Qi address reservations")
   }
   return { reservationId, count, zone, account, origin }
+}
+
+function normalizeQiReceiveReservationRelease(
+  input: QiReceiveAddressReservationReleaseRequest
+): NormalizedQiReceiveAddressReservationReleaseRequest {
+  const control = normalizeQiReceiveReservationControl(input)
+  if (input.reason !== "terminal" && input.reason !== "accepted-fill-timeout") {
+    throw new Error('reason must be "terminal" or "accepted-fill-timeout"')
+  }
+  if (Object.prototype.hasOwnProperty.call(input, "chainID")) {
+    throw new Error("chainID is not supported; use chainId")
+  }
+  if (input.chainId === undefined || input.chainId === null) {
+    throw new Error("chainId is required for Qi reservation release")
+  }
+  return {
+    ...control,
+    owner: normalizeQiReceiveReservationOwner(input.owner),
+    chainId: normalizeQiChainId(input.chainId, "chainId"),
+    reason: input.reason,
+  }
 }
 
 function denominateQit(value: bigint): number[] {
@@ -1163,11 +1192,19 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   public async releaseQiReceiveAddressReservation(
-    input: QiReceiveAddressReservationReleaseRequest
+    input: NormalizedQiReceiveAddressReservationReleaseRequest
   ): Promise<QiReceiveAddressReservationReleaseResponse> {
     return this.withQiReceiveAddressAllocationLock(() =>
       this.releaseQiReceiveAddressReservationLocked(input)
     )
+  }
+
+  public async prepareQiReceiveAddressReservationRelease(
+    input: QiReceiveAddressReservationReleaseRequest
+  ): Promise<NormalizedQiReceiveAddressReservationReleaseRequest> {
+    const expected = normalizeQiReceiveReservationRelease(input)
+    await this.getValidatedQiReceiveReservationRelease(expected)
+    return expected
   }
 
   private assertQiReceiveReservationBinding(
@@ -1269,43 +1306,33 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   private async releaseQiReceiveAddressReservationLocked(
-    input: QiReceiveAddressReservationReleaseRequest
+    input: NormalizedQiReceiveAddressReservationReleaseRequest
   ): Promise<QiReceiveAddressReservationReleaseResponse> {
-    const expected = normalizeQiReceiveReservationControl(input)
-    if (input.reason !== "terminal") {
-      throw new Error(
-        'reason must be "terminal"; active quotes expire automatically and cannot be abandoned without wallet confirmation'
-      )
-    }
+    // Treat the approved object as untrusted at the final mutation boundary.
+    // The provider separately revalidates owner/origin/network immediately
+    // before this call; this repeats canonical parsing and exact row binding.
+    const expected = normalizeQiReceiveReservationRelease(input)
     const now = Date.now()
-    await this.db.expireActiveQiReceiveAddressReservations(now)
-    const reservation = await this.db.getQiReceiveAddressReservation(
-      expected.origin,
-      expected.reservationId
+    const reservation = await this.getValidatedQiReceiveReservationRelease(
+      expected
     )
-    if (!reservation) {
-      throw new Error("Qi receive address reservation was not found")
-    }
-    this.assertQiReceiveReservationBinding(reservation, expected)
     if (reservation.status === "released") {
       return {
         reservationId: reservation.reservationId,
         status: "released",
-        releasedAt: reservation.releasedAt ?? now,
+        releasedAt: reservation.releasedAt as number,
         alreadyReleased: true,
+        reason: reservation.releaseReason as
+          | "terminal"
+          | "accepted-fill-timeout",
       }
-    }
-    if (reservation.status !== "committed") {
-      throw new Error(
-        "Only a committed reservation may be released as terminal"
-      )
     }
 
     const released: QiReceiveAddressReservationDB = {
       ...reservation,
       status: "released",
       releasedAt: now,
-      releaseReason: "terminal",
+      releaseReason: expected.reason,
       lastAccessedAt: now,
     }
     await this.db.putQiReceiveAddressReservation(released)
@@ -1314,7 +1341,42 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       status: "released",
       releasedAt: now,
       alreadyReleased: false,
+      reason: expected.reason,
     }
+  }
+
+  private async getValidatedQiReceiveReservationRelease(
+    expected: NormalizedQiReceiveAddressReservationReleaseRequest
+  ): Promise<QiReceiveAddressReservationDB> {
+    const reservation = await this.db.getQiReceiveAddressReservation(
+      expected.origin,
+      expected.reservationId
+    )
+    if (!reservation) {
+      throw new Error("Qi receive address reservation was not found")
+    }
+    this.assertQiReceiveReservationBinding(reservation, expected)
+    if (reservation.status === "committed") {
+      if (reservation.committedAt === undefined) {
+        throw new Error("Committed Qi receive reservation is incomplete")
+      }
+      return reservation
+    }
+    if (
+      reservation.status !== "released" ||
+      reservation.committedAt === undefined ||
+      reservation.releasedAt === undefined ||
+      (reservation.releaseReason !== "terminal" &&
+        reservation.releaseReason !== "accepted-fill-timeout")
+    ) {
+      throw new Error("Only a committed reservation may be released")
+    }
+    if (reservation.releaseReason !== expected.reason) {
+      throw new Error(
+        `Qi receive reservation was already released as ${reservation.releaseReason}`
+      )
+    }
+    return reservation
   }
 
   private async getQiReceiveAddressesLocked(
@@ -1376,22 +1438,31 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
 
     const qiWallet = await this.keyringService.getQiHDWallet()
-    const unreleasedReservations =
-      await this.db.getUnreleasedQiReceiveAddressReservations()
+    const historicalReservations =
+      await this.db.getAllQiReceiveAddressReservations()
+    const unreleasedReservations = historicalReservations.filter(
+      (reservation) =>
+        reservation.status === "active" || reservation.status === "committed"
+    )
     const unreleasedForAccount = unreleasedReservations.filter(
       (reservation) =>
         reservation.account === account && reservation.zone === zone
     )
-    // A funded address no longer contributes to the restore gap, but it stays
-    // excluded until terminal release. This keeps long-running committed
-    // trades safe without permanently exhausting the small unused-address gap.
+    // A funded address no longer contributes to the restore gap, but every
+    // historically exposed address stays excluded permanently in this profile.
+    // This prevents a released or expired destination from being handed out to
+    // a later trade while allowing funded history to leave the unused gap.
     const unresolvedForAccount = unreleasedForAccount.filter((reservation) =>
       reservation.addresses.some(
         (address) =>
           qiWallet.getAddressInfo(address)?.status !== AddressStatus.USED
       )
     )
-    const unresolvedAddressCount = unresolvedForAccount.reduce(
+    const historicalForAccount = historicalReservations.filter(
+      (reservation) =>
+        reservation.account === account && reservation.zone === zone
+    )
+    const unusedHistoricalAddressCount = historicalForAccount.reduce(
       (sum, reservation) =>
         sum +
         reservation.addresses.filter(
@@ -1406,9 +1477,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         `Qi account 0 already has ${QI_RECEIVE_MAX_ACTIVE_RESERVATIONS} unresolved address reservations`
       )
     }
-    if (unresolvedAddressCount + count > QI_RECEIVE_SHARED_GAP_BUDGET) {
+    if (unusedHistoricalAddressCount + count > QI_RECEIVE_SHARED_GAP_BUDGET) {
       throw new Error(
-        `Qi address reservations cannot exceed ${QI_RECEIVE_SHARED_GAP_BUDGET} unresolved addresses; reuse an existing reservation or finish its lifecycle`
+        `Qi address reservations cannot exceed ${QI_RECEIVE_SHARED_GAP_BUDGET} unused historical reserved addresses in this wallet profile`
       )
     }
 
@@ -1417,7 +1488,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const excluded = new Set(
       coinbaseAddresses.map((addr) => addr.address.toLowerCase())
     )
-    unreleasedForAccount.forEach((reservation) => {
+    historicalReservations.forEach((reservation) => {
       reservation.addresses.forEach((address) => {
         excluded.add(address.toLowerCase())
       })

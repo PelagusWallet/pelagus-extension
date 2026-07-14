@@ -51,9 +51,11 @@ import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
 import {
   NormalizedQiSendToOutputsRequest,
+  NormalizedQiReceiveAddressReservationReleaseRequest,
   QuaiTransactionRequestWithAnnotation,
   QiReceiveAddressReservationControlRequest,
   QiReceiveAddressReservationReleaseRequest,
+  QiReceiveAddressReservationReleaseResponse,
   QiReceiveAddressesRequest,
   QiSendToOutputsRequest,
 } from "../transactions/types"
@@ -263,12 +265,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           ...((params[0] as QiReceiveAddressReservationControlRequest) || {}),
           // Lifecycle authorization is the same trusted origin binding used
           // when the address reservation was created.
-          origin,
-        })
-
-      case "qi_releaseReceiveAddressReservation":
-        return this.transactionsService.releaseQiReceiveAddressReservation({
-          ...((params[0] as QiReceiveAddressReservationReleaseRequest) || {}),
           origin,
         })
 
@@ -584,6 +580,20 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
 
   async removePrefererencesForChain(chainId: string): Promise<void> {
     await this.db.removeStoredPreferencesForChain(chainId)
+  }
+
+  async prepareQiReceiveAddressReservationRelease(
+    request: QiReceiveAddressReservationReleaseRequest
+  ): Promise<NormalizedQiReceiveAddressReservationReleaseRequest> {
+    return this.transactionsService.prepareQiReceiveAddressReservationRelease(
+      request
+    )
+  }
+
+  async releaseQiReceiveAddressReservation(
+    request: NormalizedQiReceiveAddressReservationReleaseRequest
+  ): Promise<QiReceiveAddressReservationReleaseResponse> {
+    return this.transactionsService.releaseQiReceiveAddressReservation(request)
   }
 
   private async sendTransaction(

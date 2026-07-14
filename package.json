@@ -20,7 +20,9 @@
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
       "^dexie$": "<rootDir>/node_modules/dexie/dist/dexie.js",
-      "^cbor-x$": "<rootDir>/node_modules/cbor-x/dist/node.cjs"
+      "^cbor-x$": "<rootDir>/node_modules/cbor-x/dist/node.cjs",
+      "^nanoid$": "<rootDir>/test-support/nanoid.cjs",
+      "^nanoid/non-secure$": "<rootDir>/test-support/nanoid.cjs"
     }
   },
   "keywords": [

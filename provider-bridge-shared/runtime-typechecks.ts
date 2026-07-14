@@ -68,6 +68,7 @@ export const AllowedQueryParamPage = {
   signData: "/sign-data",
   personalSignData: "/personal-sign",
   qiSendTransaction: "/send-qi/dapp-confirmation",
+  qiReservationAllocation: "/qi-reservation/create",
   qiReservationRelease: "/qi-reservation/release",
 } as const
 

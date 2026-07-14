@@ -62,7 +62,7 @@ describe("Asset utils", () => {
       expect(
         isSameAsset(smartContractAsset, {
           ...smartContractAsset,
-          contractAddress: "0x",
+          contractAddress: "0x0000000000000000000000000000000000000000",
         })
       ).toBe(false)
     })

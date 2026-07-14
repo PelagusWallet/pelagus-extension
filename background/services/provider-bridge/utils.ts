@@ -57,7 +57,10 @@ export function parsedRPCErrorResponse(error: { body: string }):
   }
 }
 
-export function handleRPCErrorResponse(error: unknown): unknown {
+export function handleRPCErrorResponse(
+  error: unknown,
+  options: { preserveErrorMessage?: boolean } = {}
+): unknown {
   let response
   if (typeof error === "object" && error !== null) {
     /**
@@ -86,6 +89,14 @@ export function handleRPCErrorResponse(error: unknown): unknown {
   /**
    * If no specific error is obtained return a user rejected request error
    */
+  if (
+    !response &&
+    options.preserveErrorMessage === true &&
+    error instanceof Error &&
+    error.message
+  ) {
+    return { code: -32603, message: error.message }
+  }
   return (
     response ??
     new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest).toJSON()

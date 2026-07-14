@@ -3,6 +3,7 @@ import TransactionService, {
   getPreparedQiReviewFingerprint,
   getQiDappPreparedExpiry,
   getQiDappRequestFingerprint,
+  getSignedQiTransactionHash,
 } from ".."
 import {
   NormalizedQiSendToOutputsRequest,
@@ -234,7 +235,11 @@ describe("TransactionService", () => {
         .createService()
         .getQiReceiveAddresses(request)
 
-      expect(first).toMatchObject({ reservationId: request.reservationId })
+      expect(first).toMatchObject({
+        reservationId: request.reservationId,
+        addressCapacity: 4,
+        remainingAddressCapacity: 2,
+      })
       expect(retried).toMatchObject({
         reservationId: request.reservationId,
         addresses: (first as { addresses: string[] }).addresses,
@@ -916,14 +921,37 @@ describe("TransactionService", () => {
       await expect(firstSend).resolves.toBe("0xtx")
     })
 
+    it("blocks a dapp request whose signed broadcast outcome is still unknown", async () => {
+      const service = Object.create(TransactionService.prototype) as any
+      service.preparedDappQiSend = null
+      service.preparingDappQiSend = false
+      service.signingDappQiSend = false
+      service.chainService = { selectedNetwork: { chainID: "15000" } }
+      service.db = {
+        getAllQiTransactions: jest.fn().mockResolvedValue([
+          {
+            hash: `0x${"ab".repeat(32)}`,
+            dappRequestFingerprint:
+              getQiDappRequestFingerprint(normalizedRequest),
+            broadcastOutcomeUnknown: true,
+          },
+        ]),
+      }
+
+      await expect(
+        service.prepareQiSendToOutputs(normalizedRequest)
+      ).rejects.toThrow("Qi broadcast outcome is still unknown")
+    })
+
     it("broadcasts the exact review once and stops if its deadline expires during signing", async () => {
-      const inputAddress = "0x0080000000000000000000000000000000000010"
+      const inputAddress = "0x00edf2d16afbc028fb1e879559b07997af79539f"
       const recipientAddress = "0x0080000000000000000000000000000000000020"
       const changeOutputs = [1, 2, 3, 4].map((index) => ({
         address: `0x008000000000000000000000000000000000003${index}`,
         denomination: 2,
       }))
-      const pubKey = `0x03${"22".repeat(32)}`
+      const pubKey =
+        "0x039dda94404337db1474e67f1d7052f398a0e70ed205c5e94d6e731b06c6f51cd8"
       const txHash = `0x${"ab".repeat(32)}`
       const tx = new QiTransaction()
       tx.type = 2
@@ -972,9 +1000,13 @@ describe("TransactionService", () => {
         preparedAt: Date.now(),
         expiresAt: Date.now() + 60_000,
       }
+      const signedTransaction = QiTransaction.from(tx)
+      signedTransaction.signature = `0x${"11".repeat(64)}`
+      const signedSerialized = signedTransaction.serialized
+      const signedHash = getSignedQiTransactionHash(signedSerialized, txHash)
       const signTransaction = jest.fn(async (reviewedTx: QiTransaction) => {
         expect(reviewedTx.digest).toBe(tx.digest)
-        return "0xsigned"
+        return signedSerialized
       })
       const addressInfo = (address: string) => ({
         address,
@@ -993,7 +1025,7 @@ describe("TransactionService", () => {
         serialize: jest.fn(() => ({ wallet: "serialized" })),
       }
       const broadcastTransaction = jest.fn().mockResolvedValue({
-        hash: "0xtx",
+        hash: signedHash,
         chainId: 15000,
         blockHash: null,
         blockNumber: null,
@@ -1024,14 +1056,101 @@ describe("TransactionService", () => {
       service.saveQiTransaction = jest.fn().mockResolvedValue(undefined)
       service.subscribeToQiTransaction = jest.fn().mockResolvedValue(undefined)
 
+      const expectRejectedBeforeBroadcast = async (
+        request: NormalizedQiSendToOutputsRequest,
+        prepared: PreparedQiSendToOutputs,
+        expectedError: string
+      ) => {
+        service.preparedDappQiSend = prepared
+        await expect(
+          service.sendQiToOutputs({ ...request, prepared })
+        ).rejects.toThrow(expectedError)
+        expect(broadcastTransaction).not.toHaveBeenCalled()
+      }
+
+      await expectRejectedBeforeBroadcast(
+        exactRequest,
+        {
+          ...exactPrepared,
+          requestFingerprint: `0x${"cd".repeat(32)}`,
+        },
+        "Prepared Qi request context changed"
+      )
+
+      const changedOutputsRequest: NormalizedQiSendToOutputsRequest = {
+        ...exactRequest,
+        outputs: [
+          {
+            address: "0x0080000000000000000000000000000000000021",
+            denomination: 3,
+          },
+        ],
+      }
+      await expectRejectedBeforeBroadcast(
+        changedOutputsRequest,
+        {
+          ...exactPrepared,
+          requestFingerprint: getQiDappRequestFingerprint(
+            changedOutputsRequest
+          ),
+        },
+        "Prepared Qi outputs do not match the dapp request"
+      )
+
+      const reducedFeeRequest: NormalizedQiSendToOutputsRequest = {
+        ...exactRequest,
+        maxFeeQit: "5",
+      }
+      await expectRejectedBeforeBroadcast(
+        reducedFeeRequest,
+        {
+          ...exactPrepared,
+          requestFingerprint: getQiDappRequestFingerprint(reducedFeeRequest),
+        },
+        "Prepared Qi fee exceeds the authorized maximum"
+      )
+
+      service.chainService.getAllQiOutpoints.mockResolvedValueOnce([])
+      await expectRejectedBeforeBroadcast(
+        exactRequest,
+        exactPrepared,
+        "is no longer available"
+      )
+
+      service.chainService.selectedNetwork = { chainID: "9" }
+      await expectRejectedBeforeBroadcast(
+        exactRequest,
+        exactPrepared,
+        "does not match the selected wallet network"
+      )
+      service.chainService.selectedNetwork = { chainID: "15000" }
+
+      service.preparedDappQiSend = exactPrepared
+      signTransaction.mockImplementationOnce(async () => {
+        service.chainService.selectedNetwork = { chainID: "9" }
+        return signedSerialized
+      })
       await expect(
         service.sendQiToOutputs({
           ...exactRequest,
           prepared: exactPrepared,
         })
-      ).resolves.toBe("0xtx")
-      expect(signTransaction).toHaveBeenCalledTimes(1)
-      expect(broadcastTransaction).toHaveBeenCalledWith("0x00", "0xsigned")
+      ).rejects.toThrow("Selected wallet network changed")
+      expect(broadcastTransaction).not.toHaveBeenCalled()
+      service.chainService.selectedNetwork = { chainID: "15000" }
+
+      service.preparedDappQiSend = exactPrepared
+      await expect(
+        service.sendQiToOutputs({
+          ...exactRequest,
+          prepared: exactPrepared,
+        })
+      ).resolves.toBe(signedHash)
+      expect(signTransaction).toHaveBeenCalledTimes(2)
+      expect(broadcastTransaction).toHaveBeenCalledWith(
+        "0x00",
+        signedSerialized
+      )
       expect(service.preparedDappQiSend).toBeNull()
 
       const beforeSigning = Date.now()
@@ -1066,9 +1185,36 @@ describe("TransactionService", () => {
       } finally {
         dateNow.mockRestore()
       }
-      expect(signTransaction).toHaveBeenCalledTimes(2)
+      expect(signTransaction).toHaveBeenCalledTimes(3)
       expect(broadcastTransaction).toHaveBeenCalledTimes(1)
       expect(service.preparedDappQiSend).toBeNull()
+
+      const unknownPrepared: PreparedQiSendToOutputs = {
+        ...exactPrepared,
+        preparedAt: Date.now(),
+        expiresAt: Date.now() + 60_000,
+      }
+      service.preparedDappQiSend = unknownPrepared
+      signTransaction.mockResolvedValueOnce(signedSerialized)
+      broadcastTransaction.mockRejectedValueOnce(new Error("RPC timeout"))
+
+      await expect(
+        service.sendQiToOutputs({
+          ...exactRequest,
+          prepared: unknownPrepared,
+        })
+      ).rejects.toThrow(
+        `Qi broadcast outcome unknown for ${signedHash}; do not retry`
+      )
+      expect(service.preparedDappQiSend).toBe(unknownPrepared)
+      expect(broadcastTransaction).toHaveBeenCalledTimes(2)
+      expect(service.chainService.removeQiOutpoints).toHaveBeenCalledTimes(1)
+      expect(
+        service.saveQiTransaction.mock.calls.some(
+          ([transaction]: [{ broadcastOutcomeUnknown?: boolean }]) =>
+            transaction.broadcastOutcomeUnknown === true
+        )
+      ).toBe(true)
     })
   })
 })

@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { DexieOptions } from "dexie"
-import { keccak256 } from "quais"
+import { keccak256, toUtf8Bytes } from "quais"
 import { AccountBalance, AddressOnNetwork } from "../accounts"
 import {
   AnyAsset,
@@ -30,7 +30,8 @@ import BlockService from "../services/block"
 import TransactionService from "../services/transactions"
 
 const createRandom0xHash = () =>
-  keccak256(Buffer.from(Math.random().toString()))
+  keccak256(toUtf8Bytes(Math.random().toString()))
+const createRandom0xAddress = () => `0x${createRandom0xHash().slice(-40)}`
 
 export const createPreferenceService = async (): Promise<PreferenceService> => {
   return PreferenceService.create()
@@ -189,7 +190,7 @@ export const createAnyEVMBlock = (
 export const createAccountBalance = (
   overrides: Partial<AccountBalance> = {}
 ): AccountBalance => ({
-  address: createRandom0xHash(),
+  address: createRandom0xAddress(),
   assetAmount: {
     asset: {
       metadata: {
@@ -213,7 +214,7 @@ export const createAccountBalance = (
 export const createAddressOnNetwork = (
   overrides: Partial<AddressOnNetwork> = {}
 ): AddressOnNetwork => ({
-  address: createRandom0xHash(),
+  address: createRandom0xAddress(),
   network: QuaiOrchardTestnet,
   ...overrides,
 })
@@ -279,7 +280,7 @@ export const createSmartContractAsset = (
     symbol,
     decimals: 18,
     homeNetwork: QuaiOrchardTestnet,
-    contractAddress: createRandom0xHash(),
+    contractAddress: createRandom0xAddress(),
   }
 
   return {
@@ -302,7 +303,7 @@ export const createNetworkBaseAsset = (
     decimals: 18,
     coinType: COIN_TYPES_BY_ASSET_SYMBOL.QUAI,
     chainID: "1",
-    contractAddress: createRandom0xHash(),
+    contractAddress: createRandom0xAddress(),
   }
 
   return {
@@ -348,7 +349,10 @@ export const createPricePoint = (
 
   const pricePoint: PricePoint = {
     pair: [asset, USD],
-    amounts: [10n ** BigInt(decimals), BigInt(Math.trunc(1e10 * price))],
+    amounts: [
+      10n ** BigInt(decimals),
+      BigInt(Math.trunc(10 ** USD.decimals * price)),
+    ],
     time: Math.trunc(Date.now() / 1e3),
   }
 

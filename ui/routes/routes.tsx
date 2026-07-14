@@ -18,6 +18,7 @@ import SettingsAddCustomAsset from "../pages/Settings/SettingsAddCustomAsset"
 import SendPage from "../pages/_NewDesign/SendPage"
 import ConfirmTransactionPage from "../pages/_NewDesign/ConfirmTransactionPage"
 import DappQiConfirmTransactionPage from "../pages/_NewDesign/DappQiConfirmTransactionPage"
+import QiReservationAllocationPage from "../pages/_NewDesign/QiReservationAllocationPage"
 import QiReservationReleasePage from "../pages/_NewDesign/QiReservationReleasePage"
 import SettingsQiCoinbaseAddress from "../pages/Settings/SettingsQiCoinbaseAddress"
 import SettingsAddQiCoinbaseAddress from "../pages/Settings/SettingsAddQiCoinbaseAddress"
@@ -124,6 +125,11 @@ const pageList: PageList[] = [
   {
     path: "/send-qi/dapp-confirmation",
     Component: DappQiConfirmTransactionPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/qi-reservation/create",
+    Component: QiReservationAllocationPage,
     hasTopBar: false,
   },
   {

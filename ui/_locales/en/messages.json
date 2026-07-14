@@ -665,6 +665,27 @@
         "qitUnit": "qit",
         "noPending": "No pending Qi dapp transaction"
       },
+      "qiReservationAllocation": {
+        "headerTitle": "Reserve receive addresses",
+        "eyebrow": "Address reservation request",
+        "title": "Reserve {{count}} Qi receive addresses?",
+        "requestedBy": "Requested by {{origin}}",
+        "summary": "This site wants {{count}} wallet-owned addresses for a pending Qi trade.",
+        "capacityTitle": "This consumes recovery capacity",
+        "capacityBody": "Pelagus permits at most four exposed, still-unused reservation addresses across all sites. This request may consume {{count}} of those slots.",
+        "recoveryWarning": "Expired or retired addresses remain excluded until they are observed as used, because reusing an exposed address could mix late trade funds with a later trade.",
+        "requestDetailsTitle": "Request details",
+        "originLabel": "Site",
+        "reservationLabel": "Reservation ID",
+        "countLabel": "Addresses",
+        "zoneLabel": "Zone",
+        "accountLabel": "Qi account",
+        "reserveButton": "Reserve addresses",
+        "rejectButton": "Reject",
+        "closeButton": "Close",
+        "noPending": "There is no pending address reservation request.",
+        "confirmError": "Pelagus could not reserve these addresses. Keep this window open and try again."
+      },
       "qiReservationRelease": {
         "headerTitle": "Retire receive addresses",
         "eyebrow": "Address safety request",

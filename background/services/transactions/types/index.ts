@@ -54,6 +54,10 @@ export type QiTransactionDB = {
   blockNumber: number | null
   refundAddress?: string
   quaiRecipient?: string
+  /** Dapp request bound to a signed transaction whose relay outcome may need recovery. */
+  dappRequestFingerprint?: string
+  /** True until the wallet observes an unambiguous broadcast or confirmation. */
+  broadcastOutcomeUnknown?: boolean
 }
 
 export type EnrichedQuaiTransaction = QuaiTransactionDB & {
@@ -82,6 +86,14 @@ export type QiReceiveAddressesRequest = {
   /** Set only by the provider bridge from the trusted requesting origin. */
   origin?: unknown
 }
+
+export type QiReceiveAddressReservationAllocationRequest =
+  QiReceiveAddressesRequest & {
+    /** Set only by the provider bridge from the selected permitted account. */
+    owner?: unknown
+    /** Set only by the provider bridge from the selected wallet network. */
+    chainId?: unknown
+  }
 
 export type QiReceiveAddressReservationStatus =
   | "active"
@@ -127,6 +139,16 @@ export type NormalizedQiReceiveAddressReservationReleaseRequest = {
   reason: QiReceiveAddressReservationReleaseReason
 }
 
+export type NormalizedQiReceiveAddressReservationAllocationRequest = {
+  reservationId: string
+  count: number
+  zone: Zone
+  account: number
+  origin: string
+  owner: string
+  chainId: string
+}
+
 export type QiReceiveAddressReservationResponse = {
   reservationId: string
   addresses: string[]
@@ -134,6 +156,10 @@ export type QiReceiveAddressReservationResponse = {
   /** Active quotes expire; committed trade addresses do not. */
   expiresAt: number | null
   committedAt?: number
+  /** Wallet recovery invariant for still-unused exposed receive addresses. */
+  addressCapacity: number
+  /** Slots remaining after this reservation, across every trusted origin. */
+  remainingAddressCapacity: number
 }
 
 export type QiReceiveAddressReservationReleaseResponse = {

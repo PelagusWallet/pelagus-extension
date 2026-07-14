@@ -100,8 +100,10 @@ import {
   setQiDappSendRequest,
 } from "./redux-slices/qiSend"
 import {
+  clearQiReservationAllocationRequest,
   clearQiReservationReleaseRequest,
   emitter as qiReservationSliceEmitter,
+  setQiReservationAllocationRequest,
   setQiReservationReleaseRequest,
 } from "./redux-slices/qiReservation"
 import { allAliases } from "./redux-slices/utils"
@@ -764,7 +766,7 @@ export default class Main extends BaseService<never> {
     this.store.dispatch(
       clearTransactionState(TransactionConstructionStatus.Idle)
     )
-    
+
     // Reset progress states that may have been stuck due to interrupted operations
     this.store.dispatch(resetProgressStates())
 
@@ -1609,6 +1611,36 @@ export default class Main extends BaseService<never> {
       "initializeAllowedPages",
       async (allowedPages: PermissionMap) => {
         this.store.dispatch(initializePermissions(allowedPages))
+      }
+    )
+
+    this.providerBridgeService.emitter.on(
+      "qiReceiveAddressReservationAllocationRequest",
+      ({ payload }) => {
+        this.store.dispatch(setQiReservationAllocationRequest(payload))
+      }
+    )
+
+    this.providerBridgeService.emitter.on(
+      "qiReceiveAddressReservationAllocationSettled",
+      ({ requestId }) => {
+        this.store.dispatch(clearQiReservationAllocationRequest({ requestId }))
+      }
+    )
+
+    qiReservationSliceEmitter.on(
+      "confirmQiReservationAllocation",
+      async ({ requestId }) => {
+        await this.providerBridgeService.confirmQiReservationAllocation(
+          requestId
+        )
+      }
+    )
+
+    qiReservationSliceEmitter.on(
+      "rejectQiReservationAllocation",
+      ({ requestId }) => {
+        this.providerBridgeService.rejectQiReservationAllocation(requestId)
       }
     )
 

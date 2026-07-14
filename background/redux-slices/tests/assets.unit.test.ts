@@ -35,8 +35,8 @@ describe(unitPricePointForPricePoint, () => {
 
     expect(result).toMatchObject({
       unitPrice: {
-        asset: { name: "United States Dollar", symbol: "USD", decimals: 10 },
-        amount: 15000000000000n,
+        asset: { name: "United States Dollar", symbol: "USD", decimals: 5 },
+        amount: 150000000n,
       },
       time: expect.any(Number),
     })

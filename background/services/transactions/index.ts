@@ -9,6 +9,7 @@ import {
   denominations,
   getBytes,
   getZoneForAddress,
+  hexlify,
   isHexString,
   isQiAddress,
   keccak256,
@@ -41,10 +42,12 @@ import {
   WRAPPED_QUAI_CONTRACT_ADDRESS,
 } from "../../constants"
 import {
+  NormalizedQiReceiveAddressReservationAllocationRequest,
   NormalizedQiReceiveAddressReservationReleaseRequest,
   NormalizedQiSendToOutputsRequest,
   PreparedQiSendToOutputs,
   QiOutputRequest,
+  QiReceiveAddressReservationAllocationRequest,
   QiReceiveAddressReservationControlRequest,
   QiReceiveAddressReservationReleaseRequest,
   QiReceiveAddressReservationReleaseResponse,
@@ -449,6 +452,28 @@ type NormalizedQiReceiveReservationControl = {
   origin: string
 }
 
+function normalizeQiReceiveReservationRequest(
+  input: QiReceiveAddressesRequest
+): NormalizedQiReceiveReservationControl {
+  const zone = normalizeQiZone(input.zone, Zone.Cyprus1)
+  if (zone !== Zone.Cyprus1 || !VALID_ZONES.includes(zone)) {
+    throw new Error(`Qi is not supported in zone ${String(input.zone)}`)
+  }
+  const count = normalizeQiReceiveCount(input.count)
+  const account = normalizeAccount(input.account)
+  if (account !== 0) throw new Error("account must be 0")
+  const reservationId = normalizeQiReceiveReservationId(input.reservationId)
+  const origin = normalizeOptionalDappText(
+    input.origin,
+    "origin",
+    QI_DAPP_ORIGIN_MAX_LENGTH
+  )
+  if (!origin) {
+    throw new Error("origin is required for Qi address reservations")
+  }
+  return { reservationId, count, zone, account, origin }
+}
+
 function normalizeQiReceiveReservationOwner(value: unknown): string {
   if (typeof value !== "string" || !/^0x[0-9a-fA-F]{40}$/.test(value)) {
     throw new Error("owner must be a 20-byte 0x-prefixed address")
@@ -506,6 +531,23 @@ function normalizeQiReceiveReservationRelease(
     owner: normalizeQiReceiveReservationOwner(input.owner),
     chainId: normalizeQiChainId(input.chainId, "chainId"),
     reason: input.reason,
+  }
+}
+
+function normalizeQiReceiveReservationAllocation(
+  input: QiReceiveAddressReservationAllocationRequest
+): NormalizedQiReceiveAddressReservationAllocationRequest {
+  const control = normalizeQiReceiveReservationRequest(input)
+  if (Object.prototype.hasOwnProperty.call(input, "chainID")) {
+    throw new Error("chainID is not supported; use chainId")
+  }
+  if (input.chainId === undefined || input.chainId === null) {
+    throw new Error("chainId is required for Qi address reservation")
+  }
+  return {
+    ...control,
+    owner: normalizeQiReceiveReservationOwner(input.owner),
+    chainId: normalizeQiChainId(input.chainId, "chainId"),
   }
 }
 
@@ -731,6 +773,26 @@ export function getQiDappPreparedExpiry(
   return validUntil === undefined
     ? walletExpiry
     : Math.min(walletExpiry, validUntil)
+}
+
+export function getSignedQiTransactionHash(
+  signedSerialized: string,
+  sourceTxHash: string
+): string {
+  const hashBytes = getBytes(keccak256(signedSerialized))
+  const sourceHashBytes = getBytes(sourceTxHash)
+  if (sourceHashBytes.length !== 32) {
+    throw new Error("Qi source transaction hash must be 32 bytes")
+  }
+  // QIP-0010 permutes the ordinary serialized transaction hash with the
+  // originating UTXO zone byte. This mirrors QiTransaction.hash without
+  // relying on its environment-specific Buffer conversion.
+  const origin = sourceHashBytes[2]
+  hashBytes[0] = origin
+  hashBytes[1] |= 0x80
+  hashBytes[2] = origin
+  hashBytes[3] |= 0x80
+  return hexlify(hashBytes)
 }
 
 /**
@@ -1167,6 +1229,12 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     )
   }
 
+  public prepareQiReceiveAddressReservation(
+    input: QiReceiveAddressReservationAllocationRequest
+  ): NormalizedQiReceiveAddressReservationAllocationRequest {
+    return normalizeQiReceiveReservationAllocation(input)
+  }
+
   private async withQiReceiveAddressAllocationLock<T>(
     task: () => Promise<T>
   ): Promise<T> {
@@ -1244,14 +1312,20 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   private qiReceiveReservationResponse(
-    reservation: QiReceiveAddressReservationDB
+    reservation: QiReceiveAddressReservationDB,
+    remainingAddressCapacity: number
   ): QiReceiveAddressReservationResponse {
+    const capacity = {
+      addressCapacity: QI_RECEIVE_SHARED_GAP_BUDGET,
+      remainingAddressCapacity,
+    }
     if (reservation.status === "active") {
       return {
         reservationId: reservation.reservationId,
         addresses: [...reservation.addresses],
         status: "active",
         expiresAt: reservation.expiresAt,
+        ...capacity,
       }
     }
     if (
@@ -1266,7 +1340,31 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       status: "committed",
       expiresAt: null,
       committedAt: reservation.committedAt,
+      ...capacity,
     }
+  }
+
+  private async qiReceiveRemainingAddressCapacity(
+    qiWallet: any,
+    account: number,
+    zone: Zone
+  ): Promise<number> {
+    const reservations = await this.db.getAllQiReceiveAddressReservations()
+    const unusedCount = reservations
+      .filter(
+        (reservation) =>
+          reservation.account === account && reservation.zone === zone
+      )
+      .reduce(
+        (sum, reservation) =>
+          sum +
+          reservation.addresses.filter(
+            (address) =>
+              qiWallet.getAddressInfo(address)?.status !== AddressStatus.USED
+          ).length,
+        0
+      )
+    return Math.max(0, QI_RECEIVE_SHARED_GAP_BUDGET - unusedCount)
   }
 
   private async commitQiReceiveAddressReservationLocked(
@@ -1291,8 +1389,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     const qiWallet = await this.keyringService.getQiHDWallet()
     this.assertQiReceiveReservationWalletOwnership(reservation, qiWallet)
+    const remainingAddressCapacity =
+      await this.qiReceiveRemainingAddressCapacity(
+        qiWallet,
+        reservation.account,
+        reservation.zone as Zone
+      )
     if (reservation.status === "committed") {
-      return this.qiReceiveReservationResponse(reservation)
+      return this.qiReceiveReservationResponse(
+        reservation,
+        remainingAddressCapacity
+      )
     }
 
     const committed: QiReceiveAddressReservationDB = {
@@ -1302,7 +1409,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       lastAccessedAt: now,
     }
     await this.db.putQiReceiveAddressReservation(committed)
-    return this.qiReceiveReservationResponse(committed)
+    return this.qiReceiveReservationResponse(
+      committed,
+      remainingAddressCapacity
+    )
   }
 
   private async releaseQiReceiveAddressReservationLocked(
@@ -1382,31 +1492,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async getQiReceiveAddressesLocked(
     input: QiReceiveAddressesRequest
   ): Promise<QiReceiveAddressReservationResponse> {
-    const zone = normalizeQiZone(input.zone, Zone.Cyprus1)
-    // The wallet only syncs/scans Cyprus1, so handing out receive addresses in
-    // any other zone would produce funds the wallet can never see or spend.
-    if (zone !== Zone.Cyprus1 || !VALID_ZONES.includes(zone)) {
-      throw new Error(`Qi is not supported in zone ${String(input.zone)}`)
-    }
-    const count = normalizeQiReceiveCount(input.count)
-    const account = normalizeAccount(input.account)
-
-    // Public dapp-facing receive address requests are intentionally pinned to
-    // account 0. Without a consent/rate-limit layer, arbitrary account indexes
-    // let a permissioned origin grow the encrypted vault by looping accounts.
-    if (account !== 0) {
-      throw new Error("account must be 0")
-    }
-
-    const reservationId = normalizeQiReceiveReservationId(input.reservationId)
-    const origin = normalizeOptionalDappText(
-      input.origin,
-      "origin",
-      QI_DAPP_ORIGIN_MAX_LENGTH
-    )
-    if (!origin) {
-      throw new Error("origin is required for Qi address reservations")
-    }
+    const { zone, count, account, reservationId, origin } =
+      normalizeQiReceiveReservationRequest(input)
 
     const now = Date.now()
     await this.db.expireActiveQiReceiveAddressReservations(now)
@@ -1434,7 +1521,14 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       // Retries are idempotent but do not renew an abandoned quote forever.
       // Once committed, the original addresses remain reserved indefinitely
       // across extension restarts until an explicit terminal release.
-      return this.qiReceiveReservationResponse(existing)
+      return this.qiReceiveReservationResponse(
+        existing,
+        await this.qiReceiveRemainingAddressCapacity(
+          qiWallet,
+          existing.account,
+          existing.zone
+        )
+      )
     }
 
     const qiWallet = await this.keyringService.getQiHDWallet()
@@ -1530,6 +1624,9 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       addresses,
       status: "active",
       expiresAt,
+      addressCapacity: QI_RECEIVE_SHARED_GAP_BUDGET,
+      remainingAddressCapacity:
+        QI_RECEIVE_SHARED_GAP_BUDGET - unusedHistoricalAddressCount - count,
     }
   }
 
@@ -1584,6 +1681,17 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     input: QiSendToOutputsRequest
   ): Promise<PreparedQiSendToOutputs> {
     const request = this.normalizeQiSendToOutputsRequest(input)
+    const requestFingerprint = getQiDappRequestFingerprint(request)
+    const priorUnknownBroadcast = (await this.db.getAllQiTransactions()).find(
+      (transaction) =>
+        transaction.broadcastOutcomeUnknown === true &&
+        transaction.dappRequestFingerprint === requestFingerprint
+    )
+    if (priorUnknownBroadcast) {
+      throw new Error(
+        `Qi broadcast outcome is still unknown for ${priorUnknownBroadcast.hash}; do not retry this request until the wallet confirms it`
+      )
+    }
     this.assertQiRequestStillOnSelectedNetwork(request)
 
     const { jsonRpcProvider } = this.chainService
@@ -1700,7 +1808,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         preparedId: finalTx.digest,
         unsignedSerialized: finalTx.unsignedSerialized,
         digest: finalTx.digest,
-        requestFingerprint: getQiDappRequestFingerprint(request),
+        requestFingerprint,
         inputs: selectedOutpoints.map((outpoint) => ({
           txhash: outpoint.outpoint.txhash,
           index: Number(outpoint.outpoint.index),
@@ -2008,6 +2116,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     )
 
     let response: QiTransactionResponse
+    let signedTransactionHash: string | null = null
+    let broadcastAttempted = false
     try {
       this.assertQiRequestStillOnSelectedNetwork(request)
       assertQiDappRequestNotExpired(request, "signing")
@@ -2024,16 +2134,49 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           "Prepared Qi transaction expired before broadcast; request a fresh confirmation"
         )
       }
+      signedTransactionHash = getSignedQiTransactionHash(
+        signedTx,
+        finalTx.txInputs[0].txhash
+      )
+      const pendingTransaction: QiTransactionDB = {
+        ...processSentQiTransaction(
+          qiWallet.getPaymentCode(request.account),
+          request.outputs.length === 1
+            ? request.outputs[0].address
+            : `${request.outputs.length} Qi outputs`,
+          {
+            hash: signedTransactionHash,
+            chainId: Number(request.chainId),
+            blockHash: null,
+            blockNumber: null,
+          } as unknown as QiTransactionResponse,
+          BigInt(request.amountQit)
+        ),
+        dappRequestFingerprint: prepared.requestFingerprint,
+        broadcastOutcomeUnknown: true,
+      }
+      // The signed hash must be durable before the RPC call. A worker crash or
+      // timeout after this point can no longer erase the transaction identity.
+      await this.saveQiTransaction(pendingTransaction)
+      broadcastAttempted = true
       response = (await jsonRpcProvider.broadcastTransaction(
         request.zone as Zone,
         signedTx
       )) as QiTransactionResponse
+      if (response.hash.toLowerCase() !== signedTransactionHash.toLowerCase()) {
+        throw new Error(
+          `Qi node returned ${response.hash} for signed transaction ${signedTransactionHash}`
+        )
+      }
+      pendingTransaction.broadcastOutcomeUnknown = false
+      pendingTransaction.blockHash = response.blockHash || null
+      pendingTransaction.blockNumber = response.blockNumber || null
+      await this.saveQiTransaction(pendingTransaction)
       this.discardPreparedDappQiSend(prepared.preparedId)
     } catch (error: any) {
       logger.error(
         `Failed to send prepared Qi outputs: ${error?.message || error}`
       )
-      this.discardPreparedDappQiSend(prepared.preparedId)
       try {
         await this.keyringService.vaultManager.add(
           { qiHDWallet: qiWallet.serialize() },
@@ -2047,12 +2190,32 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           }`
         )
       }
+      if (broadcastAttempted && signedTransactionHash) {
+        void this.subscribeToQiTransaction(signedTransactionHash).catch(
+          (subscriptionError: any) => {
+            logger.error(
+              `Failed to monitor unknown Qi broadcast ${signedTransactionHash}: ${
+                subscriptionError?.message || subscriptionError
+              }`
+            )
+          }
+        )
+        throw new Error(
+          `Qi broadcast outcome unknown for ${signedTransactionHash}; do not retry this request until the wallet confirms it. ${
+            error?.message || error
+          }`
+        )
+      }
+      this.discardPreparedDappQiSend(prepared.preparedId)
       throw error
     }
 
     // Broadcast is final from the dapp's perspective. Bookkeeping failures
     // must never hide the hash and tempt the caller to retry a real spend.
-    const signedTransactionHash = response.hash
+    // The response hash was checked against the pre-broadcast signed hash.
+    if (!signedTransactionHash) {
+      throw new Error("Signed Qi transaction hash was lost after broadcast")
+    }
     try {
       await this.chainService.removeQiOutpoints(selectedOutpoints)
       await this.keyringService.vaultManager.add(
@@ -3601,6 +3764,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     transaction.status = TransactionStatus.CONFIRMED
     transaction.blockHash = blockHash
     transaction.blockNumber = blockNumber
+    transaction.broadcastOutcomeUnknown = false
 
     await this.updateQiTransaction(transaction)
   }

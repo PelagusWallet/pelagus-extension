@@ -1,8 +1,12 @@
 import reducer, {
+  emitter,
+  rejectDappQiTransaction,
   resetManualQiSendState,
+  sendDappQiTransaction,
   setQiDappSendRequest,
 } from "../qiSend"
 import { NormalizedQiSendToOutputsRequest } from "../../services/transactions/types"
+import { allAliases } from "../utils"
 
 const dappRequest: NormalizedQiSendToOutputsRequest = {
   outputs: [
@@ -43,5 +47,40 @@ describe("Qi Send Redux Slice", () => {
     expect(nextState.receiverPaymentCode).toBe("")
     expect(nextState.channelExists).toBe(false)
     expect(nextState.isSending).toBe(false)
+  })
+
+  it("does not reject the provider request when the confirmed send is broadcasting", async () => {
+    const isSendingPreparedDappQiSend = jest.fn().mockReturnValue(true)
+    ;(globalThis as any).main = {
+      transactionService: { isSendingPreparedDappQiSend },
+    }
+    const rejected = jest.fn()
+    emitter.on("dappSendTransactionRejected", rejected)
+    const state = {
+      qiSend: {
+        ...reducer(undefined, { type: "init" }),
+        isSending: true,
+        dappRequest,
+      },
+    }
+    const dispatch = jest.fn()
+    const getState = () => state
+
+    try {
+      const sendThunk = allAliases[sendDappQiTransaction.typePrefix]({
+        type: sendDappQiTransaction.typePrefix,
+        payload: undefined,
+      })
+      await sendThunk(dispatch, getState, undefined)
+      const rejectThunk = allAliases[rejectDappQiTransaction.typePrefix]({
+        type: rejectDappQiTransaction.typePrefix,
+        payload: { requestId: dappRequest.requestId },
+      })
+      await rejectThunk(dispatch, getState, undefined)
+      expect(rejected).not.toHaveBeenCalled()
+      expect(isSendingPreparedDappQiSend).toHaveBeenCalledTimes(2)
+    } finally {
+      emitter.off("dappSendTransactionRejected", rejected)
+    }
   })
 })

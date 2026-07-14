@@ -50,12 +50,15 @@ import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import { normalizeHexAddress } from "../../utils/addresses"
 import TransactionService from "../transactions"
 import {
+  NormalizedQiReceiveAddressReservationAllocationRequest,
   NormalizedQiSendToOutputsRequest,
   NormalizedQiReceiveAddressReservationReleaseRequest,
   QuaiTransactionRequestWithAnnotation,
+  QiReceiveAddressReservationAllocationRequest,
   QiReceiveAddressReservationControlRequest,
   QiReceiveAddressReservationReleaseRequest,
   QiReceiveAddressReservationReleaseResponse,
+  QiReceiveAddressReservationResponse,
   QiReceiveAddressesRequest,
   QiSendToOutputsRequest,
 } from "../transactions/types"
@@ -590,6 +593,18 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     )
   }
 
+  prepareQiReceiveAddressReservation(
+    request: QiReceiveAddressReservationAllocationRequest
+  ): NormalizedQiReceiveAddressReservationAllocationRequest {
+    return this.transactionsService.prepareQiReceiveAddressReservation(request)
+  }
+
+  async allocateQiReceiveAddressReservation(
+    request: NormalizedQiReceiveAddressReservationAllocationRequest
+  ): Promise<QiReceiveAddressReservationResponse> {
+    return this.transactionsService.getQiReceiveAddresses(request)
+  }
+
   async releaseQiReceiveAddressReservation(
     request: NormalizedQiReceiveAddressReservationReleaseRequest
   ): Promise<QiReceiveAddressReservationReleaseResponse> {
@@ -733,7 +748,9 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         this.transactionsService.discardPreparedDappQiSend(
           normalized.prepared?.preparedId
         )
-        reject(reason ?? new Error("Qi transaction rejected"))
+        reject(
+          reason ?? new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest)
+        )
       }
       const doResolve = (txHash: string | PromiseLike<string>) => {
         clearExpiryTimer()

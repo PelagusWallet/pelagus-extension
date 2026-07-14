@@ -185,6 +185,12 @@ export const sendDappQiTransaction = createBackgroundAsyncThunk(
 
     const requestId = request.requestId ?? ""
     if (qiSend.isSending) {
+      if (main.transactionService.isSendingPreparedDappQiSend()) {
+        // The confirmed request already owns the prepared-send broadcast.
+        // A remounted confirmation surface must not settle that live provider
+        // request as rejected while the node outcome is still pending.
+        return { error: { message: "Transaction broadcast is still in progress" } }
+      }
       // Another send (manual or dapp) owns the wallet. Settle the dapp promise
       // and release the in-flight slot instead of returning silently — leaving
       // it pending would hang the dapp and block every future Qi send as "busy".
@@ -226,9 +232,13 @@ export const rejectDappQiTransaction = createBackgroundAsyncThunk(
     // settle the exact dapp request this popup was created for.
     const requestId = args?.requestId ?? qiSend.dappRequest?.requestId
     if (!requestId) return
+    if (main.transactionService.isSendingPreparedDappQiSend()) {
+      // Closing or remounting the popup cannot turn an in-flight broadcast into
+      // a rejection. The send path remains the sole owner of provider settlement.
+      return
+    }
     await emitter.emit("dappSendTransactionRejected", {
       requestId,
-      message: "Qi transaction rejected",
     })
     if (qiSend.dappRequest?.requestId === requestId) {
       dispatch(clearQiDappRequest())

@@ -135,6 +135,8 @@ export default class ChainService extends BaseService<Events> {
 
   private qiWalletSyncInProgress: boolean = false
 
+  private baseBalanceRequests: Map<string, Promise<AccountBalance>> = new Map()
+
   subscribedAccounts: {
     account: string
     provider: JsonRpcProvider
@@ -401,8 +403,7 @@ export default class ChainService extends BaseService<Events> {
       currentAccountState?.balances["QUAI"].assetAmount.amount
 
     try {
-      const lockedBalance =
-        await this.immediateJsonRpcProvider.getLockedBalance(address)
+      const lockedBalance = await this.jsonRpcProvider.getLockedBalance(address)
       accountBalance.lockedAmount = {
         asset,
         amount: lockedBalance,
@@ -948,6 +949,26 @@ export default class ChainService extends BaseService<Events> {
     address,
     network,
   }: AddressOnNetwork): Promise<AccountBalance> {
+    const requestKey = `${network.chainID}:${address.toLowerCase()}`
+    const existingRequest = this.baseBalanceRequests.get(requestKey)
+    if (existingRequest) return existingRequest
+
+    const request = this.fetchLatestBaseAccountBalance({ address, network })
+    this.baseBalanceRequests.set(requestKey, request)
+
+    try {
+      return await request
+    } finally {
+      if (this.baseBalanceRequests.get(requestKey) === request) {
+        this.baseBalanceRequests.delete(requestKey)
+      }
+    }
+  }
+
+  private async fetchLatestBaseAccountBalance({
+    address,
+    network,
+  }: AddressOnNetwork): Promise<AccountBalance> {
     const prevShard = globalThis.main.SelectedShard
 
     const addrShard = getExtendedZoneForAddress(address)
@@ -961,8 +982,8 @@ export default class ChainService extends BaseService<Events> {
     let lockedBalance: bigint = BigInt(0)
     try {
       const [sBalance, lBalance] = await Promise.all([
-        this.immediateJsonRpcProvider!.getBalance(address, "latest"),
-        this.immediateJsonRpcProvider!.getLockedBalance(address),
+        this.jsonRpcProvider.getBalance(address, "latest"),
+        this.jsonRpcProvider.getLockedBalance(address),
       ])
 
       spendableBalance = sBalance

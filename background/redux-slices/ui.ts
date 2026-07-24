@@ -587,9 +587,14 @@ export const setSelectedNetwork = createBackgroundAsyncThunk(
     emitter.emit("newSelectedNetwork", network)
     // Add any accounts on the currently selected network to the newly
     // selected network - if those accounts don't yet exist on it.
-    Object.keys(account.accountsData.evm[currentlySelectedChainID]).forEach(
+    Object.keys(account.accountsData.evm[currentlySelectedChainID] ?? {}).forEach(
       (address) => {
-        if (!account.accountsData.evm[network.chainID]?.[address]) {
+        const accountOnSelectedNetwork =
+          account.accountsData.evm[network.chainID]?.[address]
+        if (
+          !accountOnSelectedNetwork ||
+          accountOnSelectedNetwork === "loading"
+        ) {
           dispatch(addAddressNetwork({ address, network }))
         }
       }

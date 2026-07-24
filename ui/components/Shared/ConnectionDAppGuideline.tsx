@@ -22,7 +22,7 @@ export default function ConnectionDAppGuideline({
         style={{
           borderRadius: 8,
           marginTop: 8,
-          background: "var(--hunter-green)",
+          background: "var(--secondary-bg)",
           "--panel-switcher-border": "var(--green-80)",
           "--header-padding": "16px",
           "--content-fade-in-duration": "200ms",

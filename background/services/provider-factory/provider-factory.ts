@@ -186,6 +186,10 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
     this.stopLocalNodeCheckingInterval()
   }
 
+  public hasProvidersForNetwork(networkChainId: string): boolean {
+    return this.providersForNetworks.has(networkChainId)
+  }
+
   public getProvidersForNetwork(networkChainId: string): NetworkProviders {
     // Check if this is the local network and start local node checking if needed
     if (networkChainId === QuaiLocalNodeNetwork.chainID) {

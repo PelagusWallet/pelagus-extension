@@ -61,6 +61,11 @@ export default class BlockService extends BaseService<Events> {
 
   async getBlockHeight(network: NetworkInterface): Promise<number> {
     try {
+      const observedBlockHeight =
+        globalThis.main.store.getState().networks.blockInfo[network.chainID]
+          ?.blockHeight
+      if (typeof observedBlockHeight === "number") return observedBlockHeight
+
       const cachedBlock = await this.db.getLatestBlock(network)
       if (cachedBlock) return cachedBlock.blockHeight
 

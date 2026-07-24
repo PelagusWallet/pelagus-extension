@@ -1171,10 +1171,26 @@ export default class Main extends BaseService<never> {
           })
         )
 
-        this.chainService.addAccountToTrack({
-          address,
-          network,
-        })
+        // Hidden test networks and an unavailable local node do not have
+        // providers until selected. Keep their Redux account buckets ready,
+        // but defer provider-backed tracking until the network is active.
+        if (
+          !this.providerFactoryService.hasProvidersForNetwork(network.chainID)
+        ) {
+          return
+        }
+
+        this.chainService
+          .addAccountToTrack({
+            address,
+            network,
+          })
+          .catch((error) => {
+            logger.error(
+              `Failed to track account on chain ${network.chainID}`,
+              error
+            )
+          })
       })
 
       this.signingService.addTrackedAddress(address, "keyring")

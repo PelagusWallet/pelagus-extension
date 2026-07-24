@@ -41,14 +41,14 @@ chrome.runtime.onMessage.addListener(handleMessages)
 // This function performs basic filtering and error checking on messages before
 // dispatching the
 // message to a more specific message handler.
-async function handleMessages(message: {
+function handleMessages(message: {
   target: string
   data: string
   type: string
-}) {
+}): false {
   // Return early if this message isn't meant for the offscreen document.
   if (message.target !== "offscreen-doc") {
-    return
+    return false
   }
 
   // Dispatch the message to an appropriate handler.
@@ -59,6 +59,11 @@ async function handleMessages(message: {
     default:
       console.warn(`Unexpected message type received: '${message.type}'.`)
   }
+
+  // This listener never sends a response. It must not return a Promise for
+  // unrelated runtime messages, or Chrome may treat the offscreen document as
+  // the responder instead of the background store.
+  return false
 }
 
 // We use a <textarea> element for two main reasons:
@@ -73,7 +78,7 @@ const SENSITIVE_CLIPBOARD_CLEAR_DELAY_MS = 15000
 // At the time this demo was created (Jan 2023) the `navigator.clipboard` API
 // requires that the window is focused, but offscreen documents cannot be
 // focused. As such, we have to fall back to `document.execCommand()`.
-async function handleClipboardWrite(data: string) {
+function handleClipboardWrite(data: string): void {
   try {
     // `document.execCommand('copy')` works against the user's selection in a web
     // page. As such, we must insert the string we want to copy to the web page

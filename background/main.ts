@@ -1191,7 +1191,7 @@ export default class Main extends BaseService<never> {
         )
       })
 
-      // Load cached balance from IndexedDB to show immediately while sync runs in background
+      // Load the cached balance from IndexedDB without triggering a network sync.
       if (qiWallet) {
         try {
           const cachedBalance = await this.chainService.getCachedQiBalance()
@@ -1209,8 +1209,7 @@ export default class Main extends BaseService<never> {
       console.log(`[Post-Unlock] loadQiWallet event handler took ${(performance.now() - start).toFixed(0)}ms`)
     })
 
-    this.keyringService.emitter.on("locked", async (isLocked) => {
-      const start = performance.now()
+    this.keyringService.emitter.on("locked", (isLocked) => {
       if (isLocked) {
         this.store.dispatch(keyringLocked())
       } else {
@@ -1218,9 +1217,10 @@ export default class Main extends BaseService<never> {
         this.priceService.updateQuaiPrice().catch((error) => {
           logger.error("Failed to refresh price after unlock", error)
         })
-        console.log(`[Post-Unlock] keyringUnlocked dispatched, now triggering balance update...`)
-        await this.store.dispatch(triggerManualBalanceUpdate())
-        console.log(`[Post-Unlock] triggerManualBalanceUpdate completed in ${(performance.now() - start).toFixed(0)}ms`)
+        console.log(
+          `[Post-Unlock] keyringUnlocked dispatched, triggering balance update in background...`
+        )
+        this.store.dispatch(triggerManualBalanceUpdate())
       }
     })
 

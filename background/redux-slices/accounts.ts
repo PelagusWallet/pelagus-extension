@@ -320,7 +320,10 @@ const accountSlice = createSlice({
         [paymentCode]: {
           paymentCode,
           network,
-          balances: {},
+          // Keyring updates can reload the same public Qi wallet repeatedly.
+          // Keep its last known balance visible while the background refresh
+          // runs instead of returning the account row to a loading spinner.
+          balances: existingAccounts[paymentCode]?.balances ?? {},
           defaultName: "Cyprus 1",
           defaultAvatar: "./images/avatars/compass@2x.png",
           id,

@@ -148,6 +148,14 @@ export class ChainDatabase extends Dexie {
         await transaction.table("qiOutpoints").toCollection().delete()
         await transaction.table("qiWalletSyncInfo").toCollection().delete()
       })
+
+    // Cached Qi balances are read by chain ID during unlock. Earlier schemas
+    // stored the field but did not index it, causing that fast path to throw
+    // and leaving the Qi account row loading until a network scan completed.
+    this.version(7).stores({
+      qiLedgerBalance:
+        "[paymentCode+assetAmount.asset.symbol+network.chainID],paymentCode,assetAmount.amount,lockedAmount.amount,assetAmount.asset.symbol,network.chainID,network.baseAsset.name,blockHeight,retrievedAt",
+    })
   }
 
   async initialize(): Promise<void> {

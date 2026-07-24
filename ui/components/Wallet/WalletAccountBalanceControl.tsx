@@ -91,7 +91,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               history.push("/wrap")
             }}
             size={70}
-            iconWidth="20"
+            iconWidth="30"
             iconHeight="26"
             disabled={!isQiWalletInit}
             width="100%"
@@ -105,7 +105,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               ariaLabel={t("wrap")}
               onClick={() => history.push("/wrap-quai")}
               size={70}
-              iconWidth="20"
+              iconWidth="30"
               iconHeight="26"
             >
               {t("wrap")}
@@ -129,8 +129,8 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
             history.push("/convert")
           }}
           size={70}
-          iconWidth="28"
-          iconHeight="26"
+          iconWidth="32"
+          iconHeight="32"
           disabled={
             !isQiWalletInit ||
             currentSelectedAccount.network.chainID === "9000"

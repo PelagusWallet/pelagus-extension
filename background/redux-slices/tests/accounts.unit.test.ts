@@ -1,7 +1,8 @@
+import { Zone } from "quais"
 import { cloneDeep } from "lodash"
 import { AccountBalance } from "../../accounts"
 import { SmartContractFungibleAsset } from "../../assets"
-import { QUAI } from "../../constants"
+import { QI, QUAI } from "../../constants"
 import {
   createAccountData,
   createAddressOnNetwork,
@@ -12,11 +13,14 @@ import {
 import reducer, {
   EvmAccountData,
   AccountState,
+  loadUtxoAccount,
   updateAccountBalance,
+  updateUtxoAccountBalance,
   updateAssetReferences,
 } from "../accounts"
 import { determineAssetDisplayAndVerify } from "../selectors"
 import { QuaiOrchardTestnet } from "../../constants/networks/networks"
+import { KeyringTypes, QiWallet } from "../../services/keyring/types"
 
 const ADDRESS_MOCK = "0x208e94d5661a73360d9387d3ca169e5c130090cd"
 const ACCOUNT_MOCK = {
@@ -42,6 +46,62 @@ const BALANCE_MOCK: AccountBalance = {
 }
 
 describe("Accounts redux slice", () => {
+  describe(loadUtxoAccount, () => {
+    const qiWallet: QiWallet = {
+      type: KeyringTypes.mnemonicBIP47,
+      id: "qi-wallet",
+      path: null,
+      addresses: [],
+      paymentCode: "qi-payment-code",
+    }
+
+    it("preserves a cached balance when the same Qi wallet is reloaded", () => {
+      const state: AccountState = {
+        accountsData: { evm: {}, utxo: {} },
+        combinedData: {
+          totalMainCurrencyValue: "",
+          assets: [],
+        },
+        qiCoinbaseAddresses: [],
+      }
+      const loaded = reducer(
+        state,
+        loadUtxoAccount({
+          qiWallet,
+          network: QuaiOrchardTestnet,
+        })
+      )
+      const withBalance = reducer(
+        loaded,
+        updateUtxoAccountBalance({
+          balances: [
+            {
+              paymentCode: qiWallet.paymentCode,
+              network: QuaiOrchardTestnet,
+              assetAmount: { asset: QI, amount: 42n },
+              lockedAmount: { asset: QI, amount: 0n },
+              dataSource: "local",
+              retrievedAt: 1,
+            },
+          ],
+        })
+      )
+      const reloaded = reducer(
+        withBalance,
+        loadUtxoAccount({
+          qiWallet,
+          network: QuaiOrchardTestnet,
+        })
+      )
+
+      expect(
+        reloaded.accountsData.utxo[QuaiOrchardTestnet.chainID][
+          qiWallet.paymentCode
+        ]?.balances[Zone.Cyprus1].assetAmount.amount
+      ).toBe(42n)
+    })
+  })
+
   describe(updateAccountBalance, () => {
     let state: AccountState
 

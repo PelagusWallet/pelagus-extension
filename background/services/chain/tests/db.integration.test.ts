@@ -1,11 +1,14 @@
 import { IDBFactory } from "fake-indexeddb"
-import { QUAI } from "../../../constants"
+import { QI, QUAI } from "../../../constants"
 import {
   createAccountBalance,
   createAddressOnNetwork,
 } from "../../../tests/factories"
 import { ChainDatabase, initializeChainDatabase } from "../db"
-import { QuaiOrchardTestnet } from "../../../constants/networks/networks"
+import {
+  QuaiMainnet,
+  QuaiOrchardTestnet,
+} from "../../../constants/networks/networks"
 
 describe("Chain Database ", () => {
   let db: ChainDatabase
@@ -46,6 +49,38 @@ describe("Chain Database ", () => {
       const accountBalances = await db.table("balances").toArray()
       expect(accountBalances.length).toEqual(1)
       expect(accountBalances[0].address).toEqual(accountBalance.address)
+    })
+  })
+  describe("getLatestQiLedgerBalance", () => {
+    it("returns the newest cached Qi balance for the selected network", async () => {
+      await db.addQiLedgerBalance({
+        paymentCode: "qi-payment-code",
+        assetAmount: { asset: QI, amount: 4n },
+        lockedAmount: { asset: QI, amount: 0n },
+        network: QuaiMainnet,
+        retrievedAt: 1,
+        dataSource: "local",
+      })
+      await db.addQiLedgerBalance({
+        paymentCode: "qi-payment-code",
+        assetAmount: { asset: QI, amount: 10n },
+        lockedAmount: { asset: QI, amount: 0n },
+        network: QuaiMainnet,
+        retrievedAt: 2,
+        dataSource: "local",
+      })
+      await db.addQiLedgerBalance({
+        paymentCode: "qi-payment-code",
+        assetAmount: { asset: QI, amount: 99n },
+        lockedAmount: { asset: QI, amount: 0n },
+        network: QuaiOrchardTestnet,
+        retrievedAt: 3,
+        dataSource: "local",
+      })
+
+      const latest = await db.getLatestQiLedgerBalance(QuaiMainnet)
+
+      expect(latest?.assetAmount.amount).toBe(10n)
     })
   })
   // describe("addBlock", () => {

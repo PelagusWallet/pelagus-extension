@@ -52,5 +52,16 @@ describe("Utils", () => {
       const response = handleRPCErrorResponse(error)
       expect(response).toBe(EIP1193_ERROR_CODES.userRejectedRequest)
     })
+
+    it("should preserve a wallet failure message when requested", () => {
+      const response = handleRPCErrorResponse(
+        new Error("Prepared Qi transaction expired"),
+        { preserveErrorMessage: true }
+      )
+      expect(response).toStrictEqual({
+        code: -32603,
+        message: "Prepared Qi transaction expired",
+      })
+    })
   })
 })

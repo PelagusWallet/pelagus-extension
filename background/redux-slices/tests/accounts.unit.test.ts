@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash"
 import { AccountBalance } from "../../accounts"
 import { SmartContractFungibleAsset } from "../../assets"
-import { QUAI } from "../../constants"
+import { QUAI_ORCHARD } from "../../constants"
 import {
   createAccountData,
   createAddressOnNetwork,
@@ -33,7 +33,7 @@ const ASSET_MOCK: SmartContractFungibleAsset = createSmartContractAsset({
 const BALANCE_MOCK: AccountBalance = {
   address: ADDRESS_MOCK,
   assetAmount: {
-    asset: QUAI,
+    asset: QUAI_ORCHARD,
     amount: 1n,
   },
   network: QuaiOrchardTestnet,
@@ -78,7 +78,7 @@ describe("Accounts redux slice", () => {
       expect(updatedAccountData).not.toEqual("loading")
 
       const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
-      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
+      expect(updatedBalance?.[QUAI_ORCHARD.symbol].assetAmount.amount).toBe(1n)
       expect(updated.combinedData.totalMainCurrencyValue).toBe("")
     })
 
@@ -101,7 +101,7 @@ describe("Accounts redux slice", () => {
         updated.accountsData.evm[QuaiOrchardTestnet.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
 
-      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
+      expect(updatedBalance?.[QUAI_ORCHARD.symbol].assetAmount.amount).toBe(1n)
       expect(updated.combinedData.totalMainCurrencyValue).toBe("")
     })
 
@@ -110,7 +110,7 @@ describe("Accounts redux slice", () => {
         {
           ...BALANCE_MOCK,
           assetAmount: {
-            asset: QUAI,
+            asset: QUAI_ORCHARD,
             amount: 0n,
           },
         },
@@ -135,7 +135,7 @@ describe("Accounts redux slice", () => {
       expect(updatedAccountData).not.toEqual("loading")
 
       const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
-      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(0n)
+      expect(updatedBalance?.[QUAI_ORCHARD.symbol].assetAmount.amount).toBe(0n)
     })
 
     it("should update zero balance for account that is loaded", () => {
@@ -143,7 +143,7 @@ describe("Accounts redux slice", () => {
         {
           ...BALANCE_MOCK,
           assetAmount: {
-            asset: QUAI,
+            asset: QUAI_ORCHARD,
             amount: 0n,
           },
         },
@@ -165,7 +165,7 @@ describe("Accounts redux slice", () => {
         updated.accountsData.evm[QuaiOrchardTestnet.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
 
-      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(0n)
+      expect(updatedBalance?.[QUAI_ORCHARD.symbol].assetAmount.amount).toBe(0n)
     })
 
     it("should update positive balance multiple times", () => {
@@ -206,7 +206,7 @@ describe("Accounts redux slice", () => {
         updated.accountsData.evm[QuaiOrchardTestnet.chainID][ADDRESS_MOCK]
       const updatedBalance = (updatedAccountData as EvmAccountData)?.balances
 
-      expect(updatedBalance?.[QUAI.symbol].assetAmount.amount).toBe(1n)
+      expect(updatedBalance?.[QUAI_ORCHARD.symbol].assetAmount.amount).toBe(1n)
       expect(updatedBalance?.[ASSET_MOCK.symbol].assetAmount.amount).toBe(10n)
     })
 

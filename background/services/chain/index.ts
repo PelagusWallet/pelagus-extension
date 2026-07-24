@@ -949,6 +949,10 @@ export default class ChainService extends BaseService<Events> {
     )
   }
 
+  async getAllQiOutpoints(chainID: string): Promise<QiOutpoint[]> {
+    return this.db.getAllQiOutpoints(chainID)
+  }
+
   async getQiOutpointsLessThanDenomination(denomination: number, chainID: string, currentBlockNumber: number): Promise<QiOutpoint[]> {
     return this.db.getUnlockedQiOutpointsLessThanDenomination(denomination, chainID, currentBlockNumber)
   }

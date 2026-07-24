@@ -1,4 +1,4 @@
-import { BigNumberish, LogParams } from "quais"
+import { BigNumberish, LogParams, Zone } from "quais"
 import { EtxParams } from "quais/lib/commonjs/providers/formatting"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 
@@ -54,6 +54,10 @@ export type QiTransactionDB = {
   blockNumber: number | null
   refundAddress?: string
   quaiRecipient?: string
+  /** Dapp request bound to a signed transaction whose relay outcome may need recovery. */
+  dappRequestFingerprint?: string
+  /** True until the wallet observes an unambiguous broadcast or confirmation. */
+  broadcastOutcomeUnknown?: boolean
 }
 
 export type EnrichedQuaiTransaction = QuaiTransactionDB & {
@@ -64,4 +68,188 @@ export type EnrichedQuaiTransaction = QuaiTransactionDB & {
 export type QuaiTransactionRequestWithAnnotation = QuaiTransactionRequest & {
   annotation?: TransactionAnnotation
   network: NetworkInterface
+}
+
+export type QiOutputRequest = {
+  address: string
+  denomination?: number | string
+  amountQit?: BigNumberish
+  valueQit?: BigNumberish
+}
+
+export type QiReceiveAddressesRequest = {
+  count?: unknown
+  zone?: unknown
+  account?: unknown
+  /** Required origin-scoped durable lease key for the p2p Qi receive API. */
+  reservationId: unknown
+  /** Set only by the provider bridge from the trusted requesting origin. */
+  origin?: unknown
+}
+
+export type QiReceiveAddressReservationAllocationRequest =
+  QiReceiveAddressesRequest & {
+    /** Set only by the provider bridge from the selected permitted account. */
+    owner?: unknown
+    /** Set only by the provider bridge from the selected wallet network. */
+    chainId?: unknown
+  }
+
+export type QiReceiveAddressReservationStatus =
+  | "active"
+  | "committed"
+  | "released"
+
+export type QiReceiveAddressReservationReleaseReason =
+  | "terminal"
+  | "accepted-fill-timeout"
+
+export type QiReceiveAddressReservationControlRequest = {
+  reservationId?: unknown
+  count?: unknown
+  zone?: unknown
+  account?: unknown
+  /** Set only by the provider bridge from the trusted requesting origin. */
+  origin?: unknown
+}
+
+export type QiReceiveAddressReservationReleaseRequest =
+  QiReceiveAddressReservationControlRequest & {
+    reason?: unknown
+    /** Set only by the provider bridge from the selected permitted account. */
+    owner?: unknown
+    /** Set only by the provider bridge from the selected wallet network. */
+    chainId?: unknown
+  }
+
+/**
+ * Canonical request approved by the user in the release confirmation popup.
+ * `owner`, `origin`, and `chainId` are trusted provider context carried so the
+ * provider can revalidate that context immediately before applying the release.
+ * They are intentionally not persisted in the reservation database.
+ */
+export type NormalizedQiReceiveAddressReservationReleaseRequest = {
+  reservationId: string
+  count: number
+  zone: Zone
+  account: number
+  origin: string
+  owner: string
+  chainId: string
+  reason: QiReceiveAddressReservationReleaseReason
+}
+
+export type NormalizedQiReceiveAddressReservationAllocationRequest = {
+  reservationId: string
+  count: number
+  zone: Zone
+  account: number
+  origin: string
+  owner: string
+  chainId: string
+}
+
+export type QiReceiveAddressReservationResponse = {
+  reservationId: string
+  addresses: string[]
+  status: "active" | "committed"
+  /** Active quotes expire; committed trade addresses do not. */
+  expiresAt: number | null
+  committedAt?: number
+  /** Wallet recovery invariant for still-unused exposed receive addresses. */
+  addressCapacity: number
+  /** Slots remaining after this reservation, across every trusted origin. */
+  remainingAddressCapacity: number
+}
+
+export type QiReceiveAddressReservationReleaseResponse = {
+  reservationId: string
+  status: "released"
+  releasedAt: number
+  alreadyReleased: boolean
+  reason: QiReceiveAddressReservationReleaseReason
+}
+
+export type QiSendToOutputsRequest = {
+  outputs?: QiOutputRequest[]
+  /**
+   * The Quai network the dapp expects to sign on. This is required for
+   * dapp-originated Qi sends and must match the wallet's selected network.
+   * Decimal and 0x-prefixed JSON strings are accepted; the normalized request
+   * always stores a canonical decimal string.
+   */
+  chainId?: number | string
+  zone?: string
+  account?: number
+  data?: string
+  origin?: string
+  label?: string
+  tradeHash?: string
+  /**
+   * Maximum fee the dapp authorizes, in qit. The wallet still displays the
+   * exact prepared fee and requires user confirmation before signing.
+   */
+  maxFeeQit?: BigNumberish
+  /**
+   * Optional caller deadline expressed as Unix epoch milliseconds. Pelagus
+   * binds this value to the reviewed request and will never sign or broadcast
+   * after it. Production p2p-qi funding requests must provide this field.
+   */
+  validUntil?: number | string
+}
+
+export type PreparedQiSendInput = {
+  txhash: string
+  index: number
+  address: string
+  denomination: number
+  lock?: number
+  valueQit: string
+  chainID: string
+  derivationPath: string
+}
+
+export type PreparedQiSendToOutputs = {
+  preparedId: string
+  unsignedSerialized: string
+  digest: string
+  /** Hash of the complete normalized dapp request shown in confirmation. */
+  requestFingerprint: string
+  inputs: PreparedQiSendInput[]
+  outputs: Array<{ address: string; denomination: number }>
+  changeOutputs: Array<{ address: string; denomination: number }>
+  amountQit: string
+  feeQit: string
+  maxFeeQit: string
+  inputTotalQit: string
+  totalDebitQit: string
+  sourceAccount: number
+  sourcePaymentCode: string
+  preparedAt: number
+  expiresAt: number
+}
+
+export type NormalizedQiSendToOutputsRequest = {
+  outputs: Array<{
+    address: string
+    denomination: number
+  }>
+  amountQit: string
+  // Canonical decimal Quai network id, bound to the wallet network at both
+  // confirmation creation and signing time.
+  chainId: string
+  zone: string
+  account: number
+  maxFeeQit: string
+  /** Canonical safe Unix epoch milliseconds supplied by the dapp. */
+  validUntil?: number
+  data?: string
+  origin?: string
+  label?: string
+  tradeHash?: string
+  // Unique id assigned when the request enters the confirmation flow; used to
+  // correlate the confirmation/rejection back to the exact pending request.
+  requestId?: string
+  /** Exact unsigned transaction approved by the user; produced by Pelagus. */
+  prepared?: PreparedQiSendToOutputs
 }

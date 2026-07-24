@@ -4,7 +4,7 @@ import {
   setSnackbarConfig,
 } from "@pelagus/pelagus-background/redux-slices/ui"
 import { useHistory } from "react-router-dom"
-import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { resetManualQiSendState } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import SharedDropdown, { DropdownOption } from "../../../../SharedDropDown"
 import {
   useBackgroundDispatch,
@@ -56,7 +56,7 @@ const QiAccountOptionMenu = ({ paymentCode }: { paymentCode: string }) => {
           icon: "icons/s/arrow-up.svg",
           label: "Send asset",
           onClick: async () => {
-            await dispatch(resetQiSendSlice())
+            await dispatch(resetManualQiSendState())
             history.push("/send-qi")
             await dispatch(setShowingAccountsModal(false))
           },

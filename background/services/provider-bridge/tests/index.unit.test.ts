@@ -51,6 +51,11 @@ describe("ProviderBridgeService", () => {
   const sandbox = sinon.createSandbox()
 
   beforeEach(async () => {
+    ;(browser as any).windows = (browser as any).windows ?? {}
+    ;(browser.windows as any).onRemoved = {
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    }
     browser.windows.getCurrent = jest.fn(() => Promise.resolve(WINDOW))
     browser.windows.create = jest.fn(() => Promise.resolve(WINDOW))
     providerBridgeService = await createProviderBridgeService()
@@ -59,7 +64,7 @@ describe("ProviderBridgeService", () => {
   })
 
   afterEach(async () => {
-    await providerBridgeService.stopService()
+    if (providerBridgeService) await providerBridgeService.stopService()
     jest.clearAllMocks()
   })
 
@@ -144,7 +149,9 @@ describe("ProviderBridgeService", () => {
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const IQP = providerBridgeService["internalQuaiProviderService"]
-      const spy = jest.spyOn(IQP, "routeSafeRPCRequest")
+      const spy = jest
+        .spyOn(IQP, "routeSafeRPCRequest")
+        .mockResolvedValue(null)
 
       await wait(0) // wait next tick to setup popup
 

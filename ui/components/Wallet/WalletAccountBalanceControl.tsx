@@ -11,7 +11,7 @@ import {
 } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { ReadOnlyAccountSigner } from "@pelagus/pelagus-background/services/signing"
 import { resetConvertAssetsSlice } from "@pelagus/pelagus-background/redux-slices/convertAssets"
-import { resetQiSendSlice } from "@pelagus/pelagus-background/redux-slices/qiSend"
+import { resetManualQiSendState } from "@pelagus/pelagus-background/redux-slices/qiSend"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../hooks"
 import SharedButton from "../Shared/SharedButton"
 import SharedSkeletonLoader from "../Shared/SharedSkeletonLoader"
@@ -55,7 +55,7 @@ function ActionButtons(props: ActionButtonsProps): ReactElement {
               return
             }
 
-            await dispatch(resetQiSendSlice())
+            await dispatch(resetManualQiSendState())
             history.push("/send-qi")
           }}
           size={70}

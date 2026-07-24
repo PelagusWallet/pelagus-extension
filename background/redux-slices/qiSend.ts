@@ -1,9 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit"
+import Emittery from "emittery"
 import { parseQi } from "quais"
 import { AccountTotal } from "./selectors"
 import { createBackgroundAsyncThunk } from "./utils"
 import { RootState } from "./index"
 import { UtxoAccountData } from "./accounts"
+import { NormalizedQiSendToOutputsRequest } from "../services/transactions/types"
 
 export type QiSendState = {
   senderQiAccount: UtxoAccountData | null
@@ -12,6 +14,7 @@ export type QiSendState = {
   amount: string
   channelExists: boolean
   isSending: boolean
+  dappRequest: NormalizedQiSendToOutputsRequest | null
 }
 
 const initialState: QiSendState = {
@@ -21,6 +24,24 @@ const initialState: QiSendState = {
   senderQuaiAccount: null,
   channelExists: false,
   isSending: false,
+  dappRequest: null,
+}
+
+type Events = {
+  dappSendTransactionResponse: { requestId: string; txHash: string }
+  dappSendTransactionRejected: { requestId: string; message?: string }
+}
+
+export const emitter = new Emittery<Events>()
+
+const errorMessageFromUnknown = (error: unknown, fallback: string): string => {
+  if (error instanceof Error && error.message) return error.message
+  if (typeof error === "string" && error) return error
+  if (error && typeof error === "object" && "message" in error) {
+    const { message } = error as { message?: unknown }
+    if (typeof message === "string" && message) return message
+  }
+  return fallback
 }
 
 const qiSendSlice = createSlice({
@@ -54,6 +75,27 @@ const qiSendSlice = createSlice({
     setQiSending: (immerState, { payload }: { payload: boolean }) => {
       immerState.isSending = payload
     },
+    setQiDappSendRequest: (
+      immerState,
+      { payload }: { payload: NormalizedQiSendToOutputsRequest }
+    ) => {
+      // The dapp confirmation UI reads dappRequest directly, so this must NOT
+      // touch the manual send flow's fields (amount, receiverPaymentCode,
+      // channelExists) or its in-flight guard (isSending) — doing so would
+      // corrupt a manual send that happens to be open in another window.
+      immerState.dappRequest = payload
+    },
+    clearQiDappRequest: (immerState) => {
+      immerState.dappRequest = null
+    },
+    resetManualQiSendState: (immerState) => {
+      immerState.senderQiAccount = null
+      immerState.senderQuaiAccount = null
+      immerState.amount = ""
+      immerState.receiverPaymentCode = ""
+      immerState.channelExists = false
+      immerState.isSending = false
+    },
     resetQiSendSlice: (immerState) => {
       immerState.senderQiAccount = null
       immerState.senderQuaiAccount = null
@@ -61,6 +103,7 @@ const qiSendSlice = createSlice({
       immerState.receiverPaymentCode = ""
       immerState.channelExists = false
       immerState.isSending = false
+      immerState.dappRequest = null
     },
   },
 })
@@ -72,6 +115,9 @@ export const {
   setQiSendReceiverPaymentCode,
   setQiChannelExists,
   setQiSending,
+  setQiDappSendRequest,
+  clearQiDappRequest,
+  resetManualQiSendState,
   resetQiSendSlice,
 } = qiSendSlice.actions
 
@@ -113,7 +159,7 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
         receiverPaymentCode
       )
 
-      dispatch(resetQiSendSlice())
+      dispatch(resetManualQiSendState())
       return { txHash }
     } catch (error: any) {
       console.log("error in sendQiTransaction", error)
@@ -123,6 +169,79 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
           message: typeof error === 'string' ? error : error?.message
         }
       }
+    }
+  }
+)
+
+export const sendDappQiTransaction = createBackgroundAsyncThunk(
+  "qiSend/sendDappQiTransaction",
+  async (_, { getState, dispatch }) => {
+    const { qiSend } = getState() as RootState
+    const request = qiSend.dappRequest
+    if (!request) {
+      // Nothing pending to settle; surface the error to the UI only.
+      return { error: { message: "No pending Qi dapp transaction" } }
+    }
+
+    const requestId = request.requestId ?? ""
+    if (qiSend.isSending) {
+      if (main.transactionService.isSendingPreparedDappQiSend()) {
+        // The confirmed request already owns the prepared-send broadcast.
+        // A remounted confirmation surface must not settle that live provider
+        // request as rejected while the node outcome is still pending.
+        return { error: { message: "Transaction broadcast is still in progress" } }
+      }
+      // Another send (manual or dapp) owns the wallet. Settle the dapp promise
+      // and release the in-flight slot instead of returning silently — leaving
+      // it pending would hang the dapp and block every future Qi send as "busy".
+      // Do NOT touch isSending here: it belongs to the send already running.
+      const message = "Transaction already in progress"
+      await emitter.emit("dappSendTransactionRejected", { requestId, message })
+      return { error: { message } }
+    }
+
+    dispatch(setQiSending(true))
+    try {
+      const txHash = await main.transactionService.sendQiToOutputs(request)
+      await emitter.emit("dappSendTransactionResponse", { requestId, txHash })
+      dispatch(clearQiDappRequest())
+      dispatch(setQiSending(false))
+      return { txHash }
+    } catch (error: unknown) {
+      // Settle the dapp promise with the REAL error message (not the generic
+      // "rejected") and release the in-flight slot. The confirmation UI has no
+      // reachable retry affordance, so leaving the request pending would hang
+      // the dapp and block every future Qi send as "busy".
+      const message = errorMessageFromUnknown(
+        error,
+        "Failed to send Qi transaction"
+      )
+      await emitter.emit("dappSendTransactionRejected", { requestId, message })
+      dispatch(setQiSending(false))
+      return { error: { message } }
+    }
+  }
+)
+
+export const rejectDappQiTransaction = createBackgroundAsyncThunk(
+  "qiSend/rejectDappQiTransaction",
+  async (args: { requestId?: string } | undefined, { getState, dispatch }) => {
+    const { qiSend } = getState() as RootState
+    // The UI captures the request id before it starts closing. Do not use a
+    // later state value for the provider response: a close event must only
+    // settle the exact dapp request this popup was created for.
+    const requestId = args?.requestId ?? qiSend.dappRequest?.requestId
+    if (!requestId) return
+    if (main.transactionService.isSendingPreparedDappQiSend()) {
+      // Closing or remounting the popup cannot turn an in-flight broadcast into
+      // a rejection. The send path remains the sole owner of provider settlement.
+      return
+    }
+    await emitter.emit("dappSendTransactionRejected", {
+      requestId,
+    })
+    if (qiSend.dappRequest?.requestId === requestId) {
+      dispatch(clearQiDappRequest())
     }
   }
 )

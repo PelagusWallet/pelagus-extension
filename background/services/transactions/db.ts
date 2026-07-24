@@ -2,7 +2,13 @@ import Dexie, { DexieOptions } from "dexie"
 import { HexString } from "quais/lib/commonjs/utils"
 
 import { UNIXTime } from "../../types"
-import { QiTransactionDB, QuaiTransactionDB, TransactionStatus } from "./types"
+import {
+  QiReceiveAddressReservationReleaseReason,
+  QiReceiveAddressReservationStatus,
+  QiTransactionDB,
+  QuaiTransactionDB,
+  TransactionStatus,
+} from "./types"
 
 type AdditionalTransactionFieldsForDB = {
   dataSource: "local"
@@ -31,6 +37,22 @@ export type IntervalConversionDB = {
   transactions: string[]
 }
 
+export type QiReceiveAddressReservationDB = {
+  origin: string
+  reservationId: string
+  account: number
+  zone: string
+  count: number
+  addresses: string[]
+  createdAt: UNIXTime
+  lastAccessedAt: UNIXTime
+  expiresAt: UNIXTime
+  status: QiReceiveAddressReservationStatus
+  committedAt?: UNIXTime
+  releasedAt?: UNIXTime
+  releaseReason?: QiReceiveAddressReservationReleaseReason | "lease-expired"
+}
+
 export class TransactionsDatabase extends Dexie {
   private quaiTransactions!: Dexie.Table<
     QuaiTransactionDBEntry,
@@ -42,6 +64,11 @@ export class TransactionsDatabase extends Dexie {
   private openedPaymentChannels!: Dexie.Table<{ paymentCode: string }, number>
 
   intervalConversions!: Dexie.Table<IntervalConversionDB, string>
+
+  private qiReceiveAddressReservations!: Dexie.Table<
+    QiReceiveAddressReservationDB,
+    [string, string]
+  >
 
   constructor(options?: DexieOptions) {
     super("pelagus/transactions", options)
@@ -69,8 +96,16 @@ export class TransactionsDatabase extends Dexie {
       intervalConversions: "&id,status,startedAt,from,to",
     })
 
-    // Map tables to class properties - only map the new table since others are working
+    this.version(5).stores({
+      qiReceiveAddressReservations:
+        "&[origin+reservationId],origin,reservationId,status,expiresAt,[account+zone],[origin+status]",
+    })
+
+    // Explicitly map tables added after the original schema.
     this.intervalConversions = this.table("intervalConversions")
+    this.qiReceiveAddressReservations = this.table(
+      "qiReceiveAddressReservations"
+    )
   }
 
   // ------------------------------------ quai tx ------------------------------------
@@ -254,6 +289,47 @@ export class TransactionsDatabase extends Dexie {
       .where("status")
       .equals("running")
       .toArray()
+  }
+
+  // --------------------------- Qi receive reservations ---------------------------
+  async getQiReceiveAddressReservation(
+    origin: string,
+    reservationId: string
+  ): Promise<QiReceiveAddressReservationDB | undefined> {
+    return this.qiReceiveAddressReservations.get([origin, reservationId])
+  }
+
+  async putQiReceiveAddressReservation(
+    reservation: QiReceiveAddressReservationDB
+  ): Promise<void> {
+    await this.qiReceiveAddressReservations.put(reservation)
+  }
+
+  async getAllQiReceiveAddressReservations(): Promise<
+    QiReceiveAddressReservationDB[]
+  > {
+    return this.qiReceiveAddressReservations.toArray()
+  }
+
+  async getUnreleasedQiReceiveAddressReservations(): Promise<
+    QiReceiveAddressReservationDB[]
+  > {
+    return this.qiReceiveAddressReservations
+      .where("status")
+      .anyOf(["active", "committed"])
+      .toArray()
+  }
+
+  async expireActiveQiReceiveAddressReservations(now: number): Promise<void> {
+    await this.qiReceiveAddressReservations
+      .where("status")
+      .equals("active")
+      .and((reservation) => reservation.expiresAt <= now)
+      .modify({
+        status: "released",
+        releasedAt: now,
+        releaseReason: "lease-expired",
+      })
   }
 }
 

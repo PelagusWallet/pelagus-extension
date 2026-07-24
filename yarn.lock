@@ -7551,10 +7551,10 @@ qs@^6.4.0:
   dependencies:
     side-channel "^1.0.6"
 
-quais@^1.0.0-alpha.52:
-  version "1.0.0-alpha.52"
-  resolved "https://registry.yarnpkg.com/quais/-/quais-1.0.0-alpha.52.tgz#4baf54a8719d1dd8b32bdeedc0a9d8ed53ce5b6b"
-  integrity sha512-E/3BKdk1u6jFDwJYCIz8VVvr/Z6M1hp+wRW17zHx2AiZ40zX8fP8i1L0LShPCuW0lSEPPa7K8wtR51rbaK1iXw==
+quais@^1.0.0-alpha.55:
+  version "1.0.0-alpha.55"
+  resolved "https://registry.yarnpkg.com/quais/-/quais-1.0.0-alpha.55.tgz#33583b36de9fe3392e6e0b7344fd639f8adad5bd"
+  integrity sha512-luHJwGe0UPguZHP94VZLMFITPonNf683KU2Hb2Wn1iiguKQArO0sugMQtDpExyAVadxqzNmydSScEY1JMyBXfQ==
   dependencies:
     "@babel/runtime" "^7.26.0"
     "@bitcoinerlab/secp256k1" "^1.1.1"

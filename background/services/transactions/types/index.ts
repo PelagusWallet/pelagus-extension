@@ -2,7 +2,7 @@ import { BigNumberish, LogParams } from "quais"
 import { EtxParams } from "quais/lib/commonjs/providers/formatting"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 
-import { TransactionAnnotation } from "../../enrichment"
+import type { TransactionAnnotation } from "../../enrichment/types"
 import { NetworkInterface } from "../../../constants/networks/networkTypes"
 
 export enum TransactionStatus {
@@ -33,6 +33,7 @@ export type QuaiTransactionDB = {
 
   outboundEtxs: EtxParams[]
   logs: LogParams[]
+  annotation?: TransactionAnnotation
 }
 
 export enum UtxoActivityType {

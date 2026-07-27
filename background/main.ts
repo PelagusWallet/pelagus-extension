@@ -530,14 +530,16 @@ export default class Main extends BaseService<never> {
 
       this.balanceCheckInProgress = true
       try {
-        await Promise.all([
-          this.enrichActivitiesForSelectedAccount(),
-          this.manuallyCheckBalances(true),
-        ])
+        if (this.store.getState().ui.isUtxoSelected) {
+          await this.chainService.syncQiWallet()
+        } else {
+          const selectedAccount = this.store.getState().ui.selectedAccount
+          await this.chainService.getLatestBaseAccountBalance(selectedAccount)
+        }
       } finally {
         this.balanceCheckInProgress = false
       }
-    }, MINUTE)
+    }, 5 * MINUTE)
     this.balanceChecker = interval
   }
 
@@ -1444,10 +1446,7 @@ export default class Main extends BaseService<never> {
         PELAGUS_INTERNAL_ORIGIN
       )
       this.chainService.switchNetwork(network)
-      await Promise.allSettled([
-        this.blockService.subscribeToNewHeads(),
-        this.blockService.pollBlockPricesForNetwork({ network }),
-      ])
+      await this.blockService.pollBlockPricesForNetwork({ network })
       this.store.dispatch(clearCustomGas())
     })
 
@@ -2094,7 +2093,11 @@ export default class Main extends BaseService<never> {
 
       logger.info("Pelagus Connected")
       walletOpen = true
-      this.manuallyCheckBalances()
+      if (this.store.getState().ui.isUtxoSelected) {
+        this.chainService.syncQiWallet()
+      } else {
+        this.manuallyCheckBalances()
+      }
 
       const openTime = Date.now()
 

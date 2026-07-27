@@ -12,7 +12,6 @@ import {
 import { FiatCurrency } from "../../assets"
 import DEFAULT_PREFERENCES from "./defaults"
 import { AnalyticsPreferences } from "./types"
-import { getExtendedZoneForAddress } from "../chain/utils"
 
 type SignerRecordId = `${AccountSignerWithId["type"]}/${string}`
 
@@ -224,9 +223,6 @@ export class PreferenceDatabase extends Dexie {
   }
 
   async setSelectedAccount(addressNetwork: AddressOnNetwork): Promise<void> {
-    const shard = getExtendedZoneForAddress(addressNetwork.address)
-    globalThis.main.SetShard(shard)
-    globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await this.preferences
       .toCollection()
       .modify({ selectedAccount: addressNetwork })

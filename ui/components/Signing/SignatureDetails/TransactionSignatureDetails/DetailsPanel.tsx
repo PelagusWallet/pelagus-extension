@@ -3,10 +3,9 @@ import {
   selectEstimatedFeesPerGas,
   selectTransactionData,
 } from "@pelagus/pelagus-background/redux-slices/selectors/transactionConstructionSelectors"
-import { updateTransactionData } from "@pelagus/pelagus-background/redux-slices/transaction-construction"
 import { useTranslation } from "react-i18next"
 import classNames from "classnames"
-import { getGasPrice, getABIFromAddress, selectAssetPricePoint, estimateGas } from "@pelagus/pelagus-background/redux-slices/assets"
+import { getABIFromAddress, selectAssetPricePoint, estimateGas } from "@pelagus/pelagus-background/redux-slices/assets"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
 import { QuaiTransactionRequestWithAnnotation } from "@pelagus/pelagus-background/services/transactions/types"
 import { useBackgroundDispatch, useBackgroundSelector } from "../../../../hooks"
@@ -61,10 +60,15 @@ export default function DetailPanel({
   useEffect(() => {
     if (!transactionRequest) return
     setTransactionDetails(transactionRequest)
-    dispatch(updateTransactionData(transactionRequest))
     const fetchABI = async () => {
-      if (transactionRequest?.to) {
-        const fetchedAbi = await dispatch(getABIFromAddress({ address: transactionRequest.to }))
+      if (
+        transactionRequest?.to &&
+        transactionRequest.data &&
+        transactionRequest.data !== "0x"
+      ) {
+        const fetchedAbi = await dispatch(
+          getABIFromAddress({ address: transactionRequest.to })
+        )
         setABI(Interface.from(fetchedAbi as any))
       }
     }
@@ -120,15 +124,13 @@ export default function DetailPanel({
         transactionDetails.from &&
         transactionDetails.network
       ) {
-        const { gasPrice } = (await dispatch(
-          getGasPrice()
-        )) as unknown as AsyncThunkFulfillmentType<typeof getGasPrice>
         if (!estimatedFeesPerGas) return
 
-        if (estimatedFeesPerGas.regular) {
-          estimatedFeesPerGas.regular.gasPrice = gasPrice
-        }
-        estimatedFeesPerGas.gasPrice = gasPrice
+        const gasPrice =
+          estimatedFeesPerGas.regular?.gasPrice ??
+          estimatedFeesPerGas.gasPrice ??
+          estimatedFeesPerGas.baseFeePerGas
+        if (typeof gasPrice === "undefined") return
 
         let gasLimit = transactionDetails.gasLimit
 
@@ -141,7 +143,7 @@ export default function DetailPanel({
           }
           gasLimit = estimatedGas
         }
-        let txFeeInQuai = estimatedFeesPerGas?.gasPrice * BigInt(gasLimit)
+        const txFeeInQuai = gasPrice * BigInt(gasLimit)
         const enrichedAmount = enrichAssetAmountWithMainCurrencyValues(
           {
             asset: QUAI,

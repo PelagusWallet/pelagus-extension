@@ -105,26 +105,29 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
         customWebSocketRpcUrls
       )
 
+      const networkChainId = BigInt(chainID)
       const jsonRpcProvider = new JsonRpcProvider(
         customJsonRpcUrls,
-        undefined,
+        networkChainId,
         {
           usePathing: usePathingJsonRpc,
+          staticNetwork: true,
         }
       )
 
       // Add provider than does not batch requests (useful when dealing with potentially large responses)
       const immediateJsonRpcProvider = new JsonRpcProvider(
         customJsonRpcUrls,
-        undefined,
+        networkChainId,
         {
           usePathing: usePathingJsonRpc,
           batchMaxCount: 1,
+          staticNetwork: true,
         }
       )
       const webSocketProvider = new WebSocketProvider(
         customWebSocketRpcUrls,
-        undefined,
+        networkChainId,
         {
           usePathing: usePathingWebSocketRpc,
         }
@@ -231,13 +234,15 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
       const { chainID, jsonRpcUrls, webSocketRpcUrls } = QuaiLocalNodeNetwork
 
       const existingProviders = this.providersForNetworks.get(chainID)
+      const networkChainId = BigInt(chainID)
 
-      const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, undefined, {
+      const jsonRpcProvider = new JsonRpcProvider(jsonRpcUrls, networkChainId, {
         usePathing: false,
+        staticNetwork: true,
       })
       const webSocketProvider = new WebSocketProvider(
         webSocketRpcUrls,
-        undefined,
+        networkChainId,
         { usePathing: false }
       )
 
@@ -264,7 +269,7 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
   }
 
   private async checkLocalNodeStatus(): Promise<boolean> {
-    const fetchLocalBlockHash = async () => {
+    const fetchLocalBlockNumber = async () => {
       try {
         const response = await fetch("http://localhost:9001", {
           method: "POST",
@@ -274,13 +279,13 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
           body: JSON.stringify({
             jsonrpc: "2.0",
             id: 1,
-            method: "quai_getBlockByNumber",
-            params: ["latest", false],
+            method: "quai_blockNumber",
+            params: [],
           }),
         })
 
         const data = await response.json()
-        return data.result.hash
+        return data.result
       } catch (error) {
         return null
       }
@@ -292,12 +297,12 @@ export default class ProviderFactory extends BaseService<ProviderFactoryEvents> 
           setTimeout(() => reject(new Error("Timeout")), ms)
         )
 
-      const blockHash = await Promise.race([
-        fetchLocalBlockHash(),
+      const blockNumber = await Promise.race([
+        fetchLocalBlockNumber(),
         timeout(DEFAULT_LOCAL_NODE_CHECK_INTERVAL_IN_MS),
       ])
 
-      const isDisabled = !blockHash
+      const isDisabled = !blockNumber
       this.emitLocalNodeStatusEvent(isDisabled)
       return !isDisabled
     } catch (error) {

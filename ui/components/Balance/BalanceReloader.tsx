@@ -1,8 +1,7 @@
 import React, { ReactElement, useState, useRef, useEffect } from "react"
 import classNames from "classnames"
-import { useLocalStorage } from "../../hooks"
 import { triggerManualBalanceUpdate } from "@pelagus/pelagus-background/redux-slices/accounts"
-import { useBackgroundDispatch } from "../../hooks"
+import { useBackgroundDispatch, useLocalStorage } from "../../hooks"
 
 export default function BalanceReloader(): ReactElement {
   const dispatch = useBackgroundDispatch()
@@ -29,14 +28,16 @@ export default function BalanceReloader(): ReactElement {
 
   const onClick = async () => {
     const currentTime = new Date().getTime()
-    setIsSpinning(true)
 
     if (
-      Number(timeWhenLastReloaded) + timeGapBetweenRunningReloadMs <
+      Number(timeWhenLastReloaded) + timeGapBetweenRunningReloadMs >=
       currentTime
     ) {
-      setTimeWhenLastReloaded(`${currentTime}`)
+      return
     }
+
+    setTimeWhenLastReloaded(`${currentTime}`)
+    setIsSpinning(true)
 
     // Start a timeout to stop spinning after maxSpinTimeMs
     const spinTimeout = setTimeout(() => {
@@ -50,7 +51,7 @@ export default function BalanceReloader(): ReactElement {
     const elapsedTime = Date.now() - startTime
 
     if (elapsedTime < minLoadTimeMs) {
-      await new Promise(resolve =>
+      await new Promise((resolve) =>
         setTimeout(resolve, minLoadTimeMs - elapsedTime)
       )
     }

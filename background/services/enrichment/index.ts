@@ -16,6 +16,7 @@ import BlockService from "../block"
 import {
   EnrichedQuaiTransaction,
   QuaiTransactionDB,
+  TransactionStatus,
 } from "../transactions/types"
 import { QuaiTransactionDBEntry } from "../transactions/db"
 import TransactionService from "../transactions"
@@ -139,6 +140,13 @@ export default class EnrichmentService extends BaseService<Events> {
     const network = getNetworkById(transaction?.chainId)
     if (!network || !transaction)
       throw new Error("Failed find network or tx in enrichTransaction")
+
+    if (transaction.status === TransactionStatus.PENDING) {
+      return {
+        ...transaction,
+        network,
+      }
+    }
 
     return {
       ...transaction,

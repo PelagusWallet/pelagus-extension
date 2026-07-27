@@ -25,8 +25,15 @@ import ChainService from "../chain"
 import logger from "../../lib/logger"
 import KeyringService from "../keyring"
 import { HexString } from "../../types"
+import type { NetworkInterface } from "../../constants/networks/networkTypes"
 import { MAILBOX_CONTRACT_ADDRESS, MINUTE, SECOND, WRAPPED_QI_CONTRACT_ADDRESS, WRAPPED_QI_CONTRACT_ADDRESS_BYTES, WRAPPED_QUAI_CONTRACT_ADDRESS } from "../../constants"
-import { QiTransactionDB, QuaiTransactionDB, TransactionStatus, UtxoActivityType } from "./types"
+import {
+  QiTransactionDB,
+  QuaiTransactionDB,
+  QuaiTransactionRequestWithAnnotation,
+  TransactionStatus,
+  UtxoActivityType,
+} from "./types"
 import { ServiceCreatorFunction } from "../types"
 import { TransactionServiceEvents } from "./events"
 import NotificationsManager from "../notifications"
@@ -44,9 +51,10 @@ import { initializeTransactionsDatabase, TransactionsDatabase } from "./db"
 import IndexingService from "../indexing"
 import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 
-const TRANSACTION_CONFIRMATIONS = 1
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
+const QUAI_TRANSACTION_FALLBACK_INTERVAL = 30 * SECOND
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
+const PROCESSED_ACCESS_BLOCK_TTL = MINUTE
 
 /**
  * The `TransactionService` class is responsible for handling user transactions, including sending,
@@ -57,14 +65,21 @@ const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
  * 1. Sending user transactions and emitting events upon transaction submission and updates.
  * 2. Maintaining its own database to store and manage transactions.
  * 3. Emitting all users' transactions on startup, and updating the UI upon transaction status changes.
- * 4. Subscribing to transactions once they are sent, and updating the transaction data with receipts upon confirmation.
+ * 4. Monitoring sent transactions through address-access events and updating transaction data with confirmed receipts.
  * 5. Fetching pending transactions from the database on startup and checking their status (confirmed or still pending).
- *    This ensures transactions are resubscribed to if the extension process is killed before transaction confirmation.
+ *    This ensures transactions are monitored again if the extension process is killed before confirmation.
  */
 export default class TransactionService extends BaseService<TransactionServiceEvents> {
   public readonly MAILBOX_CONTRACT_ADDRESS = MAILBOX_CONTRACT_ADDRESS || ""
   private intervalConversions: Map<string, NodeJS.Timeout> = new Map()
   private conversionMonitors: Map<string, () => void> = new Map()
+  private quaiConfirmationRequests: Map<string, Promise<boolean>> = new Map()
+  private quaiMonitorDeadlines: Map<string, number> = new Map()
+  private quaiMonitorTimers: Map<string, ReturnType<typeof setTimeout>> =
+    new Map()
+  private processedAccessBlocks: Map<string, ReturnType<typeof setTimeout>> =
+    new Map()
+  private stopAddressAccessListener?: () => void
 
   static create: ServiceCreatorFunction<
     TransactionServiceEvents,
@@ -95,6 +110,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
 
+    this.stopAddressAccessListener = this.chainService.emitter.on(
+      "addressAccessed",
+      this.handleAddressAccess
+    )
+
     this.checkPendingQiTransactions()
     this.checkPendingQuaiTransactions()
 
@@ -114,6 +134,20 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   override async internalStopService(): Promise<void> {
+    this.stopAddressAccessListener?.()
+    this.stopAddressAccessListener = undefined
+
+    for (const timer of this.quaiMonitorTimers.values()) {
+      clearTimeout(timer)
+    }
+    this.quaiMonitorTimers.clear()
+    this.quaiMonitorDeadlines.clear()
+
+    for (const timer of this.processedAccessBlocks.values()) {
+      clearTimeout(timer)
+    }
+    this.processedAccessBlocks.clear()
+
     // Clean up any active conversion monitors
     for (const cleanup of this.conversionMonitors.values()) {
       try {
@@ -137,7 +171,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    * @returns {Promise<QuaiTransactionResponse | null>} - The response of the sent transaction or null in case of failure.
    */
   public async signAndSendQuaiTransaction(
-    request: QuaiTransactionRequest
+    request: QuaiTransactionRequest | QuaiTransactionRequestWithAnnotation
   ): Promise<QuaiTransactionResponse | null> {
     try {
       const { jsonRpcProvider } = this.chainService
@@ -156,7 +190,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           request
         )) as QuaiTransactionResponse
       }
-      await this.processQuaiTransactionResponse(transactionResponse)
+      await this.processQuaiTransactionResponse(
+        transactionResponse,
+        "annotation" in request ? request.annotation : undefined
+      )
       return transactionResponse
     } catch (error: any) {
       logger.error(
@@ -311,7 +348,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             qiWallet = await this.keyringService.getQiHDWallet()
             qiWallet.connect(jsonRpcProvider)
           } else {
-            await this.chainService.syncQiWallet()
+            await this.chainService.syncQiWallet({ ignoreRecentSync: true })
             qiWallet = await this.keyringService.getQiHDWallet()
             qiWallet.connect(jsonRpcProvider)
           }
@@ -328,11 +365,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
 
       // Wait for the transaction to be included in a block
-      await Promise.all([
-        this.saveQiTransaction(transaction),
-        this.subscribeToQiTransaction(transaction.hash),
-        this.chainService.syncQiWallet(),
-      ])
+      await this.saveQiTransaction(transaction)
+      await this.subscribeToQiTransaction(transaction.hash)
 
       NotificationsManager.createSendQiTxNotification()
     } catch (error: any) {
@@ -519,9 +553,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     } catch (error: any) {
       console.log("error saving Qi aggregation transaction", error)
     }
-    setTimeout(async () => {
-      await this.chainService.syncQiWallet()
-    }, 3000)
     return tx.hash
   }
 
@@ -658,7 +689,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             logger.info(`Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`)
           }
         } else {
-          await this.chainService.syncQiWallet()
+          await this.chainService.syncQiWallet({ ignoreRecentSync: true })
           qiWallet = await this.keyringService.getQiHDWallet()
           qiWallet.connect(jsonRpcProvider)
         }
@@ -673,10 +704,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       }
     }
     await this.saveQiTransaction(transaction)
-    await Promise.all([
-      this.subscribeToQiTransaction(transaction.hash),
-      this.chainService.syncQiWallet(),
-    ])
+    await this.subscribeToQiTransaction(transaction.hash)
     return transaction.hash
   }
 
@@ -1094,7 +1122,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             qiWallet = await this.keyringService.getQiHDWallet()
             qiWallet.connect(jsonRpcProvider)
           } else {
-            await this.chainService.syncQiWallet()
+            await this.chainService.syncQiWallet({ ignoreRecentSync: true })
             qiWallet = await this.keyringService.getQiHDWallet()
             qiWallet.connect(jsonRpcProvider)
           }
@@ -1108,12 +1136,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         throw new Error(detailedError)
       }
       await this.saveQiTransaction(transaction)
-      await Promise.all([
-        txRefundAddress
-          ? this.monitorConversion(transaction.hash, txRefundAddress, to)
-          : this.subscribeToQiTransaction(transaction.hash),
-        this.chainService.syncQiWallet(),
-      ])
+      if (txRefundAddress) {
+        await this.monitorConversion(transaction.hash, txRefundAddress, to)
+      } else {
+        await this.subscribeToQiTransaction(transaction.hash)
+      }
     } catch (error: any) {
       logger.error("Failed to convert Qi to Quai", error.message)
       NotificationsManager.createFailedQiTxNotification()
@@ -1286,23 +1313,48 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   /**
    * Gets all pending transactions from the database and attempts to confirm them.
    * If the transaction is already confirmed and has a receipt, it updates the transaction with the receipt.
-   * Otherwise, subscribes to transaction confirmation.
+   * Otherwise, starts a slow HTTP safety monitor for transaction confirmation.
    */
   private async checkPendingQuaiTransactions(): Promise<void> {
-    const { jsonRpcProvider } = this.chainService
-
     const pendingTransactions = await this.db.getPendingQuaiTransactions()
     if (pendingTransactions.length <= 0) return
 
     await Promise.all(
       pendingTransactions.map(async ({ hash }) => {
-        const receipt = await jsonRpcProvider.getTransactionReceipt(hash)
-        if (receipt) {
-          await this.handleQuaiTransactionReceipt(receipt)
-        } else {
-          await this.subscribeToQuaiTransaction(hash)
-        }
+        const confirmed = await this.confirmQuaiTransaction(hash)
+        if (!confirmed) this.monitorQuaiTransaction(hash)
       })
+    )
+  }
+
+  private handleAddressAccess = async ({
+    address,
+    blockHash,
+    network,
+  }: {
+    address: string
+    blockHash: string
+    network: NetworkInterface
+  }): Promise<void> => {
+    const normalizedAddress = address.toLowerCase()
+    const accessBlockKey = `${network.chainID}:${blockHash.toLowerCase()}:${normalizedAddress}`
+    if (this.processedAccessBlocks.has(accessBlockKey)) return
+
+    const cleanupTimer = setTimeout(() => {
+      this.processedAccessBlocks.delete(accessBlockKey)
+    }, PROCESSED_ACCESS_BLOCK_TTL)
+    this.processedAccessBlocks.set(accessBlockKey, cleanupTimer)
+
+    const pendingTransactions = await this.db.getPendingQuaiTransactions()
+    const pendingOnNetwork = pendingTransactions.filter(
+      ({ chainId, from, to }) =>
+        chainId === Number(network.chainID) &&
+        (from.toLowerCase() === normalizedAddress ||
+          to?.toLowerCase() === normalizedAddress)
+    )
+
+    await Promise.all(
+      pendingOnNetwork.map(({ hash }) => this.confirmQuaiTransaction(hash))
     )
   }
 
@@ -1385,49 +1437,101 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   /**
    * Processes a new Quai transaction response by converting it into a transaction object
    * with a `PENDING` status, saving it to the database, and emitting an event with the transaction hash.
-   * Subscribes to the transaction for future updates or confirmations.
+   * Monitors the transaction for future updates or confirmation.
    *
    * @param {QuaiTransactionResponse} transactionResponse - The response received after sending the transaction.
    */
   private async processQuaiTransactionResponse(
-    transactionResponse: QuaiTransactionResponse
+    transactionResponse: QuaiTransactionResponse,
+    annotation?: QuaiTransactionDB["annotation"]
   ): Promise<void> {
     const transaction = quaiTransactionFromResponse(
       transactionResponse,
-      TransactionStatus.PENDING
+      TransactionStatus.PENDING,
+      annotation
     )
     await this.saveQuaiTransaction(transaction)
     this.emitter.emit("transactionSend", transactionResponse.hash)
-    this.subscribeToQuaiTransaction(transactionResponse.hash)
+    this.monitorQuaiTransaction(transactionResponse.hash)
   }
 
-  /**
-   * Subscribes to a transaction confirmation event and updates the transaction status once confirmed.
-   *
-   * @param {string} hash - The hash of the transaction to subscribe to.
-   */
-  private async subscribeToQuaiTransaction(hash: string): Promise<void> {
-    const { jsonRpcProvider } = this.chainService
+  private async confirmQuaiTransaction(hash: string): Promise<boolean> {
+    const activeRequest = this.quaiConfirmationRequests.get(hash)
+    if (activeRequest) return activeRequest
 
-    try {
-      const receipt = await jsonRpcProvider.waitForTransaction(
-        hash,
-        TRANSACTION_CONFIRMATIONS,
-        TRANSACTION_RECEIPT_WAIT_TIMEOUT
-      )
-      if (receipt) {
-        await this.handleQuaiTransactionReceipt(receipt)
-      } else {
-        // dropped / failed
-        await this.handleQuaiTransactionFail(hash)
+    const confirmationRequest = (async () => {
+      const transaction = await this.db.getQuaiTransactionByHash(hash)
+      if (!transaction || transaction.status !== TransactionStatus.PENDING) {
+        this.stopQuaiTransactionMonitor(hash)
+        return true
       }
-    } catch (error: any) {
-      // dropped / failed
-      logger.error(
-        `Error subscribing to Quai transaction: ${error?.message || error}`
-      )
-      await this.handleQuaiTransactionFail(hash)
+
+      try {
+        const provider = this.chainService.getJsonRpcProviderForNetwork(
+          transaction.chainId.toString()
+        )
+        const receipt = await provider.getTransactionReceipt(hash)
+        if (!receipt) return false
+
+        await this.handleQuaiTransactionReceipt(receipt)
+        return true
+      } catch (error: any) {
+        logger.warn(
+          `HTTP confirmation lookup failed for Quai transaction ${hash}: ${
+            error?.message || error
+          }`
+        )
+        return false
+      }
+    })()
+
+    this.quaiConfirmationRequests.set(hash, confirmationRequest)
+    try {
+      return await confirmationRequest
+    } finally {
+      if (this.quaiConfirmationRequests.get(hash) === confirmationRequest) {
+        this.quaiConfirmationRequests.delete(hash)
+      }
     }
+  }
+
+  private monitorQuaiTransaction(hash: string): void {
+    if (this.quaiMonitorDeadlines.has(hash)) return
+
+    this.quaiMonitorDeadlines.set(
+      hash,
+      Date.now() + TRANSACTION_RECEIPT_WAIT_TIMEOUT
+    )
+    this.scheduleQuaiTransactionFallback(hash)
+  }
+
+  private scheduleQuaiTransactionFallback(hash: string): void {
+    const timer = setTimeout(async () => {
+      this.quaiMonitorTimers.delete(hash)
+
+      const confirmed = await this.confirmQuaiTransaction(hash)
+      if (confirmed) return
+
+      const deadline = this.quaiMonitorDeadlines.get(hash)
+      if (deadline && Date.now() < deadline) {
+        this.scheduleQuaiTransactionFallback(hash)
+        return
+      }
+
+      this.quaiMonitorDeadlines.delete(hash)
+      logger.warn(
+        `Unable to confirm Quai transaction ${hash}; leaving it pending`
+      )
+    }, QUAI_TRANSACTION_FALLBACK_INTERVAL)
+
+    this.quaiMonitorTimers.set(hash, timer)
+  }
+
+  private stopQuaiTransactionMonitor(hash: string): void {
+    const timer = this.quaiMonitorTimers.get(hash)
+    if (timer) clearTimeout(timer)
+    this.quaiMonitorTimers.delete(hash)
+    this.quaiMonitorDeadlines.delete(hash)
   }
 
   private async subscribeToQiTransaction(hash: string): Promise<void> {
@@ -1438,8 +1542,23 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
     while (!(transaction && transaction.blockNumber && transaction.blockHash)) {
       if (Date.now() - startTime > QI_TX_TIMEOUT) {
-        logger.warn(`Qi transaction ${hash} timed out after 5 minutes`)
-        await this.handleQiTransactionTimeout(hash)
+        try {
+          transaction = await jsonRpcProvider.getTransaction(hash)
+        } catch (error: any) {
+          logger.warn(
+            `Unable to perform final confirmation lookup for Qi transaction ${hash}; leaving it pending: ${
+              error?.message || error
+            }`
+          )
+          return
+        }
+
+        if (transaction && transaction.blockNumber && transaction.blockHash) {
+          await this.handleQiTransaction(transaction as TransactionResponse)
+        } else {
+          logger.warn(`Qi transaction ${hash} timed out after 5 minutes`)
+          await this.handleQiTransactionTimeout(hash)
+        }
         return
       }
 
@@ -1455,7 +1574,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             error?.message || error
           }`
         )
-        break
+        transaction = null
       }
 
       if (transaction && transaction.blockNumber && transaction.blockHash) {
@@ -1472,7 +1591,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
 
     // Scan will naturally mark unfunded addresses as UNUSED
-    this.chainService.syncQiWallet()
+    await this.chainService.syncQiWallet({ requireFreshScan: true })
     NotificationsManager.createFailedQiTxNotification()
   }
 
@@ -1488,42 +1607,53 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const { webSocketProvider } = this.chainService
     let refundReceived = false
     let resolved = false
+    let cleanup: () => void = () => undefined
 
-    const cleanup = () => {
-      webSocketProvider.off({ type: "balance", address: refundAddress })
-      webSocketProvider.off({ type: "balance", address: quaiRecipient })
+    const handleRefundAccess = async () => {
+      refundReceived = true
+      if (resolved) return
+      resolved = true
+      cleanup()
+      await this.handleConversionReverted(txHash, refundAddress)
+    }
+
+    const handleRecipientAccess = async () => {
+      // Brief delay to check if refund also arrives (edge case)
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      if (resolved) return
+      resolved = true
+      cleanup()
+      // If refund also received, the address got an unrelated payment — still a success
+      // but don't mark refund address as unused since it has balance
+      if (refundReceived) {
+        await this.handleConversionSucceeded(txHash, undefined)
+      } else {
+        await this.handleConversionSucceeded(txHash, refundAddress)
+      }
+    }
+
+    cleanup = () => {
+      webSocketProvider.off(
+        { type: "block", address: refundAddress },
+        handleRefundAccess
+      )
+      webSocketProvider.off(
+        { type: "block", address: quaiRecipient },
+        handleRecipientAccess
+      )
       this.conversionMonitors.delete(txHash)
     }
 
-    // Subscribe to Qi refund address — if it receives balance, conversion reverted
+    // Subscribe to Qi refund address — if it is accessed, conversion reverted
     webSocketProvider.on(
-      { type: "balance", address: refundAddress },
-      async () => {
-        refundReceived = true
-        if (resolved) return
-        resolved = true
-        cleanup()
-        await this.handleConversionReverted(txHash, refundAddress)
-      }
+      { type: "block", address: refundAddress },
+      handleRefundAccess
     )
 
-    // Subscribe to Quai recipient — if it receives balance, conversion likely succeeded
+    // Subscribe to Quai recipient — if it is accessed, conversion likely succeeded
     webSocketProvider.on(
-      { type: "balance", address: quaiRecipient },
-      async () => {
-        // Brief delay to check if refund also arrives (edge case)
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-        if (resolved) return
-        resolved = true
-        cleanup()
-        // If refund also received, the address got an unrelated payment — still a success
-        // but don't mark refund address as unused since it has balance
-        if (refundReceived) {
-          await this.handleConversionSucceeded(txHash, undefined)
-        } else {
-          await this.handleConversionSucceeded(txHash, refundAddress)
-        }
-      }
+      { type: "block", address: quaiRecipient },
+      handleRecipientAccess
     )
 
     // Store cleanup function for service shutdown
@@ -1586,6 +1716,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         logger.error(`Failed to mark refund address as UNUSED:`, error)
       }
     }
+
+    await this.chainService.syncQiWallet({ requireFreshScan: true })
   }
 
   /**
@@ -1606,7 +1738,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     NotificationsManager.createRevertedConversionNotification()
 
     // Sync wallet to pick up the refunded outpoints
-    this.chainService.syncQiWallet()
+    await this.chainService.syncQiWallet({ requireFreshScan: true })
   }
 
   /**
@@ -1658,6 +1790,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     transaction.blockNumber = blockNumber
 
     await this.updateQiTransaction(transaction)
+    await this.chainService.syncQiWallet({ requireFreshScan: true })
   }
 
   /**
@@ -1669,6 +1802,8 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async handleQuaiTransactionReceipt(
     receipt: TransactionReceipt
   ): Promise<void> {
+    this.stopQuaiTransactionMonitor(receipt.hash)
+
     const transaction = await this.db.getQuaiTransactionByHash(receipt.hash)
     if (!transaction) return
 
@@ -1697,19 +1832,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     transaction.logs = []
 
     await this.saveQuaiTransaction(transaction)
-  }
-
-  /**
-   * Updates a transaction in the database with the failed status.
-   *
-   * @param {string} hash - The hash of the transaction to update.
-   */
-  private async handleQuaiTransactionFail(hash: string): Promise<void> {
-    const transaction = await this.db.getQuaiTransactionByHash(hash)
-    if (transaction) {
-      transaction.status = TransactionStatus.FAILED
-      await this.saveQuaiTransaction(transaction)
-    }
   }
 
   private async notifyQiRecipient(

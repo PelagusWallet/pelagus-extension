@@ -559,11 +559,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       : null
     const from = getAddress(String(transactionRequest.from))
 
-    const { store, blockService } = globalThis.main
+    const { store } = globalThis.main
     const { network } = store.getState().ui.selectedAccount
-
-    await blockService.pollBlockPricesForNetwork({ network })
-    await blockService.pollLatestBlock(network)
 
     const payload: QuaiTransactionRequestWithAnnotation & {
       gas?: string

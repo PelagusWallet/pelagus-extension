@@ -11,10 +11,12 @@ import {
   TransactionStatus,
   UtxoActivityType,
 } from "../types"
+import type { TransactionAnnotation } from "../../enrichment/types"
 
 export const quaiTransactionFromResponse = (
   transactionResponse: QuaiTransactionResponse,
-  status: TransactionStatus
+  status: TransactionStatus,
+  annotation?: TransactionAnnotation
 ): QuaiTransactionDB => {
   return {
     to: transactionResponse.to ?? "",
@@ -34,6 +36,7 @@ export const quaiTransactionFromResponse = (
     gasUsed: null,
     outboundEtxs: [],
     logs: [],
+    annotation,
   }
 }
 

@@ -7,6 +7,6 @@ export type AddressCategory = {
   callback: (
     network: NetworkInterface,
     address: string,
-    balance: bigint
+    blockHash: string
   ) => Promise<void>
 }

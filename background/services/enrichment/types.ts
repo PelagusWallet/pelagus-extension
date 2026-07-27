@@ -121,10 +121,10 @@ export type AddressOnNetworkAnnotation = {
    */
   hasCode: boolean
   /**
-   * A somewhat recent account balance. Accuracy here is less important, as
-   * it will mostly be used to warn on sending to 0-balanace addresses.
+   * A known account balance, when the caller already has one. Address
+   * enrichment does not perform a live balance lookup just to populate this.
    */
-  balance: AccountBalance
+  balance?: AccountBalance
   /**
    * A reverse-resolved name record for this address, if one has been found.
    */

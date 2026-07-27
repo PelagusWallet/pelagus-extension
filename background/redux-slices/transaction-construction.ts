@@ -86,6 +86,13 @@ export type GasOption = {
   estimatedFeePerGas: bigint // wei
 }
 
+export const getAutomaticGasPrice = (
+  estimatedFeesPerGas: EstimatedFeesPerGas | undefined
+): bigint | undefined =>
+  estimatedFeesPerGas?.regular?.gasPrice ??
+  estimatedFeesPerGas?.gasPrice ??
+  estimatedFeesPerGas?.baseFeePerGas
+
 export const emitter = new Emittery<Events>()
 
 const makeBlockEstimate = (
@@ -129,7 +136,7 @@ export const sendTransaction = createBackgroundAsyncThunk(
       throw new Error("transactionRequest was not found")
     }
 
-    const { to, data, from, gasLimit, value, chainId } =
+    const { to, data, from, gasLimit, value, chainId, annotation } =
       transactionConstruction.transactionRequest
 
     if (!chainId) throw new Error("chainId was not found")
@@ -138,6 +145,9 @@ export const sendTransaction = createBackgroundAsyncThunk(
       transactionConstruction.estimatedFeesPerGas?.[chainId.toString()]?.[
         transactionConstruction.feeTypeSelected
       ] ?? transactionConstruction.customFeesPerGas
+    const automaticGasPrice = getAutomaticGasPrice(
+      transactionConstruction.estimatedFeesPerGas?.[chainId.toString()]
+    )
 
     const request = {
       to,
@@ -147,6 +157,7 @@ export const sendTransaction = createBackgroundAsyncThunk(
       data,
       value,
       chainId,
+      annotation,
       network: transactionConstruction.transactionRequest.network,
     } as QuaiTransactionRequestWithAnnotation
 
@@ -156,6 +167,9 @@ export const sendTransaction = createBackgroundAsyncThunk(
       data,
       value,
       chainId,
+      gasPrice: automaticGasPrice,
+      annotation,
+      network: transactionConstruction.transactionRequest.network,
     } as QuaiTransactionRequestWithAnnotation
 
     await emitter.emit("requestSendTransaction", {

@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Shard, toZone, WebSocketProvider, Zone } from "quais"
+import { JsonRpcProvider, Shard, toZone } from "quais"
 import { NetworkInterface } from "../../constants/networks/networkTypes"
 import logger from "../../lib/logger"
 import { AnyEVMBlock, BlockPrices } from "../../networks"
@@ -16,7 +16,7 @@ interface Events extends ServiceLifecycleEvents {
 }
 
 export default class BlockService extends BaseService<Events> {
-  private newHeadProvider?: WebSocketProvider
+  private blockRequests: Map<string, Promise<AnyEVMBlock>> = new Map()
 
   static create: ServiceCreatorFunction<
     Events,
@@ -40,23 +40,6 @@ export default class BlockService extends BaseService<Events> {
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
-    await this.subscribeToNewHeads()
-  }
-
-  override async internalStopService(): Promise<void> {
-    if (this.newHeadProvider) {
-      try {
-        await this.newHeadProvider.off(
-          "block",
-          this.handleNewHead,
-          Zone.Cyprus1
-        )
-      } catch (error) {
-        logger.warn("Failed to remove new-head subscription", error)
-      }
-      this.newHeadProvider = undefined
-    }
-    await super.internalStopService()
   }
 
   async getBlockHeight(network: NetworkInterface): Promise<number> {
@@ -79,39 +62,6 @@ export default class BlockService extends BaseService<Events> {
     }
   }
 
-  private handleNewHead = async (blockNumber: number): Promise<void> => {
-    const block: AnyEVMBlock = {
-      hash: "",
-      parentHash: "",
-      blockHeight: blockNumber,
-      difficulty: 0n,
-      timestamp: Date.now(),
-      baseFeePerGas: 0n,
-      network: this.chainService.selectedNetwork,
-    }
-    await this.emitter.emit("block", block)
-  }
-
-  async subscribeToNewHeads(): Promise<void> {
-    const provider = this.chainService.webSocketProvider
-    if (provider === this.newHeadProvider) return
-
-    if (this.newHeadProvider) {
-      try {
-        await this.newHeadProvider.off(
-          "block",
-          this.handleNewHead,
-          Zone.Cyprus1
-        )
-      } catch (error) {
-        logger.warn("Failed to move new-head subscription", error)
-      }
-      this.newHeadProvider = undefined
-    }
-    await provider.on("block", this.handleNewHead, Zone.Cyprus1)
-    this.newHeadProvider = provider
-  }
-
   async pollLatestBlock(network: NetworkInterface): Promise<void> {
     try {
       const { address } = await this.preferenceService.getSelectedAccount()
@@ -132,6 +82,27 @@ export default class BlockService extends BaseService<Events> {
   }
 
   async getBlockByHash(
+    network: NetworkInterface,
+    shard: Shard,
+    blockHash: string
+  ): Promise<AnyEVMBlock> {
+    const requestKey = `${network.chainID}:${shard}:${blockHash}`
+    const existingRequest = this.blockRequests.get(requestKey)
+    if (existingRequest) return existingRequest
+
+    const request = this.fetchBlockByHash(network, shard, blockHash)
+    this.blockRequests.set(requestKey, request)
+
+    try {
+      return await request
+    } finally {
+      if (this.blockRequests.get(requestKey) === request) {
+        this.blockRequests.delete(requestKey)
+      }
+    }
+  }
+
+  private async fetchBlockByHash(
     network: NetworkInterface,
     shard: Shard,
     blockHash: string

@@ -33,7 +33,10 @@ import { NetworkInterface } from "../../constants/networks/networkTypes"
 import { isQuaiHandle } from "../../constants/networks/networkUtils"
 import { PELAGUS_NETWORKS } from "../../constants/networks/networks"
 import BlockService from "../block"
-import { EnrichedQuaiTransaction } from "../transactions/types"
+import {
+  EnrichedQuaiTransaction,
+  TransactionStatus,
+} from "../transactions/types"
 
 // Transactions seen within this many blocks of the chain tip will schedule a
 // token refresh sooner than the standard rate.
@@ -160,15 +163,15 @@ export default class IndexingService extends BaseService<Events> {
     super({
       balance: {
         schedule: {
-          periodInMinutes: 1,
+          periodInMinutes: 5,
         },
-        handler: () => this.handleBalanceAlarm(),
+        handler: () => this.handleBalanceAlarm(false),
       },
       forceBalance: {
         schedule: {
           periodInMinutes: (12 * HOUR) / MINUTE,
         },
-        handler: () => this.handleBalanceAlarm(),
+        handler: () => this.handleBalanceAlarm(true),
       },
       balanceRefresh: {
         schedule: {
@@ -494,7 +497,7 @@ export default class IndexingService extends BaseService<Events> {
           throw new Error("Failed find network for transaction")
         if (
           "status" in transaction &&
-          transaction.status === 1 &&
+          transaction.status === TransactionStatus.CONFIRMED &&
           transaction?.blockNumber &&
           transaction.blockNumber >
             (await this.blockService.getBlockHeight(transactionNetwork)) -
@@ -504,13 +507,24 @@ export default class IndexingService extends BaseService<Events> {
         }
         if (
           "status" in transaction &&
-          (transaction.status === 1 || transaction.status === 0)
+          (transaction.status === TransactionStatus.CONFIRMED ||
+            transaction.status === TransactionStatus.FAILED)
         ) {
           forAccounts.forEach((accountAddress) => {
-            this.chainService.getLatestBaseAccountBalance({
-              address: accountAddress,
-              network: transactionNetwork,
-            })
+            this.chainService
+              .refreshBaseAccountBalanceAfterTransaction(
+                {
+                  address: accountAddress,
+                  network: transactionNetwork,
+                },
+                transaction.blockHash
+              )
+              .catch((error) => {
+                logger.warn(
+                  `Failed to refresh balance after transaction ${transaction.hash}`,
+                  error
+                )
+              })
           })
         }
       }
@@ -802,12 +816,15 @@ export default class IndexingService extends BaseService<Events> {
 
   private async handleBalanceRefresh(): Promise<void> {
     if (this.scheduledTokenRefresh) {
-      await this.handleBalanceAlarm()
+      await this.handleBalanceAlarm(false)
       this.scheduledTokenRefresh = false
     }
   }
 
-  private async loadAccountBalances(onlyActiveAccounts = false): Promise<void> {
+  private async loadAccountBalances(
+    onlyActiveAccounts = false,
+    includeBaseBalances = true
+  ): Promise<void> {
     // TODO doesn't support multi-network assets
     // like USDC or CREATE2-based contracts on L1/L2
     const accounts = await this.chainService.getAccountsToTrack(
@@ -824,8 +841,9 @@ export default class IndexingService extends BaseService<Events> {
           globalThis.main.SetShard(shard)
         }
 
-        const loadBaseAccountBalance =
-          this.chainService.getLatestBaseAccountBalance(addressOnNetwork)
+        const loadBaseAccountBalance = includeBaseBalances
+          ? this.chainService.getLatestBaseAccountBalance(addressOnNetwork)
+          : Promise.resolve()
 
         /**
          * We try checking balances for every asset
@@ -846,9 +864,9 @@ export default class IndexingService extends BaseService<Events> {
     )
   }
 
-  private async handleBalanceAlarm(): Promise<void> {
+  private async handleBalanceAlarm(includeBaseBalances: boolean): Promise<void> {
     await this.fetchAndCacheTokenLists().then(() =>
-      this.loadAccountBalances(true)
+      this.loadAccountBalances(true, includeBaseBalances)
     )
   }
 

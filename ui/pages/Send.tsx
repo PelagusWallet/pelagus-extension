@@ -22,7 +22,6 @@ import {
   parseToFixedPointNumber,
 } from "@pelagus/pelagus-background/lib/fixed-point"
 import {
-  getGasPrice,
   selectAssetPricePoint,
   sendAsset,
 } from "@pelagus/pelagus-background/redux-slices/assets"
@@ -88,20 +87,6 @@ export default function Send(): ReactElement {
     setSelectedAsset(asset)
     setAssetType("token")
   }
-
-  useEffect(() => {
-    const fetchFees = async () => {
-      const response = (await dispatch(
-        getGasPrice()
-      )) as AsyncThunkFulfillmentType<typeof getGasPrice>
-
-      const { gasPrice: gasPriceFromRedux } = response
-      let gweiGasPrice = quais.formatUnits(gasPriceFromRedux.valueOf(), "gwei")
-      setGasPrice(Number(gweiGasPrice).toFixed(4))
-    }
-
-    fetchFees()
-  }, [])
 
   // Switch the asset being sent when switching between networks, but still use
   // location.state on initial page render - if it exists

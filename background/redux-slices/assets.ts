@@ -1,4 +1,4 @@
-import { AddressLike, Contract, getAddress, Interface, InterfaceAbi, toBigInt, Zone } from "quais"
+import { AddressLike, Contract, getAddress, Interface, InterfaceAbi, toBigInt } from "quais"
 import { QuaiTransactionRequest, TransactionRequest } from "quais/lib/commonjs/providers"
 import { createSelector, createSlice } from "@reduxjs/toolkit"
 import { QRC20_INTERFACE } from "../contracts/qrc-20"
@@ -196,33 +196,6 @@ export const removeAssetData = createBackgroundAsyncThunk(
   ) => {
     dispatch(removeAsset(asset))
     dispatch(removeAssetReferences(asset))
-  }
-)
-
-export const getGasPrice = createBackgroundAsyncThunk(
-  "assets/getAccountGasPrice",
-  async (): Promise<{
-    gasPrice: bigint
-  }> => {
-    const { jsonRpcProvider } = globalThis.main.chainService
-
-    try {
-      const feeData = await jsonRpcProvider.getFeeData(Zone.Cyprus1)
-      const baseFeeSettings = {
-        gasPrice: toBigInt(6000000000),
-      }
-      if (feeData?.gasPrice) {
-        baseFeeSettings.gasPrice = feeData.gasPrice
-      }
-
-      return baseFeeSettings
-    } catch (e) {
-      logger.error(e)
-
-      return {
-        gasPrice: toBigInt(6000000000),
-      }
-    }
   }
 )
 

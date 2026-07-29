@@ -142,6 +142,31 @@ export function parseLogsForERC20Transfers(
     .filter((info): info is ERC20TransferLog => typeof info !== "undefined")
 }
 
+/**
+ * Query token balances concurrently so JsonRpcProvider can coalesce the
+ * individual quai_call payloads into a single JSON-RPC batch. Failed token
+ * contracts are omitted without failing the other balance lookups.
+ */
+export const getTokenBalancesByRpcBatch = async (
+  { address, network }: AddressOnNetwork,
+  tokenAddresses: HexString[],
+  provider: JsonRpcProvider
+): Promise<SmartContractAmount[]> => {
+  const results = await Promise.allSettled(
+    tokenAddresses.map(async (contractAddress) => ({
+      amount: await getBalance(provider, contractAddress, address),
+      smartContract: {
+        contractAddress,
+        homeNetwork: network,
+      },
+    }))
+  )
+
+  return results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value] : []
+  )
+}
+
 export const getTokenBalances = async (
   { address, network }: AddressOnNetwork,
   tokenAddresses: HexString[],
@@ -158,6 +183,14 @@ export const getTokenBalances = async (
     multicallAddress = ShardToMulticall(
       getExtendedZoneForAddress(first),
       network
+    )
+  }
+
+  if (!multicallAddress) {
+    return getTokenBalancesByRpcBatch(
+      { address, network },
+      tokenAddresses,
+      provider
     )
   }
 

@@ -12,6 +12,7 @@ import {
   getBalance,
   getMetadata as getERC20Metadata,
   getTokenBalances,
+  getTokenBalancesByRpcBatch,
 } from "../../../lib/erc20"
 import { getExtendedZoneForAddress } from "./index"
 
@@ -85,21 +86,17 @@ export default class AssetDataHelper {
           error?.message || error
         }`
       )
-      // Fallback: query each token individually
+      // Issue the individual calls concurrently so JsonRpcProvider sends them
+      // as one JSON-RPC batch while retaining per-token failure isolation.
       if ((smartContractAddresses?.length ?? 0) > 0) {
-        const results: SmartContractAmount[] = []
-        for (const token of smartContractAddresses!) {
-          try {
-            const single = await this.getTokenBalance(addressOnNetwork, token)
-            results.push(single)
-          } catch (innerErr) {
-            // ignore individual failures
-          }
-        }
+        const results = await getTokenBalancesByRpcBatch(
+          addressOnNetwork,
+          smartContractAddresses!,
+          provider
+        )
         if (results.length > 0) return results
       }
-    }
-    finally {
+    } finally {
       // Restore previous shard context
       globalThis.main.SetShard(prevShard)
     }

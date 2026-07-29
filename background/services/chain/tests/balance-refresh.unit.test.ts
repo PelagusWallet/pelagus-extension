@@ -61,9 +61,14 @@ describe("Quai base balance refresh", () => {
       getBalance: jest.fn(),
       getLockedBalance: jest.fn(),
     }
+    const providerFactory = {
+      getProvidersForNetwork: jest.fn().mockReturnValue({
+        jsonRpcProvider: provider,
+      }),
+    }
     const TestChainService =
       ChainService as unknown as ChainServiceTestConstructor
-    const service = new TestChainService(db, {}, {}, {})
+    const service = new TestChainService(db, providerFactory, {}, {})
     service.jsonRpcProvider = provider as never
 
     await expect(
@@ -89,9 +94,14 @@ describe("Quai base balance refresh", () => {
       getBalance: jest.fn().mockReturnValue(balancePromise),
       getLockedBalance: jest.fn().mockResolvedValue(2n),
     }
+    const providerFactory = {
+      getProvidersForNetwork: jest.fn().mockReturnValue({
+        jsonRpcProvider: provider,
+      }),
+    }
     const TestChainService =
       ChainService as unknown as ChainServiceTestConstructor
-    const service = new TestChainService(db, {}, {}, {})
+    const service = new TestChainService(db, providerFactory, {}, {})
     service.jsonRpcProvider = provider as never
 
     const accessRefresh = service.getLatestBaseAccountBalance(
@@ -123,9 +133,14 @@ describe("Quai base balance refresh", () => {
       getBalance: jest.fn().mockResolvedValue(11n),
       getLockedBalance: jest.fn().mockResolvedValue(3n),
     }
+    const providerFactory = {
+      getProvidersForNetwork: jest.fn().mockReturnValue({
+        jsonRpcProvider: provider,
+      }),
+    }
     const TestChainService =
       ChainService as unknown as ChainServiceTestConstructor
-    const service = new TestChainService(db, {}, {}, {})
+    const service = new TestChainService(db, providerFactory, {}, {})
     service.jsonRpcProvider = provider as never
 
     await service.refreshBaseAccountBalanceAfterTransaction(
@@ -150,9 +165,14 @@ describe("Quai base balance refresh", () => {
       getBalance: jest.fn(),
       getLockedBalance: jest.fn(),
     }
+    const providerFactory = {
+      getProvidersForNetwork: jest.fn().mockReturnValue({
+        jsonRpcProvider: provider,
+      }),
+    }
     const TestChainService =
       ChainService as unknown as ChainServiceTestConstructor
-    const service = new TestChainService(db, {}, {}, {})
+    const service = new TestChainService(db, providerFactory, {}, {})
     service.jsonRpcProvider = provider as never
     const externalizedService = service as unknown as {
       processedAddressAccesses: Map<string, ReturnType<typeof setTimeout>>

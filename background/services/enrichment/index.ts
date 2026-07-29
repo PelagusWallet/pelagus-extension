@@ -141,7 +141,10 @@ export default class EnrichmentService extends BaseService<Events> {
     if (!network || !transaction)
       throw new Error("Failed find network or tx in enrichTransaction")
 
-    if (transaction.status === TransactionStatus.PENDING) {
+    if (
+      transaction.status === TransactionStatus.PENDING &&
+      transaction.annotation
+    ) {
       return {
         ...transaction,
         network,

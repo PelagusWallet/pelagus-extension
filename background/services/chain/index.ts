@@ -160,7 +160,10 @@ export default class ChainService extends BaseService<Events> {
 
   private qiWalletBalanceSyncTimer: ReturnType<typeof setTimeout> | null = null
 
-  private baseBalanceRequests: Map<string, Promise<AccountBalance>> = new Map()
+  private baseBalanceRequests: Map<
+    string,
+    { force: boolean; request: Promise<AccountBalance> }
+  > = new Map()
 
   private processedAddressAccesses: Map<
     string,
@@ -1130,20 +1133,30 @@ export default class ChainService extends BaseService<Events> {
     { force = false, maxAgeMs = MINUTE }: BaseBalanceRefreshOptions = {}
   ): Promise<AccountBalance> {
     const requestKey = `${network.chainID}:${address.toLowerCase()}`
-    const existingRequest = this.baseBalanceRequests.get(requestKey)
-    if (existingRequest) return existingRequest
+    const existing = this.baseBalanceRequests.get(requestKey)
+    if (existing && (!force || existing.force)) return existing.request
 
-    const request = this.getCachedOrFetchBaseAccountBalance(
-      { address, network },
-      force,
-      maxAgeMs
-    )
-    this.baseBalanceRequests.set(requestKey, request)
+    const request = (async () => {
+      if (existing) {
+        try {
+          await existing.request
+        } catch {
+          // A forced refresh must still run after a weaker request fails.
+        }
+      }
+      return this.getCachedOrFetchBaseAccountBalance(
+        { address, network },
+        force,
+        maxAgeMs
+      )
+    })()
+    const entry = { force, request }
+    this.baseBalanceRequests.set(requestKey, entry)
 
     try {
       return await request
     } finally {
-      if (this.baseBalanceRequests.get(requestKey) === request) {
+      if (this.baseBalanceRequests.get(requestKey) === entry) {
         this.baseBalanceRequests.delete(requestKey)
       }
     }
@@ -1199,6 +1212,7 @@ export default class ChainService extends BaseService<Events> {
     address,
     network,
   }: AddressOnNetwork): Promise<AccountBalance> {
+    const provider = this.getJsonRpcProviderForNetwork(network.chainID)
     const prevShard = globalThis.main.SelectedShard
 
     const addrShard = getExtendedZoneForAddress(address)
@@ -1212,8 +1226,8 @@ export default class ChainService extends BaseService<Events> {
     let lockedBalance: bigint = BigInt(0)
     try {
       const [sBalance, lBalance] = await Promise.all([
-        this.jsonRpcProvider.getBalance(address, "latest"),
-        this.jsonRpcProvider.getLockedBalance(address),
+        provider.getBalance(address, "latest"),
+        provider.getLockedBalance(address),
       ])
 
       spendableBalance = sBalance

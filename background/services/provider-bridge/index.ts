@@ -73,7 +73,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
   #pendingAddNetworkRequests: {
     [id: string]: {
       resolve: () => void
-      reject: () => void
+      reject: (reason?: unknown) => void
       data: AddChainRequestData
     }
   } = {}
@@ -672,7 +672,9 @@ export default class ProviderBridgeService extends BaseService<Events> {
     if (success) {
       request.resolve()
     } else {
-      request.reject()
+      request.reject(
+        new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest)
+      )
     }
   }
 }

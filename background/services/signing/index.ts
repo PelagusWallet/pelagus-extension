@@ -18,6 +18,7 @@ type SigningErrorReason = "userRejected" | "genericError"
 type ErrorResponse = {
   type: "error"
   reason: SigningErrorReason
+  error: unknown
 }
 
 export type SendTransactionResponse =
@@ -146,7 +147,7 @@ export default class SigningService extends BaseService<Events> {
     accountSigner: AccountSigner
   ): Promise<QuaiTransactionResponse> {
     try {
-      let transactionResponse: QuaiTransactionResponse | null
+      let transactionResponse: QuaiTransactionResponse
       switch (accountSigner.type) {
         case "private-key":
         case "keyring": {
@@ -162,10 +163,6 @@ export default class SigningService extends BaseService<Events> {
           return assertUnreachable(accountSigner)
       }
 
-      if (!transactionResponse) {
-        throw new Error("Transaction response is null.")
-      }
-
       await this.emitter.emit("sendTransactionResponse", {
         type: "success-tx",
         signedTx: transactionResponse,
@@ -176,6 +173,7 @@ export default class SigningService extends BaseService<Events> {
       await this.emitter.emit("sendTransactionResponse", {
         type: "error",
         reason: getSigningErrorReason(err),
+        error: err,
       })
       throw err
     }
@@ -240,6 +238,7 @@ export default class SigningService extends BaseService<Events> {
       this.emitter.emit("signingDataResponse", {
         type: "error",
         reason: getSigningErrorReason(err),
+        error: err,
       })
 
       throw err
@@ -299,6 +298,7 @@ export default class SigningService extends BaseService<Events> {
       this.emitter.emit("personalSigningResponse", {
         type: "error",
         reason: "genericError",
+        error: err,
       })
       throw err
     }

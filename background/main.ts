@@ -3,7 +3,11 @@ import { alias, wrapStore } from "webext-redux"
 import deepDiff from "webext-redux/lib/strategies/deepDiff/diff"
 import { configureStore, isPlain, Middleware } from "@reduxjs/toolkit"
 import { devToolsEnhancer } from "@redux-devtools/remote"
-import { PermissionRequest } from "@pelagus-provider/provider-bridge-shared"
+import {
+  EIP1193_ERROR_CODES,
+  EIP1193Error,
+  PermissionRequest,
+} from "@pelagus-provider/provider-bridge-shared"
 import { debounce } from "lodash"
 import { formatUnits, JsonRpcProvider, WebSocketProvider, Zone } from "quais"
 import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
@@ -1270,6 +1274,9 @@ export default class Main extends BaseService<never> {
   }
 
   async connectInternalQuaiProviderService(): Promise<void> {
+    const userRejectedError = () =>
+      new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest)
+
     this.internalQuaiProviderService.emitter.on(
       "transactionSendRequest",
       async ({ payload, resolver, rejecter }) => {
@@ -1301,14 +1308,14 @@ export default class Main extends BaseService<never> {
               resolver(response.signedTx)
               break
             default:
-              rejecter()
+              rejecter(response.error)
               break
           }
         }
 
         const rejectAndClear = () => {
           clear()
-          rejecter()
+          rejecter(userRejectedError())
         }
 
         this.signingService.emitter.on(
@@ -1331,7 +1338,7 @@ export default class Main extends BaseService<never> {
       }: {
         payload: SignTypedDataRequest
         resolver: (result: string | PromiseLike<string>) => void
-        rejecter: () => void
+        rejecter: (reason?: unknown) => void
       }) => {
         // Run signer preparation and enrichment in parallel.
         const [enrichedSignTypedDataRequest] = await Promise.all([
@@ -1363,14 +1370,14 @@ export default class Main extends BaseService<never> {
               resolver(response.signedData)
               break
             default:
-              rejecter()
+              rejecter(response.error)
               break
           }
         }
 
         const rejectAndClear = () => {
           clear()
-          rejecter()
+          rejecter(userRejectedError())
         }
 
         this.signingService.emitter.on("signingDataResponse", handleAndClear)
@@ -1387,7 +1394,7 @@ export default class Main extends BaseService<never> {
       }: {
         payload: MessageSigningRequest
         resolver: (result: string | PromiseLike<string>) => void
-        rejecter: () => void
+        rejecter: (reason?: unknown) => void
       }) => {
         this.store.dispatch(signDataRequest(payload))
 
@@ -1414,14 +1421,14 @@ export default class Main extends BaseService<never> {
               resolver(response.signedData)
               break
             default:
-              rejecter()
+              rejecter(response.error)
               break
           }
         }
 
         const rejectAndClear = () => {
           clear()
-          rejecter()
+          rejecter(userRejectedError())
         }
 
         this.signingService.emitter.on(

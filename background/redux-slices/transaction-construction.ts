@@ -93,6 +93,26 @@ export const getAutomaticGasPrice = (
   estimatedFeesPerGas?.gasPrice ??
   estimatedFeesPerGas?.baseFeePerGas
 
+export const buildAutomaticFeeRequest = (
+  transactionRequest: QuaiTransactionRequestWithAnnotation,
+  gasPrice: bigint | undefined
+): QuaiTransactionRequestWithAnnotation => {
+  const { to, data, from, gasLimit, value, chainId, annotation, network } =
+    transactionRequest
+
+  return {
+    to,
+    from,
+    gasLimit,
+    data,
+    value,
+    chainId,
+    gasPrice,
+    annotation,
+    network,
+  }
+}
+
 export const emitter = new Emittery<Events>()
 
 const makeBlockEstimate = (
@@ -161,16 +181,10 @@ export const sendTransaction = createBackgroundAsyncThunk(
       network: transactionConstruction.transactionRequest.network,
     } as QuaiTransactionRequestWithAnnotation
 
-    const autoFeeRequest = {
-      to,
-      from,
-      data,
-      value,
-      chainId,
-      gasPrice: automaticGasPrice,
-      annotation,
-      network: transactionConstruction.transactionRequest.network,
-    } as QuaiTransactionRequestWithAnnotation
+    const autoFeeRequest = buildAutomaticFeeRequest(
+      transactionConstruction.transactionRequest,
+      automaticGasPrice
+    )
 
     await emitter.emit("requestSendTransaction", {
       request:

@@ -32,15 +32,13 @@ export const EIP1193_ERROR_CODES = {
   },
 } as const
 
-export type EIP1193ErrorPayload =
-  | typeof EIP1193_ERROR_CODES[keyof typeof EIP1193_ERROR_CODES] & {
-      data?: unknown
-    }
+export type EIP1193ErrorPayload = {
+  code: number
+  message: string
+  data?: unknown
+}
 
-export type EIP1193ErrorCodeNumbers = Pick<
-  typeof EIP1193_ERROR_CODES[keyof typeof EIP1193_ERROR_CODES],
-  "code"
->
+export type EIP1193ErrorCodeNumbers = EIP1193ErrorPayload["code"]
 export class EIP1193Error extends Error {
   constructor(public eip1193Error: EIP1193ErrorPayload) {
     super(eip1193Error.message)
@@ -54,12 +52,7 @@ export class EIP1193Error extends Error {
 export function isEIP1193ErrorCodeNumber(
   code: unknown
 ): code is EIP1193ErrorCodeNumbers {
-  return (
-    isNumber(code) &&
-    Object.values(EIP1193_ERROR_CODES)
-      .map((e) => e.code as number)
-      .includes(code)
-  )
+  return isNumber(code) && Number.isInteger(code)
 }
 
 export function isEIP1193Error(arg: unknown): arg is EIP1193ErrorPayload {

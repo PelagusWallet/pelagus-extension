@@ -168,11 +168,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    * Subscribes to transaction confirmation to track the transaction status.
    *
    * @param {QuaiTransactionRequest} request - The transaction request data.
-   * @returns {Promise<QuaiTransactionResponse | null>} - The response of the sent transaction or null in case of failure.
+   * @returns {Promise<QuaiTransactionResponse>} - The response of the sent transaction.
    */
   public async signAndSendQuaiTransaction(
     request: QuaiTransactionRequest | QuaiTransactionRequestWithAnnotation
-  ): Promise<QuaiTransactionResponse | null> {
+  ): Promise<QuaiTransactionResponse> {
     try {
       const { jsonRpcProvider } = this.chainService
       let transactionResponse: QuaiTransactionResponse
@@ -200,7 +200,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         `Failed to sign and send Quai transaction: ${error?.message || error}`
       )
       this.emitter.emit("transactionSendFailure")
-      return null
+      throw error
     }
   }
 

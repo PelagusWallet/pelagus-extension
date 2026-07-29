@@ -86,7 +86,7 @@ export type AddEthereumChainParameter = {
 type DAppRequestEvent<T, E> = {
   payload: T
   resolver: (result: E | PromiseLike<E>) => void
-  rejecter: () => void
+  rejecter: (reason?: unknown) => void
 }
 
 type Events = ServiceLifecycleEvents & {

@@ -1,7 +1,5 @@
 import {
   PermissionRequest,
-  EIP1193Error,
-  EIP1193_ERROR_CODES,
   isEIP1193Error,
   EIP1193ErrorPayload,
   RPCRequest,
@@ -36,21 +34,18 @@ export const keyPermissionsByChainIdAddressOrigin = (
 
 export function parsedRPCErrorResponse(error: { body: string }):
   | {
-    code: number
-    message: string
-  }
+      code: number
+      message: string
+    }
   | undefined {
   try {
     const parsedError = JSON.parse(error.body).error
     return {
-      /**
-       * The code should be the same as for user rejected requests because otherwise it will not be displayed.
-       */
-      code: 4001,
+      code: typeof parsedError.code === "number" ? parsedError.code : -32603,
       message:
         "message" in parsedError && parsedError.message
           ? parsedError.message[0].toUpperCase() + parsedError.message.slice(1)
-          : EIP1193_ERROR_CODES.userRejectedRequest.message,
+          : "Internal JSON-RPC error.",
     }
   } catch (err) {
     return undefined
@@ -60,6 +55,10 @@ export function parsedRPCErrorResponse(error: { body: string }):
 export function handleRPCErrorResponse(error: unknown): unknown {
   let response
   if (typeof error === "object" && error !== null) {
+    if (isEIP1193Error(error)) {
+      return error
+    }
+
     /**
      * Get error per the RPC method’s specification
      */
@@ -78,18 +77,28 @@ export function handleRPCErrorResponse(error: unknown): unknown {
     } else if ("body" in error) {
       response = parsedRPCErrorResponse(error as { body: string })
     } else if ("error" in error) {
-      response = parsedRPCErrorResponse(
-        (error as { error: { body: string } }).error
-      )
+      const nestedError = (error as { error: unknown }).error
+      if (isEIP1193Error(nestedError)) {
+        response = nestedError
+      } else if (
+        typeof nestedError === "object" &&
+        nestedError !== null &&
+        "body" in nestedError
+      ) {
+        response = parsedRPCErrorResponse(nestedError as { body: string })
+      }
     }
   }
-  /**
-   * If no specific error is obtained return a user rejected request error
-   */
-  return (
-    response ??
-    new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest).toJSON()
-  )
+
+  if (response) return response
+
+  return {
+    code: -32603,
+    message:
+      error instanceof Error && error.message
+        ? error.message
+        : "Internal JSON-RPC error.",
+  }
 }
 
 // Let's start with all required and work backwards

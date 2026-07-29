@@ -1,9 +1,11 @@
 import reducer, {
+  buildAutomaticFeeRequest,
   clearCustomGas,
   getAutomaticGasPrice,
   initialState,
   NetworkFeeTypeChosen,
 } from "../transaction-construction"
+import { QuaiTransactionRequestWithAnnotation } from "../../services/transactions/types"
 
 jest.mock("webextension-polyfill", () => ({
   __esModule: true,
@@ -36,6 +38,20 @@ describe("Transaction Construction Redux Slice", () => {
           baseFeePerGas: 5_000_000_000n,
         })
       ).toBe(6_000_000_000n)
+    })
+  })
+
+  describe("buildAutomaticFeeRequest", () => {
+    it("preserves a gas limit supplied by a dapp", () => {
+      const request = {
+        gasLimit: "0x350bc",
+        network: { chainID: "9" },
+      } as QuaiTransactionRequestWithAnnotation
+
+      expect(buildAutomaticFeeRequest(request, 6_000_000_000n)).toMatchObject({
+        gasLimit: "0x350bc",
+        gasPrice: 6_000_000_000n,
+      })
     })
   })
 })

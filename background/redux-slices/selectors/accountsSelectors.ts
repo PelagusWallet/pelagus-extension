@@ -594,6 +594,10 @@ function findAccountTotal(
   categorizedAccountTotals: CategorizedAccountTotals,
   accountAddressOnNetwork: AddressOnNetwork
 ): AccountTotal | undefined {
+  // No account is selected yet - the store still holds the initial empty
+  // address, or the preference service has not emitted the stored one.
+  if (!accountAddressOnNetwork.address) return undefined
+
   return Object.values(categorizedAccountTotals)
     .flat()
     .find(

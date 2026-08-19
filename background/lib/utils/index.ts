@@ -53,15 +53,18 @@ export function sameQuaiAddress(
   address1: string | undefined | null,
   address2: string | undefined | null
 ): boolean {
-  if (
-    typeof address1 === "undefined" ||
-    typeof address2 === "undefined" ||
-    address1 === null ||
-    address2 === null
-  )
-    return false
+  // An empty string is a legitimate "not set yet" address in this codebase -
+  // see the initial ui.selectedAccount state - and `getAddress` throws on it.
+  if (!address1 || !address2) return false
 
-  return getAddress(address1) === getAddress(address2)
+  try {
+    return getAddress(address1) === getAddress(address2)
+  } catch {
+    // `getAddress` also throws on a partially typed address from an input
+    // field and on a bad checksum. Neither is a reason to crash the caller, so
+    // fall back to a plain case-insensitive comparison.
+    return address1.toLowerCase() === address2.toLowerCase()
+  }
 }
 
 export function gweiToWei(value: number | bigint): bigint {

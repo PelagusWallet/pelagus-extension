@@ -541,12 +541,13 @@ export const setNewNetworkConnectError = createBackgroundAsyncThunk(
 export const setNewSelectedAccount = createBackgroundAsyncThunk(
   "ui/setNewCurrentAddressValue",
   async (addressNetwork: AddressOnNetwork, { dispatch }) => {
-    const shard = getExtendedZoneForAddress(addressNetwork.address)
-    globalThis.main.SetShard(shard)
+    // Propagate to the store before anything is persisted. An account can
+    // already be in the store by now - the keyring service loads it before
+    // this thunk runs - and the UI reads an empty selected address as "no
+    // account". Waiting on the preference write first leaves that gap open.
+    dispatch(uiSlice.actions.setSelectedAccount(addressNetwork))
     globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
     await emitter.emit("newSelectedAccount", addressNetwork)
-    // Once the default value has persisted, propagate to the store.
-    dispatch(uiSlice.actions.setSelectedAccount(addressNetwork))
     // Do async work needed after the account is switched
     await emitter.emit("newSelectedAccountSwitched")
   }

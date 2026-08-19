@@ -1,4 +1,5 @@
-import { truncateDecimalAmount } from "../utils"
+import { getAddress } from "quais"
+import { sameQuaiAddress, truncateDecimalAmount } from "../utils"
 
 type TruncateDecimalAmountType = {
   value: number | string
@@ -147,5 +148,38 @@ describe("Lib Utils", () => {
         ).toBe(expected)
       }
     )
+  })
+})
+
+describe("sameQuaiAddress", () => {
+  const address = "0x0033a4c1c6f6dbdbf3b5f5cfb0a2ba7e0c0e1234"
+  const checksummed = getAddress(address)
+
+  it("matches the same address regardless of casing", () => {
+    expect(sameQuaiAddress(address, checksummed)).toBe(true)
+    expect(
+      sameQuaiAddress(address.toUpperCase().replace("0X", "0x"), address)
+    ).toBe(true)
+  })
+
+  it("does not match two different addresses", () => {
+    expect(
+      sameQuaiAddress(address, "0x0044a4c1c6f6dbdbf3b5f5cfb0a2ba7e0c0e1234")
+    ).toBe(false)
+  })
+
+  it.each([
+    ["", address],
+    [address, ""],
+    ["", ""],
+    [undefined, address],
+    [address, null],
+  ])("returns false instead of throwing for %p and %p", (first, second) => {
+    expect(() => sameQuaiAddress(first, second)).not.toThrow()
+    expect(sameQuaiAddress(first, second)).toBe(false)
+  })
+
+  it("returns false instead of throwing for a partially typed address", () => {
+    expect(sameQuaiAddress("0x00", address)).toBe(false)
   })
 })

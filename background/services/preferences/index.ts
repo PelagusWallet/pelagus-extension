@@ -71,7 +71,11 @@ export default class PreferenceService extends BaseService<Events> {
 
     // Initialize all preferences
     this.emitter.emit("initializeDefaultWallet", await this.getDefaultWallet())
-    this.emitter.emit(
+    // Awaited: the handler seeds ui.selectedAccount, and services started
+    // after this one can dispatch a network switch that spreads the current
+    // selection. Leaving the emit unawaited lets that run against the initial
+    // empty address and persist it back over the real one.
+    await this.emitter.emit(
       "initializeSelectedAccount",
       await this.getSelectedAccount()
     )

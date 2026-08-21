@@ -872,6 +872,58 @@ export default class Main extends BaseService<never> {
     }
   }
 
+  /**
+   * The tracked-accounts table is only repopulated once the keyring unlocks,
+   * so it reads as empty on a locked start even for a wallet that has
+   * accounts. The persisted store still knows them, so it is the fallback
+   * when recovering a lost selection.
+   */
+  private firstAccountInStore(): AddressOnNetwork | undefined {
+    const { ui, account } = this.store.getState()
+    const { network } = ui.selectedAccount
+
+    const [address] = Object.keys(
+      account.accountsData.evm[network.chainID] ?? {}
+    ).filter(Boolean)
+
+    return address ? { address, network } : undefined
+  }
+
+  /**
+   * An empty selected account address is how the store represents "nothing
+   * selected yet", but a wallet that already tracks accounts can also land
+   * there if the preferences row is lost or defaulted. Nothing in the UI can
+   * render without a selected account, so fall back to a tracked one as soon
+   * as we know which accounts exist.
+   */
+  private async recoverMissingSelectedAccount(
+    trackedAccounts: AddressOnNetwork[]
+  ): Promise<void> {
+    const { selectedAccount } = this.store.getState().ui
+
+    if (selectedAccount?.address) return
+
+    const recoveredAccount =
+      trackedAccounts.find(
+        ({ network }) => network.chainID === selectedAccount?.network?.chainID
+      ) ??
+      trackedAccounts[0] ??
+      this.firstAccountInStore()
+
+    if (!recoveredAccount) return
+
+    logger.warn(
+      "No account was selected; falling back to a tracked account",
+      recoveredAccount.address
+    )
+
+    this.store.dispatch(setSelectedAccount(recoveredAccount))
+    await this.preferenceService.setSelectedAccount(recoveredAccount)
+    this.providerBridgeService.notifyContentScriptsAboutAddressChange(
+      recoveredAccount.address
+    )
+  }
+
   async connectTransactionService(): Promise<void> {
     this.transactionService.emitter.on(
       "initializeQuaiTransactions",
@@ -887,6 +939,8 @@ export default class Main extends BaseService<never> {
           // Force a refresh of the account balance to populate the store.
           this.chainService.getLatestBaseAccountBalance(addressNetwork)
         })
+
+        await this.recoverMissingSelectedAccount(existingAccounts)
       }
     )
 
@@ -1630,7 +1684,10 @@ export default class Main extends BaseService<never> {
     this.preferenceService.emitter.on(
       "initializeSelectedAccount",
       async (dbAddressNetwork: AddressOnNetwork) => {
-        if (dbAddressNetwork) {
+        // A defaulted preferences row is still a truthy object, so check the
+        // address itself - otherwise an empty default overwrites a real
+        // selection that was restored from the persisted store.
+        if (dbAddressNetwork?.address) {
           // TBD: naming the normal reducer and async thunks
           // Initialize redux from the db
           // !!! Important: this action belongs to a regular reducer.
@@ -1641,7 +1698,7 @@ export default class Main extends BaseService<never> {
           // should run only one time
           const addressNetwork = this.store.getState().ui.selectedAccount
 
-          if (addressNetwork) {
+          if (addressNetwork?.address) {
             await this.preferenceService.setSelectedAccount(addressNetwork)
           }
         }
@@ -1697,6 +1754,19 @@ export default class Main extends BaseService<never> {
     )
 
     uiSliceEmitter.on("newSelectedAccount", async (addressNetwork) => {
+      // Never persist a placeholder selection. An empty address written here
+      // latches: it is read back as the selected account on every subsequent
+      // start, and nothing downstream can recover on its own. Callers that
+      // only mean to change networks - see setSelectedNetwork - spread the
+      // current selection, so they carry an unset address straight into here.
+      if (!addressNetwork.address) {
+        logger.warn(
+          "Refused to persist an empty selected account on chain",
+          addressNetwork.network?.chainID
+        )
+        return
+      }
+
       await this.preferenceService.setSelectedAccount(addressNetwork)
 
       this.providerBridgeService.notifyContentScriptsAboutAddressChange(

@@ -53,15 +53,17 @@ export function sameQuaiAddress(
   address1: string | undefined | null,
   address2: string | undefined | null
 ): boolean {
-  if (
-    typeof address1 === "undefined" ||
-    typeof address2 === "undefined" ||
-    address1 === null ||
-    address2 === null
-  )
-    return false
+  // An unset selected account is stored as an empty string, and `getAddress`
+  // throws on anything that isn't a well-formed address. Callers use this to
+  // look accounts up while rendering, so unusable input has to read as "not a
+  // match" rather than take down everything downstream.
+  if (!address1 || !address2) return false
 
-  return getAddress(address1) === getAddress(address2)
+  try {
+    return getAddress(address1) === getAddress(address2)
+  } catch {
+    return false
+  }
 }
 
 export function gweiToWei(value: number | bigint): bigint {

@@ -646,6 +646,16 @@ export default class ChainService extends BaseService<Events> {
     ignoreRecentSync = false,
     requireFreshScan = false,
   }: QiWalletSyncOptions = {}): Promise<void> {
+    // Alarm and subscription callbacks can fire while the extension is
+    // locked (including immediately after a service-worker restart). A Qi
+    // sync requires the decrypted wallet and eventually persists its updated
+    // state, so do not mutate sync metadata or outpoints unless the vault key
+    // is available.
+    if (this.keyringService.isLocked()) {
+      logger.debug("[syncQiWallet] Skipping sync while keyring is locked")
+      return Promise.resolve()
+    }
+
     const effectiveIgnoreRecentSync = ignoreRecentSync || requireFreshScan
 
     if (this.qiWalletSyncPromise) {

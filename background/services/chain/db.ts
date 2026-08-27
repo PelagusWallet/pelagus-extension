@@ -33,6 +33,20 @@ export type QiOutpoint = {
   derivationPath: string
 }
 
+function normalizeQiTxHash(txhash: string): string {
+  return `0x${txhash.replace(/^0x/i, "").toLowerCase()}`
+}
+
+function normalizeQiOutpoint(outpoint: QiOutpoint): QiOutpoint {
+  return {
+    ...outpoint,
+    outpoint: {
+      ...outpoint.outpoint,
+      txhash: normalizeQiTxHash(outpoint.outpoint.txhash),
+    },
+  }
+}
+
 // TODO keep track of blocks invalidated by a reorg
 export class ChainDatabase extends Dexie {
   /*
@@ -424,7 +438,9 @@ export class ChainDatabase extends Dexie {
     try {
       await this.transaction("rw", this.qiOutpoints, async () => {
         for (let i = 0; i < outpoints.length; i += chunkSize) {
-          const chunk = outpoints.slice(i, i + chunkSize)
+          const chunk = outpoints
+            .slice(i, i + chunkSize)
+            .map(normalizeQiOutpoint)
           await this.qiOutpoints.bulkPut(chunk)
           // Optional: Yield to the event loop to keep UI responsive
           await Dexie.waitFor(
@@ -457,23 +473,29 @@ export class ChainDatabase extends Dexie {
   }
 
   async removeQiOutpoints(outpoints: QiOutpoint[]): Promise<void> {
-    // Use transaction to ensure atomicity
+    // Deletion is intentionally idempotent. Transaction submission removes
+    // spent outpoints immediately to prevent reuse, and a later wallet sync
+    // reports the same deletion from the chain. Support legacy keys that were
+    // stored before tx hashes were normalized as well.
     await this.transaction("rw", this.qiOutpoints, async () => {
-      for (const outpoint of outpoints) {
-        let txhash: string
-        if (outpoint.outpoint.txhash.startsWith("0x")) {  
-          txhash = outpoint.outpoint.txhash
-        } else {
-          txhash = "0x" + outpoint.outpoint.txhash
-        }
-        const deleted = await this.qiOutpoints
-          .where("[chainID+outpoint.txhash+outpoint.index]")
-          .equals([outpoint.chainID, txhash, outpoint.outpoint.index])
-          .delete()
-        if (deleted === 0) {
-          console.warn("failed to delete outpoint", outpoint)
-        }
-      }
+      const deletions = outpoints.flatMap((outpoint) => {
+        const originalHash = outpoint.outpoint.txhash
+        const normalizedHash = normalizeQiTxHash(originalHash)
+        const hashes = new Set([
+          normalizedHash,
+          originalHash,
+          originalHash.replace(/^0x/i, ""),
+        ])
+
+        return Array.from(hashes).map((txhash) =>
+          this.qiOutpoints.delete([
+            outpoint.chainID,
+            txhash,
+            outpoint.outpoint.index,
+          ])
+        )
+      })
+      await Promise.all(deletions)
     })
   }
 

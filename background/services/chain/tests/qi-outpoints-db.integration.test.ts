@@ -31,13 +31,30 @@ describe("Qi outpoint database", () => {
     expect(stored[0].outpoint.txhash).toBe("0xabcdef")
   })
 
+  it("reconciles an existing legacy key when the outpoint is stored again", async () => {
+    await db.table("qiOutpoints").put(qiOutpoint)
+
+    await db.addQiOutpoints([
+      {
+        ...qiOutpoint,
+        outpoint: { ...qiOutpoint.outpoint, txhash: "0xabcdef" },
+        value: 20000n,
+      },
+    ])
+
+    const stored = await db.table("qiOutpoints").toArray()
+    expect(stored).toHaveLength(1)
+    expect(stored[0].outpoint.txhash).toBe("0xabcdef")
+    expect(stored[0].value).toBe(20000n)
+  })
+
   it("removes outpoints idempotently across transaction hash formats", async () => {
-    await db.addQiOutpoints([qiOutpoint])
+    await db.table("qiOutpoints").put(qiOutpoint)
 
     await db.removeQiOutpoints([
       {
         ...qiOutpoint,
-        outpoint: { ...qiOutpoint.outpoint, txhash: "0xABCDEF" },
+        outpoint: { ...qiOutpoint.outpoint, txhash: "0xabcdef" },
       },
     ])
     await db.removeQiOutpoints([qiOutpoint])

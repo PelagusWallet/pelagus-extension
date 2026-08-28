@@ -37,6 +37,24 @@ function normalizeQiTxHash(txhash: string): string {
   return `0x${txhash.replace(/^0x/i, "").toLowerCase()}`
 }
 
+function qiTxHashAliases(txhash: string): string[] {
+  const unprefixed = txhash.replace(/^0x/i, "")
+  const lowercase = unprefixed.toLowerCase()
+  const uppercase = unprefixed.toUpperCase()
+
+  return Array.from(
+    new Set([
+      txhash,
+      unprefixed,
+      `0x${unprefixed}`,
+      lowercase,
+      `0x${lowercase}`,
+      uppercase,
+      `0x${uppercase}`,
+    ])
+  )
+}
+
 function normalizeQiOutpoint(outpoint: QiOutpoint): QiOutpoint {
   return {
     ...outpoint,
@@ -438,9 +456,26 @@ export class ChainDatabase extends Dexie {
     try {
       await this.transaction("rw", this.qiOutpoints, async () => {
         for (let i = 0; i < outpoints.length; i += chunkSize) {
-          const chunk = outpoints
-            .slice(i, i + chunkSize)
-            .map(normalizeQiOutpoint)
+          const sourceChunk = outpoints.slice(i, i + chunkSize)
+          const chunk = sourceChunk.map(normalizeQiOutpoint)
+          const legacyKeys: [string, string, number][] = sourceChunk.flatMap(
+            (outpoint) => {
+              const normalizedHash = normalizeQiTxHash(outpoint.outpoint.txhash)
+              return qiTxHashAliases(outpoint.outpoint.txhash)
+                .filter((txhash) => txhash !== normalizedHash)
+                .map((txhash): [string, string, number] => [
+                  outpoint.chainID,
+                  txhash,
+                  outpoint.outpoint.index,
+                ])
+            }
+          )
+
+          // Reconcile old prefixed/unprefixed or case-variant keys only when
+          // that outpoint is touched. This avoids a database-wide migration
+          // while ensuring the canonical write cannot coexist with a legacy
+          // representation of the same UTXO.
+          await this.qiOutpoints.bulkDelete(legacyKeys)
           await this.qiOutpoints.bulkPut(chunk)
           // Optional: Yield to the event loop to keep UI responsive
           await Dexie.waitFor(
@@ -479,15 +514,7 @@ export class ChainDatabase extends Dexie {
     // stored before tx hashes were normalized as well.
     await this.transaction("rw", this.qiOutpoints, async () => {
       const deletions = outpoints.flatMap((outpoint) => {
-        const originalHash = outpoint.outpoint.txhash
-        const normalizedHash = normalizeQiTxHash(originalHash)
-        const hashes = new Set([
-          normalizedHash,
-          originalHash,
-          originalHash.replace(/^0x/i, ""),
-        ])
-
-        return Array.from(hashes).map((txhash) =>
+        return qiTxHashAliases(outpoint.outpoint.txhash).map((txhash) =>
           this.qiOutpoints.delete([
             outpoint.chainID,
             txhash,

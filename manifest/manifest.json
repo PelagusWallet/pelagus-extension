@@ -34,7 +34,7 @@
     }
   ],
   "commands": {
-    "_execute_browser_action": {
+    "_execute_action": {
       "suggested_key": {
         "windows": "Alt+T",
         "mac": "Alt+T",

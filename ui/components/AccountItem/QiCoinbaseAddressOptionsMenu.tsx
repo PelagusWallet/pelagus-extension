@@ -8,7 +8,7 @@ import SharedDropdown from "../Shared/SharedDropDown"
 import SharedSlideUpMenu from "../Shared/SharedSlideUpMenu"
 import AccountitemOptionLabel from "./AccountItemOptionLabel"
 import SharedBanner from "../Shared/SharedBanner"
-import { addToOffscreenClipboardSensitiveData } from "../../../src/offscreen"
+import addToOffscreenClipboardSensitiveData from "../../../src/sensitive-clipboard"
 import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
 import { QiCoinbaseAddress } from "@pelagus/pelagus-background/accounts"
 import ExportPasswordPrompt from "./ExportPasswordPrompt"
@@ -41,8 +41,12 @@ export default function QiCoinbaseAddressOptionsMenu({
   }, [qiCoinbaseAddress.address, dispatch])
 
   const copyPrivateKey = async () => {
-    await addToOffscreenClipboardSensitiveData(key)
-    dispatch(setSnackbarConfig({ message: "Key copied to clipboard" }))
+    try {
+      await addToOffscreenClipboardSensitiveData(key)
+      dispatch(setSnackbarConfig({ message: "Key copied to clipboard" }))
+    } catch {
+      dispatch(setSnackbarConfig({ message: "Unable to copy to clipboard" }))
+    }
   }
 
   const onClosePrivateKeyModal = () => {

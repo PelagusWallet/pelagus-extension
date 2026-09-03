@@ -4,7 +4,10 @@ import { MemoryRouter as Router, Switch } from "react-router-dom"
 import { Store } from "webext-redux"
 import { Provider } from "react-redux"
 import { runtime } from "webextension-polyfill"
-import { popupMonitorPortName } from "@pelagus/pelagus-background/main"
+import {
+  popupMonitorActivityMessage,
+  popupMonitorPortName,
+} from "@pelagus/pelagus-background/main"
 import { useIsDappPopup, useTheme } from "../hooks"
 import pageList from "../routes/routes"
 import PrivateRoute from "../routes/PrivateRoute"
@@ -12,9 +15,30 @@ import PrivateRoute from "../routes/PrivateRoute"
 function useConnectPopupMonitor() {
   useEffect(() => {
     const port = runtime.connect(undefined, { name: popupMonitorPortName })
+    let isDisconnected = false
+    const handleDisconnect = () => {
+      isDisconnected = true
+    }
+    port.onDisconnect.addListener(handleDisconnect)
+
+    const markUserActivity = () => {
+      if (isDisconnected) return
+
+      try {
+        port.postMessage(popupMonitorActivityMessage)
+      } catch {
+        isDisconnected = true
+      }
+    }
+
+    document.addEventListener("pointerdown", markUserActivity)
+    document.addEventListener("keydown", markUserActivity)
 
     return () => {
-      port.disconnect()
+      document.removeEventListener("pointerdown", markUserActivity)
+      document.removeEventListener("keydown", markUserActivity)
+      port.onDisconnect.removeListener(handleDisconnect)
+      if (!isDisconnected) port.disconnect()
     }
   }, [])
 }

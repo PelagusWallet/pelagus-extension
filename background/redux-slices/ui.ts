@@ -17,6 +17,7 @@ import { AccountState, addAddressNetwork, UtxoAccountData } from "./accounts"
 import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { QuaiMainnet } from "../constants/networks/networks"
+import { DEFAULT_AUTO_LOCK_INTERVAL_MINUTES } from "../constants/auto-lock"
 
 export const defaultSettings = {
   hideDust: false,
@@ -32,7 +33,7 @@ export const defaultSettings = {
   showAlphaWalletBanner: true,
   alphaBannerVersion: 1,
   showPelagusNotifications: true,
-  autoLockInterval: 10, // in minutes
+  autoLockInterval: DEFAULT_AUTO_LOCK_INTERVAL_MINUTES,
   theme: "light", // light or dark
 }
 

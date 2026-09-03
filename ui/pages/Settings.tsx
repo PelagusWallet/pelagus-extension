@@ -36,6 +36,7 @@ import { deepRescanQiWallet, aggregateQiOutputs, fetchUTXODenominationDistributi
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks/redux-hooks"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { denominations } from "quais"
+import { DEFAULT_AUTO_LOCK_INTERVAL_MINUTES } from "@pelagus/pelagus-background/constants/auto-lock"
 
 // Create dropdown options for denomination values
 const denominationOptions = denominations.map((value, index) => {
@@ -48,6 +49,16 @@ const denominationOptions = denominations.map((value, index) => {
 
 const NUMBER_OF_CLICKS_FOR_DEV_PANEL = 15
 const FAQ_URL = "https://pelaguswallet.io"
+const AUTO_LOCK_INTERVAL_OPTIONS = [
+  { value: "5", label: "5 minutes" },
+  { value: "10", label: "10 minutes" },
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "60", label: "1 hour" },
+  { value: "1440", label: "1 day" },
+  { value: "4320", label: "3 days" },
+  { value: "10080", label: "1 week" },
+]
 const FOOTER_ACTIONS = [
   {
     icon: "icons/m/discord",
@@ -890,18 +901,20 @@ export default function Settings(): ReactElement {
     component: () => (
       <SharedSelect
         width={194}
-        options={[
-          { value: "5", label: "5 minutes" },
-          { value: "10", label: "10 minutes" },
-          { value: "15", label: "15 minutes" },
-          { value: "30", label: "30 minutes" },
-          { value: "60", label: "1 hour" },
-        ]}
+        options={AUTO_LOCK_INTERVAL_OPTIONS}
         onChange={(value) => dispatch(setAutoLockInterval(Number(value)))}
         defaultIndex={(() => {
-          const interval = autoLockInterval || 10
-          const index = [5, 10, 15, 30, 60].indexOf(interval)
-          return index >= 0 ? index : 1 // Default to 10 minutes if value not found
+          const interval =
+            autoLockInterval || DEFAULT_AUTO_LOCK_INTERVAL_MINUTES
+          const index = AUTO_LOCK_INTERVAL_OPTIONS.findIndex(
+            ({ value }) => Number(value) === interval
+          )
+          return index >= 0
+            ? index
+            : AUTO_LOCK_INTERVAL_OPTIONS.findIndex(
+                ({ value }) =>
+                  Number(value) === DEFAULT_AUTO_LOCK_INTERVAL_MINUTES
+              )
         })()}
       />
     ),

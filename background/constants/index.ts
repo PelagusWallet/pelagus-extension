@@ -3,6 +3,7 @@ export const MINUTE = 60 * SECOND
 export const HOUR = 60 * MINUTE
 export const DAY = 24 * HOUR
 
+export * from "./auto-lock"
 export * from "./coin-types"
 export * from "./base-assets"
 export * from "./currencies"

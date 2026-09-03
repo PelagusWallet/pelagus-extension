@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import SharedButton from "../../../../components/Shared/SharedButton"
 import { useBackgroundDispatch } from "../../../../hooks"
 import SharedBanner from "../../../../components/Shared/SharedBanner"
-import { addToOffscreenClipboardSensitiveData } from "../../../../../src/offscreen"
+import addToOffscreenClipboardSensitiveData from "../../../../../src/sensitive-clipboard"
 
 export default function NewSeedReview({
   onReview,
@@ -22,8 +22,12 @@ export default function NewSeedReview({
   const dispatch = useBackgroundDispatch()
 
   const onCopyMnemonic = async () => {
-    await addToOffscreenClipboardSensitiveData(mnemonic?.join(" ") ?? "")
-    dispatch(setSnackbarConfig({ message: sharedT("copyTextSnackbar") }))
+    try {
+      await addToOffscreenClipboardSensitiveData(mnemonic?.join(" ") ?? "")
+      dispatch(setSnackbarConfig({ message: sharedT("copyTextSnackbar") }))
+    } catch {
+      dispatch(setSnackbarConfig({ message: "Unable to copy to clipboard" }))
+    }
   }
 
   return (

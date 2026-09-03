@@ -76,6 +76,7 @@ describe("WalletManager", () => {
       clearSaltedKey: jest.fn(),
       isSaltedKeyInitialized: jest.fn(),
       initializeWithPassword: jest.fn(),
+      initializeWithSerializedKey: jest.fn(),
     }
 
     const manager = new WalletManager(vault)

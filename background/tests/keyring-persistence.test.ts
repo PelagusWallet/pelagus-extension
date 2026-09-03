@@ -3,6 +3,8 @@ import {
   encryptVault,
   decryptVault,
   deriveSymmetricKeyFromPassword,
+  deriveSymmetricKeyFromPasswordForSession,
+  importSerializedSaltedKey,
 } from "../services/keyring/utils/encryption"
 
 const originalCrypto = global.crypto
@@ -34,6 +36,61 @@ test("derives symmetric keys", async () => {
     expect(new Set(key.usages)).toEqual(new Set(["encrypt", "decrypt"]))
   }
   /* eslint-enable no-await-in-loop */
+})
+
+test("restores a non-extractable symmetric key from session key material", async () => {
+  const password = "this-is-a-poor-password"
+  const vault = { sentinel: "session-restored" }
+  const { saltedKey, serializedSaltedKey } =
+    await deriveSymmetricKeyFromPasswordForSession(password)
+
+  expect(serializedSaltedKey.keyMaterial).not.toContain(password)
+
+  const encryptedVault = await encryptVault(vault, saltedKey)
+  const restoredSaltedKey = await importSerializedSaltedKey(serializedSaltedKey)
+
+  expect(restoredSaltedKey.key.extractable).toEqual(false)
+  await expect(
+    decryptVault(encryptedVault, restoredSaltedKey)
+  ).resolves.toEqual(vault)
+})
+
+test("session key derivation remains compatible with existing vaults", async () => {
+  const password = "this-is-a-poor-password"
+  const salt = "an-existing-vault-salt"
+  const encoder = new TextEncoder()
+  const legacyDerivationKey = await global.crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
+  )
+  const legacyKey = await global.crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: encoder.encode(salt),
+      iterations: 1000000,
+      hash: "SHA-256",
+    },
+    legacyDerivationKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  )
+  const encryptedVault = await encryptVault(
+    { sentinel: "existing-vault" },
+    { key: legacyKey, salt }
+  )
+
+  const { saltedKey } = await deriveSymmetricKeyFromPasswordForSession(
+    password,
+    salt
+  )
+
+  await expect(decryptVault(encryptedVault, saltedKey)).resolves.toEqual({
+    sentinel: "existing-vault",
+  })
 })
 
 test("doesn't throw when encrypting a vault with a password", async () => {

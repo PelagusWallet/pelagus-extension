@@ -17,7 +17,7 @@ import AccountItemRemovalConfirm from "./AccountItemRemovalConfirm"
 import AccountitemOptionLabel from "./AccountItemOptionLabel"
 import AccountHistoryRemovalConfirm from "./AccountHistoryRemovalConfirm"
 import SharedBanner from "../Shared/SharedBanner"
-import { addToOffscreenClipboardSensitiveData } from "../../../src/offscreen"
+import addToOffscreenClipboardSensitiveData from "../../../src/sensitive-clipboard"
 import ExportPasswordPrompt from "./ExportPasswordPrompt"
 
 type ExportMode = "plaintext" | "encrypted" | null
@@ -66,8 +66,12 @@ export default function AccountItemOptionsMenu({
   }, [address, dispatch])
 
   const copyPrivateKey = async () => {
-    await addToOffscreenClipboardSensitiveData(key)
-    dispatch(setSnackbarConfig({ message: "Key copied to clipboard" }))
+    try {
+      await addToOffscreenClipboardSensitiveData(key)
+      dispatch(setSnackbarConfig({ message: "Key copied to clipboard" }))
+    } catch {
+      dispatch(setSnackbarConfig({ message: "Unable to copy to clipboard" }))
+    }
   }
 
   const onClosePrivateKeyModal = () => {

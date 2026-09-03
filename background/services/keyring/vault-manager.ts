@@ -1,8 +1,10 @@
 import {
   decryptVault,
-  deriveSymmetricKeyFromPassword,
+  deriveSymmetricKeyFromPasswordForSession,
   EncryptedVault,
   encryptVault,
+  importSerializedSaltedKey,
+  SerializedSaltedKey,
   SaltedKey,
 } from "./utils/encryption"
 import { AddOptions, DeleteProps, SerializedVaultData } from "./types"
@@ -16,7 +18,8 @@ export interface IVaultManager {
   verifyPassword(password: string): Promise<boolean>
   clearSaltedKey(): void
   isSaltedKeyInitialized(): boolean
-  initializeWithPassword(password: string): Promise<void>
+  initializeWithPassword(password: string): Promise<SerializedSaltedKey>
+  initializeWithSerializedKey(saltedKey: SerializedSaltedKey): Promise<void>
 }
 
 export class VaultManager implements IVaultManager {
@@ -39,21 +42,43 @@ export class VaultManager implements IVaultManager {
     return this.vaultSaltedKey !== null
   }
 
-  public async initializeWithPassword(password: string): Promise<void> {
+  public async initializeWithPassword(
+    password: string
+  ): Promise<SerializedSaltedKey> {
     const storageStart = performance.now()
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
-    console.log(`[VaultManager] Storage access took ${(performance.now() - storageStart).toFixed(0)}ms`)
+    console.log(
+      `[VaultManager] Storage access took ${(
+        performance.now() - storageStart
+      ).toFixed(0)}ms`
+    )
 
     // Cache the encrypted vault to avoid re-reading from storage
     this.cachedEncryptedVault = currentEncryptedVault
 
     const deriveStart = performance.now()
-    this.vaultSaltedKey = await deriveSymmetricKeyFromPassword(
-      password,
-      currentEncryptedVault?.salt
+    const { saltedKey, serializedSaltedKey } =
+      await deriveSymmetricKeyFromPasswordForSession(
+        password,
+        currentEncryptedVault?.salt
+      )
+    this.vaultSaltedKey = saltedKey
+    console.log(
+      `[VaultManager] PBKDF2 key derivation (1M iterations) took ${(
+        performance.now() - deriveStart
+      ).toFixed(0)}ms`
     )
-    console.log(`[VaultManager] PBKDF2 key derivation (1M iterations) took ${(performance.now() - deriveStart).toFixed(0)}ms`)
+
+    return serializedSaltedKey
+  }
+
+  public async initializeWithSerializedKey(
+    saltedKey: SerializedSaltedKey
+  ): Promise<void> {
+    const { vaults } = await getEncryptedVaults()
+    this.cachedEncryptedVault = vaults.slice(-1)[0]?.vault
+    this.vaultSaltedKey = await importSerializedSaltedKey(saltedKey)
   }
 
   public async verifyPassword(password: string): Promise<boolean> {
@@ -82,11 +107,22 @@ export class VaultManager implements IVaultManager {
     const saltedKey = this.getSaltedKey()
     const getVaultStart = performance.now()
     const currentEncryptedVault = await this.getVaultData()
-    console.log(`[VaultManager] getVaultData() took ${(performance.now() - getVaultStart).toFixed(0)}ms`)
+    console.log(
+      `[VaultManager] getVaultData() took ${(
+        performance.now() - getVaultStart
+      ).toFixed(0)}ms`
+    )
 
     const decryptStart = performance.now()
-    const result = await decryptVault<SerializedVaultData>(currentEncryptedVault, saltedKey)
-    console.log(`[VaultManager] Vault decryption took ${(performance.now() - decryptStart).toFixed(0)}ms`)
+    const result = await decryptVault<SerializedVaultData>(
+      currentEncryptedVault,
+      saltedKey
+    )
+    console.log(
+      `[VaultManager] Vault decryption took ${(
+        performance.now() - decryptStart
+      ).toFixed(0)}ms`
+    )
 
     // Cache the decrypted vault
     this.cachedDecryptedVault = result

@@ -21,6 +21,16 @@ export type SaltedKey = {
   key: CryptoKey
 }
 
+/**
+ * JSON-serializable key material used to restore an unlocked vault after a
+ * Manifest V3 service worker restart. This must only be kept in ephemeral,
+ * trusted-context storage.
+ */
+export type SerializedSaltedKey = {
+  salt: string
+  keyMaterial: string
+}
+
 function bufferToBase64(array: Uint8Array): string {
   return Buffer.from(array).toString("base64")
 }
@@ -49,6 +59,77 @@ function requireCryptoGlobal(message?: string) {
 }
 
 /**
+ * Import serialized AES key material as a non-extractable WebCrypto key.
+ */
+export async function importSerializedSaltedKey({
+  salt,
+  keyMaterial,
+}: SerializedSaltedKey): Promise<SaltedKey> {
+  requireCryptoGlobal()
+
+  const key = await global.crypto.subtle.importKey(
+    "raw",
+    base64ToBuffer(keyMaterial),
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  )
+
+  return {
+    key,
+    salt,
+  }
+}
+
+/**
+ * Derive a vault key and return the raw key material needed to restore it in a
+ * later incarnation of the extension service worker.
+ */
+export async function deriveSymmetricKeyFromPasswordForSession(
+  password: string,
+  existingSalt?: string
+): Promise<{
+  saltedKey: SaltedKey
+  serializedSaltedKey: SerializedSaltedKey
+}> {
+  requireCryptoGlobal()
+  const { crypto } = global
+
+  const salt = existingSalt || (await generateSalt())
+
+  const encoder = new TextEncoder()
+
+  const derivationKey = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  )
+
+  const keyMaterial = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: encoder.encode(salt),
+      iterations: 1000000,
+      hash: "SHA-256",
+    },
+    derivationKey,
+    256
+  )
+
+  const serializedSaltedKey = {
+    salt,
+    keyMaterial: bufferToBase64(new Uint8Array(keyMaterial)),
+  }
+
+  return {
+    saltedKey: await importSerializedSaltedKey(serializedSaltedKey),
+    serializedSaltedKey,
+  }
+}
+
+/**
  * Derive a WebCrypto symmetric key from a password and optional salt.
  *
  * @param password A user-supplied password. Without this value
@@ -68,37 +149,12 @@ export async function deriveSymmetricKeyFromPassword(
   password: string,
   existingSalt?: string
 ): Promise<SaltedKey> {
-  const { crypto } = global
-
-  const salt = existingSalt || (await generateSalt())
-
-  const encoder = new TextEncoder()
-
-  const derivationKey = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveKey"]
+  const { saltedKey } = await deriveSymmetricKeyFromPasswordForSession(
+    password,
+    existingSalt
   )
 
-  const key = await crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt: encoder.encode(salt),
-      iterations: 1000000,
-      hash: "SHA-256",
-    },
-    derivationKey,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  )
-
-  return {
-    key,
-    salt,
-  }
+  return saltedKey
 }
 
 /**

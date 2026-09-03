@@ -6,6 +6,10 @@ import BaseService from "../base"
 import { IVaultManager, VaultManager } from "./vault-manager"
 import { UNIXTime } from "../../types"
 import { MINUTE } from "../../constants"
+import {
+  DEFAULT_AUTO_LOCK_INTERVAL_MINUTES,
+  shouldAutoLock,
+} from "../../constants/auto-lock"
 import { SignerType } from "../signing"
 import WalletManager from "./wallet-manager"
 import { applicationError } from "../../constants/errorsCause"
@@ -18,9 +22,8 @@ import {
 } from "./types"
 import { isSignerPrivateKeyType } from "./utils"
 import { browser } from "../../index"
-
-export const MAX_KEYRING_IDLE_TIME = 10 * MINUTE
-export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
+import { KeyringUnlockSession, UnlockSessionStore } from "./unlock-session"
+import { SerializedSaltedKey } from "./utils/encryption"
 
 /*
  * KeyringService is responsible for all key material, as well as applying the
@@ -32,17 +35,21 @@ export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
  * When unlocked, the service automatically locks itself after it has not seen
  * activity for a certain amount of time. The service can be notified of
  * outside activity that should be considered for the purposes of keeping the
- * service unlocked. No keyring activity for 10 minutes causes the service to
- * lock, while no outside activity for 10 minutes has the same effect.
+ * service unlocked. The auto-lock interval is measured from the most recent
+ * keyring or outside activity.
  */
 export default class KeyringService extends BaseService<KeyringServiceEvents> {
   private walletManager: WalletManager
 
   public readonly vaultManager: IVaultManager
 
-  public lastInternalWalletActivity: UNIXTime | null
+  public lastInternalWalletActivity: UNIXTime | null = null
 
-  public lastExternalWalletActivity: UNIXTime | null
+  public lastExternalWalletActivity: UNIXTime | null = null
+
+  private readonly unlockSessionStore: UnlockSessionStore
+
+  private serializedSaltedKey: SerializedSaltedKey | null = null
 
   static create: ServiceCreatorFunction<
     KeyringServiceEvents,
@@ -71,14 +78,26 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
     this.vaultManager = new VaultManager()
     this.walletManager = new WalletManager(this.vaultManager)
+    this.unlockSessionStore = new UnlockSessionStore(chrome.storage.session)
   }
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
 
+    try {
+      await this.unlockSessionStore.initialize()
+    } catch (error) {
+      logger.error("Unable to initialize unlock session storage", error)
+    }
+
     // Don't emit if there are no quaiHDWallets to unlock
     const { vaults } = await getEncryptedVaults()
-    if (!vaults.length) return
+    if (!vaults.length) {
+      await this.clearUnlockSession()
+      return
+    }
+
+    if (await this.restoreUnlockSession()) return
 
     // Emit locked status on startup. Should always be locked, but the main
     // goal is to have external viewers synced to internal state no matter what it is.
@@ -99,7 +118,9 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
   }
 
   public async lock(): Promise<void> {
+    await this.clearUnlockSession()
     this.walletManager.clearState()
+    this.serializedSaltedKey = null
     this.lastExternalWalletActivity = null
     this.lastInternalWalletActivity = null
 
@@ -113,30 +134,53 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       const unlockStart = performance.now()
 
       const keyDerivationStart = performance.now()
-      await this.vaultManager.initializeWithPassword(password)
+      this.serializedSaltedKey = await this.vaultManager.initializeWithPassword(
+        password
+      )
       const keyDerivationEnd = performance.now()
-      console.log(`[Unlock] Key derivation took ${(keyDerivationEnd - keyDerivationStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] Key derivation took ${(
+          keyDerivationEnd - keyDerivationStart
+        ).toFixed(0)}ms`
+      )
 
       const initStateStart = performance.now()
       await this.walletManager.initializeState()
       const initStateEnd = performance.now()
-      console.log(`[Unlock] Wallet state initialization took ${(initStateEnd - initStateStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] Wallet state initialization took ${(
+          initStateEnd - initStateStart
+        ).toFixed(0)}ms`
+      )
 
       this.lastInternalWalletActivity = Date.now()
       this.lastExternalWalletActivity = Date.now()
+      try {
+        await this.persistUnlockSession()
+      } catch (error) {
+        logger.error("Unable to persist the unlocked keyring session", error)
+      }
 
       const notifyStart = performance.now()
       await this.notifyUIWithUpdates()
       const notifyEnd = performance.now()
-      console.log(`[Unlock] UI notification took ${(notifyEnd - notifyStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] UI notification took ${(notifyEnd - notifyStart).toFixed(
+          0
+        )}ms`
+      )
 
       const unlockEnd = performance.now()
-      console.log(`[Unlock] Total unlock time: ${(unlockEnd - unlockStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] Total unlock time: ${(unlockEnd - unlockStart).toFixed(0)}ms`
+      )
 
       return true
     } catch (error) {
       logger.error("Error while unlocking keyring service", error)
       this.vaultManager.clearSaltedKey()
+      this.serializedSaltedKey = null
+      await this.clearUnlockSession()
       return false
     }
   }
@@ -170,30 +214,36 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
   private getAutoLockInterval(): number {
     const state = globalThis.main.store.getState()
-    return (state.ui.settings.autoLockInterval || 10) * MINUTE
+    return (
+      (state.ui.settings.autoLockInterval ||
+        DEFAULT_AUTO_LOCK_INTERVAL_MINUTES) * MINUTE
+    )
   }
 
-  // Locks the keyring if the time since last keyring or outside activity exceeds preset levels.
+  // Locks the keyring when neither keyring nor outside activity has occurred
+  // during the configured interval.
   private serviceAutoLockHandler(): void {
-    if (!this.lastInternalWalletActivity || !this.lastExternalWalletActivity) {
-      this.notifyUIWithUpdates()
-        .then(() => this.walletManager.clearState())
-        .then(() => this.shouldReloadHandler())
+    if (this.isLocked()) {
+      this.shouldReloadHandler().catch((error) => {
+        logger.error("Error while handling shouldReload flag", error)
+      })
       return
     }
 
     const now = Date.now()
-    const timeSinceLastKeyringActivity = now - this.lastInternalWalletActivity
-    const timeSinceLastOutsideActivity = now - this.lastExternalWalletActivity
     const autoLockInterval = this.getAutoLockInterval()
 
     if (
-      timeSinceLastKeyringActivity >= autoLockInterval ||
-      timeSinceLastOutsideActivity >= autoLockInterval
+      shouldAutoLock(
+        now,
+        this.lastInternalWalletActivity,
+        this.lastExternalWalletActivity,
+        autoLockInterval
+      )
     ) {
-      this.notifyUIWithUpdates()
-        .then(() => this.walletManager.clearState())
-        .then(() => this.shouldReloadHandler())
+      this.lock().catch((error) => {
+        logger.error("Error while autolocking keyring", error)
+      })
     }
   }
 
@@ -204,6 +254,9 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
     this.lastInternalWalletActivity = Date.now()
     this.lastExternalWalletActivity = Date.now()
+    this.persistUnlockSession().catch((error) => {
+      logger.error("Unable to persist keyring activity", error)
+    })
   }
 
   /**
@@ -211,8 +264,73 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
    * are used to delay auto locking.
    */
   public markOutsideActivity(): void {
-    if (typeof this.lastExternalWalletActivity !== "undefined") {
+    if (!this.isLocked()) {
       this.lastExternalWalletActivity = Date.now()
+      this.persistUnlockSession().catch((error) => {
+        logger.error("Unable to persist outside wallet activity", error)
+      })
+    }
+  }
+
+  private async restoreUnlockSession(): Promise<boolean> {
+    try {
+      const session = await this.unlockSessionStore.get()
+      if (!session) return false
+
+      if (
+        shouldAutoLock(
+          Date.now(),
+          session.lastInternalWalletActivity,
+          session.lastExternalWalletActivity,
+          this.getAutoLockInterval()
+        )
+      ) {
+        await this.clearUnlockSession()
+        return false
+      }
+
+      await this.vaultManager.initializeWithSerializedKey(session.saltedKey)
+      await this.walletManager.initializeState()
+
+      this.serializedSaltedKey = session.saltedKey
+      this.lastInternalWalletActivity = session.lastInternalWalletActivity
+      this.lastExternalWalletActivity = session.lastExternalWalletActivity
+      await this.notifyUIWithUpdates()
+      return true
+    } catch (error) {
+      logger.error("Unable to restore the unlocked keyring session", error)
+      this.walletManager.clearState()
+      this.serializedSaltedKey = null
+      this.lastInternalWalletActivity = null
+      this.lastExternalWalletActivity = null
+      await this.clearUnlockSession()
+      return false
+    }
+  }
+
+  private async persistUnlockSession(): Promise<void> {
+    if (
+      !this.serializedSaltedKey ||
+      this.lastInternalWalletActivity === null ||
+      this.lastExternalWalletActivity === null
+    ) {
+      return
+    }
+
+    const session: KeyringUnlockSession = {
+      version: 1,
+      saltedKey: this.serializedSaltedKey,
+      lastInternalWalletActivity: this.lastInternalWalletActivity,
+      lastExternalWalletActivity: this.lastExternalWalletActivity,
+    }
+    await this.unlockSessionStore.set(session)
+  }
+
+  private async clearUnlockSession(): Promise<void> {
+    try {
+      await this.unlockSessionStore.clear()
+    } catch (error) {
+      logger.error("Unable to clear unlock session storage", error)
     }
   }
 

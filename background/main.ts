@@ -283,6 +283,7 @@ const initializeStore = (preloadedState: object, main: Main) =>
 type ReduxStoreType = ReturnType<typeof initializeStore>
 
 export const popupMonitorPortName = "popup-monitor"
+export const popupMonitorActivityMessage = "activity"
 
 export let walletOpen = false
 
@@ -2170,11 +2171,18 @@ export default class Main extends BaseService<never> {
 
       logger.info("Pelagus Connected")
       walletOpen = true
+      this.keyringService.markOutsideActivity()
       if (this.store.getState().ui.isUtxoSelected) {
         this.chainService.syncQiWallet()
       } else {
         this.manuallyCheckBalances()
       }
+
+      port.onMessage.addListener((message) => {
+        if (message === popupMonitorActivityMessage) {
+          this.keyringService.markOutsideActivity()
+        }
+      })
 
       const openTime = Date.now()
 

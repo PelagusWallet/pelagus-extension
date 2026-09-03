@@ -1,98 +1,64 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 
-// As of Jan 2023, service workers cannot directly interact with
-// the system clipboard using either `navigator.clipboard` or
-// `document.execCommand()`. To work around this, we'll create an offscreen
-// document and pass it the data we want to write to the clipboard.
-export async function addToOffscreenClipboardSensitiveData(
-  value: string
-): Promise<void> {
-  // Check if the offscreen document still exists
-  const offscreenExists = await chrome.offscreen.hasDocument()
-
-  if (!offscreenExists) {
-    try {
-      await chrome.offscreen.createDocument({
-        url: "offscreen.html",
-        reasons: [chrome.offscreen.Reason.CLIPBOARD],
-        justification: "Write text to the clipboard.",
-      })
-    } catch (error: any) {
-      console.error(
-        `Failed to create offscreen document: ${error?.message || error}`
-      )
-      return
-    }
-  }
-
-  // Now that we have an offscreen document, we can dispatch the message.
-  chrome.runtime.sendMessage({
-    type: "copy-data-to-clipboard",
-    target: "offscreen-doc",
-    data: value,
-  })
-}
+import {
+  isSensitiveClipboardCopyMessage,
+  SensitiveClipboardResponse,
+  sensitiveClipboardDocumentTarget,
+} from "./offscreen-clipboard-messages"
 
 // Registering this listener when the script is first executed ensures that the
-// offscreen document will be able to receive messages when the promise returned
-// by `offscreen.createDocument()` resolves.
+// offscreen document can receive messages as soon as its creation resolves.
 chrome.runtime.onMessage.addListener(handleMessages)
 
-// This function performs basic filtering and error checking on messages before
-// dispatching the
-// message to a more specific message handler.
-function handleMessages(message: {
-  target: string
-  data: string
-  type: string
-}): false {
-  // Return early if this message isn't meant for the offscreen document.
-  if (message.target !== "offscreen-doc") {
+function handleMessages(
+  message: unknown,
+  _sender: chrome.runtime.MessageSender,
+  sendResponse: (response: SensitiveClipboardResponse) => void
+): false {
+  if (
+    !isSensitiveClipboardCopyMessage(message, sensitiveClipboardDocumentTarget)
+  ) {
     return false
   }
 
-  // Dispatch the message to an appropriate handler.
-  switch (message.type) {
-    case "copy-data-to-clipboard":
-      handleClipboardWrite(message.data)
-      break
-    default:
-      console.warn(`Unexpected message type received: '${message.type}'.`)
-  }
-
-  // This listener never sends a response. It must not return a Promise for
-  // unrelated runtime messages, or Chrome may treat the offscreen document as
-  // the responder instead of the background store.
+  sendResponse(handleClipboardWrite(message.data))
   return false
 }
 
-// We use a <textarea> element for two main reasons:
-//  1. preserve the formatting of multiline text,
-//  2. select the node's content using this element's `.select()` method.
-const textEl = document.querySelector("#text") as any
+// We use a <textarea> to preserve multiline formatting and select its content.
+const textEl = document.querySelector<HTMLTextAreaElement>("#text")
 const SENSITIVE_CLIPBOARD_CLEAR_DELAY_MS = 15000
+let clearClipboardTimer: ReturnType<typeof setTimeout> | undefined
 
-// Use the offscreen document's `document` interface to write a new value to the
-// system clipboard.
-//
-// At the time this demo was created (Jan 2023) the `navigator.clipboard` API
-// requires that the window is focused, but offscreen documents cannot be
-// focused. As such, we have to fall back to `document.execCommand()`.
-function handleClipboardWrite(data: string): void {
+// Offscreen documents cannot be focused, so navigator.clipboard is unavailable.
+// document.execCommand("copy") writes the selected textarea content instead.
+function handleClipboardWrite(data: string): SensitiveClipboardResponse {
+  if (!textEl) {
+    return { success: false, error: "Clipboard textarea was not found" }
+  }
+
   try {
-    // `document.execCommand('copy')` works against the user's selection in a web
-    // page. As such, we must insert the string we want to copy to the web page
-    // and to select that content in the page before calling `execCommand()`.
     textEl.value = data
-    textEl?.select()
-    document.execCommand("copy")
+    textEl.select()
 
-    setTimeout(() => {
+    if (!document.execCommand("copy")) {
+      return { success: false, error: "The browser rejected the copy command" }
+    }
+
+    if (clearClipboardTimer !== undefined) {
+      clearTimeout(clearClipboardTimer)
+    }
+
+    clearClipboardTimer = setTimeout(() => {
       textEl.value = " "
-      textEl?.select()
+      textEl.select()
       document.execCommand("copy")
+      clearClipboardTimer = undefined
     }, SENSITIVE_CLIPBOARD_CLEAR_DELAY_MS)
-  } catch (e) {
-    console.error(e)
+
+    return { success: true }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { success: false, error: message }
   }
 }

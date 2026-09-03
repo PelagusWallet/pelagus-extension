@@ -61,7 +61,6 @@ const baseConfig: Configuration = {
     new Dotenv({
       defaults: true,
       systemvars: true,
-      safe: true,
     }),
     new ForkTsCheckerWebpackPlugin({
       typescript: {

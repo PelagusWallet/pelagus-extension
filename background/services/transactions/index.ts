@@ -249,12 +249,22 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     senderPaymentCode: string,
     receiverPaymentCode: string
   ): Promise<string | undefined> {
-    // DEBUG: Log service method invocation
-    const serviceInvocationId = Date.now()
-    console.log(`[TransactionService.sendQiTransaction] Invoked at ${serviceInvocationId}, amount: ${amount}`)
+    let sentTransaction:
+      | {
+          response: QiTransactionResponse
+          qiWallet: Awaited<ReturnType<KeyringService["getQiHDWallet"]>>
+          qiOutpoints: Awaited<
+            ReturnType<ChainService["getOutpointsForSending"]>
+          >
+          senderPaymentCode: string
+        }
+      | undefined
+    let err: unknown
+    let resolvedBroadcastError: Error | undefined
 
-    let txHash: string | undefined = undefined
-    let err: any | undefined = undefined
+    // Only preparation and a rejected broadcast are retryable. Once
+    // sendTransaction resolves with a hash, execution must never return to this
+    // loop: the transaction may already be accepted by the network.
     try {
       const { jsonRpcProvider } = this.chainService
       let qiWallet = await this.keyringService.getQiHDWallet()
@@ -263,7 +273,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       const maxAttempts = 3
       let attempts = 0
       let bufferPercentage = 10
-      let transaction: QiTransactionDB | null = null
       while (attempts < maxAttempts) {
         try {
           const qiOutpoints = await this.chainService.getOutpointsForSending(
@@ -283,35 +292,27 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             qiWallet.openChannel(receiverPaymentCode)
           }
 
-          console.log(`[TransactionService.sendQiTransaction] Calling qiWallet.sendTransaction (attempt ${attempts + 1}, serviceId: ${serviceInvocationId})`)
+          const walletSenderPaymentCode = qiWallet.getPaymentCode(0)
           const tx = (await qiWallet.sendTransaction(
             receiverPaymentCode,
             amount,
             Zone.Cyprus1,
             Zone.Cyprus1
           )) as QiTransactionResponse
-          txHash = tx?.hash
-          console.log(`[TransactionService.sendQiTransaction] Transaction sent successfully! txHash: ${txHash}`)
 
-          // Immediately remove the used outpoints from the database to prevent reuse
-          // before the next sync completes (critical for interval conversions)
-          await this.chainService.removeQiOutpoints(qiOutpoints)
-          logger.info(`Removed ${qiOutpoints.length} spent outpoints from database after successful sendQiTransaction`)
+          if (!tx?.hash) {
+            resolvedBroadcastError = new Error(
+              "Qi broadcast completed without returning a transaction hash"
+            )
+            break
+          }
 
-          // Persist wallet state so address status changes (USED/ATTEMPTED_USE)
-          // from the send flow are saved to disk
-          await this.keyringService.vaultManager.add(
-            { qiHDWallet: qiWallet.serialize() }, {}
-          )
-
-          const senderPaymentCode = qiWallet.getPaymentCode(0)
-
-          transaction = processSentQiTransaction(
-            senderPaymentCode,
-            receiverPaymentCode,
-            tx as QiTransactionResponse,
-            amount
-          )
+          sentTransaction = {
+            response: tx,
+            qiWallet,
+            qiOutpoints,
+            senderPaymentCode: walletSenderPaymentCode,
+          }
           break
         } catch (error) {
           err = error
@@ -320,13 +321,18 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             error.message.includes("Insufficient funds")
           ) {
             bufferPercentage += 10
-          } else if (error instanceof Error && error.message.includes("non-existent UTXO")) {
+          } else if (
+            error instanceof Error &&
+            error.message.includes("non-existent UTXO")
+          ) {
             // Parse the error message to get the outpoint hash and index
-            const match = error.message.match(/non-existent UTXO ([0-9a-fA-F]+):(\d+)/)
+            const match = error.message.match(
+              /non-existent UTXO ([0-9a-fA-F]+):(\d+)/
+            )
             if (match) {
               const outpointHash = match[1]
               const outpointIndex = parseInt(match[2], 10)
-              
+
               // Remove the non-existent outpoint from the database
               const chainID = this.chainService.selectedNetwork.chainID
               const nonExistentOutpoint = {
@@ -335,14 +341,16 @@ export default class TransactionService extends BaseService<TransactionServiceEv
                   txhash: outpointHash,
                   index: outpointIndex,
                   denomination: 0, // This doesn't matter for deletion
-                  lock: 0 // This doesn't matter for deletion
+                  lock: 0, // This doesn't matter for deletion
                 },
                 value: BigInt(0), // This doesn't matter for deletion
                 address: "", // This doesn't matter for deletion
-                derivationPath: "" // This doesn't matter for deletion
+                derivationPath: "", // This doesn't matter for deletion
               }
               await this.chainService.removeQiOutpoints([nonExistentOutpoint])
-              logger.info(`Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`)
+              logger.info(
+                `Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`
+              )
             }
             // Continue to next attempt with fresh outpoints after removal
             qiWallet = await this.keyringService.getQiHDWallet()
@@ -356,19 +364,15 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         }
       }
 
-      if (!transaction) {
-        if (err) {
-          throw err
+      if (!sentTransaction) {
+        if (resolvedBroadcastError) {
+          throw resolvedBroadcastError
+        } else if (err) {
+          throw err instanceof Error ? err : new Error(String(err))
         } else {
           throw new Error("Failed to send Qi transaction")
         }
       }
-
-      // Wait for the transaction to be included in a block
-      await this.saveQiTransaction(transaction)
-      await this.subscribeToQiTransaction(transaction.hash)
-
-      NotificationsManager.createSendQiTxNotification()
     } catch (error: any) {
       logger.error(`Failed to send Qi transaction: ${error?.message || error}`)
 
@@ -382,6 +386,32 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       await this.saveQiTransaction(transaction)
       NotificationsManager.createFailedQiTxNotification()
       throw error
+    }
+
+    const { response, qiWallet, qiOutpoints } = sentTransaction
+    const txHash = response.hash
+    const transaction = processSentQiTransaction(
+      sentTransaction.senderPaymentCode,
+      receiverPaymentCode,
+      response,
+      amount
+    )
+
+    await this.reconcileBroadcastQiTransaction(
+      transaction,
+      qiWallet,
+      qiOutpoints,
+      () => this.subscribeToQiTransaction(txHash)
+    )
+
+    try {
+      NotificationsManager.createSendQiTxNotification()
+    } catch (error: any) {
+      logger.error(
+        `Failed to notify about sent Qi transaction ${txHash}: ${
+          error?.message || error
+        }`
+      )
     }
 
     try {
@@ -618,94 +648,145 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
   }
 
-  public async wrapQi(value: string, to: string): Promise<string | undefined> {
-    const { jsonRpcProvider } = this.chainService
-    let qiWallet = await this.keyringService.getQiHDWallet()
-    // QiHDWallet.connect() returns void and modifies the instance
-    qiWallet.connect(jsonRpcProvider)
+  public async wrapQi(
+    value: string,
+    to: string
+  ): Promise<string | undefined> {
     const amount = parseQi(value)
-    console.log("amount", amount)
-    console.log("to", to)
-    let transaction: QiTransactionDB | null = null
-    let err: any | undefined = undefined
+    let sentTransaction:
+      | {
+          response: QiTransactionResponse
+          qiWallet: Awaited<ReturnType<KeyringService["getQiHDWallet"]>>
+          qiOutpoints: Awaited<
+            ReturnType<ChainService["getOutpointsForSending"]>
+          >
+          senderPaymentCode: string
+        }
+      | undefined
+    let lastError: unknown
+    let resolvedBroadcastError: Error | undefined
+
+    try {
+      const { jsonRpcProvider } = this.chainService
+      let qiWallet = await this.keyringService.getQiHDWallet()
+      qiWallet.connect(jsonRpcProvider)
+
       const maxAttempts = 3
       let attempts = 0
       let bufferPercentage = 10
+
       while (attempts < maxAttempts) {
         try {
           const qiOutpoints = await this.chainService.getOutpointsForSending(
             amount,
             bufferPercentage
           )
-          const outpointInfos = qiOutpoints.map((outpoint) => ({
-            outpoint: outpoint.outpoint,
-            address: outpoint.address,
-            zone: Zone.Cyprus1,
-            derivationPath: outpoint.derivationPath,
-          }))
-          
-          qiWallet.importOutpoints(outpointInfos)
-          const tx = await qiWallet.convertToQuai(to, amount, { // This doesn't actually convert to Quai, it just sends a Qi transaction to the provided Quai address
-            data: WRAPPED_QI_CONTRACT_ADDRESS_BYTES,
-          })
-          console.log("wrapping tx", tx)
-          transaction = processConvertQiTransaction(
-            qiWallet.getPaymentCode(0),
-            to, 
-            tx as QiTransactionResponse,
-            amount,
+          qiWallet.importOutpoints(
+            qiOutpoints.map((outpoint) => ({
+              outpoint: outpoint.outpoint,
+              address: outpoint.address,
+              zone: Zone.Cyprus1,
+              derivationPath: outpoint.derivationPath,
+            }))
           )
-          break
-      } catch (error: any) {
-        err = error
-        logger.error("Failed to wrap Qi", error.message)
-        if (
-          error instanceof Error &&
-          error.message.includes("Insufficient funds")
-        ) {
-          bufferPercentage += 10
-        } else if (error instanceof Error && error.message.includes("non-existent UTXO")) {
-          // Parse the error message to get the outpoint hash and index
-          const match = error.message.match(/non-existent UTXO ([0-9a-fA-F]+):(\d+)/)
-          if (match) {
-            const outpointHash = match[1]
-            const outpointIndex = parseInt(match[2], 10)
-            
-            // Remove the non-existent outpoint from the database
-            const chainID = this.chainService.selectedNetwork.chainID
-            const nonExistentOutpoint = {
-              chainID,
-              outpoint: {
-                txhash: outpointHash,
-                index: outpointIndex,
-                denomination: 0, // This doesn't matter for deletion
-                lock: 0 // This doesn't matter for deletion
-              },
-              value: BigInt(0), // This doesn't matter for deletion
-              address: "", // This doesn't matter for deletion
-              derivationPath: "" // This doesn't matter for deletion
-            }
-            await this.chainService.removeQiOutpoints([nonExistentOutpoint])
-            logger.info(`Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`)
+
+          const walletSenderPaymentCode = qiWallet.getPaymentCode(0)
+          const tx = (await qiWallet.convertToQuai(to, amount, {
+            data: WRAPPED_QI_CONTRACT_ADDRESS_BYTES,
+          })) as QiTransactionResponse
+
+          if (!tx?.hash) {
+            resolvedBroadcastError = new Error(
+              "Qi wrap broadcast completed without returning a transaction hash"
+            )
+            break
           }
-        } else {
-          await this.chainService.syncQiWallet({ ignoreRecentSync: true })
-          qiWallet = await this.keyringService.getQiHDWallet()
-          qiWallet.connect(jsonRpcProvider)
+
+          sentTransaction = {
+            response: tx,
+            qiWallet,
+            qiOutpoints,
+            senderPaymentCode: walletSenderPaymentCode,
+          }
+          break
+        } catch (error) {
+          lastError = error
+          logger.error(
+            `Failed to wrap Qi: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          )
+
+          if (
+            error instanceof Error &&
+            error.message.includes("Insufficient funds")
+          ) {
+            bufferPercentage += 10
+          } else if (
+            error instanceof Error &&
+            error.message.includes("non-existent UTXO")
+          ) {
+            const match = error.message.match(
+              /non-existent UTXO ([0-9a-fA-F]+):(\d+)/
+            )
+            if (match) {
+              const [, outpointHash, outpointIndexText] = match
+              const chainID = this.chainService.selectedNetwork.chainID
+              await this.chainService.removeQiOutpoints([
+                {
+                  chainID,
+                  outpoint: {
+                    txhash: outpointHash,
+                    index: parseInt(outpointIndexText, 10),
+                    denomination: 0,
+                    lock: 0,
+                  },
+                  value: 0n,
+                  address: "",
+                  derivationPath: "",
+                },
+              ])
+            }
+            qiWallet = await this.keyringService.getQiHDWallet()
+            qiWallet.connect(jsonRpcProvider)
+          } else {
+            await this.chainService.syncQiWallet({ ignoreRecentSync: true })
+            qiWallet = await this.keyringService.getQiHDWallet()
+            qiWallet.connect(jsonRpcProvider)
+          }
+          attempts += 1
         }
-        attempts++
       }
-    }
-    if (!transaction) {
-      if (err) {
-        throw err
-      } else {
+
+      if (!sentTransaction) {
+        if (resolvedBroadcastError) throw resolvedBroadcastError
+        if (lastError) {
+          throw lastError instanceof Error
+            ? lastError
+            : new Error(String(lastError))
+        }
         throw new Error("Failed to wrap Qi")
       }
+    } catch (error: any) {
+      logger.error(`Failed to wrap Qi: ${error?.message || error}`)
+      throw error
     }
-    await this.saveQiTransaction(transaction)
-    await this.subscribeToQiTransaction(transaction.hash)
-    return transaction.hash
+
+    const { response, qiWallet, qiOutpoints } = sentTransaction
+    const transaction = processConvertQiTransaction(
+      sentTransaction.senderPaymentCode,
+      to,
+      response,
+      amount
+    )
+
+    await this.reconcileBroadcastQiTransaction(
+      transaction,
+      qiWallet,
+      qiOutpoints,
+      () => this.subscribeToQiTransaction(response.hash)
+    )
+    return response.hash
   }
 
   public async wrapQuai(value: string, from: string): Promise<string | undefined> {
@@ -886,9 +967,11 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         // Execute the conversion based on type
         if (isFromUtxo && !isToUtxo) {
           // Converting Qi to Quai
-          await this.convertQiToQuai(params.to.address, params.amount, params.maxSlippage)
-          // TODO: Get transaction hash from conversion
-          txHash = `tx_${Date.now()}`
+          txHash = await this.convertQiToQuai(
+            params.to.address,
+            params.amount,
+            params.maxSlippage
+          )
         } else if (!isFromUtxo && isToUtxo) {
           // Converting Quai to Qi
           await this.convertQuaiToQi(params.from.address, params.amount, params.maxSlippage)
@@ -1019,106 +1102,117 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
   }
 
-  public async convertQiToQuai(to: string, value: string, maxSlippage: number): Promise<void> {
+  public async convertQiToQuai(
+    to: string,
+    value: string,
+    maxSlippage: number
+  ): Promise<string> {
     const amount = parseQi(value)
-    const { jsonRpcProvider } = this.chainService
-    let qiWallet = await this.keyringService.getQiHDWallet()
-    qiWallet.connect(jsonRpcProvider)
-    let transaction: QiTransactionDB | null = null
-    let lastError: any = null
-    let txRefundAddress: string | undefined
+    let sentTransaction:
+      | {
+          response: QiTransactionResponse
+          qiWallet: Awaited<ReturnType<KeyringService["getQiHDWallet"]>>
+          qiOutpoints: Awaited<
+            ReturnType<ChainService["getOutpointsForSending"]>
+          >
+          senderPaymentCode: string
+          refundAddress: string
+        }
+      | undefined
+    let lastError: unknown
+    let resolvedBroadcastError: Error | undefined
+    let attempts = 0
+    let bufferPercentage = 10
+
     try {
+      const { jsonRpcProvider } = this.chainService
+      let qiWallet = await this.keyringService.getQiHDWallet()
+      qiWallet.connect(jsonRpcProvider)
+
       const maxAttempts = 3
-      let attempts = 0
-      let bufferPercentage = 10
       while (attempts < maxAttempts) {
         try {
           const qiOutpoints = await this.chainService.getOutpointsForSending(
             amount,
             bufferPercentage
           )
+          qiWallet.importOutpoints(
+            qiOutpoints.map((outpoint) => ({
+              outpoint: outpoint.outpoint,
+              address: outpoint.address,
+              zone: Zone.Cyprus1,
+              derivationPath: outpoint.derivationPath,
+            }))
+          )
 
-          const outpointInfos = qiOutpoints.map((outpoint) => ({
-            outpoint: outpoint.outpoint,
-            address: outpoint.address,
-            zone: Zone.Cyprus1,
-            derivationPath: outpoint.derivationPath,
-          }))
-          
-          qiWallet.importOutpoints(outpointInfos)
+          const slippageData = encodeTwoBytesBigEndian(maxSlippage)
+          const refundAddress = qiWallet.getNextAddressSync(
+            0,
+            Zone.Cyprus1
+          ).address
+          const refundAddressBytes = Buffer.from(
+            refundAddress.replace("0x", ""),
+            "hex"
+          )
+          const combinedData = new Uint8Array(
+            slippageData.length + refundAddressBytes.length
+          )
+          combinedData.set(slippageData)
+          combinedData.set(refundAddressBytes, slippageData.length)
 
-          let slippageData = encodeTwoBytesBigEndian(maxSlippage)
-
-          const refundAddress = qiWallet.getNextAddressSync(0, Zone.Cyprus1).address
-          txRefundAddress = refundAddress
-          const refundAddressBytes = Buffer.from(refundAddress.replace('0x', ''), 'hex');
-
-          const combinedData = new Uint8Array(slippageData.length + refundAddressBytes.length);
-          combinedData.set(slippageData);
-          // Copy refund address data after slippage data
-          combinedData.set(refundAddressBytes, slippageData.length);
-
-          const tx = await qiWallet.convertToQuai(to, amount, {
+          const walletSenderPaymentCode = qiWallet.getPaymentCode(0)
+          const tx = (await qiWallet.convertToQuai(to, amount, {
             data: combinedData,
-          })
+          })) as QiTransactionResponse
 
-          // Immediately remove the used outpoints from the database to prevent reuse
-          // before the next sync completes (critical for interval conversions)
-          await this.chainService.removeQiOutpoints(qiOutpoints)
-          logger.info(`Removed ${qiOutpoints.length} spent outpoints from database after successful conversion`)
+          if (!tx?.hash) {
+            resolvedBroadcastError = new Error(
+              "Qi conversion broadcast completed without returning a transaction hash"
+            )
+            break
+          }
 
-          // Persist wallet state so address status changes are saved to disk
-          await this.keyringService.vaultManager.add(
-            { qiHDWallet: qiWallet.serialize() }, {}
-          )
-
-          const senderPaymentCode = qiWallet.getPaymentCode(0)
-
-          transaction = processConvertQiTransaction(
-            senderPaymentCode,
-            to,
-            tx as QiTransactionResponse,
-            amount,
+          sentTransaction = {
+            response: tx,
+            qiWallet,
+            qiOutpoints,
+            senderPaymentCode: walletSenderPaymentCode,
             refundAddress,
-          )
+          }
           break
-        } catch (error: any) {
-          const errorMsg = error?.message || String(error)
-          logger.error("Failed to convert Qi to Quai", errorMsg, error)
-          
-          // Store the last error for better reporting
+        } catch (error) {
           lastError = error
-          
-          if (
-            error instanceof Error &&
-            error.message.includes("Insufficient funds")
-          ) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error)
+          logger.error("Failed to convert Qi to Quai", errorMessage, error)
+
+          if (errorMessage.includes("Insufficient funds")) {
             bufferPercentage += 10
-          } else if (error instanceof Error && error.message.includes("non-existent UTXO")) {
-            // Parse the error message to get the outpoint hash and index
-            const match = error.message.match(/non-existent UTXO ([0-9a-fA-F]+):(\d+)/)
+          } else if (errorMessage.includes("non-existent UTXO")) {
+            const match = errorMessage.match(
+              /non-existent UTXO ([0-9a-fA-F]+):(\d+)/
+            )
             if (match) {
-              const outpointHash = match[1]
-              const outpointIndex = parseInt(match[2], 10)
-              
-              // Remove the non-existent outpoint from the database
+              const [, outpointHash, outpointIndexText] = match
               const chainID = this.chainService.selectedNetwork.chainID
-              const nonExistentOutpoint = {
-                chainID,
-                outpoint: {
-                  txhash: outpointHash,
-                  index: outpointIndex,
-                  denomination: 0, // This doesn't matter for deletion
-                  lock: 0 // This doesn't matter for deletion
+              await this.chainService.removeQiOutpoints([
+                {
+                  chainID,
+                  outpoint: {
+                    txhash: outpointHash,
+                    index: parseInt(outpointIndexText, 10),
+                    denomination: 0,
+                    lock: 0,
+                  },
+                  value: 0n,
+                  address: "",
+                  derivationPath: "",
                 },
-                value: BigInt(0), // This doesn't matter for deletion
-                address: "", // This doesn't matter for deletion
-                derivationPath: "" // This doesn't matter for deletion
-              }
-              await this.chainService.removeQiOutpoints([nonExistentOutpoint])
-              logger.info(`Removed non-existent outpoint from database: ${outpointHash}:${outpointIndex}`)
+              ])
+              logger.info(
+                `Removed non-existent outpoint from database: ${outpointHash}:${outpointIndexText}`
+              )
             }
-            // Continue to next attempt with fresh outpoints after removal
             qiWallet = await this.keyringService.getQiHDWallet()
             qiWallet.connect(jsonRpcProvider)
           } else {
@@ -1126,27 +1220,45 @@ export default class TransactionService extends BaseService<TransactionServiceEv
             qiWallet = await this.keyringService.getQiHDWallet()
             qiWallet.connect(jsonRpcProvider)
           }
-          attempts++
+          attempts += 1
         }
       }
-      if (!transaction) {
-        const lastErrorMsg = lastError ? (lastError.message || String(lastError)) : "No specific error captured"
-        const detailedError = `Failed to convert Qi to Quai after ${attempts} attempts. Last error: ${lastErrorMsg}. Buffer percentage: ${bufferPercentage}%`
-        logger.error(detailedError, { lastError, attempts, bufferPercentage })
-        throw new Error(detailedError)
-      }
-      await this.saveQiTransaction(transaction)
-      if (txRefundAddress) {
-        await this.monitorConversion(transaction.hash, txRefundAddress, to)
-      } else {
-        await this.subscribeToQiTransaction(transaction.hash)
+
+      if (!sentTransaction) {
+        if (resolvedBroadcastError) throw resolvedBroadcastError
+        const lastErrorMessage = lastError
+          ? lastError instanceof Error
+            ? lastError.message
+            : String(lastError)
+          : "No specific error captured"
+        throw new Error(
+          `Failed to convert Qi to Quai after ${attempts} attempts. Last error: ${lastErrorMessage}. Buffer percentage: ${bufferPercentage}%`
+        )
       }
     } catch (error: any) {
-      logger.error("Failed to convert Qi to Quai", error.message)
+      logger.error(
+        `Failed to convert Qi to Quai: ${error?.message || error}`
+      )
       NotificationsManager.createFailedQiTxNotification()
-      // Re-throw the error so interval conversions can track it
       throw error
     }
+
+    const { response, qiWallet, qiOutpoints, refundAddress } = sentTransaction
+    const transaction = processConvertQiTransaction(
+      sentTransaction.senderPaymentCode,
+      to,
+      response,
+      amount,
+      refundAddress
+    )
+
+    await this.reconcileBroadcastQiTransaction(
+      transaction,
+      qiWallet,
+      qiOutpoints,
+      () => this.monitorConversion(response.hash, refundAddress, to)
+    )
+    return response.hash
   }
 
   /**
@@ -1585,14 +1697,21 @@ export default class TransactionService extends BaseService<TransactionServiceEv
 
   private async handleQiTransactionTimeout(hash: string): Promise<void> {
     const transaction = await this.db.getQiTransactionByHash(hash)
-    if (transaction) {
-      transaction.status = TransactionStatus.FAILED
-      await this.updateQiTransaction(transaction)
+    if (transaction?.status === TransactionStatus.PENDING) {
+      logger.warn(
+        `Unable to confirm Qi transaction ${hash}; leaving it pending`
+      )
     }
 
-    // Scan will naturally mark unfunded addresses as UNUSED
-    await this.chainService.syncQiWallet({ requireFreshScan: true })
-    NotificationsManager.createFailedQiTxNotification()
+    try {
+      await this.chainService.syncQiWallet({ requireFreshScan: true })
+    } catch (error: any) {
+      logger.warn(
+        `Failed to refresh Qi wallet after confirmation timeout for ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
   }
 
   /**
@@ -1760,11 +1879,67 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   }
 
   /**
-   * Saves or updates a transaction in the database and notifies the UI about the updated transaction.
-   * Emits an event to notify the UI about a transaction update.
-   *
-   * @param {QiTransactionDB} transaction - The transaction to save or update.
+   * Reconciles local state after a Qi broadcast has returned a transaction
+   * hash. Every step is best-effort and independent: failures here must never
+   * make a caller rebroadcast or report the on-chain transaction as failed.
    */
+  private async reconcileBroadcastQiTransaction(
+    transaction: QiTransactionDB,
+    qiWallet: Awaited<ReturnType<KeyringService["getQiHDWallet"]>>,
+    qiOutpoints: Awaited<
+      ReturnType<ChainService["getOutpointsForSending"]>
+    >,
+    monitor: () => Promise<void>
+  ): Promise<void> {
+    const { hash } = transaction
+
+    try {
+      await this.chainService.removeQiOutpoints(qiOutpoints)
+      logger.info(
+        `Removed ${qiOutpoints.length} spent outpoints after broadcasting ${hash}`
+      )
+    } catch (error: any) {
+      logger.error(
+        `Failed to remove spent Qi outpoints after broadcasting ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
+
+    try {
+      await this.keyringService.vaultManager.add(
+        { qiHDWallet: qiWallet.serialize() },
+        {}
+      )
+    } catch (error: any) {
+      logger.error(
+        `Failed to persist Qi wallet state after broadcasting ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
+
+    try {
+      await this.saveQiTransaction(transaction)
+    } catch (error: any) {
+      logger.error(
+        `Failed to persist pending Qi transaction ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
+
+    try {
+      await monitor()
+    } catch (error: any) {
+      logger.error(
+        `Failed to monitor pending Qi transaction ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
+  }
+
   private async saveQiTransaction(transaction: QiTransactionDB): Promise<void> {
     await this.db.addOrUpdateQiTransaction(transaction)
     this.emitter.emit("addUtxoActivity", transaction)

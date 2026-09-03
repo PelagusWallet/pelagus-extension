@@ -31,6 +31,7 @@ export type Props = {
   isFormSubmit?: boolean
   center?: boolean
   style?: React.CSSProperties
+  contentStyle?: React.CSSProperties
 }
 
 export default function SharedButton(
@@ -52,6 +53,7 @@ export default function SharedButton(
     isLoading = false,
     isFormSubmit = false,
     style,
+    contentStyle,
     center = false,
   } = props
 
@@ -116,6 +118,7 @@ export default function SharedButton(
           hide_me: isShowingLoadingSpinner,
           icon_left: iconPosition === "left",
         })}
+        style={contentStyle}
       >
         {children}
         {iconMedium || iconSmall || type === "twitter" ? (

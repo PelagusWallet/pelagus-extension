@@ -1,4 +1,5 @@
 import { QiTransactionResponse } from "quais/lib/commonjs/providers"
+import browser from "webextension-polyfill"
 
 import TransactionService from ".."
 import NotificationsManager from "../../notifications"
@@ -19,6 +20,12 @@ jest.mock("webextension-polyfill", () => ({
       clear: jest.fn(),
       create: jest.fn(),
       onAlarm: { addListener: jest.fn(), removeListener: jest.fn() },
+    },
+    storage: {
+      local: {
+        get: jest.fn().mockResolvedValue({}),
+        set: jest.fn().mockResolvedValue(undefined),
+      },
     },
   },
 }))
@@ -122,6 +129,8 @@ function createService(fault?: Fault) {
 describe("sendQiTransaction broadcast boundary", () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    ;(browser.storage.local.get as jest.Mock).mockResolvedValue({})
+    ;(browser.storage.local.set as jest.Mock).mockResolvedValue(undefined)
   })
 
   it.each<[Fault]>([["outpoints"], ["vault"], ["activity"], ["monitor"]])(
@@ -143,7 +152,7 @@ describe("sendQiTransaction broadcast boundary", () => {
       expect(chainService.removeQiOutpoints).toHaveBeenCalledTimes(1)
       expect(keyringService.vaultManager.add).toHaveBeenCalledTimes(1)
       expect(db.addOrUpdateQiTransaction).toHaveBeenCalledTimes(1)
-      expect(monitor).toHaveBeenCalledTimes(1)
+      expect(monitor).toHaveBeenCalledTimes(fault === "activity" ? 0 : 1)
       expect(
         NotificationsManager.createSendQiTxNotification
       ).toHaveBeenCalledTimes(1)
@@ -224,5 +233,106 @@ describe("sendQiTransaction broadcast boundary", () => {
     expect(
       NotificationsManager.createFailedQiTxNotification
     ).not.toHaveBeenCalled()
+  })
+
+  it("returns the hash without waiting for confirmation monitoring", async () => {
+    const { service, monitor } = createService()
+    let finishMonitor: (() => void) | undefined
+    monitor.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishMonitor = resolve
+        })
+    )
+
+    const sendPromise = service.sendQiTransaction(
+      1n,
+      "0x0000000000000000000000000000000000000002",
+      SENDER_PAYMENT_CODE,
+      RECEIVER_PAYMENT_CODE
+    )
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    const timeoutPromise = new Promise<string>((_, reject) => {
+      timeout = setTimeout(
+        () => reject(new Error("send waited for confirmation")),
+        100
+      )
+    })
+
+    await expect(Promise.race([sendPromise, timeoutPromise])).resolves.toBe(
+      TX_HASH
+    )
+    if (timeout) clearTimeout(timeout)
+    expect(monitor).toHaveBeenCalledTimes(1)
+
+    finishMonitor?.()
+    await sendPromise
+  })
+
+  it("journals and retries a pending database write before monitoring", async () => {
+    const { service, db, monitor, qiWallet } = createService()
+    db.addOrUpdateQiTransaction
+      .mockRejectedValueOnce(new Error("temporary database failure"))
+      .mockResolvedValueOnce(undefined)
+
+    await expect(
+      service.sendQiTransaction(
+        1n,
+        "0x0000000000000000000000000000000000000002",
+        SENDER_PAYMENT_CODE,
+        RECEIVER_PAYMENT_CODE
+      )
+    ).resolves.toBe(TX_HASH)
+
+    expect(qiWallet.sendTransaction).toHaveBeenCalledTimes(1)
+    expect(db.addOrUpdateQiTransaction).toHaveBeenCalledTimes(1)
+    expect(monitor).not.toHaveBeenCalled()
+    expect(browser.storage.local.set).toHaveBeenCalledWith({
+      pendingQiBroadcasts: {
+        [TX_HASH]: expect.objectContaining({
+          hash: TX_HASH,
+          status: TransactionStatus.PENDING,
+        }),
+      },
+    })
+
+    await (service as any).recoverPendingQiBroadcasts()
+    await Promise.resolve()
+
+    expect(db.addOrUpdateQiTransaction).toHaveBeenCalledTimes(2)
+    expect(monitor).toHaveBeenCalledTimes(1)
+    expect(
+      NotificationsManager.createFailedQiTxNotification
+    ).not.toHaveBeenCalled()
+  })
+
+  it("recovers a journaled broadcast after the service is recreated", async () => {
+    const firstService = createService()
+    firstService.db.addOrUpdateQiTransaction.mockRejectedValueOnce(
+      new Error("temporary database failure")
+    )
+
+    await firstService.service.sendQiTransaction(
+      1n,
+      "0x0000000000000000000000000000000000000002",
+      SENDER_PAYMENT_CODE,
+      RECEIVER_PAYMENT_CODE
+    )
+
+    const journalWrite = (browser.storage.local.set as jest.Mock).mock
+      .calls[0][0]
+    const restartedService = createService()
+    ;(browser.storage.local.get as jest.Mock).mockResolvedValue(journalWrite)
+
+    await (restartedService.service as any).recoverPendingQiBroadcasts()
+    await Promise.resolve()
+
+    expect(restartedService.db.addOrUpdateQiTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hash: TX_HASH,
+        status: TransactionStatus.PENDING,
+      })
+    )
+    expect(restartedService.monitor).toHaveBeenCalledTimes(1)
   })
 })

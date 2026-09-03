@@ -135,6 +135,8 @@ export default function SpendApprovalSummary({
               size="large"
               symbol={asset.symbol}
               logoURL={asset.metadata?.logoURL}
+              contractAddress={asset.contractAddress}
+              chainID={asset.homeNetwork.chainID}
             />
           </div>
         </div>

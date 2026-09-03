@@ -20,6 +20,12 @@ jest.mock("webextension-polyfill", () => ({
       create: jest.fn(),
       onAlarm: { addListener: jest.fn(), removeListener: jest.fn() },
     },
+    storage: {
+      local: {
+        get: jest.fn().mockResolvedValue({}),
+        set: jest.fn().mockResolvedValue(undefined),
+      },
+    },
   },
 }))
 jest.mock("../../notifications", () => ({
@@ -128,7 +134,7 @@ function expectSinglePendingReconciliation(
   expect(chainService.removeQiOutpoints).toHaveBeenCalledTimes(1)
   expect(keyringService.vaultManager.add).toHaveBeenCalledTimes(1)
   expect(db.addOrUpdateQiTransaction).toHaveBeenCalledTimes(1)
-  expect(monitor).toHaveBeenCalledTimes(1)
+  expect(monitor).toHaveBeenCalledTimes(fault === "activity" ? 0 : 1)
   expect(
     NotificationsManager.createFailedQiTxNotification
   ).not.toHaveBeenCalled()

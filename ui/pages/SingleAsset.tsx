@@ -172,10 +172,7 @@ export default function SingleAsset(): ReactElement {
       </div>
       {asset && (
         <div className="header standard_width_padded">
-          <div
-            className="left"
-            style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          >
+          <div className="left">
             <div className="balance">{localizedDecimalAmount}</div>
 
             <div className="asset_wrap">
@@ -256,7 +253,7 @@ export default function SingleAsset(): ReactElement {
                       pathname: "/send",
                       state: asset,
                     }}
-                    style={{ color: 'white' }}
+                    style={{ color: "var(--contrast-text)" }}
                   >
                     {t("shared.send")}
                   </SharedButton>
@@ -279,15 +276,22 @@ export default function SingleAsset(): ReactElement {
         {`
           .header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            align-items: stretch;
             padding-bottom: 24px;
-            gap: 4px;
+            gap: 16px;
+          }
+          .header .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
           }
           .header .right {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
           }
           .unverified_asset_button {
             display: flex;
@@ -308,10 +312,11 @@ export default function SingleAsset(): ReactElement {
           .asset_wrap {
             display: flex;
             align-items: center;
+            flex: 0 0 auto;
           }
           .balance {
-            width: 100%;
-            max-width: 140px;
+            flex: 0 1 auto;
+            min-width: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -339,7 +344,10 @@ export default function SingleAsset(): ReactElement {
           .action-buttons {
             display: flex;
             gap: 8px;
-            flex-direction: column;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
           }
         `}
       </style>

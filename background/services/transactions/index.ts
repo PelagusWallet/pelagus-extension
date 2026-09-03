@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill"
 import {
   QiTransactionResponse,
   QuaiTransactionRequest,
@@ -52,6 +53,8 @@ import IndexingService from "../indexing"
 import { isUtxoAccountTypeGuard } from "@pelagus/pelagus-ui/utils/accounts"
 
 const QI_TRANSACTIONS_FETCH_INTERVAL = 10 * SECOND
+const QI_BROADCAST_RECOVERY_ALARM = "qi-broadcast-recovery"
+const QI_BROADCAST_RECOVERY_STORAGE_KEY = "pendingQiBroadcasts"
 const QUAI_TRANSACTION_FALLBACK_INTERVAL = 30 * SECOND
 const TRANSACTION_RECEIPT_WAIT_TIMEOUT = 10 * MINUTE
 const PROCESSED_ACCESS_BLOCK_TTL = MINUTE
@@ -77,6 +80,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private quaiMonitorDeadlines: Map<string, number> = new Map()
   private quaiMonitorTimers: Map<string, ReturnType<typeof setTimeout>> =
     new Map()
+  private qiBroadcastReconciliationQueue: Map<string, QiTransactionDB> =
+    new Map()
+  private qiMonitorTasks: Map<string, Promise<void>> = new Map()
+  private qiRecoveryStorageOperation: Promise<void> = Promise.resolve()
   private processedAccessBlocks: Map<string, ReturnType<typeof setTimeout>> =
     new Map()
   private stopAddressAccessListener?: () => void
@@ -109,12 +116,14 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    */
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
+    browser.alarms.onAlarm.addListener(this.handleQiBroadcastRecoveryAlarm)
 
     this.stopAddressAccessListener = this.chainService.emitter.on(
       "addressAccessed",
       this.handleAddressAccess
     )
 
+    await this.recoverPendingQiBroadcasts(false)
     this.checkPendingQiTransactions()
     this.checkPendingQuaiTransactions()
 
@@ -158,7 +167,19 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     }
     this.conversionMonitors.clear()
 
+    browser.alarms.onAlarm.removeListener(this.handleQiBroadcastRecoveryAlarm)
+    await browser.alarms.clear(QI_BROADCAST_RECOVERY_ALARM)
     await super.internalStopService()
+  }
+
+  private handleQiBroadcastRecoveryAlarm = (
+    alarm: browser.Alarms.Alarm
+  ): void => {
+    if (alarm.name === QI_BROADCAST_RECOVERY_ALARM) {
+      this.recoverPendingQiBroadcasts().catch((error) => {
+        logger.error("Failed to retry pending Qi broadcast records:", error)
+      })
+    }
   }
 
   // ------------------------------------ public methods ------------------------------------
@@ -190,7 +211,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
           request
         )) as QuaiTransactionResponse
       }
-      await this.processQuaiTransactionResponse(
+      await this.reconcileBroadcastQuaiTransaction(
         transactionResponse,
         "annotation" in request ? request.annotation : undefined
       )
@@ -234,7 +255,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         zone,
         signedTransaction
       )) as QuaiTransactionResponse
-      await this.processQuaiTransactionResponse(transactionResponse)
+      await this.reconcileBroadcastQuaiTransaction(transactionResponse)
     } catch (error: any) {
       logger.error(
         `Failed to send Quai transaction: ${error?.message || error}`
@@ -400,8 +421,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await this.reconcileBroadcastQiTransaction(
       transaction,
       qiWallet,
-      qiOutpoints,
-      () => this.subscribeToQiTransaction(txHash)
+      qiOutpoints
     )
 
     try {
@@ -638,7 +658,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     if (!tx) {
       throw new Error("Failed to send claim transaction")
     }
-    await this.processQuaiTransactionResponse(tx)
+    await this.reconcileBroadcastQuaiTransaction(tx)
     return tx.hash
   } catch (error: any) {
     logger.error("Failed to unwrap Qi", error.message)
@@ -781,8 +801,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await this.reconcileBroadcastQiTransaction(
       transaction,
       qiWallet,
-      qiOutpoints,
-      () => this.subscribeToQiTransaction(response.hash)
+      qiOutpoints
     )
     return response.hash
   }
@@ -825,7 +844,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       if (!tx) {
         throw new Error("Failed to send wrap QUAI transaction")
       }
-      await this.processQuaiTransactionResponse(tx)
+      await this.reconcileBroadcastQuaiTransaction(tx)
       return tx.hash
     } catch (error: any) {
       logger.error("Failed to wrap QUAI", error.message)
@@ -870,7 +889,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       if (!tx) {
         throw new Error("Failed to send unwrap WQUAI transaction")
       }
-      await this.processQuaiTransactionResponse(tx)
+      await this.reconcileBroadcastQuaiTransaction(tx)
       return tx.hash
     } catch (error: any) {
       logger.error("Failed to unwrap WQUAI", error.message)
@@ -1252,8 +1271,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await this.reconcileBroadcastQiTransaction(
       transaction,
       qiWallet,
-      qiOutpoints,
-      () => this.monitorConversion(response.hash, refundAddress, to)
+      qiOutpoints
     )
     return response.hash
   }
@@ -1392,7 +1410,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       if (!tx) {
         throw new Error("Failed to send claim transaction")
       }
-      await this.processQuaiTransactionResponse(tx)
+      await this.reconcileBroadcastQuaiTransaction(tx)
     } catch (error: any) {
       logger.error("Failed to claim wrapped Qi deposit for account", error.message)
       throw error
@@ -1549,18 +1567,46 @@ export default class TransactionService extends BaseService<TransactionServiceEv
    *
    * @param {QuaiTransactionResponse} transactionResponse - The response received after sending the transaction.
    */
-  private async processQuaiTransactionResponse(
+  private async reconcileBroadcastQuaiTransaction(
     transactionResponse: QuaiTransactionResponse,
     annotation?: QuaiTransactionDB["annotation"]
   ): Promise<void> {
-    const transaction = quaiTransactionFromResponse(
-      transactionResponse,
-      TransactionStatus.PENDING,
-      annotation
-    )
-    await this.saveQuaiTransaction(transaction)
-    this.emitter.emit("transactionSend", transactionResponse.hash)
-    this.monitorQuaiTransaction(transactionResponse.hash)
+    const { hash } = transactionResponse
+
+    try {
+      const transaction = quaiTransactionFromResponse(
+        transactionResponse,
+        TransactionStatus.PENDING,
+        annotation
+      )
+      await this.saveQuaiTransaction(transaction)
+    } catch (error: any) {
+      logger.error(
+        `Failed to persist broadcast Quai transaction ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
+
+    try {
+      await this.emitter.emit("transactionSend", hash)
+    } catch (error: any) {
+      logger.error(
+        `Failed to notify listeners about broadcast Quai transaction ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
+
+    try {
+      this.monitorQuaiTransaction(hash)
+    } catch (error: any) {
+      logger.error(
+        `Failed to monitor broadcast Quai transaction ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
   }
 
   private async confirmQuaiTransaction(hash: string): Promise<boolean> {
@@ -1868,7 +1914,7 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     await this.db.addOrUpdateQuaiTransaction(transaction)
     const accounts = await this.chainService.getAccountsToTrack()
     const forAccounts = getRelevantTransactionAddresses(transaction, accounts)
-    this.emitter.emit("updateQuaiTransaction", {
+    await this.emitter.emit("updateQuaiTransaction", {
       transaction,
       forAccounts,
     })
@@ -1882,12 +1928,20 @@ export default class TransactionService extends BaseService<TransactionServiceEv
   private async reconcileBroadcastQiTransaction(
     transaction: QiTransactionDB,
     qiWallet: Awaited<ReturnType<KeyringService["getQiHDWallet"]>>,
-    qiOutpoints: Awaited<
-      ReturnType<ChainService["getOutpointsForSending"]>
-    >,
-    monitor: () => Promise<void>
+    qiOutpoints: Awaited<ReturnType<ChainService["getOutpointsForSending"]>>
   ): Promise<void> {
     const { hash } = transaction
+
+    this.qiBroadcastReconciliationQueue.set(hash, transaction)
+    try {
+      await this.storePendingQiBroadcast(transaction)
+    } catch (error: any) {
+      logger.error(
+        `Failed to journal broadcast Qi transaction ${hash}: ${
+          error?.message || error
+        }`
+      )
+    }
 
     try {
       await this.chainService.removeQiOutpoints(qiOutpoints)
@@ -1915,25 +1969,192 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       )
     }
 
+    await this.persistBroadcastQiTransaction(transaction)
+    await this.updateQiBroadcastRecoveryAlarm()
+  }
+
+  private async persistBroadcastQiTransaction(
+    transaction: QiTransactionDB,
+    startMonitoring = true
+  ): Promise<boolean> {
+    const { hash } = transaction
+
     try {
-      await this.saveQiTransaction(transaction)
+      await this.db.addOrUpdateQiTransaction(transaction)
     } catch (error: any) {
       logger.error(
-        `Failed to persist pending Qi transaction ${hash}: ${
+        `Failed to persist pending Qi transaction ${hash}; queued for retry: ${
+          error?.message || error
+        }`
+      )
+      this.qiBroadcastReconciliationQueue.set(hash, transaction)
+      return false
+    }
+
+    this.qiBroadcastReconciliationQueue.delete(hash)
+
+    try {
+      await this.emitter.emit("addUtxoActivity", transaction)
+    } catch (error: any) {
+      logger.error(
+        `Failed to notify listeners about pending Qi transaction ${hash}: ${
           error?.message || error
         }`
       )
     }
 
     try {
-      await monitor()
+      await this.removePendingQiBroadcast(hash)
     } catch (error: any) {
       logger.error(
-        `Failed to monitor pending Qi transaction ${hash}: ${
+        `Failed to clear recovered Qi broadcast ${hash}: ${
           error?.message || error
         }`
       )
     }
+
+    if (startMonitoring) this.startQiTransactionMonitor(transaction)
+    return true
+  }
+
+  private startQiTransactionMonitor(transaction: QiTransactionDB): void {
+    const { hash, quaiRecipient, refundAddress, type } = transaction
+    if (this.qiMonitorTasks.has(hash) || this.conversionMonitors.has(hash)) {
+      return
+    }
+
+    const monitor =
+      type === UtxoActivityType.CONVERT && refundAddress && quaiRecipient
+        ? () => this.monitorConversion(hash, refundAddress, quaiRecipient)
+        : () => this.subscribeToQiTransaction(hash)
+
+    const monitorTask = Promise.resolve().then(monitor)
+    this.qiMonitorTasks.set(hash, monitorTask)
+    monitorTask
+      .catch((error: any) => {
+        logger.error(
+          `Failed to monitor pending Qi transaction ${hash}: ${
+            error?.message || error
+          }`
+        )
+      })
+      .finally(() => {
+        if (this.qiMonitorTasks.get(hash) === monitorTask) {
+          this.qiMonitorTasks.delete(hash)
+        }
+      })
+  }
+
+  private async recoverPendingQiBroadcasts(
+    startMonitoring = true
+  ): Promise<void> {
+    let storedTransactions: Record<string, QiTransactionDB> = {}
+    try {
+      storedTransactions = await this.getPendingQiBroadcasts()
+    } catch (error: any) {
+      logger.error(
+        `Failed to load pending Qi broadcast records: ${
+          error?.message || error
+        }`
+      )
+    }
+
+    const transactions = new Map<string, QiTransactionDB>(
+      Object.entries(storedTransactions)
+    )
+    this.qiBroadcastReconciliationQueue.forEach((transaction, hash) => {
+      transactions.set(hash, transaction)
+    })
+
+    await Promise.all(
+      Array.from(transactions.values()).map((transaction) =>
+        this.persistBroadcastQiTransaction(transaction, startMonitoring)
+      )
+    )
+    await this.updateQiBroadcastRecoveryAlarm()
+  }
+
+  private async updateQiBroadcastRecoveryAlarm(): Promise<void> {
+    try {
+      const records = await this.getPendingQiBroadcasts()
+      if (
+        this.qiBroadcastReconciliationQueue.size === 0 &&
+        Object.keys(records).length === 0
+      ) {
+        await browser.alarms.clear(QI_BROADCAST_RECOVERY_ALARM)
+        return
+      }
+    } catch (error) {
+      // Keep retrying if storage is unavailable and pending work is unknown.
+      logger.error("Failed to check pending Qi broadcast records", error)
+    }
+
+    try {
+      if (!(await browser.alarms.get(QI_BROADCAST_RECOVERY_ALARM))) {
+        await browser.alarms.create(QI_BROADCAST_RECOVERY_ALARM, {
+          periodInMinutes: 1,
+        })
+      }
+    } catch (error) {
+      logger.error("Failed to schedule Qi broadcast recovery", error)
+    }
+  }
+
+  private async getPendingQiBroadcasts(): Promise<
+    Record<string, QiTransactionDB>
+  > {
+    await this.qiRecoveryStorageOperation.catch(() => undefined)
+    const stored = await browser.storage.local.get(
+      QI_BROADCAST_RECOVERY_STORAGE_KEY
+    )
+    const records = stored[QI_BROADCAST_RECOVERY_STORAGE_KEY]
+    return records && typeof records === "object" && !Array.isArray(records)
+      ? (records as Record<string, QiTransactionDB>)
+      : {}
+  }
+
+  private async storePendingQiBroadcast(
+    transaction: QiTransactionDB
+  ): Promise<void> {
+    return this.updatePendingQiBroadcasts((records) => ({
+      ...records,
+      [transaction.hash]: transaction,
+    }))
+  }
+
+  private async removePendingQiBroadcast(hash: string): Promise<void> {
+    return this.updatePendingQiBroadcasts((records) => {
+      const { [hash]: _, ...remainingRecords } = records
+      return remainingRecords
+    })
+  }
+
+  private updatePendingQiBroadcasts(
+    update: (
+      records: Record<string, QiTransactionDB>
+    ) => Record<string, QiTransactionDB>
+  ): Promise<void> {
+    const operation = this.qiRecoveryStorageOperation
+      .catch(() => undefined)
+      .then(async () => {
+        const stored = await browser.storage.local.get(
+          QI_BROADCAST_RECOVERY_STORAGE_KEY
+        )
+        const rawRecords = stored[QI_BROADCAST_RECOVERY_STORAGE_KEY]
+        const records =
+          rawRecords &&
+          typeof rawRecords === "object" &&
+          !Array.isArray(rawRecords)
+            ? { ...(rawRecords as Record<string, QiTransactionDB>) }
+            : {}
+        const updatedRecords = update(records)
+        await browser.storage.local.set({
+          [QI_BROADCAST_RECOVERY_STORAGE_KEY]: updatedRecords,
+        })
+      })
+
+    this.qiRecoveryStorageOperation = operation.catch(() => undefined)
+    return operation
   }
 
   private async saveQiTransaction(transaction: QiTransactionDB): Promise<void> {

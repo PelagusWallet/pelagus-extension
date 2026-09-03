@@ -75,6 +75,16 @@ export default function CommonAssetListItem(
           <SharedAssetIcon
             logoURL={assetAmount?.asset?.metadata?.logoURL}
             symbol={assetAmount?.asset?.symbol}
+            contractAddress={
+              isSmartContractFungibleAsset(assetAmount.asset)
+                ? assetAmount.asset.contractAddress
+                : undefined
+            }
+            chainID={
+              isSmartContractFungibleAsset(assetAmount.asset)
+                ? assetAmount.asset.homeNetwork.chainID
+                : undefined
+            }
           />
           <div className="asset_left_content">
             <span className="asset_symbol" title={assetAmount.asset.symbol}>

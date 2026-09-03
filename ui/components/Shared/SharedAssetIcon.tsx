@@ -6,12 +6,15 @@ import React, {
   useState,
 } from "react"
 import { storageGatewayURL } from "@pelagus/pelagus-background/lib/storage-gateway"
+import { getExplorerTokenIconURL } from "@pelagus/pelagus-background/lib/token-icons"
 import classNames from "classnames"
 
 type Props = {
   size: "small" | "medium" | "large" | number
   logoURL?: string
   symbol: string
+  contractAddress?: string
+  chainID?: string
 }
 
 // Passes IPFS and Arweave through HTTP gateway
@@ -71,7 +74,12 @@ function useIntersectionObserver<T extends React.RefObject<HTMLElement>>(
 }
 
 export default function SharedAssetIcon(props: Props): ReactElement {
-  const { size, logoURL, symbol } = props
+  const { size, logoURL, symbol, contractAddress, chainID } = props
+  const resolvedLogoURL =
+    logoURL ||
+    (contractAddress && chainID
+      ? getExplorerTokenIconURL(contractAddress, chainID)
+      : undefined)
 
   const [imageURL, setImageURL] = useState("")
   const [visible, setIsVisible] = useState(false)
@@ -93,11 +101,11 @@ export default function SharedAssetIcon(props: Props): ReactElement {
   useEffect(() => {
     setImageURL("")
 
-    if (!visible || !logoURL) {
+    if (!visible || !resolvedLogoURL) {
       return undefined
     }
 
-    const httpURL = getAsHttpURL(logoURL)
+    const httpURL = getAsHttpURL(resolvedLogoURL)
     if (!httpURL) return undefined
 
     const img = new Image()
@@ -109,6 +117,7 @@ export default function SharedAssetIcon(props: Props): ReactElement {
     img.onload = () => {
       if (!cancelled) setImageURL(img.src)
     }
+    img.referrerPolicy = "no-referrer"
     img.src = httpURL
 
     return () => {
@@ -116,7 +125,7 @@ export default function SharedAssetIcon(props: Props): ReactElement {
       img.onerror = null
       img.onload = null
     }
-  }, [visible, logoURL])
+  }, [visible, resolvedLogoURL])
 
   return (
     <div
@@ -207,4 +216,6 @@ SharedAssetIcon.defaultProps = {
   size: "medium",
   logoURL: undefined,
   symbol: "QUAI",
+  contractAddress: undefined,
+  chainID: undefined,
 }

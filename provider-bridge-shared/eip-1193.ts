@@ -6,6 +6,10 @@ export type RequestArgument = {
 }
 
 export const EIP1193_ERROR_CODES = {
+  requestAlreadyPending: {
+    code: -32002,
+    message: "A wallet approval request is already pending.",
+  },
   userRejectedRequest: {
     code: 4001,
     message: "The user rejected the request.",

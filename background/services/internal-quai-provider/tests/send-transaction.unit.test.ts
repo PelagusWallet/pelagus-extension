@@ -1,4 +1,5 @@
 import { QuaiTransactionResponse } from "quais"
+import { EIP1193_ERROR_CODES } from "@pelagus-provider/provider-bridge-shared"
 import { QuaiMainnet } from "../../../constants/networks/networks"
 import ChainService from "../../chain"
 import PreferenceService from "../../preferences"
@@ -85,5 +86,75 @@ describe("InternalQuaiProviderService transaction chain binding", () => {
       "transactionSendRequest",
       expect.anything()
     )
+  })
+
+  it("rejects a concurrent signing request before it can share the active response", async () => {
+    let resolveFirstRequest:
+      | ((response: QuaiTransactionResponse) => void)
+      | undefined
+    const transactionRequest = jest.fn(
+      ({
+        resolver,
+      }: {
+        resolver: (response: QuaiTransactionResponse) => void
+      }) => {
+        resolveFirstRequest = resolver
+      }
+    )
+    const signDataRequest = jest.fn()
+    service.emitter.on("transactionSendRequest", transactionRequest)
+    service.emitter.on("signDataRequest", signDataRequest)
+
+    const firstRequest = service.routeSafeRPCRequest(
+      "quai_sendTransaction",
+      [
+        {
+          chainId: "0x9",
+          from: TEST_ADDRESS,
+          to: "0x1111111111111111111111111111111111111111",
+        },
+      ],
+      "https://first.test"
+    )
+
+    await Promise.resolve()
+
+    await expect(
+      service.routeSafeRPCRequest(
+        "personal_sign",
+        ["0x1234", TEST_ADDRESS],
+        "https://second.test"
+      )
+    ).rejects.toMatchObject({
+      eip1193Error: EIP1193_ERROR_CODES.requestAlreadyPending,
+    })
+
+    expect(transactionRequest).toHaveBeenCalledTimes(1)
+    expect(signDataRequest).not.toHaveBeenCalled()
+
+    resolveFirstRequest?.({ hash: "0x1234" } as QuaiTransactionResponse)
+    await expect(firstRequest).resolves.toBe("0x1234")
+  })
+
+  it("releases the approval gate after a request is rejected", async () => {
+    service.emitter.on("signDataRequest", ({ rejecter }) => {
+      rejecter(new Error("rejected"))
+    })
+
+    await expect(
+      service.routeSafeRPCRequest(
+        "personal_sign",
+        ["0x1234", TEST_ADDRESS],
+        "https://first.test"
+      )
+    ).rejects.toThrow("rejected")
+
+    await expect(
+      service.routeSafeRPCRequest(
+        "personal_sign",
+        ["0x5678", TEST_ADDRESS],
+        "https://second.test"
+      )
+    ).rejects.toThrow("rejected")
   })
 })

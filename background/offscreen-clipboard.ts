@@ -3,6 +3,7 @@ import {
   SensitiveClipboardCopyMessage,
   SensitiveClipboardResponse,
   isSensitiveClipboardCopyMessage,
+  isTrustedExtensionPageSender,
   sensitiveClipboardBackgroundTarget,
   sensitiveClipboardCopyMessageType,
   sensitiveClipboardDocumentTarget,
@@ -110,8 +111,13 @@ function createDefaultCoordinator(): OffscreenClipboardCoordinator {
 export function connectOffscreenClipboard(): void {
   const coordinator = createDefaultCoordinator()
 
-  browser.runtime.onMessage.addListener((message: unknown) => {
+  browser.runtime.onMessage.addListener((message: unknown, sender) => {
     if (
+      !isTrustedExtensionPageSender(
+        sender,
+        browser.runtime.id,
+        browser.runtime.getURL("")
+      ) ||
       !isSensitiveClipboardCopyMessage(
         message,
         sensitiveClipboardBackgroundTarget

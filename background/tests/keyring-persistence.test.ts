@@ -3,18 +3,22 @@ import {
   encryptVault,
   decryptVault,
   deriveSymmetricKeyFromPassword,
-  deriveSymmetricKeyFromPasswordForSession,
-  importSerializedSaltedKey,
 } from "../services/keyring/utils/encryption"
 
 const originalCrypto = global.crypto
 beforeEach(() => {
   // polyfill the WebCrypto API
-  global.crypto = webcrypto as unknown as Crypto
+  Object.defineProperty(global, "crypto", {
+    configurable: true,
+    value: webcrypto,
+  })
 })
 
 afterEach(() => {
-  global.crypto = originalCrypto
+  Object.defineProperty(global, "crypto", {
+    configurable: true,
+    value: originalCrypto,
+  })
 })
 
 test("derives symmetric keys", async () => {
@@ -34,28 +38,12 @@ test("derives symmetric keys", async () => {
     expect(salt).toEqual(newSalt)
 
     expect(new Set(key.usages)).toEqual(new Set(["encrypt", "decrypt"]))
+    expect(key.extractable).toEqual(false)
   }
   /* eslint-enable no-await-in-loop */
 })
 
-test("restores a non-extractable symmetric key from session key material", async () => {
-  const password = "this-is-a-poor-password"
-  const vault = { sentinel: "session-restored" }
-  const { saltedKey, serializedSaltedKey } =
-    await deriveSymmetricKeyFromPasswordForSession(password)
-
-  expect(serializedSaltedKey.keyMaterial).not.toContain(password)
-
-  const encryptedVault = await encryptVault(vault, saltedKey)
-  const restoredSaltedKey = await importSerializedSaltedKey(serializedSaltedKey)
-
-  expect(restoredSaltedKey.key.extractable).toEqual(false)
-  await expect(
-    decryptVault(encryptedVault, restoredSaltedKey)
-  ).resolves.toEqual(vault)
-})
-
-test("session key derivation remains compatible with existing vaults", async () => {
+test("key derivation remains compatible with existing vaults", async () => {
   const password = "this-is-a-poor-password"
   const salt = "an-existing-vault-salt"
   const encoder = new TextEncoder()
@@ -83,10 +71,7 @@ test("session key derivation remains compatible with existing vaults", async () 
     { key: legacyKey, salt }
   )
 
-  const { saltedKey } = await deriveSymmetricKeyFromPasswordForSession(
-    password,
-    salt
-  )
+  const saltedKey = await deriveSymmetricKeyFromPassword(password, salt)
 
   await expect(decryptVault(encryptedVault, saltedKey)).resolves.toEqual({
     sentinel: "existing-vault",

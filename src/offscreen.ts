@@ -2,6 +2,7 @@
 
 import {
   isSensitiveClipboardCopyMessage,
+  isTrustedBackgroundSender,
   SensitiveClipboardResponse,
   sensitiveClipboardDocumentTarget,
 } from "./offscreen-clipboard-messages"
@@ -12,10 +13,15 @@ chrome.runtime.onMessage.addListener(handleMessages)
 
 function handleMessages(
   message: unknown,
-  _sender: chrome.runtime.MessageSender,
+  sender: chrome.runtime.MessageSender,
   sendResponse: (response: SensitiveClipboardResponse) => void
 ): false {
   if (
+    !isTrustedBackgroundSender(
+      sender,
+      chrome.runtime.id,
+      chrome.runtime.getURL("background.js")
+    ) ||
     !isSensitiveClipboardCopyMessage(message, sensitiveClipboardDocumentTarget)
   ) {
     return false
@@ -42,6 +48,7 @@ function handleClipboardWrite(data: string): SensitiveClipboardResponse {
     textEl.select()
 
     if (!document.execCommand("copy")) {
+      textEl.value = ""
       return { success: false, error: "The browser rejected the copy command" }
     }
 
@@ -58,6 +65,7 @@ function handleClipboardWrite(data: string): SensitiveClipboardResponse {
 
     return { success: true }
   } catch (error) {
+    textEl.value = ""
     const message = error instanceof Error ? error.message : String(error)
     return { success: false, error: message }
   }

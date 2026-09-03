@@ -8,8 +8,19 @@ import {
   PELAGUS_HEALTH_CHECK_METHOD,
   PELAGUS_GET_CONFIG_METHOD,
 } from "@pelagus-provider/provider-bridge-shared"
+import PendingRequestTracker from "./pending-requests"
 
 const WINDOW_ORIGIN_AT_LOAD_TIME = window.location.origin
+
+function postResponseToWindow(response: unknown): void {
+  window.postMessage(
+    {
+      ...(response as Record<string, unknown>),
+      target: WINDOW_PROVIDER_TARGET,
+    },
+    WINDOW_ORIGIN_AT_LOAD_TIME
+  )
+}
 
 function performHealthCheck(port: browser.Runtime.Port): void {
   port.postMessage({
@@ -22,7 +33,8 @@ function performHealthCheck(port: browser.Runtime.Port): void {
 
 function contentScriptEventsListener(
   event: MessageEvent,
-  port: browser.Runtime.Port
+  port: browser.Runtime.Port,
+  pendingRequests: PendingRequestTracker
 ): void {
   if (
     event.origin === WINDOW_ORIGIN_AT_LOAD_TIME && // we want to receive msgs only from the in-page script
@@ -46,68 +58,68 @@ function contentScriptEventsListener(
       event.data.request.params.push(title, faviconUrl)
     }
 
-    // TODO: replace with better logging before v1. Now it's invaluable in debugging.
-    console.log(
-      `%c content: inpage > background: ${JSON.stringify(event.data)}`,
-      "background: #bada55; color: #222"
-    )
-
-    port.postMessage(event.data)
+    pendingRequests.track(event.data)
+    try {
+      port.postMessage(event.data)
+    } catch {
+      pendingRequests.takeDisconnectResponses().forEach(postResponseToWindow)
+    }
   }
 }
 
 export function initializePelagusProviderBridge(): void {
   let portHealthInterval: NodeJS.Timeout | null = null
-  let port = browser.runtime.connect({ name: EXTERNAL_PORT_NAME })
+  let port: browser.Runtime.Port
+  const pendingRequests = new PendingRequestTracker()
+
+  function startHealthChecks(): void {
+    if (portHealthInterval !== null) clearInterval(portHealthInterval)
+    portHealthInterval = setInterval(
+      () => performHealthCheck(port),
+      PORT_HEALTH_CHECK_INTERVAL_IN_MILLISECONDS
+    )
+  }
+
+  function connect(): browser.Runtime.Port {
+    const connectedPort = browser.runtime.connect({ name: EXTERNAL_PORT_NAME })
+
+    connectedPort.onMessage.addListener((data) => {
+      pendingRequests.settle(data)
+      postResponseToWindow(data)
+    })
+
+    connectedPort.onDisconnect.addListener(() => {
+      if (portHealthInterval !== null) clearInterval(portHealthInterval)
+      portHealthInterval = null
+
+      pendingRequests.takeDisconnectResponses().forEach(postResponseToWindow)
+
+      setTimeout(() => {
+        port = connect()
+        startHealthChecks()
+      }, PORT_RECONNECT_TIMEOUT_IN_MILLISECONDS)
+    })
+
+    // We send the config on initialization to save a service call and again
+    // after a reconnect so the in-page provider receives current state.
+    connectedPort.postMessage({
+      request: {
+        method: PELAGUS_GET_CONFIG_METHOD,
+        origin: WINDOW_ORIGIN_AT_LOAD_TIME,
+      },
+    })
+    performHealthCheck(connectedPort)
+
+    return connectedPort
+  }
+
+  port = connect()
 
   window.addEventListener("message", (event: MessageEvent) =>
-    contentScriptEventsListener(event, port)
+    contentScriptEventsListener(event, port, pendingRequests)
   )
 
-  // we send the config on port initialization to save the service call
-  port.postMessage({
-    request: {
-      method: PELAGUS_GET_CONFIG_METHOD,
-      origin: WINDOW_ORIGIN_AT_LOAD_TIME,
-    },
-  })
-
-  function backgroundEventsListener(port: browser.Runtime.Port): void {
-    port.onMessage.addListener((data) => {
-      // TODO: replace with better logging before v1. Now it's invaluable in debugging.
-      console.log(
-        `%c content: background > inpage: ${JSON.stringify(data)}`,
-        "background: #222; color: #bada55"
-      )
-
-      window.postMessage(
-        {
-          ...data,
-          target: WINDOW_PROVIDER_TARGET,
-        },
-        WINDOW_ORIGIN_AT_LOAD_TIME
-      )
-    })
-
-    port.onDisconnect.addListener(() => {
-      if (portHealthInterval !== null) clearInterval(portHealthInterval)
-      setTimeout(reconnect, PORT_RECONNECT_TIMEOUT_IN_MILLISECONDS)
-    })
-
-    performHealthCheck(port)
-  }
-
-  function reconnect(): void {
-    port = browser.runtime.connect({ name: EXTERNAL_PORT_NAME })
-    backgroundEventsListener(port)
-  }
-
-  backgroundEventsListener(port)
-
-  portHealthInterval = setInterval(
-    () => performHealthCheck(port),
-    PORT_HEALTH_CHECK_INTERVAL_IN_MILLISECONDS
-  )
+  startHealthChecks()
 }
 
 export function injectPelagusWindowProvider(): void {

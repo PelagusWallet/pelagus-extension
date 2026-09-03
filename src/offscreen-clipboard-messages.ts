@@ -19,6 +19,28 @@ export type SensitiveClipboardResponse = {
   error?: string
 }
 
+type ClipboardMessageSender = Pick<chrome.runtime.MessageSender, "id" | "url">
+
+export function isTrustedExtensionPageSender(
+  sender: ClipboardMessageSender,
+  extensionID: string,
+  extensionRootURL: string
+): boolean {
+  return (
+    sender.id === extensionID &&
+    typeof sender.url === "string" &&
+    sender.url.startsWith(extensionRootURL)
+  )
+}
+
+export function isTrustedBackgroundSender(
+  sender: ClipboardMessageSender,
+  extensionID: string,
+  backgroundURL: string
+): boolean {
+  return sender.id === extensionID && sender.url === backgroundURL
+}
+
 export function isSensitiveClipboardCopyMessage(
   message: unknown,
   target: SensitiveClipboardCopyMessage["target"]

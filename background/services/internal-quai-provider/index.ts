@@ -136,7 +136,9 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     super()
 
     internalProviderPort.emitter.on("message", async (event) => {
-      logger.debug(`internal: request payload: ${JSON.stringify(event)}`)
+      logger.debug(
+        `internal request ${event.id}: ${event.request.method}`
+      )
       try {
         const response = {
           id: event.id,
@@ -146,7 +148,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
             PELAGUS_INTERNAL_ORIGIN
           ),
         }
-        logger.debug("internal response:", response)
+        logger.debug(`internal response: ${event.id}`)
 
         internalProviderPort.postResponse(response)
       } catch (error: any) {
@@ -559,8 +561,15 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       : null
     const from = getAddress(String(transactionRequest.from))
 
-    const { store } = globalThis.main
-    const { network } = store.getState().ui.selectedAccount
+    const network = await this.getCurrentOrDefaultNetworkForOrigin(origin)
+    const requestedChainID = transactionRequest.chainId
+    if (
+      requestedChainID !== undefined &&
+      requestedChainID !== null &&
+      toHexChainID(String(requestedChainID)) !== toHexChainID(network.chainID)
+    ) {
+      throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
+    }
 
     const payload: QuaiTransactionRequestWithAnnotation & {
       gas?: string
@@ -570,7 +579,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       to,
       from,
       type: transactionRequest.type || 2,
-      chainId: network.chainID,
+      chainId: requestedChainID ?? network.chainID,
       data: transactionRequest.data,
       value: transactionRequest.value,
       network,

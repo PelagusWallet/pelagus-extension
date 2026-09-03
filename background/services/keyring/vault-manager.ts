@@ -1,10 +1,8 @@
 import {
   decryptVault,
-  deriveSymmetricKeyFromPasswordForSession,
+  deriveSymmetricKeyFromPassword,
   EncryptedVault,
   encryptVault,
-  importSerializedSaltedKey,
-  SerializedSaltedKey,
   SaltedKey,
 } from "./utils/encryption"
 import { AddOptions, DeleteProps, SerializedVaultData } from "./types"
@@ -18,8 +16,7 @@ export interface IVaultManager {
   verifyPassword(password: string): Promise<boolean>
   clearSaltedKey(): void
   isSaltedKeyInitialized(): boolean
-  initializeWithPassword(password: string): Promise<SerializedSaltedKey>
-  initializeWithSerializedKey(saltedKey: SerializedSaltedKey): Promise<void>
+  initializeWithPassword(password: string): Promise<void>
 }
 
 export class VaultManager implements IVaultManager {
@@ -42,9 +39,7 @@ export class VaultManager implements IVaultManager {
     return this.vaultSaltedKey !== null
   }
 
-  public async initializeWithPassword(
-    password: string
-  ): Promise<SerializedSaltedKey> {
+  public async initializeWithPassword(password: string): Promise<void> {
     const storageStart = performance.now()
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
@@ -58,27 +53,15 @@ export class VaultManager implements IVaultManager {
     this.cachedEncryptedVault = currentEncryptedVault
 
     const deriveStart = performance.now()
-    const { saltedKey, serializedSaltedKey } =
-      await deriveSymmetricKeyFromPasswordForSession(
-        password,
-        currentEncryptedVault?.salt
-      )
-    this.vaultSaltedKey = saltedKey
+    this.vaultSaltedKey = await deriveSymmetricKeyFromPassword(
+      password,
+      currentEncryptedVault?.salt
+    )
     console.log(
       `[VaultManager] PBKDF2 key derivation (1M iterations) took ${(
         performance.now() - deriveStart
       ).toFixed(0)}ms`
     )
-
-    return serializedSaltedKey
-  }
-
-  public async initializeWithSerializedKey(
-    saltedKey: SerializedSaltedKey
-  ): Promise<void> {
-    const { vaults } = await getEncryptedVaults()
-    this.cachedEncryptedVault = vaults.slice(-1)[0]?.vault
-    this.vaultSaltedKey = await importSerializedSaltedKey(saltedKey)
   }
 
   public async verifyPassword(password: string): Promise<boolean> {

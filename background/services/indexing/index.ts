@@ -22,6 +22,7 @@ import {
   mergeAssets,
   networkAssetsFromLists,
 } from "../../lib/token-lists"
+import { withExplorerTokenIcon } from "../../lib/token-icons"
 import PreferenceService from "../preferences"
 import ChainService from "../chain"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -219,7 +220,7 @@ export default class IndexingService extends BaseService<Events> {
    * @returns An array of fungible smart contract assets.
    */
   async getAssetsToTrack(): Promise<SmartContractFungibleAsset[]> {
-    return this.db.getAssetsToTrack()
+    return (await this.db.getAssetsToTrack()).map(withExplorerTokenIcon)
   }
 
   /**
@@ -287,6 +288,10 @@ export default class IndexingService extends BaseService<Events> {
       buildPinnedAssets(network),
       customAssets,
       networkAssetsFromLists(network, tokenLists)
+    ).map((asset) =>
+      isSmartContractFungibleAsset(asset)
+        ? withExplorerTokenIcon(asset)
+        : asset
     )
   }
 
@@ -773,9 +778,11 @@ export default class IndexingService extends BaseService<Events> {
         if (isRemoved) customAsset.metadata.removed = false
       }
 
+      const customAssetWithIcon = withExplorerTokenIcon(customAsset)
       await this.addOrUpdateCustomAsset(customAsset)
-      await this.emitter.emit("refreshAsset", customAsset)
+      await this.emitter.emit("refreshAsset", customAssetWithIcon)
       await this.addAssetToTrack(customAsset)
+      return customAssetWithIcon
     }
 
     return customAsset

@@ -1,5 +1,9 @@
 import React, { ReactElement, useEffect, useState } from "react"
-import { AnyAsset, AnyAssetAmount } from "@pelagus/pelagus-background/assets"
+import {
+  AnyAsset,
+  AnyAssetAmount,
+  isSmartContractFungibleAsset,
+} from "@pelagus/pelagus-background/assets"
 import { CurrentShardToExplorer } from "@pelagus/pelagus-background/constants"
 import { selectCurrentAccount } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { NetworkInterface } from "@pelagus/pelagus-background/constants/networks/networkTypes"
@@ -38,6 +42,9 @@ export default function SharedAssetItem<T extends AnyAsset>(
 ): ReactElement {
   const { onClick, assetAndAmount, currentNetwork } = props
   const { asset } = assetAndAmount
+  const smartContractAsset = isSmartContractFungibleAsset(asset)
+    ? asset
+    : undefined
   const [contractLink, setContractLink] = useState("")
   const account = useBackgroundSelector(selectCurrentAccount)
 
@@ -66,6 +73,8 @@ export default function SharedAssetItem<T extends AnyAsset>(
             <SharedAssetIcon
               logoURL={asset?.metadata?.logoURL}
               symbol={asset?.symbol}
+              contractAddress={smartContractAsset?.contractAddress}
+              chainID={smartContractAsset?.homeNetwork.chainID}
             />
 
             <div className="left_content">

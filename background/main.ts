@@ -171,6 +171,7 @@ import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
 import { MINUTE } from "./constants"
+import { withExplorerTokenIcon } from "./lib/token-icons"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -1388,14 +1389,9 @@ export default class Main extends BaseService<never> {
         resolver: (result: string | PromiseLike<string>) => void
         rejecter: (reason?: unknown) => void
       }) => {
-        // Run signer preparation and enrichment in parallel.
-        const [enrichedSignTypedDataRequest] = await Promise.all([
-          this.enrichmentService.enrichSignTypedDataRequest(payload),
-        ])
-
-        this.store.dispatch(typedDataRequest(enrichedSignTypedDataRequest))
-
+        let settled = false
         const clear = () => {
+          settled = true
           this.signingService.emitter.off(
             "signingDataResponse",
             // Mutual dependency to handleAndClear.
@@ -1431,6 +1427,17 @@ export default class Main extends BaseService<never> {
         this.signingService.emitter.on("signingDataResponse", handleAndClear)
 
         signingSliceEmitter.on("signatureRejected", rejectAndClear)
+
+        // Listen for dismissal before async preparation so closing the popup
+        // cannot strand the approval gate or publish an abandoned request.
+        try {
+          const enrichedRequest =
+            await this.enrichmentService.enrichSignTypedDataRequest(payload)
+          if (!settled) this.store.dispatch(typedDataRequest(enrichedRequest))
+        } catch (error) {
+          clear()
+          rejecter(error)
+        }
       }
     )
     this.internalQuaiProviderService.emitter.on(
@@ -2143,11 +2150,13 @@ export default class Main extends BaseService<never> {
       addressOnNetwork,
       cachedAsset
     )
+    const asset = withExplorerTokenIcon(assetData.asset)
 
     return {
       ...assetData,
+      asset,
       balance: Number.parseFloat(
-        formatUnits(assetData.amount, assetData.asset.decimals)
+        formatUnits(assetData.amount, asset.decimals)
       ),
       mainCurrencyAmount: undefined,
       exists: !!cachedAsset,

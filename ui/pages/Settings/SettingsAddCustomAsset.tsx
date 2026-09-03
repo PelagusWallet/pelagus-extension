@@ -342,6 +342,8 @@ export default function SettingsAddCustomAsset(): ReactElement {
                 size={40}
                 logoURL={assetData?.asset.metadata?.logoURL}
                 symbol={assetData.asset.symbol}
+                contractAddress={assetData.asset.contractAddress}
+                chainID={assetData.asset.homeNetwork.chainID}
               />
             ) : (
               <PlaceholderIcon />

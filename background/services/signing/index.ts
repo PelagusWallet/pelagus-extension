@@ -289,6 +289,10 @@ export default class SigningService extends BaseService<Events> {
           assertUnreachable(accountSigner)
       }
 
+      if (!signedData) {
+        throw new Error("Signing returned an empty signature")
+      }
+
       this.emitter.emit("personalSigningResponse", {
         type: "success-data",
         signedData,

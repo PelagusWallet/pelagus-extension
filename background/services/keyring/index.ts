@@ -428,43 +428,49 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       const { jsonRpcProvider } = globalThis.main.chainService
 
       const qiHDWallet = await this.walletManager.getQiHDWallet()
-      if (qiHDWallet) {
-        const serializedWallet = qiHDWallet.serialize()
-        const uniqueAddresses = Array.from(
-          new Set(serializedWallet.addresses.map((address) => address.address))
-        )
-
-        const addressesToSignFor: string[] = []
-
-        // check balance of each address and only keep one with balance
-        await Promise.all(
-          uniqueAddresses.map(async (address) => {
-            const balance = await jsonRpcProvider.getBalance(address)
-            if (balance > 0n) {
-              addressesToSignFor.push(address)
-            }
-          })
-        )
-
-        const privateKeys = addressesToSignFor.map((address) =>
-          qiHDWallet.getPrivateKey(address)
-        )
-
-        const signedMessages = await Promise.all(
-          privateKeys.map((privateKey) =>
-            new Wallet(privateKey).signMessage(message)
-          )
-        )
-
-        return signedMessages.join(",")
+      if (!qiHDWallet) {
+        throw new Error("Qi HD wallet not found")
       }
+
+      const serializedWallet = qiHDWallet.serialize()
+      const uniqueAddresses = Array.from(
+        new Set(serializedWallet.addresses.map((address) => address.address))
+      )
+
+      const addressesToSignFor: string[] = []
+
+      // check balance of each address and only keep one with balance
+      await Promise.all(
+        uniqueAddresses.map(async (address) => {
+          const balance = await jsonRpcProvider.getBalance(address)
+          if (balance > 0n) {
+            addressesToSignFor.push(address)
+          }
+        })
+      )
+
+      if (addressesToSignFor.length === 0) {
+        throw new Error("No funded Qi addresses available for signing")
+      }
+
+      const privateKeys = addressesToSignFor.map((address) =>
+        qiHDWallet.getPrivateKey(address)
+      )
+
+      const signedMessages = await Promise.all(
+        privateKeys.map((privateKey) =>
+          new Wallet(privateKey).signMessage(message)
+        )
+      )
+
+      return signedMessages.join(",")
     } catch (error: any) {
       logger.error(
         "Error signing message with all Qi addresses",
         error?.message || error
       )
+      throw error
     }
-    return ""
   }
 
   public async getSigner(address: string): Promise<InternalSignerWithType> {
@@ -487,6 +493,9 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
   }
 
   public async getQiHDWallet(): Promise<QiHDWallet> {
+    if (this.isLocked()) {
+      throw new Error("KeyringService must be unlocked")
+    }
     return this.walletManager.getQiHDWallet()
   }
 
@@ -512,6 +521,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     address: string,
     signerType: SignerType
   ): Promise<void> {
+    this.verifyKeyringIsUnlocked()
     await this.walletManager.deleteSigner(address, signerType)
     await this.notifyUIWithUpdates()
   }

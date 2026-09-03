@@ -1258,7 +1258,6 @@ export default class Main extends BaseService<never> {
     })
 
     this.keyringService.emitter.on("loadQiWallet", async (qiWallet) => {
-      const start = performance.now()
       PELAGUS_NETWORKS.forEach((network) => {
         this.store.dispatch(
           loadUtxoAccount({
@@ -1273,17 +1272,14 @@ export default class Main extends BaseService<never> {
         try {
           const cachedBalance = await this.chainService.getCachedQiBalance()
           if (cachedBalance) {
-            console.log(`[Post-Unlock] Loading cached Qi balance: ${cachedBalance.assetAmount.amount}`)
             this.store.dispatch(updateUtxoAccountsBalances({
               balances: [cachedBalance],
             }))
           }
-        } catch (error) {
-          console.error("[Post-Unlock] Failed to load cached Qi balance:", error)
+        } catch {
+          logger.error("Failed to load cached Qi balance after unlock")
         }
       }
-
-      console.log(`[Post-Unlock] loadQiWallet event handler took ${(performance.now() - start).toFixed(0)}ms`)
     })
 
     this.keyringService.emitter.on("locked", (isLocked) => {
@@ -1294,9 +1290,6 @@ export default class Main extends BaseService<never> {
         this.priceService.updateQuaiPrice().catch((error) => {
           logger.error("Failed to refresh price after unlock", error)
         })
-        console.log(
-          `[Post-Unlock] keyringUnlocked dispatched, triggering balance update in background...`
-        )
         this.store.dispatch(triggerManualBalanceUpdate())
       }
     })

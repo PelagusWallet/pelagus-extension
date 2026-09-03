@@ -145,6 +145,7 @@ export default class PelagusWindowProvider extends EventEmitter {
 
     if (isEIP1193Error(result)) {
       reject(result)
+      return
     }
 
     if (!this.connected) {
@@ -271,14 +272,19 @@ export default class PelagusWindowProvider extends EventEmitter {
       },
     }
 
-    this.transport.postMessage(sendData)
-
     return new Promise<unknown>((resolve, reject) => {
       this.requestResolvers.set(sendData.id, {
         resolve,
         reject,
         sendData,
       })
+
+      try {
+        this.transport.postMessage(sendData)
+      } catch (error) {
+        this.requestResolvers.delete(sendData.id)
+        reject(error)
+      }
     })
   }
 

@@ -548,9 +548,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     let qiWallet = await this.keyringService.getQiHDWallet()
     qiWallet.connect(jsonRpcProvider)
     
-    console.log("maxDenominationAggregate:", maxDenominationAggregate)
-    console.log("maxDenominationOutput:", maxDenominationOutput)
-
     const maxInputs = 1000
 
     const qiOutpoints = await this.chainService.getQiOutpointsLessThanDenomination(
@@ -570,7 +567,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     const amount = outpoints.reduce((acc, outpoint) => acc + denominations[outpoint.outpoint.denomination], BigInt(0))
 
     const tx = await qiWallet.aggregate(Zone.Cyprus1, {}, maxDenominationAggregate, maxDenominationOutput, onProgress)
-    console.log("tx", tx)
     try {
       const transaction = processSentQiTransaction(
         qiWallet.getPaymentCode(0),
@@ -581,7 +577,10 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       await this.saveQiTransaction(transaction)
       await this.subscribeToQiTransaction(transaction.hash)
     } catch (error: any) {
-      console.log("error saving Qi aggregation transaction", error)
+      logger.error(
+        "Error saving Qi aggregation transaction",
+        error?.message || error
+      )
     }
     return tx.hash
   }
@@ -639,7 +638,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
     if (!tx) {
       throw new Error("Failed to send claim transaction")
     }
-    console.log("claim tx", tx)
     await this.processQuaiTransactionResponse(tx)
     return tx.hash
   } catch (error: any) {
@@ -889,7 +887,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
         from,
         "latest"
       ], Shard.Cyprus1)
-      console.log(result)
       return result
     } catch (error: any) {
       if (error.message.includes("no wrapped Qi balance")) {
@@ -1395,7 +1392,6 @@ export default class TransactionService extends BaseService<TransactionServiceEv
       if (!tx) {
         throw new Error("Failed to send claim transaction")
       }
-      console.log("claim tx", tx)
       await this.processQuaiTransactionResponse(tx)
     } catch (error: any) {
       logger.error("Failed to claim wrapped Qi deposit for account", error.message)

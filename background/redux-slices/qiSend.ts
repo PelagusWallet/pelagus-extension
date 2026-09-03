@@ -82,18 +82,12 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
   async (_, { getState, dispatch }) => {
     const { qiSend } = getState() as RootState
 
-    // DEBUG: Log every thunk invocation with timestamp
-    const invocationId = Date.now()
-    console.log(`[sendQiTransaction] Thunk invoked at ${invocationId}, isSending: ${qiSend.isSending}`)
-
     // Prevent duplicate submissions
     if (qiSend.isSending) {
-      console.log(`[sendQiTransaction] BLOCKED - Transaction already in progress (invocation ${invocationId})`)
       return { error: { message: "Transaction already in progress" } }
     }
 
     // Mark as sending immediately to prevent race conditions
-    console.log(`[sendQiTransaction] Setting isSending=true (invocation ${invocationId})`)
     dispatch(setQiSending(true))
 
     const { amount, senderQuaiAccount, senderQiAccount, receiverPaymentCode } =
@@ -115,13 +109,20 @@ export const sendQiTransaction = createBackgroundAsyncThunk(
 
       dispatch(resetQiSendSlice())
       return { txHash }
-    } catch (error: any) {
-      console.log("error in sendQiTransaction", error)
+    } catch (error) {
       dispatch(setQiSending(false))
+
+      let message = "Failed to send Qi transaction"
+      if (typeof error === "string") {
+        message = error
+      } else if (error instanceof Error) {
+        message = error.message
+      }
+
       return {
         error: {
-          message: typeof error === 'string' ? error : error?.message
-        }
+          message,
+        },
       }
     }
   }

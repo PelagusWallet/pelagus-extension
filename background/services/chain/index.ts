@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable no-console */
 /* eslint-disable import/no-cycle */
 import {
   Contract,
@@ -302,7 +301,6 @@ export default class ChainService extends BaseService<Events> {
 
   public async refreshProviders(): Promise<void> {
     if (this.selectedNetwork) {
-      console.log(`[ChainService] Refreshing providers for current network: ${this.selectedNetwork.chainID}`)
       const { jsonRpcProvider, webSocketProvider, immediateJsonRpcProvider } =
         this.providerFactory.getProvidersForNetwork(this.selectedNetwork.chainID)
       const webSocketProviderChanged =
@@ -697,11 +695,9 @@ export default class ChainService extends BaseService<Events> {
     main.store.dispatch(setQiWalletSyncInProgress(true))
 
     const syncPromise = (async () => {
-      const start = Date.now()
       try {
         const network = this.selectedNetwork
 
-        let stepStart = Date.now()
         const [lastScan, lastSync] = await Promise.all([
           this.db.getQiLastFullScan(network.chainID),
           this.db.getQiLastSync(network.chainID),
@@ -740,16 +736,13 @@ export default class ChainService extends BaseService<Events> {
           lastScan.version !== currentVersion ||
           forceFullScan_ ||
           isStale
-        console.log(`[syncQiWallet] forceFullScan=${forceFullScan}, lastScan=${lastScan?.version}, currentVersion=${currentVersion}, timeSinceLastSync=${(timeSinceLastSync / 1000 / 60).toFixed(1)}min, isStale=${isStale}`)
 
         if (forceFullScan) {
           // Clear outpoints and sync info for fresh scan
-          stepStart = Date.now()
           await this.db.clearQiOutpoints()
           await this.db.clearQiWalletSyncInfo()
         }
 
-        stepStart = Date.now()
         const qiWallet = await this.keyringService.getQiHDWallet()
 
         if (!qiWallet) {
@@ -761,7 +754,6 @@ export default class ChainService extends BaseService<Events> {
         const paymentCode = qiWallet.getPaymentCode(0)
         let notifications: string[] = []
         try {
-          stepStart = Date.now()
           const mailboxContract = new Contract(
             MAILBOX_CONTRACT_ADDRESS || "",
             MAILBOX_INTERFACE,
@@ -785,7 +777,6 @@ export default class ChainService extends BaseService<Events> {
           qiWallet.openChannel(paymentCode)
         })
 
-        stepStart = Date.now()
         const currentBlock = await this.jsonRpcProvider.getBlock(
           Shard.Cyprus1,
           "latest"
@@ -799,7 +790,6 @@ export default class ChainService extends BaseService<Events> {
           // use immediateJsonRpcProvider to avoid race condition
           qiWallet.connect(this.immediateJsonRpcProvider)
 
-          stepStart = Date.now()
           await qiWallet.scan(Zone.Cyprus1, 0)
 
           // switch back to jsonRpcProvider
@@ -807,7 +797,6 @@ export default class ChainService extends BaseService<Events> {
           storeOutpoints = true
 
           // calculate spendable balance for the current block using in memory outpoints
-          stepStart = Date.now()
           spendableBalance = await qiWallet.getSpendableBalance(
             Zone.Cyprus1,
             currentBlock?.woHeader.number,
@@ -819,7 +808,6 @@ export default class ChainService extends BaseService<Events> {
             true
           )
         } else {
-          stepStart = Date.now()
           await qiWallet.sync(
             Zone.Cyprus1,
             0,
@@ -828,7 +816,6 @@ export default class ChainService extends BaseService<Events> {
           )
 
           // fetch spendable balance for the current block using getBalance RPC
-          stepStart = Date.now()
           const [sBalance, lBalance] = await Promise.all([
             qiWallet.getSpendableBalance(
               Zone.Cyprus1,
@@ -906,7 +893,6 @@ export default class ChainService extends BaseService<Events> {
         // save the wallet to the vault
         const serializedQiWallet = { qiHDWallet: qiWallet.serialize() }
         await this.keyringService.vaultManager.add(serializedQiWallet, {})
-        console.log("Completed syncQiWallet. Balance: ", spendableBalance, "Took ", (Date.now() - start) / 1000, "seconds", "ForceFullScan: ", forceFullScan)
       } catch (error: any) {
         logger.error("Error occurred during Qi wallet sync", error.message)
       }
@@ -982,17 +968,10 @@ export default class ChainService extends BaseService<Events> {
 
     try {
       const network = this.selectedNetwork
-      const totalStart = Date.now()
-      const logStep = (step: string, start: number) =>
-        console.log(`[deepScan] ${step}: ${((Date.now() - start) / 1000).toFixed(1)}s`)
-
-      console.log(`[deepScan] Starting deep scan with ${extraAddresses} extra addresses...`)
 
       // Fetch current block FIRST so we can bail early without touching DB state
       // if the RPC is unreachable
-      let stepStart = Date.now()
       const currentBlock = await this.jsonRpcProvider.getBlock(Shard.Cyprus1, "latest")
-      logStep("getBlock", stepStart)
       if (!currentBlock?.hash || currentBlock.woHeader?.number === undefined) {
         logger.error("[deepScan] Failed to fetch current block — aborting")
         return
@@ -1000,23 +979,17 @@ export default class ChainService extends BaseService<Events> {
       const currentBlockNumber = currentBlock.woHeader.number
       const currentBlockHash = currentBlock.hash
 
-      stepStart = Date.now()
       const qiWallet = await this.keyringService.getQiHDWallet()
-      logStep("getQiHDWallet", stepStart)
       if (!qiWallet) {
-        console.log("[deepScan] No Qi wallet found, skipping")
         return
       }
 
       // Clear existing outpoints for a fresh deep scan
-      stepStart = Date.now()
       await this.db.clearQiOutpoints()
       await this.db.clearQiWalletSyncInfo()
-      logStep("clearOutpointsAndSyncInfo", stepStart)
 
       // Open payment channels from mailbox
       const paymentCode = qiWallet.getPaymentCode(0)
-      stepStart = Date.now()
       try {
         const mailboxContract = new Contract(
           MAILBOX_CONTRACT_ADDRESS || "",
@@ -1025,20 +998,16 @@ export default class ChainService extends BaseService<Events> {
         )
         const notifications = await mailboxContract.getNotifications(paymentCode)
         notifications.forEach((pc: string) => qiWallet.openChannel(pc))
-        logStep(`getMailboxNotifications (${notifications.length} channels)`, stepStart)
       } catch (error: any) {
         logger.error(`[deepScan] Error getting mailbox notifications: ${error?.message}`)
       }
 
       qiWallet.connect(this.immediateJsonRpcProvider)
-      stepStart = Date.now()
       await (qiWallet as any).deepScan(Zone.Cyprus1, 0, extraAddresses)
-      logStep(`qiWallet.deepScan (gap limit ${extraAddresses + 5})`, stepStart)
 
       qiWallet.connect(this.jsonRpcProvider)
 
       // Get balance using the block we fetched upfront
-      stepStart = Date.now()
       const spendableBalance = await qiWallet.getSpendableBalance(
         Zone.Cyprus1,
         currentBlockNumber,
@@ -1049,10 +1018,8 @@ export default class ChainService extends BaseService<Events> {
         currentBlockNumber,
         true
       )
-      logStep("getBalances (in-memory)", stepStart)
 
       // Store outpoints
-      stepStart = Date.now()
       const outpoints = qiWallet.getOutpoints(Zone.Cyprus1)
       const qiOutpoints = outpoints.map((outpointInfo) => ({
         outpoint: outpointInfo.outpoint,
@@ -1062,7 +1029,6 @@ export default class ChainService extends BaseService<Events> {
         derivationPath: outpointInfo.derivationPath,
       }))
       await this.db.addQiOutpoints(qiOutpoints)
-      logStep(`storeOutpoints (${outpoints.length} outpoints)`, stepStart)
 
       // Update balance
       const qiWalletBalance: QiWalletBalance = {
@@ -1090,9 +1056,6 @@ export default class ChainService extends BaseService<Events> {
       // Save wallet state (preserves deep scan addresses in serialized wallet)
       const serializedQiWallet = { qiHDWallet: qiWallet.serialize() }
       await this.keyringService.vaultManager.add(serializedQiWallet, {})
-
-      logStep(`TOTAL`, totalStart)
-      console.log(`[deepScan] Complete. Found ${outpoints.length} outpoints, balance: ${spendableBalance}`)
     } catch (error: any) {
       logger.error("[deepScan] Error:", error.message)
     } finally {

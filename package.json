@@ -48,7 +48,16 @@
     "postinstall": "patch-package && playwright install chromium"
   },
   "resolutions": {
-    "**/elliptic": "6.6.1"
+    "**/@babel/runtime": "7.28.3",
+    "**/sinon/diff": "5.2.2",
+    "**/elliptic": "6.6.1",
+    "**/immutable": "4.3.9",
+    "**/lodash": "4.18.1",
+    "**/nanoid": "5.1.16",
+    "**/picomatch": "2.3.2",
+    "**/ethers/ws": "8.21.0",
+    "**/quais/ws": "8.21.0",
+    "**/socketcluster-client/ws": "7.5.11"
   },
   "workspaces": [
     "ui",

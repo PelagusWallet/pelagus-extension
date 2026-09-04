@@ -6,7 +6,11 @@ import React, {
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
-import { AnyAsset, Asset } from "@pelagus/pelagus-background/assets"
+import {
+  AnyAsset,
+  Asset,
+  isSmartContractFungibleAsset,
+} from "@pelagus/pelagus-background/assets"
 import {
   convertFixedPointNumber,
   fixedPointNumberToString,
@@ -240,6 +244,9 @@ interface SelectedAssetButtonProps {
 
 function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
   const { asset, isDisabled, toggleIsAssetMenuOpen } = props
+  const smartContractAsset = isSmartContractFungibleAsset(asset)
+    ? asset
+    : undefined
 
   return (
     <button type="button" disabled={isDisabled} onClick={toggleIsAssetMenuOpen}>
@@ -247,6 +254,8 @@ function SelectedAssetButton(props: SelectedAssetButtonProps): ReactElement {
         <SharedAssetIcon
           logoURL={asset?.metadata?.logoURL}
           symbol={asset?.symbol}
+          contractAddress={smartContractAsset?.contractAddress}
+          chainID={smartContractAsset?.homeNetwork.chainID}
         />
       </div>
 

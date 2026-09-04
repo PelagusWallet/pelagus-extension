@@ -8,11 +8,17 @@ import {
 const originalCrypto = global.crypto
 beforeEach(() => {
   // polyfill the WebCrypto API
-  global.crypto = webcrypto as unknown as Crypto
+  Object.defineProperty(global, "crypto", {
+    configurable: true,
+    value: webcrypto,
+  })
 })
 
 afterEach(() => {
-  global.crypto = originalCrypto
+  Object.defineProperty(global, "crypto", {
+    configurable: true,
+    value: originalCrypto,
+  })
 })
 
 test("derives symmetric keys", async () => {
@@ -32,8 +38,44 @@ test("derives symmetric keys", async () => {
     expect(salt).toEqual(newSalt)
 
     expect(new Set(key.usages)).toEqual(new Set(["encrypt", "decrypt"]))
+    expect(key.extractable).toEqual(false)
   }
   /* eslint-enable no-await-in-loop */
+})
+
+test("key derivation remains compatible with existing vaults", async () => {
+  const password = "this-is-a-poor-password"
+  const salt = "an-existing-vault-salt"
+  const encoder = new TextEncoder()
+  const legacyDerivationKey = await global.crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
+  )
+  const legacyKey = await global.crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: encoder.encode(salt),
+      iterations: 1000000,
+      hash: "SHA-256",
+    },
+    legacyDerivationKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  )
+  const encryptedVault = await encryptVault(
+    { sentinel: "existing-vault" },
+    { key: legacyKey, salt }
+  )
+
+  const saltedKey = await deriveSymmetricKeyFromPassword(password, salt)
+
+  await expect(decryptVault(encryptedVault, saltedKey)).resolves.toEqual({
+    sentinel: "existing-vault",
+  })
 })
 
 test("doesn't throw when encrypting a vault with a password", async () => {

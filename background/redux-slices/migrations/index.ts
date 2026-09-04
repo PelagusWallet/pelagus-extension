@@ -1,11 +1,12 @@
 import to2 from "./to-2"
 import to3 from "./to-3"
+import to4 from "./to-4"
 
 /**
  * The version of persisted Redux state the extension is expecting. Any previous
  * state without this version, or with a lower version, ought to be migrated.
  */
-export const REDUX_STATE_VERSION = 3
+export const REDUX_STATE_VERSION = 4
 
 /**
  * Common type for all migration functions.
@@ -18,6 +19,7 @@ type Migration = (prevState: Record<string, unknown>) => Record<string, unknown>
 const allMigrations: { [targetVersion: string]: Migration } = {
   2: to2,
   3: to3,
+  4: to4,
 }
 
 /**

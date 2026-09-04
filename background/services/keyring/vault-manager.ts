@@ -43,7 +43,11 @@ export class VaultManager implements IVaultManager {
     const storageStart = performance.now()
     const { vaults } = await getEncryptedVaults()
     const currentEncryptedVault = vaults.slice(-1)[0]?.vault
-    console.log(`[VaultManager] Storage access took ${(performance.now() - storageStart).toFixed(0)}ms`)
+    console.log(
+      `[VaultManager] Storage access took ${(
+        performance.now() - storageStart
+      ).toFixed(0)}ms`
+    )
 
     // Cache the encrypted vault to avoid re-reading from storage
     this.cachedEncryptedVault = currentEncryptedVault
@@ -53,7 +57,11 @@ export class VaultManager implements IVaultManager {
       password,
       currentEncryptedVault?.salt
     )
-    console.log(`[VaultManager] PBKDF2 key derivation (1M iterations) took ${(performance.now() - deriveStart).toFixed(0)}ms`)
+    console.log(
+      `[VaultManager] PBKDF2 key derivation (1M iterations) took ${(
+        performance.now() - deriveStart
+      ).toFixed(0)}ms`
+    )
   }
 
   public async verifyPassword(password: string): Promise<boolean> {
@@ -82,11 +90,22 @@ export class VaultManager implements IVaultManager {
     const saltedKey = this.getSaltedKey()
     const getVaultStart = performance.now()
     const currentEncryptedVault = await this.getVaultData()
-    console.log(`[VaultManager] getVaultData() took ${(performance.now() - getVaultStart).toFixed(0)}ms`)
+    console.log(
+      `[VaultManager] getVaultData() took ${(
+        performance.now() - getVaultStart
+      ).toFixed(0)}ms`
+    )
 
     const decryptStart = performance.now()
-    const result = await decryptVault<SerializedVaultData>(currentEncryptedVault, saltedKey)
-    console.log(`[VaultManager] Vault decryption took ${(performance.now() - decryptStart).toFixed(0)}ms`)
+    const result = await decryptVault<SerializedVaultData>(
+      currentEncryptedVault,
+      saltedKey
+    )
+    console.log(
+      `[VaultManager] Vault decryption took ${(
+        performance.now() - decryptStart
+      ).toFixed(0)}ms`
+    )
 
     // Cache the decrypted vault
     this.cachedDecryptedVault = result

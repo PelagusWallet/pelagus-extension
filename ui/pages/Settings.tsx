@@ -36,6 +36,7 @@ import { deepRescanQiWallet, aggregateQiOutputs, fetchUTXODenominationDistributi
 import { useBackgroundDispatch, useBackgroundSelector } from "../hooks/redux-hooks"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { denominations } from "quais"
+import { DEFAULT_AUTO_LOCK_INTERVAL_MINUTES } from "@pelagus/pelagus-background/constants/auto-lock"
 
 // Create dropdown options for denomination values
 const denominationOptions = denominations.map((value, index) => {
@@ -48,16 +49,29 @@ const denominationOptions = denominations.map((value, index) => {
 
 const NUMBER_OF_CLICKS_FOR_DEV_PANEL = 15
 const FAQ_URL = "https://pelaguswallet.io"
+const AUTO_LOCK_INTERVAL_OPTIONS = [
+  { value: "5", label: "5 minutes" },
+  { value: "10", label: "10 minutes" },
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "60", label: "1 hour" },
+  { value: "1440", label: "1 day" },
+  { value: "4320", label: "3 days" },
+  { value: "10080", label: "1 week" },
+]
 const FOOTER_ACTIONS = [
   {
+    label: "Discord",
     icon: "icons/m/discord",
     linkTo: "https://discord.gg/pcaA5EapZk",
   },
   {
+    label: "X",
     icon: "twitter",
     linkTo: "https://twitter.com/PelagusWallet",
   },
   {
+    label: "GitHub",
     icon: "icons/m/github",
     linkTo: "https://github.com/PelagusWallet/pelagus",
   },
@@ -103,7 +117,13 @@ function VersionLabel(): ReactElement {
             font-size: 14px;
             font-weight: 500;
             margin: 0 auto;
-            padding-top: 10px;
+          }
+
+          .version button {
+            color: inherit;
+            font: inherit;
+            line-height: 20px;
+            padding: 0;
           }
         `}
       </style>
@@ -116,23 +136,42 @@ function SettingRow(props: {
   component: () => ReactElement
 }): ReactElement {
   const { title, component } = props
+  const isActionRow = title.length === 0
 
   return (
-    <li>
-      <div className="left">{title}</div>
+    <li className={isActionRow ? "action_row" : undefined}>
+      {!isActionRow && <div className="left">{title}</div>}
       <div className="right">{component()}</div>
       <style jsx>
         {`
           li {
-            padding-top: 12px;
+            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            min-height: 52px;
+            padding: 4px 0;
 
             color: var(--primary-text);
             font-size: 16px;
             font-weight: 500;
             line-height: 20px;
+          }
+
+          .left {
+            flex: 1 1 auto;
+            min-width: 0;
+          }
+
+          .right {
+            flex: 0 0 auto;
+          }
+
+          .action_row .right {
+            flex: 1 1 100%;
+            min-width: 0;
+            width: 100%;
           }
         `}
       </style>
@@ -230,6 +269,7 @@ export default function Settings(): ReactElement {
         options={langOptions}
         onChange={setLanguage}
         defaultIndex={langIdx}
+        ariaLabel={t("settings.language")}
       />
     ),
   }
@@ -519,6 +559,7 @@ export default function Settings(): ReactElement {
                       onChange={(value) => setMaxDenominationAggregate(parseInt(value))}
                       defaultIndex={maxDenominationAggregate}
                       placement="top"
+                      ariaLabel="Maximum input denomination"
                     />
                   </div>
                   <div className="input_container input_container_second">
@@ -530,6 +571,7 @@ export default function Settings(): ReactElement {
                       onChange={(value) => setMaxDenominationOutput(parseInt(value))}
                       defaultIndex={maxDenominationOutput}
                       placement="top"
+                      ariaLabel="Maximum output denomination"
                     />
                   </div>
                 </>
@@ -890,18 +932,22 @@ export default function Settings(): ReactElement {
     component: () => (
       <SharedSelect
         width={194}
-        options={[
-          { value: "5", label: "5 minutes" },
-          { value: "10", label: "10 minutes" },
-          { value: "15", label: "15 minutes" },
-          { value: "30", label: "30 minutes" },
-          { value: "60", label: "1 hour" },
-        ]}
+        options={AUTO_LOCK_INTERVAL_OPTIONS}
         onChange={(value) => dispatch(setAutoLockInterval(Number(value)))}
+        ariaLabel={t("settings.autoLockInterval")}
+        placement="top"
         defaultIndex={(() => {
-          const interval = autoLockInterval || 10
-          const index = [5, 10, 15, 30, 60].indexOf(interval)
-          return index >= 0 ? index : 1 // Default to 10 minutes if value not found
+          const interval =
+            autoLockInterval || DEFAULT_AUTO_LOCK_INTERVAL_MINUTES
+          const index = AUTO_LOCK_INTERVAL_OPTIONS.findIndex(
+            ({ value }) => Number(value) === interval
+          )
+          return index >= 0
+            ? index
+            : AUTO_LOCK_INTERVAL_OPTIONS.findIndex(
+                ({ value }) =>
+                  Number(value) === DEFAULT_AUTO_LOCK_INTERVAL_MINUTES
+              )
         })()}
       />
     ),
@@ -943,6 +989,8 @@ export default function Settings(): ReactElement {
         ]}
         onChange={(value) => dispatch(updateTheme(value))}
         defaultIndex={currentTheme === "dark" ? 1 : 0}
+        ariaLabel={t("settings.theme")}
+        placement="top"
       />
     ),
   }
@@ -985,45 +1033,50 @@ export default function Settings(): ReactElement {
         close={() => history.push("/")}
         fillAvailable
         isScrollable
-        footer={
-          <div className="footer">
+      >
+        <div className="menu">
+          <ul className="settings_groups">
+            {settings.map(({ title, items }) => (
+              <li className="group" key={title}>
+                <span className="group_title">{title}</span>
+                <ul className="setting_rows">
+                  {items.map((item, index) => {
+                    const key = `${title}-${item.title}-${index}`
+                    return (
+                      <SettingRow
+                        key={key}
+                        title={item.title}
+                        component={item.component}
+                      />
+                    )
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+          <footer className="footer" aria-label="Pelagus community links">
             <div className="action_icons">
-              {FOOTER_ACTIONS.map(({ icon, linkTo }) => (
-                <SharedIcon
+              {FOOTER_ACTIONS.map(({ label, icon, linkTo }) => (
+                <a
                   key={icon}
-                  icon={`${icon}.svg`}
-                  width={18}
-                  color="var(--primary-text)"
-                  hoverColor="var(--secondary-text)"
-                  transitionHoverTime="0.2s"
-                  onClick={() => {
-                    window.open(linkTo, "_blank")?.focus()
-                  }}
-                />
+                  className="social_link"
+                  href={linkTo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  title={label}
+                >
+                  <SharedIcon
+                    icon={`${icon}.svg`}
+                    width={18}
+                    color="var(--primary-text)"
+                    transitionHoverTime="0.2s"
+                  />
+                </a>
               ))}
             </div>
             <VersionLabel />
-          </div>
-        }
-      >
-        <div className="menu">
-          <ul>
-            {settings.map(({ title, items }) => (
-              <div className="group" key={title}>
-                <span className="group_title">{title}</span>
-                {items.map((item, index) => {
-                  const key = `${title}-${item.title}-${index}`
-                  return (
-                    <SettingRow
-                      key={key}
-                      title={item.title}
-                      component={item.component}
-                    />
-                  )
-                })}
-              </div>
-            ))}
-          </ul>
+          </footer>
         </div>
       </SharedDrawer>
 
@@ -1148,6 +1201,12 @@ export default function Settings(): ReactElement {
             flex-direction: column;
           }
 
+          .settings_groups,
+          .setting_rows {
+            display: block;
+            width: 100%;
+          }
+
           h1 {
             color: var(--primary-text);
             font-size: 22px;
@@ -1164,25 +1223,60 @@ export default function Settings(): ReactElement {
           }
 
           .footer {
-            width: 100vw;
-            margin-left: -24px;
+            width: 100%;
             text-align: center;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 24px 0 8px;
+            border-top: 1px solid var(--secondary-bg);
           }
 
           .action_icons {
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 18px;
+            gap: 8px;
+          }
+
+          .social_link {
+            box-sizing: border-box;
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: background-color 160ms ease-out,
+              transform 160ms ease-out;
+          }
+
+          .social_link:hover {
+            background-color: var(--secondary-bg);
+          }
+
+          .social_link:focus-visible {
+            outline: 2px solid var(--green-60);
+            outline-offset: 2px;
+          }
+
+          .social_link:active {
+            transform: scale(0.96);
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .social_link {
+              transition: none;
+            }
           }
 
           .group {
-            border-bottom: 1px solid var(--white);
-            margin-bottom: 20px;
-            padding-bottom: 20px;
+            display: block;
+            border-bottom: 1px solid var(--secondary-bg);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
           }
 
           .group:last-child {

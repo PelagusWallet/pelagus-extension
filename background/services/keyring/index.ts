@@ -6,6 +6,10 @@ import BaseService from "../base"
 import { IVaultManager, VaultManager } from "./vault-manager"
 import { UNIXTime } from "../../types"
 import { MINUTE } from "../../constants"
+import {
+  DEFAULT_AUTO_LOCK_INTERVAL_MINUTES,
+  shouldAutoLock,
+} from "../../constants/auto-lock"
 import { SignerType } from "../signing"
 import WalletManager from "./wallet-manager"
 import { applicationError } from "../../constants/errorsCause"
@@ -19,8 +23,7 @@ import {
 import { isSignerPrivateKeyType } from "./utils"
 import { browser } from "../../index"
 
-export const MAX_KEYRING_IDLE_TIME = 10 * MINUTE
-export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
+const LEGACY_UNLOCK_SESSION_STORAGE_KEY = "pelagusUnlockSession"
 
 /*
  * KeyringService is responsible for all key material, as well as applying the
@@ -32,17 +35,19 @@ export const MAX_OUTSIDE_IDLE_TIME = 10 * MINUTE
  * When unlocked, the service automatically locks itself after it has not seen
  * activity for a certain amount of time. The service can be notified of
  * outside activity that should be considered for the purposes of keeping the
- * service unlocked. No keyring activity for 10 minutes causes the service to
- * lock, while no outside activity for 10 minutes has the same effect.
+ * service unlocked. The auto-lock interval is measured from the most recent
+ * keyring or outside activity.
  */
 export default class KeyringService extends BaseService<KeyringServiceEvents> {
   private walletManager: WalletManager
 
   public readonly vaultManager: IVaultManager
 
-  public lastInternalWalletActivity: UNIXTime | null
+  private readonly sessionStorage: Pick<chrome.storage.StorageArea, "remove">
 
-  public lastExternalWalletActivity: UNIXTime | null
+  public lastInternalWalletActivity: UNIXTime | null = null
+
+  public lastExternalWalletActivity: UNIXTime | null = null
 
   static create: ServiceCreatorFunction<
     KeyringServiceEvents,
@@ -71,14 +76,22 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
     this.vaultManager = new VaultManager()
     this.walletManager = new WalletManager(this.vaultManager)
+    this.sessionStorage = chrome.storage.session
   }
 
   override async internalStartService(): Promise<void> {
     await super.internalStartService()
 
+    // Extension pages can read chrome.storage.session even when its access
+    // level is TRUSTED_CONTEXTS. Never restore vault-decryption material from
+    // extension storage; a service worker restart intentionally relocks.
+    await this.clearLegacyUnlockSession()
+
     // Don't emit if there are no quaiHDWallets to unlock
     const { vaults } = await getEncryptedVaults()
-    if (!vaults.length) return
+    if (!vaults.length) {
+      return
+    }
 
     // Emit locked status on startup. Should always be locked, but the main
     // goal is to have external viewers synced to internal state no matter what it is.
@@ -99,9 +112,12 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
   }
 
   public async lock(): Promise<void> {
+    // Invalidate in-memory key material before any asynchronous cleanup.
     this.walletManager.clearState()
     this.lastExternalWalletActivity = null
     this.lastInternalWalletActivity = null
+
+    await this.clearLegacyUnlockSession()
 
     await this.notifyUIWithUpdates()
 
@@ -115,28 +131,42 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       const keyDerivationStart = performance.now()
       await this.vaultManager.initializeWithPassword(password)
       const keyDerivationEnd = performance.now()
-      console.log(`[Unlock] Key derivation took ${(keyDerivationEnd - keyDerivationStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] Key derivation took ${(
+          keyDerivationEnd - keyDerivationStart
+        ).toFixed(0)}ms`
+      )
 
       const initStateStart = performance.now()
       await this.walletManager.initializeState()
       const initStateEnd = performance.now()
-      console.log(`[Unlock] Wallet state initialization took ${(initStateEnd - initStateStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] Wallet state initialization took ${(
+          initStateEnd - initStateStart
+        ).toFixed(0)}ms`
+      )
 
       this.lastInternalWalletActivity = Date.now()
       this.lastExternalWalletActivity = Date.now()
-
       const notifyStart = performance.now()
       await this.notifyUIWithUpdates()
       const notifyEnd = performance.now()
-      console.log(`[Unlock] UI notification took ${(notifyEnd - notifyStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] UI notification took ${(notifyEnd - notifyStart).toFixed(
+          0
+        )}ms`
+      )
 
       const unlockEnd = performance.now()
-      console.log(`[Unlock] Total unlock time: ${(unlockEnd - unlockStart).toFixed(0)}ms`)
+      console.log(
+        `[Unlock] Total unlock time: ${(unlockEnd - unlockStart).toFixed(0)}ms`
+      )
 
       return true
     } catch (error) {
       logger.error("Error while unlocking keyring service", error)
       this.vaultManager.clearSaltedKey()
+      await this.clearLegacyUnlockSession()
       return false
     }
   }
@@ -170,30 +200,36 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
   private getAutoLockInterval(): number {
     const state = globalThis.main.store.getState()
-    return (state.ui.settings.autoLockInterval || 10) * MINUTE
+    return (
+      (state.ui.settings.autoLockInterval ||
+        DEFAULT_AUTO_LOCK_INTERVAL_MINUTES) * MINUTE
+    )
   }
 
-  // Locks the keyring if the time since last keyring or outside activity exceeds preset levels.
+  // Locks the keyring when neither keyring nor outside activity has occurred
+  // during the configured interval.
   private serviceAutoLockHandler(): void {
-    if (!this.lastInternalWalletActivity || !this.lastExternalWalletActivity) {
-      this.notifyUIWithUpdates()
-        .then(() => this.walletManager.clearState())
-        .then(() => this.shouldReloadHandler())
+    if (this.isLocked()) {
+      this.shouldReloadHandler().catch((error) => {
+        logger.error("Error while handling shouldReload flag", error)
+      })
       return
     }
 
     const now = Date.now()
-    const timeSinceLastKeyringActivity = now - this.lastInternalWalletActivity
-    const timeSinceLastOutsideActivity = now - this.lastExternalWalletActivity
     const autoLockInterval = this.getAutoLockInterval()
 
     if (
-      timeSinceLastKeyringActivity >= autoLockInterval ||
-      timeSinceLastOutsideActivity >= autoLockInterval
+      shouldAutoLock(
+        now,
+        this.lastInternalWalletActivity,
+        this.lastExternalWalletActivity,
+        autoLockInterval
+      )
     ) {
-      this.notifyUIWithUpdates()
-        .then(() => this.walletManager.clearState())
-        .then(() => this.shouldReloadHandler())
+      this.lock().catch((error) => {
+        logger.error("Error while autolocking keyring", error)
+      })
     }
   }
 
@@ -211,8 +247,16 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
    * are used to delay auto locking.
    */
   public markOutsideActivity(): void {
-    if (typeof this.lastExternalWalletActivity !== "undefined") {
+    if (!this.isLocked()) {
       this.lastExternalWalletActivity = Date.now()
+    }
+  }
+
+  private async clearLegacyUnlockSession(): Promise<void> {
+    try {
+      await this.sessionStorage.remove(LEGACY_UNLOCK_SESSION_STORAGE_KEY)
+    } catch (error) {
+      logger.error("Unable to clear legacy unlock session storage", error)
     }
   }
 
@@ -405,43 +449,49 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       const { jsonRpcProvider } = globalThis.main.chainService
 
       const qiHDWallet = await this.walletManager.getQiHDWallet()
-      if (qiHDWallet) {
-        const serializedWallet = qiHDWallet.serialize()
-        const uniqueAddresses = Array.from(
-          new Set(serializedWallet.addresses.map((address) => address.address))
-        )
-
-        const addressesToSignFor: string[] = []
-
-        // check balance of each address and only keep one with balance
-        await Promise.all(
-          uniqueAddresses.map(async (address) => {
-            const balance = await jsonRpcProvider.getBalance(address)
-            if (balance > 0n) {
-              addressesToSignFor.push(address)
-            }
-          })
-        )
-
-        const privateKeys = addressesToSignFor.map((address) =>
-          qiHDWallet.getPrivateKey(address)
-        )
-
-        const signedMessages = await Promise.all(
-          privateKeys.map((privateKey) =>
-            new Wallet(privateKey).signMessage(message)
-          )
-        )
-
-        return signedMessages.join(",")
+      if (!qiHDWallet) {
+        throw new Error("Qi HD wallet not found")
       }
+
+      const serializedWallet = qiHDWallet.serialize()
+      const uniqueAddresses = Array.from(
+        new Set(serializedWallet.addresses.map((address) => address.address))
+      )
+
+      const addressesToSignFor: string[] = []
+
+      // check balance of each address and only keep one with balance
+      await Promise.all(
+        uniqueAddresses.map(async (address) => {
+          const balance = await jsonRpcProvider.getBalance(address)
+          if (balance > 0n) {
+            addressesToSignFor.push(address)
+          }
+        })
+      )
+
+      if (addressesToSignFor.length === 0) {
+        throw new Error("No funded Qi addresses available for signing")
+      }
+
+      const privateKeys = addressesToSignFor.map((address) =>
+        qiHDWallet.getPrivateKey(address)
+      )
+
+      const signedMessages = await Promise.all(
+        privateKeys.map((privateKey) =>
+          new Wallet(privateKey).signMessage(message)
+        )
+      )
+
+      return signedMessages.join(",")
     } catch (error: any) {
       logger.error(
         "Error signing message with all Qi addresses",
         error?.message || error
       )
+      throw error
     }
-    return ""
   }
 
   public async getSigner(address: string): Promise<InternalSignerWithType> {
@@ -464,6 +514,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
   }
 
   public async getQiHDWallet(): Promise<QiHDWallet> {
+    this.verifyKeyringIsUnlocked()
     return this.walletManager.getQiHDWallet()
   }
 
@@ -489,6 +540,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     address: string,
     signerType: SignerType
   ): Promise<void> {
+    this.verifyKeyringIsUnlocked()
     await this.walletManager.deleteSigner(address, signerType)
     await this.notifyUIWithUpdates()
   }

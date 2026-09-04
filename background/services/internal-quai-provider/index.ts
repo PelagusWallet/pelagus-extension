@@ -108,6 +108,8 @@ type Events = ServiceLifecycleEvents & {
 }
 
 export default class InternalQuaiProviderService extends BaseService<Events> {
+  private hasPendingSigningApproval = false
+
   static create: ServiceCreatorFunction<
     Events,
     InternalQuaiProviderService,
@@ -136,7 +138,9 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     super()
 
     internalProviderPort.emitter.on("message", async (event) => {
-      logger.debug(`internal: request payload: ${JSON.stringify(event)}`)
+      logger.debug(
+        `internal request ${event.id}: ${event.request.method}`
+      )
       try {
         const response = {
           id: event.id,
@@ -146,7 +150,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
             PELAGUS_INTERNAL_ORIGIN
           ),
         }
-        logger.debug("internal response:", response)
+        logger.debug(`internal response: ${event.id}`)
 
         internalProviderPort.postResponse(response)
       } catch (error: any) {
@@ -559,8 +563,15 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       : null
     const from = getAddress(String(transactionRequest.from))
 
-    const { store } = globalThis.main
-    const { network } = store.getState().ui.selectedAccount
+    const network = await this.getCurrentOrDefaultNetworkForOrigin(origin)
+    const requestedChainID = transactionRequest.chainId
+    if (
+      requestedChainID !== undefined &&
+      requestedChainID !== null &&
+      toHexChainID(String(requestedChainID)) !== toHexChainID(network.chainID)
+    ) {
+      throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
+    }
 
     const payload: QuaiTransactionRequestWithAnnotation & {
       gas?: string
@@ -570,7 +581,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       to,
       from,
       type: transactionRequest.type || 2,
-      chainId: network.chainID,
+      chainId: requestedChainID ?? network.chainID,
       data: transactionRequest.data,
       value: transactionRequest.value,
       network,
@@ -595,12 +606,52 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       delete payload.value
     }
 
-    return new Promise<QuaiTransactionResponse>((resolve, reject) => {
-      this.emitter.emit("transactionSendRequest", {
-        payload,
-        resolver: resolve,
-        rejecter: reject,
-      })
+    return this.requestSigningApproval<QuaiTransactionResponse>(
+      (resolve, reject) => {
+        this.emitter
+          .emit("transactionSendRequest", {
+            payload,
+            resolver: resolve,
+            rejecter: reject,
+          })
+          .catch(reject)
+      }
+    )
+  }
+
+  private requestSigningApproval<T>(
+    request: (
+      resolve: (result: T | PromiseLike<T>) => void,
+      reject: (reason?: unknown) => void
+    ) => void
+  ): Promise<T> {
+    if (this.hasPendingSigningApproval) {
+      return Promise.reject(
+        new EIP1193Error(EIP1193_ERROR_CODES.requestAlreadyPending)
+      )
+    }
+
+    this.hasPendingSigningApproval = true
+    return new Promise<T>((resolve, reject) => {
+      let settled = false
+      const resolveOnce = (result: T | PromiseLike<T>) => {
+        if (settled) return
+        settled = true
+        this.hasPendingSigningApproval = false
+        resolve(result)
+      }
+      const rejectOnce = (reason?: unknown) => {
+        if (settled) return
+        settled = true
+        this.hasPendingSigningApproval = false
+        reject(reason)
+      }
+
+      try {
+        request(resolveOnce, rejectOnce)
+      } catch (error) {
+        rejectOnce(error)
+      }
     })
   }
 
@@ -626,12 +677,14 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       },
     }
 
-    return new Promise<string>((resolve, reject) => {
-      this.emitter.emit("signTypedDataRequest", {
-        payload: filteredRequest,
-        resolver: resolve,
-        rejecter: reject,
-      })
+    return this.requestSigningApproval<string>((resolve, reject) => {
+      this.emitter
+        .emit("signTypedDataRequest", {
+          payload: filteredRequest,
+          resolver: resolve,
+          rejecter: reject,
+        })
+        .catch(reject)
     })
   }
 
@@ -662,20 +715,22 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       origin
     )
 
-    return new Promise<string>((resolve, reject) => {
-      this.emitter.emit("signDataRequest", {
-        payload: {
-          account: {
-            address: account,
-            network: currentNetwork,
+    return this.requestSigningApproval<string>((resolve, reject) => {
+      this.emitter
+        .emit("signDataRequest", {
+          payload: {
+            account: {
+              address: account,
+              network: currentNetwork,
+            },
+            coin: coin || "quai",
+            rawSigningData: hexInput,
+            ...typeAndData,
           },
-          coin: coin || "quai",
-          rawSigningData: hexInput,
-          ...typeAndData,
-        },
-        resolver: resolve,
-        rejecter: reject,
-      })
+          resolver: resolve,
+          rejecter: reject,
+        })
+        .catch(reject)
     })
   }
 }

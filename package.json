@@ -1,7 +1,7 @@
 {
   "name": "@pelagus/pelagus-extension",
   "private": true,
-  "version": "1.0.59",
+  "version": "1.0.60",
   "description": "Pelagus, the community owned and operated Web3 wallet for Quai Network.",
   "main": "index.js",
   "repository": "git@github.com:PelagusWallet/pelagus-extension.git",
@@ -17,7 +17,16 @@
       "./setupJest.env.ts",
       "./ui/setupJest.env.ts"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testEnvironmentOptions": {
+      "customExportConditions": [
+        "node",
+        "node-addons"
+      ]
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!nanoid/)"
+    ]
   },
   "keywords": [
     "cryptocurrency",
@@ -48,7 +57,17 @@
     "postinstall": "patch-package && playwright install chromium"
   },
   "resolutions": {
-    "**/elliptic": "6.6.1"
+    "**/@babel/runtime": "7.28.3",
+    "**/sinon/diff": "5.2.2",
+    "**/elliptic": "6.6.1",
+    "**/immutable": "4.3.9",
+    "**/lodash": "4.18.1",
+    "**/nanoid": "5.1.16",
+    "**/picomatch": "2.3.2",
+    "**/uuid": "11.1.1",
+    "**/ethers/ws": "8.21.0",
+    "**/quais/ws": "8.21.0",
+    "**/socketcluster-client/ws": "7.5.11"
   },
   "workspaces": [
     "ui",
@@ -59,11 +78,11 @@
   ],
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.2",
-    "@pelagus-provider/provider-bridge": "1.0.59",
-    "@pelagus-provider/provider-bridge-shared": "1.0.59",
-    "@pelagus-provider/window-provider": "1.0.59",
-    "@pelagus/pelagus-background": "1.0.59",
-    "@pelagus/pelagus-ui": "1.0.59",
+    "@pelagus-provider/provider-bridge": "1.0.60",
+    "@pelagus-provider/provider-bridge-shared": "1.0.60",
+    "@pelagus-provider/window-provider": "1.0.60",
+    "@pelagus/pelagus-background": "1.0.60",
+    "@pelagus/pelagus-ui": "1.0.60",
     "buffer": "^6.0.3",
     "human-number": "^2.0.4",
     "react": "^17.0.2",
@@ -112,6 +131,7 @@
     "fork-ts-checker-webpack-plugin": "^6.3.2",
     "install": "^0.13.0",
     "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "npm": "^10.8.2",
     "npm-run-all": "^4.1.5",
     "patch-package": "^6.4.7",

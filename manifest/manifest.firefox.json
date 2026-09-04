@@ -1,8 +1,8 @@
 {
   "browser_specific_settings": {
     "gecko": {
-      "id": "webextension@tally.cash",
-      "strict_min_version": "68.0"
+      "id": "extension@pelaguswallet.io",
+      "strict_min_version": "109.0"
     }
   },
   "permissions": ["https://*/*"]

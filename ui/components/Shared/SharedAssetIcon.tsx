@@ -6,23 +6,32 @@ import React, {
   useState,
 } from "react"
 import { storageGatewayURL } from "@pelagus/pelagus-background/lib/storage-gateway"
+import { getExplorerTokenIconURL } from "@pelagus/pelagus-background/lib/token-icons"
 import classNames from "classnames"
 
 type Props = {
   size: "small" | "medium" | "large" | number
-  logoURL: string
+  logoURL?: string
   symbol: string
+  contractAddress?: string
+  chainID?: string
 }
 
 // Passes IPFS and Arweave through HTTP gateway
-function getAsHttpURL(anyURL: string) {
-  let httpURL = anyURL
+function getAsHttpURL(anyURL: string): string {
   try {
-    httpURL = storageGatewayURL(anyURL).href
+    const resolvedURL = storageGatewayURL(anyURL)
+    const isAllowedProtocol = [
+      "http:",
+      "https:",
+      "chrome-extension:",
+      "moz-extension:",
+    ].includes(resolvedURL.protocol)
+
+    return isAllowedProtocol ? resolvedURL.href : ""
   } catch (err) {
-    httpURL = ""
+    return ""
   }
-  return httpURL
 }
 
 type TypedIntersectionObserverEntry<T extends Element> =
@@ -65,7 +74,12 @@ function useIntersectionObserver<T extends React.RefObject<HTMLElement>>(
 }
 
 export default function SharedAssetIcon(props: Props): ReactElement {
-  const { size, logoURL, symbol } = props
+  const { size, logoURL, symbol, contractAddress, chainID } = props
+  const resolvedLogoURL =
+    logoURL ||
+    (contractAddress && chainID
+      ? getExplorerTokenIconURL(contractAddress, chainID)
+      : undefined)
 
   const [imageURL, setImageURL] = useState("")
   const [visible, setIsVisible] = useState(false)
@@ -85,48 +99,49 @@ export default function SharedAssetIcon(props: Props): ReactElement {
   )
 
   useEffect(() => {
-    if (!visible || !logoURL) {
-      return
+    setImageURL("")
+
+    if (!visible || !resolvedLogoURL) {
+      return undefined
     }
 
-    const isIpfsURL = /^ipfs:/.test(logoURL)
-    const httpURL = getAsHttpURL(logoURL)
+    const httpURL = getAsHttpURL(resolvedLogoURL)
+    if (!httpURL) return undefined
 
     const img = new Image()
+    let cancelled = false
 
     img.onerror = () => {
-      if (isIpfsURL) {
-        fetch(httpURL).then(async (response) => {
-          if (
-            response.ok &&
-            response.headers.get("content-type") === "text/html"
-          ) {
-            const prefix = "data:image/svg+xml;base64,"
-            const base64URI = Buffer.from(
-              await response.arrayBuffer()
-            ).toString("base64")
-
-            setImageURL(prefix + base64URI)
-          } else {
-            throw new Error("INVALID_RESPONSE")
-          }
-        })
-      }
+      if (!cancelled) setImageURL("")
     }
     img.onload = () => {
-      setImageURL(img.src)
+      if (!cancelled) setImageURL(img.src)
     }
+    img.referrerPolicy = "no-referrer"
     img.src = httpURL
-  }, [visible, logoURL])
+
+    return () => {
+      cancelled = true
+      img.onerror = null
+      img.onload = null
+    }
+  }, [visible, resolvedLogoURL])
 
   return (
     <div
       ref={containerRef}
       className={classNames("token_icon_wrap", sizeClass)}
       role="img"
+      aria-label={`${symbol || "Unknown"} asset`}
     >
       {imageURL ? (
-        <div className="token_icon" />
+        <img
+          className="token_icon"
+          src={imageURL}
+          alt=""
+          role="presentation"
+          referrerPolicy="no-referrer"
+        />
       ) : (
         <div
           role="presentation"
@@ -179,11 +194,8 @@ export default function SharedAssetIcon(props: Props): ReactElement {
           width: 100%;
           height: 100%;
           background-color: var(--secondary-bg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: url("${imageURL}");
-          background-size: cover;
+          display: block;
+          object-fit: cover;
           animation: fadein 130ms ease-out forwards;
         }
 
@@ -202,6 +214,8 @@ export default function SharedAssetIcon(props: Props): ReactElement {
 
 SharedAssetIcon.defaultProps = {
   size: "medium",
-  logoURL: null,
+  logoURL: undefined,
   symbol: "QUAI",
+  contractAddress: undefined,
+  chainID: undefined,
 }

@@ -9,10 +9,7 @@ import {
   SignerImportSource,
   SignerSourceTypes,
 } from "../services/keyring/types"
-import {
-  MAX_KEYRING_IDLE_TIME,
-  MAX_OUTSIDE_IDLE_TIME,
-} from "../services/keyring"
+import { MINUTE } from "../constants"
 
 const originalCrypto = global.crypto
 beforeEach(() => {
@@ -373,11 +370,23 @@ describe("KeyringService when saving keyrings", () => {
 })
 
 describe("Keyring service when autolocking", () => {
+  const originalMain = globalThis.main
+  const defaultAutoLockInterval = 10
+
   let service: KeyringService
-  let address: string
+  let autoLockInterval: number
   let callAutolockHandler: (timeSinceInitialMock: number) => void
 
   beforeEach(async () => {
+    autoLockInterval = defaultAutoLockInterval
+    globalThis.main = {
+      store: {
+        getState: () => ({
+          ui: { settings: { autoLockInterval } },
+        }),
+      },
+    } as unknown as typeof globalThis.main
+
     browser.storage.local.get = jest.fn(() => Promise.resolve({}))
     browser.storage.local.set = jest.fn(() => Promise.resolve())
     browser.alarms.create = jest.fn(() => ({}))
@@ -399,9 +408,6 @@ describe("Keyring service when autolocking", () => {
 
     service = await startKeyringService()
     await service.unlock(testPassword)
-    service.emitter.on("address", (emittedAddress) => {
-      address = emittedAddress
-    })
     const { mnemonic } = await service.generateMnemonic()
     await service.importKeyring({
       type: SignerSourceTypes.keyring,
@@ -410,23 +416,34 @@ describe("Keyring service when autolocking", () => {
     })
   })
 
-  it("will autolock after the keyring idle time but not sooner", async () => {
-    expect(service.isLocked()).toEqual(false)
-
-    callAutolockHandler(MAX_KEYRING_IDLE_TIME - 10)
-    expect(service.isLocked()).toEqual(false)
-
-    callAutolockHandler(MAX_KEYRING_IDLE_TIME)
-    expect(service.isLocked()).toEqual(true)
+  afterAll(() => {
+    globalThis.main = originalMain
   })
 
-  it("will autolock after the outside activity idle time but not sooner", async () => {
+  it("will autolock after the configured idle time but not sooner", async () => {
+    const interval = defaultAutoLockInterval * MINUTE
+
     expect(service.isLocked()).toEqual(false)
 
-    callAutolockHandler(MAX_OUTSIDE_IDLE_TIME - 10)
+    callAutolockHandler(interval - 1)
     expect(service.isLocked()).toEqual(false)
 
-    callAutolockHandler(MAX_OUTSIDE_IDLE_TIME)
+    const lockedEvent = service.emitter.once("locked")
+    callAutolockHandler(interval)
+    expect(service.isLocked()).toEqual(true)
+    await expect(lockedEvent).resolves.toEqual(true)
+  })
+
+  it("will honor the one-week auto-lock interval", async () => {
+    autoLockInterval = 7 * 24 * 60
+    const interval = autoLockInterval * MINUTE
+
+    expect(service.isLocked()).toEqual(false)
+
+    callAutolockHandler(interval - 1)
+    expect(service.isLocked()).toEqual(false)
+
+    callAutolockHandler(interval)
     expect(service.isLocked()).toEqual(true)
   })
 
@@ -448,50 +465,36 @@ describe("Keyring service when autolocking", () => {
       },
     },
   ])("will bump keyring activity idle time when $action", async ({ call }) => {
-    jest
-      .spyOn(Date, "now")
-      .mockReturnValue(dateNowValue + MAX_KEYRING_IDLE_TIME - 1)
+    const interval = defaultAutoLockInterval * MINUTE
+
+    jest.spyOn(Date, "now").mockReturnValue(dateNowValue + interval - 1)
 
     await call()
 
-    // Bump the outside activity timer to make sure the service doesn't
-    // autolock due to outside idleness.
-    jest
-      .spyOn(Date, "now")
-      .mockReturnValue(dateNowValue + MAX_OUTSIDE_IDLE_TIME - 1)
-    service.markOutsideActivity()
-
-    callAutolockHandler(MAX_KEYRING_IDLE_TIME)
+    callAutolockHandler(interval)
     expect(service.isLocked()).toEqual(false)
 
-    callAutolockHandler(2 * MAX_KEYRING_IDLE_TIME - 10)
+    callAutolockHandler(2 * interval - 2)
     expect(service.isLocked()).toEqual(false)
 
-    callAutolockHandler(2 * MAX_KEYRING_IDLE_TIME)
+    callAutolockHandler(2 * interval - 1)
     expect(service.isLocked()).toEqual(true)
   })
 
-  it("will bump the outside activity idle time when outside activity is marked", async () => {
-    jest
-      .spyOn(Date, "now")
-      .mockReturnValue(dateNowValue + MAX_OUTSIDE_IDLE_TIME - 1)
+  it("will restart the idle time when outside activity is marked", async () => {
+    const interval = defaultAutoLockInterval * MINUTE
+
+    jest.spyOn(Date, "now").mockReturnValue(dateNowValue + interval - 1)
 
     service.markOutsideActivity()
 
-    // Bump the keyring activity timer to make sure the service doesn't
-    // autolock due to keyring idleness.
-    jest
-      .spyOn(Date, "now")
-      .mockReturnValue(dateNowValue + MAX_KEYRING_IDLE_TIME - 1)
-    await service.generateMnemonic()
-
-    callAutolockHandler(MAX_OUTSIDE_IDLE_TIME)
+    callAutolockHandler(interval)
     expect(service.isLocked()).toEqual(false)
 
-    callAutolockHandler(2 * MAX_OUTSIDE_IDLE_TIME - 10)
+    callAutolockHandler(2 * interval - 2)
     expect(service.isLocked()).toEqual(false)
 
-    callAutolockHandler(2 * MAX_OUTSIDE_IDLE_TIME)
+    callAutolockHandler(2 * interval - 1)
     expect(service.isLocked()).toEqual(true)
   })
 })

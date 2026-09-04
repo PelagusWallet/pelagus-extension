@@ -1,4 +1,5 @@
 import { browser, startMain } from "@pelagus/pelagus-background"
+import { connectOffscreenClipboard } from "@pelagus/pelagus-background/offscreen-clipboard"
 import {
   FeatureFlags,
   isEnabled,
@@ -26,4 +27,5 @@ browser.runtime.onInstalled.addListener((obj) => {
   }
 })
 
+connectOffscreenClipboard()
 startMain()

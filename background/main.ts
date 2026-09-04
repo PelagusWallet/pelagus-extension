@@ -171,6 +171,7 @@ import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
 import { MINUTE } from "./constants"
+import { withExplorerTokenIcon } from "./lib/token-icons"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -283,6 +284,7 @@ const initializeStore = (preloadedState: object, main: Main) =>
 type ReduxStoreType = ReturnType<typeof initializeStore>
 
 export const popupMonitorPortName = "popup-monitor"
+export const popupMonitorActivityMessage = "activity"
 
 export let walletOpen = false
 
@@ -1257,7 +1259,6 @@ export default class Main extends BaseService<never> {
     })
 
     this.keyringService.emitter.on("loadQiWallet", async (qiWallet) => {
-      const start = performance.now()
       PELAGUS_NETWORKS.forEach((network) => {
         this.store.dispatch(
           loadUtxoAccount({
@@ -1272,17 +1273,14 @@ export default class Main extends BaseService<never> {
         try {
           const cachedBalance = await this.chainService.getCachedQiBalance()
           if (cachedBalance) {
-            console.log(`[Post-Unlock] Loading cached Qi balance: ${cachedBalance.assetAmount.amount}`)
             this.store.dispatch(updateUtxoAccountsBalances({
               balances: [cachedBalance],
             }))
           }
-        } catch (error) {
-          console.error("[Post-Unlock] Failed to load cached Qi balance:", error)
+        } catch {
+          logger.error("Failed to load cached Qi balance after unlock")
         }
       }
-
-      console.log(`[Post-Unlock] loadQiWallet event handler took ${(performance.now() - start).toFixed(0)}ms`)
     })
 
     this.keyringService.emitter.on("locked", (isLocked) => {
@@ -1293,9 +1291,6 @@ export default class Main extends BaseService<never> {
         this.priceService.updateQuaiPrice().catch((error) => {
           logger.error("Failed to refresh price after unlock", error)
         })
-        console.log(
-          `[Post-Unlock] keyringUnlocked dispatched, triggering balance update in background...`
-        )
         this.store.dispatch(triggerManualBalanceUpdate())
       }
     })
@@ -1394,14 +1389,9 @@ export default class Main extends BaseService<never> {
         resolver: (result: string | PromiseLike<string>) => void
         rejecter: (reason?: unknown) => void
       }) => {
-        // Run signer preparation and enrichment in parallel.
-        const [enrichedSignTypedDataRequest] = await Promise.all([
-          this.enrichmentService.enrichSignTypedDataRequest(payload),
-        ])
-
-        this.store.dispatch(typedDataRequest(enrichedSignTypedDataRequest))
-
+        let settled = false
         const clear = () => {
+          settled = true
           this.signingService.emitter.off(
             "signingDataResponse",
             // Mutual dependency to handleAndClear.
@@ -1437,6 +1427,17 @@ export default class Main extends BaseService<never> {
         this.signingService.emitter.on("signingDataResponse", handleAndClear)
 
         signingSliceEmitter.on("signatureRejected", rejectAndClear)
+
+        // Listen for dismissal before async preparation so closing the popup
+        // cannot strand the approval gate or publish an abandoned request.
+        try {
+          const enrichedRequest =
+            await this.enrichmentService.enrichSignTypedDataRequest(payload)
+          if (!settled) this.store.dispatch(typedDataRequest(enrichedRequest))
+        } catch (error) {
+          clear()
+          rejecter(error)
+        }
       }
     )
     this.internalQuaiProviderService.emitter.on(
@@ -2149,11 +2150,13 @@ export default class Main extends BaseService<never> {
       addressOnNetwork,
       cachedAsset
     )
+    const asset = withExplorerTokenIcon(assetData.asset)
 
     return {
       ...assetData,
+      asset,
       balance: Number.parseFloat(
-        formatUnits(assetData.amount, assetData.asset.decimals)
+        formatUnits(assetData.amount, asset.decimals)
       ),
       mainCurrencyAmount: undefined,
       exists: !!cachedAsset,
@@ -2170,11 +2173,18 @@ export default class Main extends BaseService<never> {
 
       logger.info("Pelagus Connected")
       walletOpen = true
+      this.keyringService.markOutsideActivity()
       if (this.store.getState().ui.isUtxoSelected) {
         this.chainService.syncQiWallet()
       } else {
         this.manuallyCheckBalances()
       }
+
+      port.onMessage.addListener((message) => {
+        if (message === popupMonitorActivityMessage) {
+          this.keyringService.markOutsideActivity()
+        }
+      })
 
       const openTime = Date.now()
 

@@ -68,12 +68,10 @@ export async function deriveSymmetricKeyFromPassword(
   password: string,
   existingSalt?: string
 ): Promise<SaltedKey> {
+  requireCryptoGlobal()
   const { crypto } = global
-
   const salt = existingSalt || (await generateSalt())
-
   const encoder = new TextEncoder()
-
   const derivationKey = await crypto.subtle.importKey(
     "raw",
     encoder.encode(password),
@@ -95,10 +93,7 @@ export async function deriveSymmetricKeyFromPassword(
     ["encrypt", "decrypt"]
   )
 
-  return {
-    key,
-    salt,
-  }
+  return { key, salt }
 }
 
 /**

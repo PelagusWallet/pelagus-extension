@@ -14,11 +14,18 @@ import { MINUTE } from "../constants"
 const originalCrypto = global.crypto
 beforeEach(() => {
   // polyfill the WebCrypto API
-  global.crypto = webcrypto as unknown as Crypto
+  Object.defineProperty(global, "crypto", {
+    configurable: true,
+    value: webcrypto,
+  })
 })
 
 afterEach(() => {
-  global.crypto = originalCrypto
+  jest.restoreAllMocks()
+  Object.defineProperty(global, "crypto", {
+    configurable: true,
+    value: originalCrypto,
+  })
 })
 
 const validMnemonics = {
@@ -77,8 +84,13 @@ function expectBase64String(
 }
 
 const mockAlarms = () => {
-  browser.alarms.create = jest.fn(() => ({}))
-  browser.alarms.onAlarm.addListener = jest.fn(() => ({}))
+  Object.defineProperty(browser, "alarms", {
+    configurable: true,
+    value: {
+      create: jest.fn(),
+      onAlarm: { addListener: jest.fn() },
+    },
+  })
 }
 
 describe("KeyringService when uninitialized", () => {
@@ -389,7 +401,7 @@ describe("Keyring service when autolocking", () => {
 
     browser.storage.local.get = jest.fn(() => Promise.resolve({}))
     browser.storage.local.set = jest.fn(() => Promise.resolve())
-    browser.alarms.create = jest.fn(() => ({}))
+    mockAlarms()
 
     browser.alarms.onAlarm.addListener = jest.fn((handler) => {
       callAutolockHandler = (timeSinceInitialMock) => {
@@ -407,13 +419,8 @@ describe("Keyring service when autolocking", () => {
     jest.spyOn(Date, "now").mockReturnValue(dateNowValue)
 
     service = await startKeyringService()
-    await service.unlock(testPassword)
-    const { mnemonic } = await service.generateMnemonic()
-    await service.importKeyring({
-      type: SignerSourceTypes.keyring,
-      mnemonic: mnemonic.join(" "),
-      source: SignerImportSource.import,
-    })
+    // Timer and locked-event checks only require an unlocked vault.
+    await expect(service.unlock(testPassword)).resolves.toEqual(true)
   })
 
   afterEach(() => {
@@ -443,8 +450,10 @@ describe("Keyring service when autolocking", () => {
     callAutolockHandler(interval - 1)
     expect(service.isLocked()).toEqual(false)
 
+    const lockedEvent = service.emitter.once("locked")
     callAutolockHandler(interval)
     expect(service.isLocked()).toEqual(true)
+    await expect(lockedEvent).resolves.toEqual(true)
   })
 
   it.each([

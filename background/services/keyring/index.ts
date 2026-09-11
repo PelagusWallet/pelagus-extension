@@ -158,7 +158,9 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
     } catch (error) {
       logger.error("Error while unlocking keyring service", error)
       this.stopKeepAlive()
-      this.vaultManager.clearSaltedKey()
+      this.walletManager.clearState()
+      this.lastExternalWalletActivity = null
+      this.lastInternalWalletActivity = null
       return false
     }
   }

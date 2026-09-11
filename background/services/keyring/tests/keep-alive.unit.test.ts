@@ -1,5 +1,6 @@
 import KeyringService from ".."
 import WalletManager from "../wallet-manager"
+import { SignerImportSource } from "../types"
 import { browser } from "../../../index"
 import logger from "../../../lib/logger"
 import { MINUTE, SECOND } from "../../../constants"
@@ -45,11 +46,10 @@ describe("KeyringService worker heartbeat", () => {
       .mockImplementation(() => {
         unlocked = false
       })
-    jest.spyOn(internals.walletManager, "initializeState").mockResolvedValue()
-    jest.spyOn(internals.walletManager, "clearState").mockImplementation(() => {
-      service.vaultManager.clearSaltedKey()
-    })
-    jest.spyOn(service, "notifyUIWithUpdates").mockResolvedValue()
+    jest
+      .spyOn(internals.walletManager, "initializeState")
+      .mockResolvedValue(undefined)
+    jest.spyOn(service, "notifyUIWithUpdates").mockResolvedValue(undefined)
     jest.spyOn(logger, "error").mockImplementation(() => undefined)
   })
 
@@ -92,14 +92,22 @@ describe("KeyringService worker heartbeat", () => {
     expect(browser.runtime.getPlatformInfo).toHaveBeenCalledTimes(30)
   })
 
-  it.each(["password", "UI notification"])(
-    "stops the heartbeat when unlocking fails during %s",
+  it.each(["password", "wallet initialization", "UI notification"])(
+    "clears unlock state and stops the heartbeat when unlocking fails during %s",
     async (failure) => {
       await service.unlock("test password")
+      internals.walletManager.keyringMetadata = {
+        wallet: { source: SignerImportSource.import },
+      }
+      internals.walletManager.hiddenAccounts = { "0x1234": true }
       const error = new Error("Unlock failed")
       if (failure === "password") {
         jest
           .spyOn(service.vaultManager, "initializeWithPassword")
+          .mockRejectedValueOnce(error)
+      } else if (failure === "wallet initialization") {
+        jest
+          .spyOn(internals.walletManager, "initializeState")
           .mockRejectedValueOnce(error)
       } else {
         jest.spyOn(service, "notifyUIWithUpdates").mockRejectedValueOnce(error)
@@ -108,6 +116,15 @@ describe("KeyringService worker heartbeat", () => {
       await expect(service.unlock("test password")).resolves.toBe(false)
       jest.advanceTimersByTime(MINUTE)
       expect(service.isLocked()).toBe(true)
+      expect(internals.walletManager.getState()).toEqual({
+        wallets: [],
+        qiHDWallet: null,
+        quaiHDWallets: [],
+        keyringMetadata: {},
+      })
+      expect(internals.walletManager.hiddenAccounts).toEqual({})
+      expect(service.lastInternalWalletActivity).toBeNull()
+      expect(service.lastExternalWalletActivity).toBeNull()
       expect(browser.runtime.getPlatformInfo).not.toHaveBeenCalled()
     }
   )

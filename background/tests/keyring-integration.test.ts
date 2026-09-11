@@ -12,6 +12,7 @@ import {
 import { MINUTE } from "../constants"
 
 const originalCrypto = global.crypto
+const startedServices: KeyringService[] = []
 beforeEach(() => {
   // polyfill the WebCrypto API
   Object.defineProperty(global, "crypto", {
@@ -20,7 +21,8 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => {
+afterEach(async () => {
+  await Promise.all(startedServices.splice(0).map((service) => service.lock()))
   jest.restoreAllMocks()
   Object.defineProperty(global, "crypto", {
     configurable: true,
@@ -68,6 +70,7 @@ const dateNowValue = 1000000000000
 
 const startKeyringService = async () => {
   const service = await KeyringService.create()
+  startedServices.push(service)
   await service.startService()
   return service
 }

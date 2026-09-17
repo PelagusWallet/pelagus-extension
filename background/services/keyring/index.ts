@@ -14,6 +14,7 @@ import { SignerType } from "../signing"
 import WalletManager from "./wallet-manager"
 import { applicationError } from "../../constants/errorsCause"
 import { KeyringServiceEvents } from "./events"
+import { KEYRING_LOCKED_ERROR } from "./errors"
 import {
   InternalSignerWithType,
   KeyringAccountSigner,
@@ -270,9 +271,12 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
   public async importKeyring(
     signerMetadata: SignerImportMetadata
   ): Promise<{ address: string | null; errorMessage: string }> {
-    this.verifyKeyringIsUnlocked()
-
     try {
+      // Checked inside the try so a locked vault (e.g. after the service
+      // worker restarted mid-onboarding) is reported to the UI as a
+      // recoverable error instead of an unhandled throw.
+      this.verifyKeyringIsUnlocked()
+
       const address = await this.walletManager.importSigner(signerMetadata)
 
       await this.emitter.emit("address", address)
@@ -281,6 +285,10 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       return { address, errorMessage: "" }
     } catch (error: any) {
       logger.error("Signer import failed:", error)
+
+      if (this.isLocked()) {
+        return { address: null, errorMessage: KEYRING_LOCKED_ERROR }
+      }
 
       return {
         address: null,

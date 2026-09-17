@@ -3,7 +3,8 @@ import {
   importKeyring,
   setKeyringToVerify,
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
-import React, { ReactElement } from "react"
+import React, { ReactElement, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Redirect,
   Route,
@@ -13,6 +14,8 @@ import {
 } from "react-router-dom"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
+import logger from "@pelagus/pelagus-background/lib/logger"
+import { isKeyringLockedError } from "@pelagus/pelagus-background/services/keyring/errors"
 import {
   SignerImportSource,
   SignerSourceTypes,
@@ -25,6 +28,7 @@ import {
 } from "../../../hooks"
 import NewSeedIntro from "./NewSeed/NewSeedIntro"
 import NewSeedReview from "./NewSeed/NewSeedReview"
+import NewSeedUnlock from "./NewSeed/NewSeedUnlock"
 import NewSeedVerify from "./NewSeed/NewSeedVerify"
 import OnboardingRoutes from "./Routes"
 
@@ -63,6 +67,9 @@ export const NewSeedRoutes = {
 } as const
 
 export default function NewSeed(): ReactElement {
+  const { t } = useTranslation("translation", {
+    keyPrefix: "onboarding.tabbed.newWalletVerify",
+  })
   const dispatch = useBackgroundDispatch()
   const mnemonic = useBackgroundSelector(
     (state) => state.keyrings.keyringToVerify?.mnemonic
@@ -84,23 +91,53 @@ export default function NewSeed(): ReactElement {
     history.replace(NewSeedRoutes.VERIFY_SEED)
   }
 
-  const onVerifySuccess = async (verifiedMnemonic: string[]) => {
-    const { success } = (await dispatch(
-      importKeyring({
-        type: SignerSourceTypes.keyring,
-        mnemonic: verifiedMnemonic.join(" "),
-        source: SignerImportSource.internal,
-        path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
-      })
-    )) as AsyncThunkFulfillmentType<typeof importKeyring>
+  const [importError, setImportError] = useState("")
+  // Held so the import can be retried after the user re-enters their password.
+  const [lockedMnemonic, setLockedMnemonic] = useState<string[] | null>(null)
 
-    if (success) {
-      dispatch(setKeyringToVerify(null))
-      history.push(OnboardingRoutes.ONBOARDING_COMPLETE)
+  const finishImport = async (verifiedMnemonic: string[]): Promise<void> => {
+    setImportError("")
+
+    try {
+      const { success, errorMessage } = (await dispatch(
+        importKeyring({
+          type: SignerSourceTypes.keyring,
+          mnemonic: verifiedMnemonic.join(" "),
+          source: SignerImportSource.internal,
+          path: selectedNetwork.derivationPath ?? "m/44'/1'/0'/0",
+        })
+      )) as AsyncThunkFulfillmentType<typeof importKeyring>
+
+      if (success) {
+        setLockedMnemonic(null)
+        dispatch(setKeyringToVerify(null))
+        history.push(OnboardingRoutes.ONBOARDING_COMPLETE)
+        return
+      }
+
+      if (isKeyringLockedError(errorMessage)) {
+        setLockedMnemonic(verifiedMnemonic)
+        return
+      }
+
+      // The message is background detail; show the localized one and log the
+      // rest for support.
+      logger.error("Wallet import failed during onboarding:", errorMessage)
+      setImportError(t("importFailed"))
+    } catch (error) {
+      // Includes BACKGROUND_DISCONNECTED_ERROR, which previously hung forever.
+      logger.error("Wallet import failed during onboarding:", error)
+      setImportError(t("importFailed"))
     }
   }
 
-  if (!areKeyringsUnlocked)
+  const onVerifySuccess = (verifiedMnemonic: string[]) => {
+    finishImport(verifiedMnemonic)
+  }
+
+  // While a verified phrase is waiting on an unlock, stay put and let
+  // NewSeedUnlock recover it rather than restarting onboarding.
+  if (!areKeyringsUnlocked && !lockedMnemonic)
     return (
       <Redirect
         to={{
@@ -108,6 +145,31 @@ export default function NewSeed(): ReactElement {
           state: { nextPage: path },
         }}
       />
+    )
+
+  const errorBanner = importError && (
+    <div role="alert" className="import_error">
+      {importError}
+      <style jsx>{`
+        .import_error {
+          max-width: 450px;
+          margin: 16px auto 0;
+          text-align: center;
+          color: var(--error);
+        }
+      `}</style>
+    </div>
+  )
+
+  // Rendered outside the router: the phrase held here is the only remaining
+  // copy once the background has dropped its own, so recovery must not depend
+  // on background state still being there.
+  if (lockedMnemonic)
+    return (
+      <StepContainer step={2}>
+        <NewSeedUnlock onUnlocked={() => finishImport(lockedMnemonic)} />
+        {errorBanner}
+      </StepContainer>
     )
 
   return (
@@ -131,6 +193,7 @@ export default function NewSeed(): ReactElement {
         <Route path={NewSeedRoutes.VERIFY_SEED}>
           <StepContainer step={2}>
             <NewSeedVerify mnemonic={mnemonic} onVerify={onVerifySuccess} />
+            {errorBanner}
           </StepContainer>
         </Route>
       )}

@@ -171,6 +171,11 @@ import NotificationsManager from "./services/notifications"
 import BlockService from "./services/block"
 import TransactionService from "./services/transactions"
 import { MINUTE } from "./constants"
+import {
+  MONITOR_ACTIVITY_MESSAGE,
+  ONBOARDING_MONITOR_PORT_NAME,
+  POPUP_MONITOR_PORT_NAME,
+} from "./constants/ports"
 import { withExplorerTokenIcon } from "./lib/token-icons"
 
 // This sanitizer runs on store and action data before serializing for remote
@@ -283,10 +288,35 @@ const initializeStore = (preloadedState: object, main: Main) =>
 
 type ReduxStoreType = ReturnType<typeof initializeStore>
 
-export const popupMonitorPortName = "popup-monitor"
-export const popupMonitorActivityMessage = "activity"
-
 export let walletOpen = false
+
+/**
+ * Tabbed onboarding keeps unrecoverable state in the service worker's memory
+ * (the generated recovery phrase, the unlocked vault) while the user writes
+ * their phrase down. Its pings keep this worker from being terminated
+ * mid-flow, which would silently break the final import step.
+ *
+ * It is the pings that matter, not the open port: Chromium does not count a
+ * long-lived channel as service worker activity, only the messages sent over
+ * it (extension_message_port.cc, IsServiceWorkerActivity).
+ *
+ * Deliberately does no work per message: marking wallet activity here would
+ * defer auto-lock for as long as the onboarding tab stays open.
+ */
+function connectOnboardingMonitor(): void {
+  runtime.onConnect.addListener((port) => {
+    if (port.name !== ONBOARDING_MONITOR_PORT_NAME) return
+
+    // Accept connections from this extension's own pages only; a content
+    // script could otherwise hold the worker awake from any visited site.
+    if (!port.sender?.url?.startsWith(runtime.getURL(""))) {
+      port.disconnect()
+      return
+    }
+
+    port.onMessage.addListener(() => {})
+  })
+}
 
 // TODO Rename ReduxService or CoordinationService, move to services/, etc.
 export default class Main extends BaseService<never> {
@@ -705,6 +735,7 @@ export default class Main extends BaseService<never> {
     this.store.dispatch(resetProgressStates())
 
     this.connectPopupMonitor()
+    connectOnboardingMonitor()
   }
 
   public GetShard(): string {
@@ -2169,7 +2200,7 @@ export default class Main extends BaseService<never> {
 
   private connectPopupMonitor() {
     runtime.onConnect.addListener((port) => {
-      if (port.name !== popupMonitorPortName) return
+      if (port.name !== POPUP_MONITOR_PORT_NAME) return
 
       logger.info("Pelagus Connected")
       walletOpen = true
@@ -2181,7 +2212,7 @@ export default class Main extends BaseService<never> {
       }
 
       port.onMessage.addListener((message) => {
-        if (message === popupMonitorActivityMessage) {
+        if (message === MONITOR_ACTIVITY_MESSAGE) {
           this.keyringService.markOutsideActivity()
         }
       })

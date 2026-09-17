@@ -1,6 +1,8 @@
 import { QiHDWallet } from "quais"
 import KeyringService from ".."
 import WalletManager from "../wallet-manager"
+import { KEYRING_LOCKED_ERROR } from "../errors"
+import { SignerImportSource, SignerSourceTypes } from "../types"
 
 jest.mock("../../../index", () => ({
   browser: {},
@@ -45,5 +47,23 @@ describe("KeyringService lock guards", () => {
         "keyring"
       )
     ).rejects.toThrow("KeyringService must be unlocked")
+  })
+
+  // Regression: a locked vault (e.g. the service worker restarted during
+  // onboarding) used to throw out of importKeyring, leaving the UI with an
+  // unexplained failure and no way to recover.
+  it("reports a locked vault as a recoverable import error", async () => {
+    const importSigner = jest.spyOn(WalletManager.prototype, "importSigner")
+
+    await expect(
+      keyringService.importKeyring({
+        type: SignerSourceTypes.keyring,
+        mnemonic: "test",
+        source: SignerImportSource.internal,
+        path: "m/44'/1'/0'/0",
+      })
+    ).resolves.toEqual({ address: null, errorMessage: KEYRING_LOCKED_ERROR })
+
+    expect(importSigner).not.toHaveBeenCalled()
   })
 })

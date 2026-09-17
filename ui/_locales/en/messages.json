@@ -225,7 +225,11 @@
         "invalidStateMsg": "Verify the order and remove the ones that aren't in the right position.",
         "verifyValidState": "Verify recovery phrase",
         "submit": "Finalize",
-        "tip": "If you didn’t write it down, you can <url>start with a new phrase.</url>"
+        "tip": "If you didn’t write it down, you can <url>start with a new phrase.</url>",
+        "importFailed": "We couldn't create your wallet. Check your connection and try again.",
+        "sessionExpiredTitle": "Confirm your password",
+        "sessionExpiredSubtitle": "Your wallet locked while you were writing down your recovery phrase. Enter your password to finish setup — your phrase is still valid.",
+        "unlockCta": "Unlock and finish"
       },
       "complete": {
         "title": "Welcome to Pelagus",

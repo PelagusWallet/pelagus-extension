@@ -5,16 +5,16 @@ import { Store } from "webext-redux"
 import { Provider } from "react-redux"
 import { runtime } from "webextension-polyfill"
 import {
-  popupMonitorActivityMessage,
-  popupMonitorPortName,
-} from "@pelagus/pelagus-background/main"
+  MONITOR_ACTIVITY_MESSAGE,
+  POPUP_MONITOR_PORT_NAME,
+} from "@pelagus/pelagus-background/constants/ports"
 import { useIsDappPopup, useTheme } from "../hooks"
 import pageList from "../routes/routes"
 import PrivateRoute from "../routes/PrivateRoute"
 
 function useConnectPopupMonitor() {
   useEffect(() => {
-    const port = runtime.connect(undefined, { name: popupMonitorPortName })
+    const port = runtime.connect(undefined, { name: POPUP_MONITOR_PORT_NAME })
     let isDisconnected = false
     const handleDisconnect = () => {
       isDisconnected = true
@@ -25,7 +25,7 @@ function useConnectPopupMonitor() {
       if (isDisconnected) return
 
       try {
-        port.postMessage(popupMonitorActivityMessage)
+        port.postMessage(MONITOR_ACTIVITY_MESSAGE)
       } catch {
         isDisconnected = true
       }

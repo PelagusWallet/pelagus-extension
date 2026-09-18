@@ -20,6 +20,8 @@ import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import BaseService from "../base"
 import InternalQuaiProviderService, {
   AddEthereumChainParameter,
+  findSupportedNetwork,
+  SwitchEthereumChainParameter,
 } from "../internal-quai-provider"
 import { initializeProviderBridgeDatabase, ProviderBridgeDatabase } from "./db"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -36,11 +38,13 @@ import {
   handleRPCErrorResponse,
   parseRPCRequestParams,
   PermissionMap,
+  SwitchNetworkRequestData,
   validateAddEthereumChainParameter,
   ValidatedAddEthereumChainParameter,
 } from "./utils"
 import { toHexChainID } from "../../networks"
 import { PELAGUS_INTERNAL_ORIGIN } from "../internal-quai-provider/constants"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 type Events = ServiceLifecycleEvents & {
   requestPermission: PermissionRequest
@@ -79,6 +83,16 @@ export default class ProviderBridgeService extends BaseService<Events> {
   } = {}
 
   private addNetworkRequestId = 0
+
+  #pendingSwitchNetworkRequests: {
+    [id: string]: {
+      resolve: () => void
+      reject: (reason?: unknown) => void
+      data: SwitchNetworkRequestData
+    }
+  } = {}
+
+  private switchNetworkRequestId = 0
 
   openPorts: Array<Runtime.Port> = []
 
@@ -222,14 +236,11 @@ export default class ProviderBridgeService extends BaseService<Events> {
       const selectedAccount = await this.preferenceService.getSelectedAccount()
       const { address: accountAddress } = selectedAccount
 
-      // @TODO 7/12/21 Figure out underlying cause here
-      const dAppChainID = Number(
-        (await this.internalQuaiProviderService.routeSafeRPCRequest(
-          "quai_chainId",
-          [],
-          origin
-        )) as string
-      ).toString()
+      // The chain this dApp is connected on, which is what its permission is
+      // keyed to. Deliberately not the chain reported by quai_chainId: that
+      // follows the wallet, and a permission must survive the user switching
+      // networks.
+      const dAppChainID = network.chainID
 
       // these params are taken directly from the dapp website
       const [title, faviconUrl] = event.request.params as string[]
@@ -273,13 +284,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       event.request.method === "quai_accounts" ||
       event.request.method === "eth_accounts"
     ) {
-      const dAppChainID = Number(
-        (await this.internalQuaiProviderService.routeSafeRPCRequest(
-          "quai_chainId",
-          [],
-          origin
-        )) as string
-      ).toString()
+      const dAppChainID = network.chainID
 
       const permission = await this.checkPermission(origin, dAppChainID)
 
@@ -332,6 +337,27 @@ export default class ProviderBridgeService extends BaseService<Events> {
           method: PELAGUS_GET_CONFIG_METHOD,
           defaultWallet: newDefaultWalletValue,
           shouldReload: true,
+        },
+      })
+    })
+  }
+
+  /**
+   * Tells every open page that the wallet moved to `chainID`, so dApps emit
+   * `chainChanged` instead of holding the chain they saw when they connected.
+   * Sent to all pages, connected or not: the chain id is not permissioned
+   * (see the chainId exception in `routeRPCRequest`).
+   */
+  async notifyContentScriptsAboutNetworkChange(chainID: string): Promise<void> {
+    const defaultWallet = await this.preferenceService.getDefaultWallet()
+
+    this.openPorts.forEach((port) => {
+      port.postMessage({
+        id: PELAGUS_INTERNAL_COMMUNICATION_ID,
+        result: {
+          method: PELAGUS_GET_CONFIG_METHOD,
+          defaultWallet,
+          chainId: toHexChainID(chainID),
         },
       })
     })
@@ -592,12 +618,31 @@ export default class ProviderBridgeService extends BaseService<Events> {
             showExtensionPopup(AllowedQueryParamPage.signTransaction)
           )
 
-        case "wallet_switchEthereumChain":
+        case "wallet_switchEthereumChain": {
+          const requestedNetwork = findSupportedNetwork(
+            (params[0] as SwitchEthereumChainParameter)?.chainId ?? ""
+          )
+
+          if (!requestedNetwork) {
+            throw new EIP1193Error(EIP1193_ERROR_CODES.chainDisconnected)
+          }
+
+          const selectedNetwork =
+            await this.internalQuaiProviderService.getSelectedNetwork()
+
+          // Already there: nothing to approve, and nothing to announce.
+          if (selectedNetwork.chainID === requestedNetwork.chainID) {
+            return null
+          }
+
+          await this.requestNetworkSwitch(origin, requestedNetwork)
+
           return await this.internalQuaiProviderService.routeSafeRPCRequest(
             method,
             params,
             origin
           )
+        }
 
         case "wallet_addEthereumChain": {
           const id = this.addNetworkRequestId.toString()
@@ -660,6 +705,74 @@ export default class ProviderBridgeService extends BaseService<Events> {
       console.error(`Error processing request: ${error?.message || error}`)
       logger.error(`Error processing request: ${error?.message || error}`)
       return handleRPCErrorResponse(error)
+    }
+  }
+
+  /**
+   * Opens the approval popup and resolves once the user accepts. Rejects with
+   * the EIP-1193 user-rejection error if they decline or close the window, so
+   * a dApp cannot move the wallet's network on its own.
+   */
+  private async requestNetworkSwitch(
+    origin: string,
+    network: NetworkInterface
+  ): Promise<void> {
+    const id = this.switchNetworkRequestId.toString()
+    this.switchNetworkRequestId += 1
+
+    // Registered before the popup exists: a window closed faster than it
+    // opened would otherwise answer a request that is not yet recorded, and
+    // the dApp would wait forever.
+    const userConfirmation = new Promise<void>((resolve, reject) => {
+      this.#pendingSwitchNetworkRequests[id] = {
+        resolve,
+        reject,
+        data: {
+          chainID: network.chainID,
+          chainName: network.baseAsset.name,
+          origin,
+        },
+      }
+    })
+
+    let closeListener: ((removed: number) => void) | undefined
+
+    try {
+      const popup = await showExtensionPopup(
+        AllowedQueryParamPage.switchNetwork,
+        { requestId: id }
+      )
+
+      closeListener = (removed: number) => {
+        if (removed === popup.id) {
+          this.handleSwitchNetworkRequest(id, false)
+        }
+      }
+      browser.windows.onRemoved.addListener(closeListener)
+
+      await userConfirmation
+    } finally {
+      if (closeListener) {
+        browser.windows.onRemoved.removeListener(closeListener)
+      }
+      delete this.#pendingSwitchNetworkRequests[id]
+    }
+  }
+
+  getSwitchNetworkRequestDetails(
+    requestId: string
+  ): SwitchNetworkRequestData | undefined {
+    return this.#pendingSwitchNetworkRequests[requestId]?.data
+  }
+
+  handleSwitchNetworkRequest(id: string, success: boolean): void {
+    const request = this.#pendingSwitchNetworkRequests[id]
+    if (!request) return
+
+    if (success) {
+      request.resolve()
+    } else {
+      request.reject(new EIP1193Error(EIP1193_ERROR_CODES.userRejectedRequest))
     }
   }
 

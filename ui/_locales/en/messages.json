@@ -618,5 +618,12 @@
         "title": "Your transaction was successfully confirmed"
       }
     }
+  },
+  "switchNetwork": {
+    "title": "Switch network",
+    "walletWideCaption": "This changes the network for your whole wallet, not just this site.",
+    "chainLabel": "Chain ID {{chainID}}",
+    "approve": "Switch network",
+    "reject": "Reject"
   }
 }

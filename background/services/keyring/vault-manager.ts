@@ -116,8 +116,14 @@ export class VaultManager implements IVaultManager {
     data: Partial<SerializedVaultData>,
     options: AddOptions = {}
   ): Promise<void> {
-    const { wallets, qiHDWallet, quaiHDWallets, metadata, hiddenAccounts } =
-      await this.get()
+    const {
+      wallets,
+      qiHDWallet,
+      quaiHDWallets,
+      metadata,
+      hiddenAccounts,
+      pendingSeed,
+    } = await this.get()
 
     const mergedVaultData: SerializedVaultData = {
       wallets: options.overwriteWallets
@@ -143,14 +149,22 @@ export class VaultManager implements IVaultManager {
             ...hiddenAccounts,
             ...data.hiddenAccounts,
           },
+
+      pendingSeed,
     }
 
     await this.persistToVault(mergedVaultData)
   }
 
   public async delete(options: DeleteProps): Promise<void> {
-    const { wallets, qiHDWallet, quaiHDWallets, metadata, hiddenAccounts } =
-      await this.get()
+    const {
+      wallets,
+      qiHDWallet,
+      quaiHDWallets,
+      metadata,
+      hiddenAccounts,
+      pendingSeed,
+    } = await this.get()
 
     const filteredWallets = options.walletId
       ? wallets.filter((wallet) => wallet.id !== options.walletId)
@@ -175,13 +189,20 @@ export class VaultManager implements IVaultManager {
       quaiHDWallets: filteredQuaiHDWallets,
       metadata: updatedMetadata,
       hiddenAccounts: updatedHiddenAccounts,
+      pendingSeed,
     }
     await this.persistToVault(mergedVaultData)
   }
 
   public async update(data: Partial<SerializedVaultData>): Promise<void> {
-    const { wallets, qiHDWallet, quaiHDWallets, metadata, hiddenAccounts } =
-      await this.get()
+    const {
+      wallets,
+      qiHDWallet,
+      quaiHDWallets,
+      metadata,
+      hiddenAccounts,
+      pendingSeed,
+    } = await this.get()
 
     const updatedWallets = data.wallets
       ? wallets.map(
@@ -234,6 +255,7 @@ export class VaultManager implements IVaultManager {
       quaiHDWallets: updatedQuaiHDWallets,
       metadata: updatedMetadata,
       hiddenAccounts: updatedHiddenAccounts,
+      pendingSeed: "pendingSeed" in data ? data.pendingSeed : pendingSeed,
     }
     await this.persistToVault(mergedVaultData)
   }

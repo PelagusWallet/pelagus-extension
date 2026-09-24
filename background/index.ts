@@ -22,13 +22,23 @@ export type BackgroundDispatch = Main["store"]["dispatch"]
 export async function newProxyStore(): Promise<
   ProxyStore<RootState, AnyAction>
 > {
-  const proxyStore = new ProxyStore({
-    serializer: encodeJSON,
-    deserializer: decodeJSON,
-    patchStrategy: patchDeepDiff,
-  })
-  await proxyStore.ready()
-  return proxyStore
+  for (let attempt = 1; ; attempt += 1) {
+    const proxyStore = new ProxyStore({
+      serializer: encodeJSON,
+      deserializer: decodeJSON,
+      patchStrategy: patchDeepDiff,
+    })
+    // eslint-disable-next-line no-await-in-loop
+    await proxyStore.ready()
+    // A port opened while the worker restarts is dropped, but the later
+    // storeReady broadcast still resolves ready() with no state. Reconnect.
+    if (Object.keys(proxyStore.getState() ?? {}).length > 0 || attempt >= 5) {
+      return proxyStore
+    }
+    // The typings leave out the port that webext-redux keeps on the store.
+    const { port } = proxyStore as unknown as { port: browser.Runtime.Port }
+    port.disconnect()
+  }
 }
 
 /**

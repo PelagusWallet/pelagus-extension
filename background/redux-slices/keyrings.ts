@@ -11,6 +11,7 @@ import {
   SignerImportMetadata,
   SignerImportSource,
 } from "../services/keyring/types"
+import logger from "../lib/logger"
 
 type KeyringToVerify = {
   id: string
@@ -84,6 +85,12 @@ export const importKeyring = createBackgroundAsyncThunk(
 
       return { success: true, errorMessage: "" }
     } catch (error) {
+      // Logged rather than returned: this path catches infrastructure faults
+      // (a dead background port, RPC failures) whose messages are internal
+      // detail. Errors meant for the user are returned by the keyring service
+      // itself, above.
+      logger.error("Keyring import failed:", error)
+
       return {
         success: false,
         errorMessage: "Unexpected error occurred",

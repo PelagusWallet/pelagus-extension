@@ -10,6 +10,7 @@ export * from "./signing-hooks"
 export * from "./dom-hooks"
 export * from "./validation-hooks"
 export * from "./theme-hooks"
+export * from "./keep-alive-hooks"
 
 export function useIsDappPopup(): boolean {
   const [isDappPopup, setIsDappPopup] = useState(false)

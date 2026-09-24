@@ -16,7 +16,7 @@ import NewSeed, { NewSeedRoutes } from "./NewSeed"
 import InfoIntro from "./Intro"
 import ViewOnlyWallet from "./ViewOnlyWallet"
 import OnboardingRoutes from "./Routes"
-import { useIsOnboarding } from "../../../hooks"
+import { useIsOnboarding, useKeepBackgroundAlive } from "../../../hooks"
 import { useScopedDarkTheme } from "../../../hooks/theme-hooks"
 import ImportPrivateKeyForm from "./ImportPrivateKeyForm"
 // Onboarding enforces dark theme via scoped CSS; no global theme hook
@@ -137,6 +137,9 @@ function Navigation({
 export default function Root(): ReactElement {
   const [isOnboarding] = useState(useIsOnboarding())
   useScopedDarkTheme()
+  // Onboarding holds the recovery phrase and unlocked vault in the service
+  // worker's memory; keep it alive for as long as this flow is mounted.
+  useKeepBackgroundAlive()
 
   return (
     <Navigation isOnboarding={isOnboarding}>

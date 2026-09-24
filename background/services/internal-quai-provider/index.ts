@@ -606,6 +606,31 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       delete payload.value
     }
 
+    if (payload.gasPrice != null) {
+      const { gasPrice } = await this.chainService.jsonRpcProvider.getFeeData(
+        getZoneForAddress(from) ?? undefined,
+        true
+      )
+      if (gasPrice == null) {
+        throw new Error("Unable to determine the network gas price.")
+      }
+      // Correct the price before estimation, which can reject underpriced gas.
+      if (BigInt(payload.gasPrice) < gasPrice) {
+        payload.gasPrice = gasPrice
+      }
+    }
+
+    if (payload.gasLimit != null) {
+      // A supplied limit must not cap the node's gas estimate.
+      const estimatedGas = await this.chainService.jsonRpcProvider.estimateGas({
+        ...payload,
+        gasLimit: undefined,
+      })
+      if (BigInt(payload.gasLimit) < estimatedGas) {
+        payload.gasLimit = estimatedGas
+      }
+    }
+
     return this.requestSigningApproval<QuaiTransactionResponse>(
       (resolve, reject) => {
         this.emitter

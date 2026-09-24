@@ -1283,10 +1283,20 @@ export default class Main extends BaseService<never> {
       }
     })
 
-    this.keyringService.emitter.on("locked", (isLocked) => {
+    this.keyringService.emitter.on("locked", async (isLocked) => {
       if (isLocked) {
         this.store.dispatch(keyringLocked())
       } else {
+        // Load an unverified seed before the UI sees the unlock, so onboarding
+        // can continue at the verify step.
+        if (!this.store.getState().keyrings.keyringToVerify) {
+          try {
+            const seed = await this.keyringService.getUnverifiedSeed()
+            if (seed) this.store.dispatch(setKeyringToVerify(seed))
+          } catch (error) {
+            logger.error("Failed to load the unverified seed", error)
+          }
+        }
         this.store.dispatch(keyringUnlocked())
         this.priceService.updateQuaiPrice().catch((error) => {
           logger.error("Failed to refresh price after unlock", error)

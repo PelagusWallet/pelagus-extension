@@ -9,7 +9,7 @@ import {
   Route,
   Switch,
   useHistory,
-  useRouteMatch,
+  useLocation,
 } from "react-router-dom"
 import { selectCurrentNetwork } from "@pelagus/pelagus-background/redux-slices/selectors"
 import { AsyncThunkFulfillmentType } from "@pelagus/pelagus-background/redux-slices/utils"
@@ -72,7 +72,7 @@ export default function NewSeed(): ReactElement {
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false)
 
   const history = useHistory()
-  const { path } = useRouteMatch()
+  const { pathname } = useLocation()
 
   const showNewSeedPhrase = () => {
     dispatch(generateQuaiHDWalletMnemonic()).then(() =>
@@ -105,7 +105,7 @@ export default function NewSeed(): ReactElement {
       <Redirect
         to={{
           pathname: OnboardingRoutes.SET_PASSWORD,
-          state: { nextPage: path },
+          state: { nextPage: pathname },
         }}
       />
     )

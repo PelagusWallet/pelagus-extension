@@ -37,14 +37,34 @@ export default function NewSeedVerify({
 
   const SEED_WORDS_TO_VERIFY = 8
 
-  const randomIndexes = useMemo(
-    () =>
-      mnemonic
-        .map((_, index) => index)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, SEED_WORDS_TO_VERIFY),
-    [mnemonic]
-  )
+  const randomIndexes = useMemo(() => {
+    // Keep the same positions after a reload, so the words to verify do not
+    // change. Only the positions are stored, never the words.
+    const key = "pelagus-verify-seed-positions"
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(key) ?? "null")
+      if (
+        Array.isArray(saved) &&
+        saved.length === SEED_WORDS_TO_VERIFY &&
+        new Set(saved).size === saved.length &&
+        saved.every((i) => Number.isInteger(i) && i >= 0 && i < mnemonic.length)
+      ) {
+        return saved as number[]
+      }
+    } catch {
+      // Use new positions when session storage is not available.
+    }
+    const indexes = mnemonic
+      .map((_, index) => index)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, SEED_WORDS_TO_VERIFY)
+    try {
+      sessionStorage.setItem(key, JSON.stringify(indexes))
+    } catch {
+      // The positions only change on the next reload.
+    }
+    return indexes
+  }, [mnemonic])
 
   const [placeholderList, setPlaceholders] = useState<SeedWordPlaceholder[]>(
     () => {

@@ -81,6 +81,11 @@ export default function NewSeedIntro({
           color: white;
         }
 
+        .cta {
+          display: flex;
+          justify-content: center;
+        }
+
         .underlined {
           text-decoration: underline;
         }

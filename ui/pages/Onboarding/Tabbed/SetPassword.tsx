@@ -21,6 +21,7 @@ import PasswordStrengthBar from "../../../components/Password/PasswordStrengthBa
 import PasswordInput from "../../../components/Shared/PasswordInput"
 import { WalletDefaultToggle } from "../../../components/Wallet/WalletToggleDefaultBanner"
 import OnboardingRoutes from "./Routes"
+import { NewSeedRoutes } from "./NewSeed"
 import { validatePassword } from "../../../utils/passwordValidation"
 
 export default function SetPassword(): ReactElement {
@@ -67,13 +68,26 @@ export default function SetPassword(): ReactElement {
 
   const keyringStatus = useBackgroundSelector(selectKeyringStatus)
   const isOnboarding = useIsOnboarding()
+  // A saved unverified seed means a vault already exists for this password.
+  const hasUnverifiedSeed = useBackgroundSelector(
+    (state) => state.keyrings.hasUnverifiedSeed
+  )
 
   if (!nextPage) {
-    return <Redirect to={OnboardingRoutes.ONBOARDING_START} />
+    // A refresh drops location state, so resume an unverified seed directly.
+    return (
+      <Redirect
+        to={
+          hasUnverifiedSeed
+            ? NewSeedRoutes.VERIFY_SEED
+            : OnboardingRoutes.ONBOARDING_START
+        }
+      />
+    )
   }
 
   // Unlock Wallet
-  if (!isOnboarding && keyringStatus === "locked") {
+  if ((!isOnboarding || hasUnverifiedSeed) && keyringStatus === "locked") {
     const handleAttemptUnlock: React.FormEventHandler<HTMLFormElement> = async (
       event
     ) => {
@@ -112,6 +126,7 @@ export default function SetPassword(): ReactElement {
               }
 
               header h1 {
+                color: var(--primary-text);
                 font-family: "TT Travels";
                 font-weight: 500;
                 font-size: 36px;

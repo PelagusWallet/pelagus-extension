@@ -96,6 +96,8 @@ export interface SerializedVaultData {
   quaiHDWallets: SerializedQuaiHDWallet[]
   metadata: { [keyringId: string]: { source: SignerImportSource } }
   hiddenAccounts: { [address: HexString]: boolean }
+  // A generated seed phrase that onboarding has not verified yet.
+  pendingSeed?: { id: string; mnemonic: string[]; verified: boolean }
 }
 
 export enum SignerSourceTypes {

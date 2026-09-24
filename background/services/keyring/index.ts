@@ -303,6 +303,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
     try {
       const address = await this.walletManager.importSigner(signerMetadata)
+      await this.vaultManager.update({ pendingSeed: undefined })
 
       await this.emitter.emit("address", address)
       await this.notifyUIWithUpdates()
@@ -543,7 +544,22 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
   public async generateMnemonic(): Promise<{ id: string; mnemonic: string[] }> {
     this.verifyKeyringIsUnlocked()
-    return this.walletManager.generateQuaiHDWalletMnemonic()
+    const generated = await this.walletManager.generateQuaiHDWalletMnemonic()
+    // Keep the seed in the encrypted vault so onboarding can resume at verify.
+    await this.vaultManager.update({
+      pendingSeed: { ...generated, verified: false },
+    })
+    return generated
+  }
+
+  public async getUnverifiedSeed(): Promise<{
+    id: string
+    mnemonic: string[]
+  } | null> {
+    if (this.isLocked()) return null
+    const { pendingSeed } = await this.vaultManager.get()
+    if (!pendingSeed || pendingSeed.verified) return null
+    return { id: pendingSeed.id, mnemonic: pendingSeed.mnemonic }
   }
 
   public async removeKeyring(

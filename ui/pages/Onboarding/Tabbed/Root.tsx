@@ -1,8 +1,9 @@
-import React, { ReactElement, useState } from "react"
+import React, { ReactElement, useEffect, useState } from "react"
 import {
   Route,
   Switch,
   matchPath,
+  useHistory,
   useLocation,
   Redirect,
 } from "react-router-dom"
@@ -16,7 +17,7 @@ import NewSeed, { NewSeedRoutes } from "./NewSeed"
 import InfoIntro from "./Intro"
 import ViewOnlyWallet from "./ViewOnlyWallet"
 import OnboardingRoutes from "./Routes"
-import { useIsOnboarding } from "../../../hooks"
+import { useBackgroundSelector, useIsOnboarding } from "../../../hooks"
 import { useScopedDarkTheme } from "../../../hooks/theme-hooks"
 import ImportPrivateKeyForm from "./ImportPrivateKeyForm"
 // Onboarding enforces dark theme via scoped CSS; no global theme hook
@@ -136,7 +137,25 @@ function Navigation({
 
 export default function Root(): ReactElement {
   const [isOnboarding] = useState(useIsOnboarding())
+  const hasUnverifiedSeed = useBackgroundSelector(
+    (state) => state.keyrings.hasUnverifiedSeed
+  )
+  const history = useHistory()
+  const { pathname } = useLocation()
   useScopedDarkTheme()
+
+  // Resume a new wallet at the verify step. Push so that Back shows the start.
+  useEffect(() => {
+    if (
+      isOnboarding &&
+      hasUnverifiedSeed &&
+      pathname === OnboardingRoutes.ONBOARDING_START
+    ) {
+      history.push(NewSeedRoutes.VERIFY_SEED)
+    }
+    // Only on the first render, so the start page stays reachable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <Navigation isOnboarding={isOnboarding}>

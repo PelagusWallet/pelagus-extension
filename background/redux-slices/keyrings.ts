@@ -26,6 +26,8 @@ export type KeyringsState = {
   }
   status: "locked" | "unlocked" | "uninitialized"
   keyringToVerify: KeyringToVerify
+  // Persisted without the seed, so onboarding can resume before an unlock.
+  hasUnverifiedSeed?: boolean
   // FIXME temp fix
   nextPage: string
 }
@@ -37,6 +39,7 @@ export const initialState: KeyringsState = {
   keyringMetadata: {},
   status: "uninitialized",
   keyringToVerify: null,
+  hasUnverifiedSeed: false,
   // FIXME temp fix
   nextPage: OnboardingRoutes.IMPORT_SEED,
 }
@@ -135,6 +138,7 @@ const keyringsSlice = createSlice({
     setKeyringToVerify: (state, { payload }: { payload: KeyringToVerify }) => ({
       ...state,
       keyringToVerify: payload,
+      hasUnverifiedSeed: payload !== null,
     }),
   },
 })

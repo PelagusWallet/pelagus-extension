@@ -125,8 +125,10 @@ import {
   migrateReduxState,
   REDUX_STATE_VERSION,
 } from "./redux-slices/migrations"
-import { PermissionMap } from "./services/provider-bridge/utils"
-import { PELAGUS_INTERNAL_ORIGIN } from "./services/internal-quai-provider/constants"
+import {
+  PermissionMap,
+  SwitchNetworkRequestData,
+} from "./services/provider-bridge/utils"
 import {
   ActivityDetail,
   addActivity,
@@ -1502,12 +1504,15 @@ export default class Main extends BaseService<never> {
     )
 
     uiSliceEmitter.on("newSelectedNetwork", async (network) => {
-      this.internalQuaiProviderService.routeSafeRPCRequest(
-        "wallet_switchEthereumChain",
-        [{ chainId: network.chainID }],
-        PELAGUS_INTERNAL_ORIGIN
-      )
+      // dApps follow the wallet. Move the provider, record the network, and
+      // only then tell pages: a dApp that reacts to chainChanged by calling
+      // straight back then finds the wallet already there, and a failure on
+      // the way leaves it consistently where it was.
       this.chainService.switchNetwork(network)
+      await this.internalQuaiProviderService.setSelectedNetwork(network)
+      await this.providerBridgeService.notifyContentScriptsAboutNetworkChange(
+        network.chainID
+      )
       await this.blockService.pollBlockPricesForNetwork({ network })
       this.store.dispatch(clearCustomGas())
     })
@@ -1536,6 +1541,13 @@ export default class Main extends BaseService<never> {
   async connectProviderBridgeService(): Promise<void> {
     uiSliceEmitter.on("addCustomNetworkResponse", ([requestId, success]) => {
       return this.providerBridgeService.handleAddNetworkRequest(
+        requestId,
+        success
+      )
+    })
+
+    uiSliceEmitter.on("switchNetworkResponse", ([requestId, success]) => {
+      return this.providerBridgeService.handleSwitchNetworkRequest(
         requestId,
         success
       )
@@ -2101,6 +2113,12 @@ export default class Main extends BaseService<never> {
 
   getAddNetworkRequestDetails(requestId: string): AddChainRequestData {
     return this.providerBridgeService.getNewCustomRPCDetails(requestId)
+  }
+
+  async getSwitchNetworkRequestDetails(
+    requestId: string
+  ): Promise<SwitchNetworkRequestData | undefined> {
+    return this.providerBridgeService.getSwitchNetworkRequestDetails(requestId)
   }
 
   async updateSignerTitle(

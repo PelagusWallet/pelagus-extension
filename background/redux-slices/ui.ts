@@ -105,6 +105,7 @@ export type Events = {
   newSelectedNetwork: NetworkInterface
   updateAnalyticsPreferences: Partial<AnalyticsPreferences>
   addCustomNetworkResponse: [string, boolean]
+  switchNetworkResponse: [string, boolean]
   showDefaultWalletBanner: boolean
   showAlphaWalletBanner: boolean
   showTestNetworks: boolean
@@ -567,6 +568,20 @@ export const getAddNetworkRequestDetails = createBackgroundAsyncThunk(
   "ui/getAddNetworkRequestDetails",
   async (requestId: string, { extra: { main } }) => {
     return main.getAddNetworkRequestDetails(requestId)
+  }
+)
+
+export const getSwitchNetworkRequestDetails = createBackgroundAsyncThunk(
+  "ui/getSwitchNetworkRequestDetails",
+  async (requestId: string, { extra: { main } }) => {
+    return main.getSwitchNetworkRequestDetails(requestId)
+  }
+)
+
+export const switchNetworkUserResponse = createBackgroundAsyncThunk(
+  "ui/handleSwitchNetworkConfirmation",
+  async ([requestId, result]: [string, boolean]) => {
+    emitter.emit("switchNetworkResponse", [requestId, result])
   }
 )
 

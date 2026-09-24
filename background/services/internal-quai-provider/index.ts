@@ -53,6 +53,26 @@ import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
 import { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { ProviderBridgeDatabase } from "../provider-bridge/db"
 
+/**
+ * Finds a supported network by chain id, in whichever notation the caller
+ * used. dApps send hex per EIP-695/EIP-3326 ("0x3a98"), while Pelagus stores
+ * chain ids as decimal strings ("15000"), so the two are compared normalized.
+ */
+export function findSupportedNetwork(
+  chainId: string
+): NetworkInterface | undefined {
+  let normalizedChainId: string
+  try {
+    normalizedChainId = toHexChainID(chainId)
+  } catch {
+    return undefined
+  }
+
+  return PELAGUS_NETWORKS.find(
+    (network) => toHexChainID(network.chainID) === normalizedChainId
+  )
+}
+
 export type SwitchEthereumChainParameter = {
   chainId: string
 }
@@ -382,15 +402,18 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           params[1] as BigNumberish
         )
 
+      case "net_version":
+        // Deprecated precursor to eth_chainId, answered from the same place so
+        // the two can never contradict each other. Decimal by convention,
+        // where eth_chainId is hex.
+        return (await this.getSelectedNetwork()).chainID
+
       case "quai_chainId":
       case "eth_chainId":
-        // TODO Decide on a better way to track whether a particular chain is
-        // allowed to have an RPC call made to it. Ideally this would be based
-        // on a user's idea of a dApp connection rather than a network-specific
-        // modality, requiring it to be constantly "switched"
-        return toHexChainID(
-          (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
-        )
+        // The wallet's network, which is the one that serves this dApp's calls
+        // and broadcasts its transactions. Reporting anything else is how a
+        // dApp ends up transacting on a chain it was never told about.
+        return toHexChainID((await this.getSelectedNetwork()).chainID)
 
       case "quai_nodeLocation":
         return this.chainService.jsonRpcProvider.getRunningLocations()
@@ -431,9 +454,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "wallet_addEthereumChain": {
         const chainInfo = params[0] as ValidatedAddEthereumChainParameter
         const { chainId } = chainInfo
-        const supportedNetwork = PELAGUS_NETWORKS.find(
-          (network) => network.chainID === chainId
-        )
+        const supportedNetwork = findSupportedNetwork(chainId)
         if (supportedNetwork) {
           await this.switchToSupportedNetwork(origin, supportedNetwork)
           this.emitter.emit("selectedNetwork", supportedNetwork)
@@ -442,12 +463,14 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         break
       }
       case "wallet_switchEthereumChain": {
-        const newChainId = (params[0] as SwitchEthereumChainParameter).chainId
-        const supportedNetwork = PELAGUS_NETWORKS.find(
-          (network) => network.chainID === newChainId
-        )
+        const newChainId =
+          (params[0] as SwitchEthereumChainParameter)?.chainId ?? ""
+        const supportedNetwork = findSupportedNetwork(newChainId)
         if (supportedNetwork) {
-          this.switchToSupportedNetwork(origin, supportedNetwork)
+          // Moves the wallet, which is what the dApp is asking for: there is
+          // one selected network. The origin's own record is the chain it
+          // connected on and stays as it is - dApp permissions are keyed to it.
+          this.emitter.emit("selectedNetwork", supportedNetwork)
           return null
         }
 
@@ -474,7 +497,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "quai_uninstallFilter":
       case "quai_unsubscribe":
       case "net_listening":
-      case "net_version":
       case "web3_clientVersion":
       case "web3_sha3":
         return this.transactionsService.send(method, params)
@@ -513,10 +535,15 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     }
   }
 
-  private async getCurrentInternalNetwork(): Promise<NetworkInterface> {
+  /** The network the wallet is on; everything a dApp is told derives from it. */
+  async getSelectedNetwork(): Promise<NetworkInterface> {
     return this.db.getCurrentNetworkForOrigin(
       PELAGUS_INTERNAL_ORIGIN
     ) as Promise<NetworkInterface>
+  }
+
+  async setSelectedNetwork(network: NetworkInterface): Promise<void> {
+    await this.db.setCurrentChainIdForOrigin(PELAGUS_INTERNAL_ORIGIN, network)
   }
 
   async getCurrentOrDefaultNetworkForOrigin(
@@ -526,7 +553,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     if (!currentNetwork) {
       // If this is a new dapp or the dapp has not implemented wallet_switchEthereumChain
       // use the default network.
-      return this.getCurrentInternalNetwork()
+      return this.getSelectedNetwork()
     }
     return currentNetwork
   }

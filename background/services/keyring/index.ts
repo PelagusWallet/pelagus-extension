@@ -5,7 +5,7 @@ import { getEncryptedVaults } from "./utils/storage"
 import BaseService from "../base"
 import { IVaultManager, VaultManager } from "./vault-manager"
 import { UNIXTime } from "../../types"
-import { MINUTE } from "../../constants"
+import { MINUTE, SECOND } from "../../constants"
 import {
   DEFAULT_AUTO_LOCK_INTERVAL_MINUTES,
   shouldAutoLock,
@@ -38,6 +38,8 @@ import { browser } from "../../index"
  */
 export default class KeyringService extends BaseService<KeyringServiceEvents> {
   private walletManager: WalletManager
+
+  private keepAliveInterval?: ReturnType<typeof setInterval>
 
   public readonly vaultManager: IVaultManager
 
@@ -102,6 +104,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
   }
 
   public async lock(): Promise<void> {
+    this.stopKeepAlive()
     // Invalidate in-memory key material before notifying listeners.
     this.walletManager.clearState()
     this.lastExternalWalletActivity = null
@@ -136,6 +139,7 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
 
       this.lastInternalWalletActivity = Date.now()
       this.lastExternalWalletActivity = Date.now()
+      this.startKeepAlive()
       const notifyStart = performance.now()
       await this.notifyUIWithUpdates()
       const notifyEnd = performance.now()
@@ -153,9 +157,34 @@ export default class KeyringService extends BaseService<KeyringServiceEvents> {
       return true
     } catch (error) {
       logger.error("Error while unlocking keyring service", error)
-      this.vaultManager.clearSaltedKey()
+      this.stopKeepAlive()
+      this.walletManager.clearState()
+      this.lastExternalWalletActivity = null
+      this.lastInternalWalletActivity = null
+      // The UI may already have the unlocked state, so send the locked state.
+      try {
+        await this.notifyUIWithUpdates()
+      } catch (notifyError) {
+        logger.error("Error while notifying UI of failed unlock", notifyError)
+      }
       return false
     }
+  }
+
+  private startKeepAlive(): void {
+    this.stopKeepAlive()
+    // Extension API calls prevent Chrome's 30-second worker idle shutdown.
+    // This keeps unlock state in memory without counting as wallet activity.
+    this.keepAliveInterval = setInterval(() => {
+      browser.runtime.getPlatformInfo().catch((error) => {
+        logger.error("Error while keeping the unlocked keyring alive", error)
+      })
+    }, 20 * SECOND)
+  }
+
+  private stopKeepAlive(): void {
+    clearInterval(this.keepAliveInterval)
+    this.keepAliveInterval = undefined
   }
 
   public async confirmPassword(password: string): Promise<boolean> {

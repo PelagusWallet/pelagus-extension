@@ -1,7 +1,6 @@
 import {
   generateQuaiHDWalletMnemonic,
   importKeyring,
-  setKeyringToVerify,
 } from "@pelagus/pelagus-background/redux-slices/keyrings"
 import React, { ReactElement } from "react"
 import {
@@ -95,7 +94,6 @@ export default function NewSeed(): ReactElement {
     )) as AsyncThunkFulfillmentType<typeof importKeyring>
 
     if (success) {
-      dispatch(setKeyringToVerify(null))
       history.push(OnboardingRoutes.ONBOARDING_COMPLETE)
     }
   }

@@ -58,48 +58,15 @@ export type Events = {
 
 export const emitter = new Emittery<Events>()
 
-// Async thunk to bubble the importKeyring action from  store to emitter.
-export const importKeyring = createBackgroundAsyncThunk(
-  "keyrings/importKeyring",
-  async (
-    signerRaw: SignerImportMetadata,
-    { getState, dispatch, extra: { main } }
-  ): Promise<{ success: boolean; errorMessage: string }> => {
-    try {
-      const { address, errorMessage } = await main.importSigner(signerRaw)
-
-      if (!address)
-        return {
-          success: false,
-          errorMessage,
-        }
-
-      const { ui } = getState() as {
-        ui: UIState
-      }
-
-      dispatch(
-        setNewSelectedAccount({
-          address,
-          network: ui.selectedAccount.network,
-        })
-      )
-
-      return { success: true, errorMessage: "" }
-    } catch (error) {
-      return {
-        success: false,
-        errorMessage: "Unexpected error occurred",
-      }
-    }
-  }
-)
-
 const keyringsSlice = createSlice({
   name: "keyrings",
   initialState,
   reducers: {
-    keyringLocked: (state) => ({ ...state, status: "locked" }),
+    keyringLocked: (state) => ({
+      ...state,
+      status: "locked",
+      keyringToVerify: null,
+    }),
     keyringUnlocked: (state) => ({ ...state, status: "unlocked" }),
     // FIXME temp fix
     keyringNextPage: (state, { payload }) => ({
@@ -153,6 +120,47 @@ export const {
 } = keyringsSlice.actions
 
 export default keyringsSlice.reducer
+
+// Async thunk to bubble the importKeyring action from store to emitter.
+export const importKeyring = createBackgroundAsyncThunk(
+  "keyrings/importKeyring",
+  async (
+    signerRaw: SignerImportMetadata,
+    { getState, dispatch, extra: { main } }
+  ): Promise<{ success: boolean; errorMessage: string }> => {
+    try {
+      const { address, errorMessage } = await main.importSigner(signerRaw)
+
+      if (!address)
+        return {
+          success: false,
+          errorMessage,
+        }
+
+      // The encrypted vault has already dropped pendingSeed. Remove the
+      // verification copy from the background and proxy stores as well.
+      dispatch(setKeyringToVerify(null))
+
+      const { ui } = getState() as {
+        ui: UIState
+      }
+
+      dispatch(
+        setNewSelectedAccount({
+          address,
+          network: ui.selectedAccount.network,
+        })
+      )
+
+      return { success: true, errorMessage: "" }
+    } catch (error) {
+      return {
+        success: false,
+        errorMessage: "Unexpected error occurred",
+      }
+    }
+  }
+)
 
 export const generateQuaiHDWalletMnemonic = createBackgroundAsyncThunk(
   "keyrings/generateQuaiHDWalletMnemonic",

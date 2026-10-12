@@ -7,6 +7,7 @@ import SingleAsset from "../pages/SingleAsset"
 import Menu from "../pages/Settings"
 import Send from "../pages/Send"
 import DAppPermissionRequest from "../pages/DAppConnectRequest"
+import SwitchNetworkRequest from "../pages/SwitchNetworkRequest"
 import KeyringUnlock from "../components/Keyring/KeyringUnlock"
 import KeyringSetPassword from "../components/Keyring/KeyringSetPassword"
 import SettingsExportLogs from "../pages/Settings/SettingsExportLogs"
@@ -177,6 +178,11 @@ const pageList: PageList[] = [
   {
     path: "/unwrap",
     Component: WrapPage,
+    hasTopBar: false,
+  },
+  {
+    path: "/switch-network",
+    Component: SwitchNetworkRequest,
     hasTopBar: false,
   },
   {

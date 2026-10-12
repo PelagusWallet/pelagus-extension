@@ -195,3 +195,15 @@ export function parseRPCRequestParams(
       return params
   }
 }
+
+export type SwitchNetworkRequestData = {
+  /** Decimal, as chain ids are held everywhere inside the wallet. */
+  chainID: string
+  chainName: string
+  /**
+   * The requesting site. Deliberately the only site-derived value shown on the
+   * prompt: a title or icon supplied by the page is attacker-controlled, and
+   * an approval dialog is the last place to render one.
+   */
+  origin: string
+}

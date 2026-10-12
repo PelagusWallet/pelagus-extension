@@ -148,12 +148,15 @@ export default class PelagusWindowProvider extends EventEmitter {
       return
     }
 
+    // Update the chain first: EIP-1193 says connect carries the current chain
+    // id, and emitting it beforehand announces whatever stale value the
+    // provider was constructed with.
+    this.handleResponseByMethod(sentMethod, result, sendData)
+
     if (!this.connected) {
       this.connected = true
       this.emit("connect", { chainId: this.chainId })
     }
-
-    this.handleResponseByMethod(sentMethod, result, sendData)
 
     resolve(result)
   }
@@ -197,9 +200,21 @@ export default class PelagusWindowProvider extends EventEmitter {
   }
 
   emitChainIdChange(chainId: string): void {
-    this.chainId = chainId
-    this.emit("chainChanged", chainId)
-    this.emit("networkChanged", Number(chainId).toString())
+    // Callers supply hex (EIP-1193 payloads, wallet_switchEthereumChain
+    // params) or decimal (net_version). EIP-1193 consumers must always see
+    // hex, or a dApp parsing this as hex reads a different chain entirely.
+    let hexChainId: string
+    try {
+      hexChainId = chainId.startsWith("0x")
+        ? chainId.toLowerCase()
+        : `0x${BigInt(chainId).toString(16)}`
+    } catch {
+      return // Unparseable; keep the chain we already know.
+    }
+
+    this.chainId = hexChainId
+    this.emit("chainChanged", hexChainId)
+    this.emit("networkChanged", Number(hexChainId).toString())
   }
 
   emitAddressChange(address: Array<string>): void {

@@ -196,7 +196,9 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.signTypedData({
           account: {
             address: params[0] as string,
-            network: await this.getCurrentOrDefaultNetworkForOrigin(origin),
+            network: await this.getCurrentOrDefaultNetworkForOrigin(
+              PELAGUS_INTERNAL_ORIGIN
+            ),
           },
           typedData: JSON.parse(params[1] as string),
         })
@@ -208,7 +210,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
             input: params[1] as string,
             account: params[0] as string,
           },
-          origin
+          PELAGUS_INTERNAL_ORIGIN
         )
 
       case "personal_sign":
@@ -217,7 +219,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
             input: params[0] as string,
             account: params[1] as string,
           },
-          origin
+          PELAGUS_INTERNAL_ORIGIN
         )
 
       case "qi_signAll":
@@ -227,7 +229,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
             account: params[1] as string,
             coin: "qi",
           },
-          origin
+          PELAGUS_INTERNAL_ORIGIN
         )
 
       case "quai_blockNumber":
@@ -382,15 +384,12 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
           params[1] as BigNumberish
         )
 
+      case "net_version":
+        return (await this.getCurrentInternalNetwork()).chainID
+
       case "quai_chainId":
       case "eth_chainId":
-        // TODO Decide on a better way to track whether a particular chain is
-        // allowed to have an RPC call made to it. Ideally this would be based
-        // on a user's idea of a dApp connection rather than a network-specific
-        // modality, requiring it to be constantly "switched"
-        return toHexChainID(
-          (await this.getCurrentOrDefaultNetworkForOrigin(origin)).chainID
-        )
+        return toHexChainID((await this.getCurrentInternalNetwork()).chainID)
 
       case "quai_nodeLocation":
         return this.chainService.jsonRpcProvider.getRunningLocations()
@@ -419,7 +418,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         }
 
         // if chainID is not specified, we assume the current network - as per EIP-747
-        const network = await this.getCurrentOrDefaultNetworkForOrigin(origin)
+        const network = await this.getCurrentInternalNetwork()
 
         this.emitter.emit("watchAssetRequest", {
           contractAddress: normalizeHexAddress(options.address),
@@ -442,12 +441,19 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         break
       }
       case "wallet_switchEthereumChain": {
-        const newChainId = (params[0] as SwitchEthereumChainParameter).chainId
+        const newChainId = (params[0] as SwitchEthereumChainParameter)?.chainId
         const supportedNetwork = PELAGUS_NETWORKS.find(
-          (network) => network.chainID === newChainId
+          (network) =>
+            typeof newChainId === "string" &&
+            Number(network.chainID) === Number(newChainId)
         )
         if (supportedNetwork) {
-          this.switchToSupportedNetwork(origin, supportedNetwork)
+          if (
+            supportedNetwork.chainID !==
+            (await this.getCurrentInternalNetwork()).chainID
+          ) {
+            await this.emitter.emit("selectedNetwork", supportedNetwork)
+          }
           return null
         }
 
@@ -474,7 +480,6 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "quai_uninstallFilter":
       case "quai_unsubscribe":
       case "net_listening":
-      case "net_version":
       case "web3_clientVersion":
       case "web3_sha3":
         return this.transactionsService.send(method, params)
@@ -513,22 +518,21 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     }
   }
 
-  private async getCurrentInternalNetwork(): Promise<NetworkInterface> {
-    return this.db.getCurrentNetworkForOrigin(
-      PELAGUS_INTERNAL_ORIGIN
-    ) as Promise<NetworkInterface>
+  async getCurrentInternalNetwork(): Promise<NetworkInterface> {
+    return (
+      this.chainService.selectedNetwork ??
+      (await this.preferenceService.getSelectedAccount()).network
+    )
   }
 
   async getCurrentOrDefaultNetworkForOrigin(
     origin: string
   ): Promise<NetworkInterface> {
-    const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
-    if (!currentNetwork) {
-      // If this is a new dapp or the dapp has not implemented wallet_switchEthereumChain
-      // use the default network.
+    if (origin === PELAGUS_INTERNAL_ORIGIN)
       return this.getCurrentInternalNetwork()
-    }
-    return currentNetwork
+    // Keep the connection chain for permission lookups.
+    const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
+    return currentNetwork ?? this.getCurrentInternalNetwork()
   }
 
   async deleteCurrentChainIdForOrigin(origin: string): Promise<void> {
@@ -563,7 +567,9 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       : null
     const from = getAddress(String(transactionRequest.from))
 
-    const network = await this.getCurrentOrDefaultNetworkForOrigin(origin)
+    const network = await this.getCurrentOrDefaultNetworkForOrigin(
+      PELAGUS_INTERNAL_ORIGIN
+    )
     const requestedChainID = transactionRequest.chainId
     if (
       requestedChainID !== undefined &&

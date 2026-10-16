@@ -148,12 +148,12 @@ export default class PelagusWindowProvider extends EventEmitter {
       return
     }
 
+    this.handleResponseByMethod(sentMethod, result, sendData)
+
     if (!this.connected) {
       this.connected = true
       this.emit("connect", { chainId: this.chainId })
     }
-
-    this.handleResponseByMethod(sentMethod, result, sendData)
 
     resolve(result)
   }
@@ -197,8 +197,15 @@ export default class PelagusWindowProvider extends EventEmitter {
   }
 
   emitChainIdChange(chainId: string): void {
-    this.chainId = chainId
-    this.emit("chainChanged", chainId)
+    let hexChainId: string
+    try {
+      hexChainId = `0x${BigInt(chainId).toString(16)}`
+    } catch {
+      return
+    }
+    if (hexChainId === this.chainId) return
+    this.chainId = hexChainId
+    this.emit("chainChanged", hexChainId)
     this.emit("networkChanged", Number(chainId).toString())
   }
 

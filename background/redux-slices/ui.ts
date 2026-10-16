@@ -1,4 +1,4 @@
-import { createSelector, createSlice } from "@reduxjs/toolkit"
+import { createSelector, createSlice, unwrapResult } from "@reduxjs/toolkit"
 import Emittery from "emittery"
 import { Zone } from "quais"
 import { AccountCategoriesEnum } from "@pelagus/pelagus-ui/utils/enum/accountsEnum"
@@ -18,6 +18,7 @@ import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { QuaiMainnet } from "../constants/networks/networks"
 import { DEFAULT_AUTO_LOCK_INTERVAL_MINUTES } from "../constants/auto-lock"
+import logger from "../lib/logger"
 
 export const defaultSettings = {
   hideDust: false,
@@ -544,7 +545,11 @@ export const setNewSelectedAccount = createBackgroundAsyncThunk(
   async (addressNetwork: AddressOnNetwork, { dispatch }) => {
     const shard = getExtendedZoneForAddress(addressNetwork.address)
     globalThis.main.SetShard(shard)
-    globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
+    globalThis.main.chainService
+      .getLatestBaseAccountBalance(addressNetwork)
+      .catch((error) => {
+        logger.warn("Failed to load the selected account balance", error)
+      })
     await emitter.emit("newSelectedAccount", addressNetwork)
     // Once the default value has persisted, propagate to the store.
     dispatch(uiSlice.actions.setSelectedAccount(addressNetwork))
@@ -585,7 +590,7 @@ export const setSelectedNetwork = createBackgroundAsyncThunk(
     const currentlySelectedChainID = ui.selectedAccount.network.chainID
     
     dispatch(updateLastUserActivityOnNetwork(network.chainID))
-    emitter.emit("newSelectedNetwork", network)
+    await emitter.emit("newSelectedNetwork", network)
     // Add any accounts on the currently selected network to the newly
     // selected network - if those accounts don't yet exist on it.
     Object.keys(account.accountsData.evm[currentlySelectedChainID] ?? {}).forEach(
@@ -600,7 +605,9 @@ export const setSelectedNetwork = createBackgroundAsyncThunk(
         }
       }
     )
-    dispatch(setNewSelectedAccount({ ...ui.selectedAccount, network }))
+    unwrapResult(
+      await dispatch(setNewSelectedAccount({ ...ui.selectedAccount, network }))
+    )
 
     if (!ui.isUtxoSelected && !ui.selectedUtxoAccount) return
 

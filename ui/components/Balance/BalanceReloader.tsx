@@ -1,70 +1,79 @@
 import React, { ReactElement, useState, useRef, useEffect } from "react"
 import classNames from "classnames"
 import { triggerManualBalanceUpdate } from "@pelagus/pelagus-background/redux-slices/accounts"
-import { useBackgroundDispatch, useLocalStorage } from "../../hooks"
+import { setSnackbarConfig } from "@pelagus/pelagus-background/redux-slices/ui"
+import { useBackgroundDispatch } from "../../hooks"
 
 export default function BalanceReloader(): ReactElement {
   const dispatch = useBackgroundDispatch()
 
   const [isSpinning, setIsSpinning] = useState(false)
 
-  // 0 = never
-  const [timeWhenLastReloaded, setTimeWhenLastReloaded] = useLocalStorage(
-    "timeWhenLastReloaded",
-    "0"
-  )
-
-  const timeGapBetweenRunningReloadMs = 60000 * 2
   const minLoadTimeMs = 2000 // Minimum load time
-  const maxSpinTimeMs = 90000 // Maximum spin time (90 seconds)
+  const refreshTimeoutMs = 90000
 
   const isMountedRef = useRef(true)
+  const refreshInProgressRef = useRef(false)
 
   useEffect(() => {
+    isMountedRef.current = true
     return () => {
       isMountedRef.current = false
     }
   }, [])
 
   const onClick = async () => {
-    const currentTime = new Date().getTime()
+    if (refreshInProgressRef.current) return
 
-    if (
-      Number(timeWhenLastReloaded) + timeGapBetweenRunningReloadMs >=
-      currentTime
-    ) {
-      return
-    }
-
-    setTimeWhenLastReloaded(`${currentTime}`)
+    refreshInProgressRef.current = true
     setIsSpinning(true)
-
-    // Start a timeout to stop spinning after maxSpinTimeMs
-    const spinTimeout = setTimeout(() => {
-      if (isMountedRef.current) {
-        setIsSpinning(false)
-      }
-    }, maxSpinTimeMs)
-
     const startTime = Date.now()
-    await dispatch(triggerManualBalanceUpdate())
-    const elapsedTime = Date.now() - startTime
+    let refreshTimeout: ReturnType<typeof setTimeout> | undefined
+    const timeoutError = new Error("Balance refresh timed out")
+    try {
+      const result = await Promise.race([
+        dispatch(triggerManualBalanceUpdate()),
+        new Promise<never>((_, reject) => {
+          refreshTimeout = setTimeout(
+            () => reject(timeoutError),
+            refreshTimeoutMs
+          )
+        }),
+      ])
+      if (
+        triggerManualBalanceUpdate.rejected.match(result as { type: unknown })
+      ) {
+        throw new Error("Balance refresh failed")
+      }
+    } catch (error) {
+      if (isMountedRef.current) {
+        dispatch(
+          setSnackbarConfig({
+            message:
+              error === timeoutError
+                ? "Refresh is taking longer than expected. It may still complete."
+                : "Unable to refresh balances. Please try again.",
+          })
+        ).catch(() => undefined)
+      }
+    } finally {
+      clearTimeout(refreshTimeout)
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < minLoadTimeMs) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, minLoadTimeMs - elapsedTime)
+        )
+      }
 
-    if (elapsedTime < minLoadTimeMs) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, minLoadTimeMs - elapsedTime)
-      )
-    }
-
-    if (isMountedRef.current) {
-      clearTimeout(spinTimeout) // Clear the timeout if update completes before maxSpinTimeMs
-      setIsSpinning(false)
+      refreshInProgressRef.current = false
+      if (isMountedRef.current) setIsSpinning(false)
     }
   }
 
   return (
     <button
       type="button"
+      aria-label="Refresh balances"
       disabled={isSpinning}
       className={classNames("reload", { spinning: isSpinning })}
       onClick={onClick}

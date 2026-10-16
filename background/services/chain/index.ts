@@ -74,8 +74,15 @@ interface QiWalletSyncOptions {
 }
 
 interface BaseBalanceRefreshOptions {
+  // Fetch after this signal, queuing behind any read already in flight.
   force?: boolean
   maxAgeMs?: number
+}
+
+interface BaseBalanceRequest {
+  force: boolean
+  started: boolean
+  request: Promise<AccountBalance>
 }
 
 interface Events extends ServiceLifecycleEvents {
@@ -159,15 +166,17 @@ export default class ChainService extends BaseService<Events> {
 
   private qiWalletBalanceSyncTimer: ReturnType<typeof setTimeout> | null = null
 
-  private baseBalanceRequests: Map<
-    string,
-    { force: boolean; request: Promise<AccountBalance> }
-  > = new Map()
+  private baseBalanceRequests: Map<string, BaseBalanceRequest> = new Map()
 
-  private processedAddressAccesses: Map<
+  private baseBalanceRetries: Map<
     string,
     ReturnType<typeof setTimeout>
-  > = new Map()
+  > | null = new Map()
+
+  private processedAddressAccesses = new Map<
+    string,
+    ReturnType<typeof setTimeout> | undefined
+  >()
 
   subscribedAccounts: {
     account: string
@@ -272,10 +281,13 @@ export default class ChainService extends BaseService<Events> {
 
     await this.subscribeOnNetworksAndAddresses([networkFromPreferences], accounts)
 
-    await this.startAddressAccessSubscriber()
+    await this.ensureAddressSubscriptions()
   }
 
   override async internalStopService(): Promise<void> {
+    this.baseBalanceRetries?.forEach((timer) => clearTimeout(timer))
+    this.baseBalanceRetries?.clear()
+    this.baseBalanceRetries = null
     for (const timer of this.processedAddressAccesses.values()) {
       clearTimeout(timer)
     }
@@ -284,15 +296,25 @@ export default class ChainService extends BaseService<Events> {
   }
 
   public switchNetwork(network: NetworkInterface): void {
-    const { jsonRpcProvider, webSocketProvider, immediateJsonRpcProvider } =
-      this.providerFactory.getProvidersForNetwork(network.chainID)
+    const {
+      jsonRpcProvider,
+      webSocketProvider,
+      immediateJsonRpcProvider,
+      ethJsonRpcProvider,
+    } = this.providerFactory.getProvidersForNetwork(network.chainID)
 
     this.selectedNetwork = network
     this.jsonRpcProvider = jsonRpcProvider
     this.webSocketProvider = webSocketProvider
     this.immediateJsonRpcProvider = immediateJsonRpcProvider ?? jsonRpcProvider
+    this.ethJsonRpcProvider = ethJsonRpcProvider!
 
-    this.startAddressAccessSubscriber()
+    this.ensureAddressSubscriptions().catch((error) => {
+      logger.warn(
+        "Failed to subscribe to addresses after switching network",
+        error
+      )
+    })
   }
 
   public getJsonRpcProviderForNetwork(chainID: string): JsonRpcProvider {
@@ -301,26 +323,32 @@ export default class ChainService extends BaseService<Events> {
 
   public async refreshProviders(): Promise<void> {
     if (this.selectedNetwork) {
-      const { jsonRpcProvider, webSocketProvider, immediateJsonRpcProvider } =
-        this.providerFactory.getProvidersForNetwork(this.selectedNetwork.chainID)
+      const {
+        jsonRpcProvider,
+        webSocketProvider,
+        immediateJsonRpcProvider,
+        ethJsonRpcProvider,
+      } = this.providerFactory.getProvidersForNetwork(
+        this.selectedNetwork.chainID
+      )
       const webSocketProviderChanged =
         webSocketProvider !== this.webSocketProvider
 
       this.jsonRpcProvider = jsonRpcProvider
       this.webSocketProvider = webSocketProvider
       this.immediateJsonRpcProvider = immediateJsonRpcProvider ?? jsonRpcProvider
+      this.ethJsonRpcProvider = ethJsonRpcProvider!
 
       if (webSocketProviderChanged) {
         this.activeSubscriptions.delete(this.selectedNetwork.chainID)
-        await this.startAddressAccessSubscriber()
+        await this.ensureAddressSubscriptions()
       }
     }
   }
 
   // --------------------------------------------------------------------------------------------------
-  private async startAddressAccessSubscriber(): Promise<void> {
+  public async ensureAddressSubscriptions(): Promise<void> {
     const { selectedNetwork } = this
-    if (this.isNetworkSubscribed(selectedNetwork)) return
 
     const [quaiAddresses, qiMiningAddresses] = await Promise.all([
       this.getTrackedAddressesOnNetwork(selectedNetwork),
@@ -348,8 +376,12 @@ export default class ChainService extends BaseService<Events> {
       network.chainID
     )
 
-    if (!webSocketProvider)
-      logger.error("WebSocketProvider for address access subscription not found")
+    if (!webSocketProvider) {
+      logger.error(
+        "WebSocketProvider for address access subscription not found"
+      )
+      return
+    }
 
     const subscribedAddresses =
       this.activeSubscriptions.get(network.chainID) ?? new Set<string>()
@@ -361,20 +393,29 @@ export default class ChainService extends BaseService<Events> {
         if (!subscribedAddresses.has(address)) {
           subscribedAddresses.add(address)
           subscriptions.push(
-            Promise.resolve(
-              webSocketProvider.on(
-                { type: "block", address },
-                async (blockHash: string) => {
-                  await callback(network, address, blockHash)
-                }
+            Promise.resolve()
+              .then(() =>
+                webSocketProvider.on(
+                  { type: "block", address },
+                  async (blockHash: string) => {
+                    try {
+                      await callback(network, address, blockHash)
+                    } catch (error) {
+                      logger.warn(
+                        `Failed to refresh balance for ${address}`,
+                        error
+                      )
+                    }
+                  }
+                )
               )
-            ).catch((error) => {
-              subscribedAddresses.delete(address)
-              logger.warn(
-                `Failed to subscribe to address accesses for ${address} on chain ${network.chainID}`,
-                error
-              )
-            })
+              .catch((error) => {
+                subscribedAddresses.delete(address)
+                logger.warn(
+                  `Failed to subscribe to address accesses for ${address} on chain ${network.chainID}`,
+                  error
+                )
+              })
           )
         }
       })
@@ -415,57 +456,82 @@ export default class ChainService extends BaseService<Events> {
     const accessKey = this.getAddressAccessKey(network, address, blockHash)
     if (this.processedAddressAccesses.has(accessKey)) return
 
-    const cleanupTimer = setTimeout(() => {
+    // Reserve this block until its refresh succeeds or fails.
+    this.processedAddressAccesses.set(accessKey, undefined)
+    try {
+      // Capture the prior balance before publishing the update.
+      const selectedAccount = await this.preferenceService.getSelectedAccount()
+      const currentAccountState =
+        globalThis.main.store.getState().account.accountsData.evm[
+          network.chainID
+        ]?.[address]
+      const currentBalanceAmount =
+        currentAccountState === "loading"
+          ? undefined
+          : currentAccountState?.balances.QUAI?.assetAmount.amount
+
+      const balanceRequest = this.getLatestBaseAccountBalance(
+        { address, network },
+        { force: true }
+      )
+
+      this.emitter
+        .emit("addressAccessed", { address, blockHash, network })
+        .catch((error) =>
+          logger.warn(`Failed to process address access for ${address}`, error)
+        )
+
+      const accountBalance = await balanceRequest
+      // Failed refreshes remain retryable; seeing an event alone is not success.
+      const cleanupTimer = setTimeout(() => {
+        this.processedAddressAccesses.delete(accessKey)
+      }, MINUTE)
+      this.processedAddressAccesses.set(accessKey, cleanupTimer)
+
+      const {
+        assetAmount: { asset, amount: balance },
+      } = accountBalance
+      if (
+        currentBalanceAmount !== undefined &&
+        balance > currentBalanceAmount &&
+        selectedAccount.network.chainID === network.chainID &&
+        sameQuaiAddress(selectedAccount.address, address) &&
+        !this.keyringService.isLocked()
+      ) {
+        NotificationsManager.createIncomingAssetsNotification(
+          bigIntToDecimal(balance - currentBalanceAmount),
+          asset.symbol,
+          address
+        )
+      }
+    } catch (error) {
       this.processedAddressAccesses.delete(accessKey)
-    }, MINUTE)
-    this.processedAddressAccesses.set(accessKey, cleanupTimer)
-
-    // Capture the previous store value before the refresh emits its update so
-    // incoming-asset notifications compare against the actual prior balance.
-    const selectedAccount = await this.preferenceService.getSelectedAccount()
-    const currentAccountState =
-      globalThis.main.store.getState().account.accountsData.evm[
-        selectedAccount.network.chainID
-      ]?.[selectedAccount.address]
-    const currentNetworkChainID = selectedAccount.network.chainID
-    const currentBalanceAmount =
-      currentAccountState === "loading"
-        ? undefined
-        : currentAccountState?.balances["QUAI"].assetAmount.amount
-
-    // Access notifications are authoritative freshness signals. Start one
-    // forced refresh before notifying transaction listeners so their terminal
-    // refresh can join this request instead of duplicating it.
-    const balanceRequest = this.getLatestBaseAccountBalance(
-      { address, network },
-      { force: true }
-    )
-
-    this.emitter
-      .emit("addressAccessed", { address, blockHash, network })
-      .catch((error) =>
-        logger.warn(`Failed to process address access for ${address}`, error)
-      )
-
-    const accountBalance = await balanceRequest
-    const {
-      assetAmount: { asset, amount: balance },
-    } = accountBalance
-
-    // show this is the current network is selected
-    if (
-      currentBalanceAmount &&
-      balance > currentBalanceAmount &&
-      currentNetworkChainID === network.chainID &&
-      !this.keyringService.isLocked()
-    ) {
-      const parsedAmount = bigIntToDecimal(balance - currentBalanceAmount)
-      NotificationsManager.createIncomingAssetsNotification(
-        parsedAmount,
-        asset.symbol,
-        address
-      )
+      this.retryBaseAccountBalance({ address, network })
+      throw error
     }
+  }
+
+  private retryBaseAccountBalance(
+    account: AddressOnNetwork,
+    attempt = 0
+  ): void {
+    const retries = this.baseBalanceRetries
+    const key = `${account.network.chainID}:${account.address.toLowerCase()}`
+    if (!retries || retries.has(key) || attempt >= 3) return
+
+    // One retry per address, with bounded 30s / 60s / 120s backoff.
+    const timer = setTimeout(() => {
+      this.getLatestBaseAccountBalance(account, { force: true }).catch(
+        (error) => {
+          logger.warn("Failed to retry account balance", error)
+          if (retries.get(key) === timer) {
+            retries.delete(key)
+            this.retryBaseAccountBalance(account, attempt + 1)
+          }
+        }
+      )
+    }, (MINUTE / 2) * 2 ** attempt)
+    retries.set(key, timer)
   }
 
   private getAddressAccessKey(
@@ -477,23 +543,12 @@ export default class ChainService extends BaseService<Events> {
   }
 
   async refreshBaseAccountBalanceAfterTransaction(
-    addressOnNetwork: AddressOnNetwork,
-    blockHash?: string | null
+    addressOnNetwork: AddressOnNetwork
   ): Promise<AccountBalance> {
-    const refreshedFromAccess =
-      !!blockHash &&
-      this.processedAddressAccesses.has(
-        this.getAddressAccessKey(
-          addressOnNetwork.network,
-          addressOnNetwork.address,
-          blockHash
-        )
-      )
-
-    // If the matching access event was missed, force the HTTP fallback refresh
-    // even when an unrelated recent poll populated the cache.
+    // The access event can precede HTTP state catching up. Confirmation must
+    // not treat that event (or an older in-flight read) as proof of freshness.
     return this.getLatestBaseAccountBalance(addressOnNetwork, {
-      force: !refreshedFromAccess,
+      force: true,
     })
   }
 
@@ -508,10 +563,6 @@ export default class ChainService extends BaseService<Events> {
         logger.error("Failed to sync Qi wallet after balance event", error)
       })
     }, 500)
-  }
-
-  private isNetworkSubscribed(network: NetworkInterface): boolean {
-    return this.activeSubscriptions.has(network.chainID)
   }
 
   public async onNewQiAccountCreated(
@@ -1107,27 +1158,34 @@ export default class ChainService extends BaseService<Events> {
   ): Promise<AccountBalance> {
     const requestKey = `${network.chainID}:${address.toLowerCase()}`
     const existing = this.baseBalanceRequests.get(requestKey)
-    if (existing && (!force || existing.force)) return existing.request
+    if (existing && (!force || (existing.force && !existing.started)))
+      return existing.request
 
-    const request = (async () => {
-      if (existing) {
-        try {
-          await existing.request
-        } catch {
-          // A forced refresh must still run after a weaker request fails.
+    const entry: BaseBalanceRequest = {
+      force,
+      started: false,
+      request: Promise.resolve().then(async () => {
+        if (existing) {
+          try {
+            await existing.request
+          } catch {
+            // A queued refresh must still run after an earlier request fails.
+          }
         }
-      }
-      return this.getCachedOrFetchBaseAccountBalance(
-        { address, network },
-        force,
-        maxAgeMs
-      )
-    })()
-    const entry = { force, request }
+        // Further signals can share a queued read, but never an older read
+        // that has already started. This keeps at most one follow-up queued.
+        entry.started = true
+        return this.getCachedOrFetchBaseAccountBalance(
+          { address, network },
+          force,
+          maxAgeMs
+        )
+      }),
+    }
     this.baseBalanceRequests.set(requestKey, entry)
 
     try {
-      return await request
+      return await entry.request
     } finally {
       if (this.baseBalanceRequests.get(requestKey) === entry) {
         this.baseBalanceRequests.delete(requestKey)
@@ -1194,64 +1252,55 @@ export default class ChainService extends BaseService<Events> {
       globalThis.main.SetShard(addrShard)
     }
 
-    let err = false
-    let spendableBalance: bigint = BigInt(0)
-    let lockedBalance: bigint = BigInt(0)
     try {
-      const [sBalance, lBalance] = await Promise.all([
+      const [spendableBalance, lockedBalance] = await Promise.all([
         provider.getBalance(address, "latest"),
         provider.getLockedBalance(address),
       ])
-
-      spendableBalance = sBalance
-      lockedBalance = lBalance
-    } catch (error: any) {
-      logger.error(
-        `Error getting balance for ${address}: ${error?.message || error}`
-      )
-      if (error instanceof Error) {
-        err = true // only reset user-displayed error if there's no error at all
-        if (error.message.includes("could not detect network")) {
-          globalThis.main.SetNetworkError({
-            chainId: network.chainID,
-            error: true,
-          })
-        }
+      globalThis.main.SetNetworkError({
+        chainId: network.chainID,
+        error: false,
+      })
+      const asset = await this.db.getBaseAssetForNetwork(network.chainID)
+      const accountBalance: AccountBalance = {
+        address,
+        network,
+        assetAmount: {
+          asset,
+          amount: spendableBalance,
+        },
+        lockedAmount: {
+          asset,
+          amount: lockedBalance,
+        },
+        dataSource: "local",
+        retrievedAt: Date.now(),
       }
-    } finally {
-      if (!err) {
+
+      // Don't emit or save if the account isn't tracked.
+      if (await this.publishTrackedAccountBalance(accountBalance)) {
+        await this.db.addBalance(accountBalance)
+      }
+      const key = `${network.chainID}:${address.toLowerCase()}`
+      clearTimeout(this.baseBalanceRetries?.get(key))
+      this.baseBalanceRetries?.delete(key)
+      return accountBalance
+    } catch (error) {
+      logger.error(`Error getting balance for ${address}`, error)
+      if (
+        error instanceof Error &&
+        error.message.includes("could not detect network")
+      ) {
         globalThis.main.SetNetworkError({
           chainId: network.chainID,
-          error: false,
+          error: true,
         })
       }
+      // Preserve the last successful balance and timestamp on RPC failure.
+      throw error
+    } finally {
+      globalThis.main.SetShard(prevShard)
     }
-
-    const asset = await this.db.getBaseAssetForNetwork(network.chainID)
-
-    const accountBalance: AccountBalance = {
-      address,
-      network,
-      assetAmount: {
-        asset,
-        amount: spendableBalance,
-      },
-      lockedAmount: {
-        asset,
-        amount: lockedBalance,
-      },
-      dataSource: "local",
-      retrievedAt: Date.now(),
-    }
-
-    // Don't emit or save if the account isn't tracked.
-    if (await this.publishTrackedAccountBalance(accountBalance)) {
-      await this.db.addBalance(accountBalance)
-    }
-
-    globalThis.main.SetShard(prevShard)
-
-    return accountBalance
   }
 
   async addAccountToTrack(addressNetwork: AddressOnNetwork): Promise<void> {

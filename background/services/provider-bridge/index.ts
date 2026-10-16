@@ -122,6 +122,11 @@ export default class ProviderBridgeService extends BaseService<Events> {
           result: {
             method: PELAGUS_GET_CONFIG_METHOD,
             defaultWallet: await this.preferenceService.getDefaultWallet(),
+            chainId: toHexChainID(
+              (
+                await this.internalQuaiProviderService.getCurrentInternalNetwork()
+              ).chainID
+            ),
           },
         })
       }
@@ -169,7 +174,10 @@ export default class ProviderBridgeService extends BaseService<Events> {
       response.result = {
         method: event.request.method,
         defaultWallet: await this.preferenceService.getDefaultWallet(),
-        chainId: toHexChainID(network.chainID),
+        chainId: toHexChainID(
+          (await this.internalQuaiProviderService.getCurrentInternalNetwork())
+            .chainID
+        ),
       }
     } else if (isPelagusPortHealthCheck(event.request)) {
       logger.info(
@@ -222,14 +230,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       const selectedAccount = await this.preferenceService.getSelectedAccount()
       const { address: accountAddress } = selectedAccount
 
-      // @TODO 7/12/21 Figure out underlying cause here
-      const dAppChainID = Number(
-        (await this.internalQuaiProviderService.routeSafeRPCRequest(
-          "quai_chainId",
-          [],
-          origin
-        )) as string
-      ).toString()
+      const dAppChainID = network.chainID
 
       // these params are taken directly from the dapp website
       const [title, faviconUrl] = event.request.params as string[]
@@ -273,13 +274,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       event.request.method === "quai_accounts" ||
       event.request.method === "eth_accounts"
     ) {
-      const dAppChainID = Number(
-        (await this.internalQuaiProviderService.routeSafeRPCRequest(
-          "quai_chainId",
-          [],
-          origin
-        )) as string
-      ).toString()
+      const dAppChainID = network.chainID
 
       const permission = await this.checkPermission(origin, dAppChainID)
 
@@ -324,14 +319,18 @@ export default class ProviderBridgeService extends BaseService<Events> {
     port.postMessage(response)
   }
 
-  notifyContentScriptAboutConfigChange(newDefaultWalletValue: boolean): void {
+  notifyContentScriptAboutConfigChange(
+    newDefaultWalletValue: boolean,
+    chainID?: string
+  ): void {
     this.openPorts.forEach((p) => {
       p.postMessage({
         id: PELAGUS_INTERNAL_COMMUNICATION_ID,
         result: {
           method: PELAGUS_GET_CONFIG_METHOD,
           defaultWallet: newDefaultWalletValue,
-          shouldReload: true,
+          shouldReload: chainID === undefined,
+          chainId: chainID === undefined ? undefined : toHexChainID(chainID),
         },
       })
     })
@@ -582,7 +581,12 @@ export default class ProviderBridgeService extends BaseService<Events> {
           checkPermissionSignTransaction(
             (params[0] as QuaiTransactionRequest).chainId,
             (params[0] as QuaiTransactionRequest).from as string,
-            enablingPermission
+            {
+              ...enablingPermission,
+              chainID: (
+                await this.internalQuaiProviderService.getCurrentInternalNetwork()
+              ).chainID,
+            }
           )
 
           return await this.routeSafeRequest(

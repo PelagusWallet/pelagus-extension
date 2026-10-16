@@ -275,7 +275,9 @@ export default class WalletManager {
       return null
     }
 
-    return this.keyringMetadata[foundedKeyring.id].source
+    // Missing import provenance must not prevent a valid signer from being
+    // tracked or its balance from loading.
+    return this.keyringMetadata[foundedKeyring.id]?.source ?? null
   }
 
   public async generateQuaiHDWalletMnemonic(): Promise<{

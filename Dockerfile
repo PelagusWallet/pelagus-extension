@@ -1,4 +1,4 @@
-FROM node:22.5.1-alpine
+FROM node:22.23.4-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
 
 WORKDIR /pelagus-extension
 
@@ -25,9 +25,10 @@ COPY provider-bridge/package.json ./provider-bridge/
 COPY provider-bridge-shared/package.json ./provider-bridge-shared/
 COPY window-provider/package.json ./window-provider/
 
-# Install dependencies with exact versions
+# Install dependencies with exact versions. Sourcify pins an obsolete exact Node
+# patch in its metadata; the base image and .nvmrc enforce our patched runtime.
 # Skip postinstall script to avoid playwright installation in Docker
-RUN yarn install --frozen-lockfile --ignore-scripts
+RUN yarn install --frozen-lockfile --ignore-engines --ignore-scripts
 
 # Copy patches directory before running patch-package
 COPY patches ./patches

@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: "${{ steps.nvm.outputs.NVMRC }}"
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Detect env block
         id: env-block
         if: github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/')
@@ -85,7 +85,7 @@ jobs:
         with:
           node-version: "${{ steps.nvm.outputs.NVMRC }}"
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn test
   lint:
     runs-on: ubuntu-latest
@@ -99,7 +99,7 @@ jobs:
         with:
           node-version: "${{ steps.nvm.outputs.NVMRC }}"
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn lint
   detect-if-flag-changed:
     runs-on: ubuntu-latest
@@ -133,7 +133,7 @@ jobs:
         with:
           node-version: "${{ steps.nvm.outputs.NVMRC }}"
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - uses: actions/download-artifact@v3

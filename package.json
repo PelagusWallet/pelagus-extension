@@ -147,5 +147,8 @@
     "webpack-livereload-plugin": "^3.0.1",
     "webpack-merge": "^5.8.0",
     "yarn-audit-fix": "^10.1.1"
+  },
+  "engines": {
+    "node": ">=22.23.4 <23"
   }
 }

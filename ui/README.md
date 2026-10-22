@@ -29,10 +29,8 @@ Check out these docs,
 First, install the node modules:
 
 ```bash
-yarn install
+yarn install --ignore-engines
 ```
-
-If you run into `The engine "node" is incompatible with this module.`, try adding `--ignore-engines` for now.
 
 Then, start up the dev server:
 

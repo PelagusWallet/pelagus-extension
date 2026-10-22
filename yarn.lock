@@ -7851,10 +7851,10 @@ qs@^6.4.0:
   dependencies:
     side-channel "^1.0.6"
 
-quais@1.0.0-alpha.57:
-  version "1.0.0-alpha.57"
-  resolved "https://registry.npmjs.org/quais/-/quais-1.0.0-alpha.57.tgz#32fa3b6c043d4fdceba5a25d4f09b0299bb8d01f"
-  integrity sha512-asseq9pWXSwr9+FNOsIa7e4H4b+tKSIDOVh16xjwAtzqNS9zYsYAQak/OJzMKbvehzgurqF/7GcTOQb9RrYt1Q==
+quais@1.0.0-alpha.58:
+  version "1.0.0-alpha.58"
+  resolved "https://registry.npmjs.org/quais/-/quais-1.0.0-alpha.58.tgz#6e6c5f73eeb3f0aea91e386818106dcad95c1dc5"
+  integrity sha512-DP4sZVeEJEdFMVWYtN8s8nyTl8DThSPcOtXxovmSIgJ22t26Hry6rtq2ycj7fzxZWn+ejtJH6VI9L6qN1tgdPQ==
   dependencies:
     "@babel/runtime" "^7.26.0"
     "@bitcoinerlab/secp256k1" "^1.1.1"

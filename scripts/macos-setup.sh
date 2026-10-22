@@ -19,6 +19,6 @@ nvm use
 if ! [ -x "$(command -v yarn)" ]; then
   npm install -g yarn
 fi
-yarn install
+yarn install --ignore-engines
 
 echo "Ready to rock! See above for any extra environment-related instructions."

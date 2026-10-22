@@ -12,7 +12,7 @@ Try this.
 $ nvm use
 $ nvm install
 $ npm install -g yarn # if you don't have yarn globally installed
-$ yarn install # install all dependencies; rerun with --ignore-scripts if
+$ yarn install --ignore-engines # install all dependencies; rerun with --ignore-scripts if
                # scrypt node-gyp failures prevent the install from completing
 $ yarn start # start a continuous webpack build that will auto-update with changes
 ```

@@ -534,8 +534,6 @@ export default class Main extends BaseService<never> {
   }
 
   async startBalanceChecker(): Promise<void> {
-    let lastQiCheck = Date.now()
-    let lastSubscriptionCheck = Date.now()
     const interval = setInterval(async () => {
       if (
         !walletOpen ||
@@ -547,15 +545,10 @@ export default class Main extends BaseService<never> {
 
       this.balanceCheckInProgress = true
       try {
-        if (Date.now() - lastSubscriptionCheck >= 5 * MINUTE) {
-          lastSubscriptionCheck = Date.now()
-          this.chainService.ensureAddressSubscriptions().catch((error) => {
-            logger.warn("Failed to refresh address subscriptions", error)
-          })
-        }
+        this.chainService.ensureAddressSubscriptions().catch((error) => {
+          logger.warn("Failed to refresh address subscriptions", error)
+        })
         if (this.store.getState().ui.isUtxoSelected) {
-          if (Date.now() - lastQiCheck < 5 * MINUTE) return
-          lastQiCheck = Date.now()
           await this.chainService.syncQiWallet()
         } else {
           const { selectedAccount } = this.store.getState().ui
@@ -568,7 +561,7 @@ export default class Main extends BaseService<never> {
       } finally {
         this.balanceCheckInProgress = false
       }
-    }, MINUTE)
+    }, 5 * MINUTE)
     this.balanceChecker = interval
   }
 

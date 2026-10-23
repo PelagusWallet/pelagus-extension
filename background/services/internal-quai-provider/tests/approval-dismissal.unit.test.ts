@@ -28,7 +28,7 @@ it("releases a dismissed typed-data approval during preparation without restorin
     Promise.resolve({} as PreferenceService)
   )
   jest
-    .spyOn(service, "getCurrentOrDefaultNetworkForOrigin")
+    .spyOn(service, "getCurrentInternalNetwork")
     .mockResolvedValue(QuaiMainnet)
   let finishPreparation!: () => void
   const preparation = new Promise<void>((resolve) => {

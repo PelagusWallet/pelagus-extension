@@ -20,6 +20,8 @@ import { QuaiTransactionRequest } from "quais/lib/commonjs/providers"
 import BaseService from "../base"
 import InternalQuaiProviderService, {
   AddEthereumChainParameter,
+  findSupportedNetwork,
+  SwitchEthereumChainParameter,
 } from "../internal-quai-provider"
 import { initializeProviderBridgeDatabase, ProviderBridgeDatabase } from "./db"
 import { ServiceCreatorFunction, ServiceLifecycleEvents } from "../types"
@@ -37,19 +39,23 @@ import {
   parseRPCRequestParams,
   PermissionMap,
   validateAddEthereumChainParameter,
-  ValidatedAddEthereumChainParameter,
 } from "./utils"
 import { toHexChainID } from "../../networks"
 import { PELAGUS_INTERNAL_ORIGIN } from "../internal-quai-provider/constants"
+import { NetworkInterface } from "../../constants/networks/networkTypes"
 
 type Events = ServiceLifecycleEvents & {
   requestPermission: PermissionRequest
   initializeAllowedPages: PermissionMap
 }
 
-export type AddChainRequestData = ValidatedAddEthereumChainParameter & {
-  favicon: string
+// A dApp request to change the wallet's network, shown to the user for approval.
+export type NetworkSwitchRequestData = {
+  origin: string
   siteTitle: string
+  favicon: string
+  fromNetwork: NetworkInterface
+  toNetwork: NetworkInterface
 }
 
 /**
@@ -74,7 +80,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     [id: string]: {
       resolve: () => void
       reject: (reason?: unknown) => void
-      data: AddChainRequestData
+      data: NetworkSwitchRequestData
     }
   } = {}
 
@@ -157,9 +163,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       result: [],
     }
     const network =
-      await this.internalQuaiProviderService.getCurrentOrDefaultNetworkForOrigin(
-        origin
-      )
+      await this.internalQuaiProviderService.getCurrentInternalNetwork()
 
     const originPermission = await this.checkPermission(origin, network.chainID)
     if (origin === PELAGUS_INTERNAL_ORIGIN) {
@@ -174,10 +178,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
       response.result = {
         method: event.request.method,
         defaultWallet: await this.preferenceService.getDefaultWallet(),
-        chainId: toHexChainID(
-          (await this.internalQuaiProviderService.getCurrentInternalNetwork())
-            .chainID
-        ),
+        chainId: toHexChainID(network.chainID),
       }
     } else if (isPelagusPortHealthCheck(event.request)) {
       logger.info(
@@ -258,12 +259,6 @@ export default class ProviderBridgeService extends BaseService<Events> {
           event.request.params,
           origin
         )
-
-        // on dApp connection, persist the current network/origin state
-        await this.internalQuaiProviderService.switchToSupportedNetwork(
-          origin,
-          network
-        )
       } else {
         // if user does NOT agree, then reject
         response.result = new EIP1193Error(
@@ -340,9 +335,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
     this.openPorts.forEach(async (port) => {
       const { origin } = new URL(port.sender?.url as string)
       const { chainID } =
-        await this.internalQuaiProviderService.getCurrentOrDefaultNetworkForOrigin(
-          origin
-        )
+        await this.internalQuaiProviderService.getCurrentInternalNetwork()
       if (await this.checkPermission(origin, chainID)) {
         port.postMessage({
           id: PELAGUS_INTERNAL_COMMUNICATION_ID,
@@ -581,12 +574,7 @@ export default class ProviderBridgeService extends BaseService<Events> {
           checkPermissionSignTransaction(
             (params[0] as QuaiTransactionRequest).chainId,
             (params[0] as QuaiTransactionRequest).from as string,
-            {
-              ...enablingPermission,
-              chainID: (
-                await this.internalQuaiProviderService.getCurrentInternalNetwork()
-              ).chainID,
-            }
+            enablingPermission
           )
 
           return await this.routeSafeRequest(
@@ -596,59 +584,38 @@ export default class ProviderBridgeService extends BaseService<Events> {
             showExtensionPopup(AllowedQueryParamPage.signTransaction)
           )
 
-        case "wallet_switchEthereumChain":
-          return await this.internalQuaiProviderService.routeSafeRPCRequest(
-            method,
-            params,
-            origin
-          )
+        // Pelagus only switches between its built-in networks, so both
+        // methods are a switch request.
+        case "wallet_addEthereumChain":
+        case "wallet_switchEthereumChain": {
+          const requestedChainID =
+            method === "wallet_addEthereumChain"
+              ? validateAddEthereumChainParameter(
+                  params[0] as AddEthereumChainParameter
+                ).chainId
+              : (params[0] as SwitchEthereumChainParameter | undefined)?.chainId
+          const toNetwork = findSupportedNetwork(requestedChainID)
+          if (!toNetwork) {
+            throw new EIP1193Error(EIP1193_ERROR_CODES.chainDisconnected)
+          }
 
-        case "wallet_addEthereumChain": {
-          const id = this.addNetworkRequestId.toString()
+          const fromNetwork =
+            await this.internalQuaiProviderService.getCurrentInternalNetwork()
+          // EIP-3326: a switch to the current chain succeeds without a prompt.
+          if (toNetwork.chainID === fromNetwork.chainID) return null
 
-          this.addNetworkRequestId += 1
-
-          const window = await showExtensionPopup(
-            AllowedQueryParamPage.addNewChain,
-            { requestId: id.toString() }
-          )
-
-          browser.windows.onRemoved.addListener((removed) => {
-            if (removed === window.id) {
-              this.handleAddNetworkRequest(id, false)
-            }
-          })
-
-          const [rawChainData, address, siteTitle, favicon] = params
-          const validatedData = validateAddEthereumChainParameter(
-            rawChainData as AddEthereumChainParameter
-          )
-
-          const userConfirmation = new Promise<void>((resolve, reject) => {
-            this.#pendingAddNetworkRequests[id] = {
-              resolve,
-              reject,
-              data: {
-                ...validatedData,
-                favicon: favicon as string,
-                siteTitle: siteTitle as string,
-              },
-            }
-          })
-
-          await userConfirmation
-
-          const account = await this.preferenceService.getSelectedAccount()
-
-          await this.grantPermission({
-            ...enablingPermission,
-            key: `${origin}_${account.address}_${validatedData.chainId}`,
-            chainID: validatedData.chainId,
+          // The network is shared by every connected site, so ask the user.
+          await this.requestNetworkSwitchApproval({
+            origin,
+            siteTitle: enablingPermission.title,
+            favicon: enablingPermission.faviconUrl,
+            fromNetwork,
+            toNetwork,
           })
 
           return await this.internalQuaiProviderService.routeSafeRPCRequest(
-            method,
-            [validatedData, address],
+            "wallet_switchEthereumChain",
+            [{ chainId: toHexChainID(toNetwork.chainID) }],
             origin
           )
         }
@@ -667,12 +634,44 @@ export default class ProviderBridgeService extends BaseService<Events> {
     }
   }
 
-  getNewCustomRPCDetails(requestId: string): AddChainRequestData {
-    return this.#pendingAddNetworkRequests[requestId].data
+  private async requestNetworkSwitchApproval(
+    data: NetworkSwitchRequestData
+  ): Promise<void> {
+    if (
+      Object.values(this.#pendingAddNetworkRequests).some(
+        (request) => request.data.origin === data.origin
+      )
+    ) {
+      throw new EIP1193Error(EIP1193_ERROR_CODES.requestAlreadyPending)
+    }
+
+    const id = this.addNetworkRequestId.toString()
+    this.addNetworkRequestId += 1
+    const approval = new Promise<void>((resolve, reject) => {
+      this.#pendingAddNetworkRequests[id] = { resolve, reject, data }
+    })
+    try {
+      // Closing the popup without an answer rejects the request.
+      await showExtensionPopup(
+        AllowedQueryParamPage.addNewChain,
+        { requestId: id },
+        () => this.handleAddNetworkRequest(id, false)
+      )
+      await approval
+    } finally {
+      delete this.#pendingAddNetworkRequests[id]
+    }
+  }
+
+  getNewCustomRPCDetails(
+    requestId: string
+  ): NetworkSwitchRequestData | undefined {
+    return this.#pendingAddNetworkRequests[requestId]?.data
   }
 
   handleAddNetworkRequest(id: string, success: boolean): void {
     const request = this.#pendingAddNetworkRequests[id]
+    if (!request) return
     if (success) {
       request.resolve()
     } else {

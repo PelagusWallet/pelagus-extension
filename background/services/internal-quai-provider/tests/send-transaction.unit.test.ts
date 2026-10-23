@@ -35,7 +35,7 @@ describe("InternalQuaiProviderService transaction chain binding", () => {
       Promise.resolve({} as PreferenceService)
     )
     jest
-      .spyOn(service, "getCurrentOrDefaultNetworkForOrigin")
+      .spyOn(service, "getCurrentInternalNetwork")
       .mockResolvedValue(QuaiMainnet)
   })
 
@@ -218,9 +218,12 @@ describe("InternalQuaiProviderService transaction chain binding", () => {
         ],
         "https://app.test"
       )
-    ).rejects.toThrow(
-      "The requested method and/or account has not been authorized by the user."
-    )
+    ).rejects.toMatchObject({
+      eip1193Error: {
+        code: EIP1193_ERROR_CODES.chainDisconnected.code,
+        message: expect.stringContaining("chain 0x3a98"),
+      },
+    })
 
     expect(emit).not.toHaveBeenCalledWith(
       "transactionSendRequest",

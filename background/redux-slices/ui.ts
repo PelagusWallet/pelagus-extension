@@ -605,22 +605,26 @@ export const setSelectedNetwork = createBackgroundAsyncThunk(
         }
       }
     )
-    unwrapResult(
-      await dispatch(setNewSelectedAccount({ ...ui.selectedAccount, network }))
+    const accountResult = await dispatch(
+      setNewSelectedAccount({ ...ui.selectedAccount, network })
     )
 
-    if (!ui.isUtxoSelected && !ui.selectedUtxoAccount) return
+    // The network has already switched, so update the Qi selection even if
+    // the account change failed. Report that failure afterwards.
+    if (ui.isUtxoSelected || ui.selectedUtxoAccount) {
+      const utxoAccountOnSelectedNetwork =
+        account.accountsData.utxo[network.chainID]?.[
+          ui.selectedUtxoAccount?.paymentCode ?? ""
+        ]
 
-    const utxoAccountOnSelectedNetwork =
-      account.accountsData.utxo[network.chainID]?.[
-        ui.selectedUtxoAccount?.paymentCode ?? ""
-      ]
-
-    if (!utxoAccountOnSelectedNetwork) {
-      dispatch(setSelectedUtxoAccount(null))
-      dispatch(setIsUtxoSelected(false))
+      if (!utxoAccountOnSelectedNetwork) {
+        dispatch(setSelectedUtxoAccount(null))
+        dispatch(setIsUtxoSelected(false))
+      }
+      dispatch(setSelectedUtxoAccount(utxoAccountOnSelectedNetwork))
     }
-    dispatch(setSelectedUtxoAccount(utxoAccountOnSelectedNetwork))
+
+    unwrapResult(accountResult)
   }
 )
 

@@ -18,6 +18,7 @@ import { createBackgroundAsyncThunk, SnackBarType } from "./utils"
 import { getExtendedZoneForAddress } from "../services/chain/utils"
 import { QuaiMainnet } from "../constants/networks/networks"
 import { DEFAULT_AUTO_LOCK_INTERVAL_MINUTES } from "../constants/auto-lock"
+import logger from "../lib/logger"
 
 export const defaultSettings = {
   hideDust: false,
@@ -544,7 +545,11 @@ export const setNewSelectedAccount = createBackgroundAsyncThunk(
   async (addressNetwork: AddressOnNetwork, { dispatch }) => {
     const shard = getExtendedZoneForAddress(addressNetwork.address)
     globalThis.main.SetShard(shard)
-    globalThis.main.chainService.getLatestBaseAccountBalance(addressNetwork)
+    globalThis.main.chainService
+      .getLatestBaseAccountBalance(addressNetwork)
+      .catch((error) => {
+        logger.warn("Failed to load the selected account balance", error)
+      })
     await emitter.emit("newSelectedAccount", addressNetwork)
     // Once the default value has persisted, propagate to the store.
     dispatch(uiSlice.actions.setSelectedAccount(addressNetwork))

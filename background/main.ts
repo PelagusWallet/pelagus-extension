@@ -521,10 +521,17 @@ export default class Main extends BaseService<never> {
 
   async SetNetworkError(chainIdWithError: ChainIdWithError): Promise<void> {
     await this.ready
+    const errors = this.store.getState().ui.settings.networkConnectError
+    const current = Array.isArray(errors)
+      ? errors.find(({ chainId }) => chainId === chainIdWithError.chainId)
+      : undefined
+    if (current?.error === chainIdWithError.error) return
     await this.store.dispatch(setNewNetworkConnectError(chainIdWithError))
   }
 
   async startBalanceChecker(): Promise<void> {
+    let lastQiCheck = Date.now()
+    let lastSubscriptionCheck = Date.now()
     const interval = setInterval(async () => {
       if (
         !walletOpen ||
@@ -536,16 +543,28 @@ export default class Main extends BaseService<never> {
 
       this.balanceCheckInProgress = true
       try {
+        if (Date.now() - lastSubscriptionCheck >= 5 * MINUTE) {
+          lastSubscriptionCheck = Date.now()
+          this.chainService.ensureAddressSubscriptions().catch((error) => {
+            logger.warn("Failed to refresh address subscriptions", error)
+          })
+        }
         if (this.store.getState().ui.isUtxoSelected) {
+          if (Date.now() - lastQiCheck < 5 * MINUTE) return
+          lastQiCheck = Date.now()
           await this.chainService.syncQiWallet()
         } else {
-          const selectedAccount = this.store.getState().ui.selectedAccount
+          const { selectedAccount } = this.store.getState().ui
+          if (!selectedAccount.address) return
+          // Recent event-driven reads already satisfy the fallback poll.
           await this.chainService.getLatestBaseAccountBalance(selectedAccount)
         }
+      } catch (error) {
+        logger.warn("Failed to refresh the selected account balance", error)
       } finally {
         this.balanceCheckInProgress = false
       }
-    }, 5 * MINUTE)
+    }, MINUTE)
     this.balanceChecker = interval
   }
 
@@ -553,12 +572,13 @@ export default class Main extends BaseService<never> {
     if (this.keyringService.isLocked()) return
 
     const selectedAccount = await this.store.getState().ui.selectedAccount
+    if (!selectedAccount.address) return
     const currentAccountState = await this.store.getState().account.accountsData
       .evm[selectedAccount.network.chainID]?.[selectedAccount.address]
-    if (currentAccountState === undefined || currentAccountState === "loading")
-      return
-
-    const { balances } = currentAccountState
+    const balances =
+      !currentAccountState || currentAccountState === "loading"
+        ? {}
+        : currentAccountState.balances
 
     // Build a unique set of smart-contract assets to query: existing balances + cached (includes pinned)
     const cachedSmartAssets = this.indexingService
@@ -583,7 +603,9 @@ export default class Main extends BaseService<never> {
 
     const smartAssets = Object.values(assetsByAddress)
     const [baseBalance, tokenBalances] = await Promise.all([
-      this.chainService.getLatestBaseAccountBalance(selectedAccount),
+      this.chainService.getLatestBaseAccountBalance(selectedAccount, {
+        force: true,
+      }),
       this.indexingService.retrieveTokenBalances(selectedAccount, smartAssets),
     ])
 
@@ -939,7 +961,11 @@ export default class Main extends BaseService<never> {
           // Mark as loading and wire things up.
           this.store.dispatch(loadAccount(addressNetwork))
           // Force a refresh of the account balance to populate the store.
-          this.chainService.getLatestBaseAccountBalance(addressNetwork)
+          this.chainService
+            .getLatestBaseAccountBalance(addressNetwork)
+            .catch((error) => {
+              logger.warn("Failed to load account balance", error)
+            })
         })
 
         await this.recoverMissingSelectedAccount(existingAccounts)
@@ -2187,7 +2213,12 @@ export default class Main extends BaseService<never> {
       if (this.store.getState().ui.isUtxoSelected) {
         this.chainService.syncQiWallet()
       } else {
-        this.manuallyCheckBalances()
+        this.manuallyCheckBalances().catch((error) => {
+          logger.warn(
+            "Failed to refresh balances when opening the wallet",
+            error
+          )
+        })
       }
 
       port.onMessage.addListener((message) => {

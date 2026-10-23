@@ -517,13 +517,10 @@ export default class IndexingService extends BaseService<Events> {
         ) {
           forAccounts.forEach((accountAddress) => {
             this.chainService
-              .refreshBaseAccountBalanceAfterTransaction(
-                {
-                  address: accountAddress,
-                  network: transactionNetwork,
-                },
-                transaction.blockHash
-              )
+              .refreshBaseAccountBalanceAfterTransaction({
+                address: accountAddress,
+                network: transactionNetwork,
+              })
               .catch((error) => {
                 logger.warn(
                   `Failed to refresh balance after transaction ${transaction.hash}`,

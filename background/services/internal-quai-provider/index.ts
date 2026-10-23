@@ -52,9 +52,22 @@ import TransactionService from "../transactions"
 import { QuaiTransactionRequestWithAnnotation } from "../transactions/types"
 import { ValidatedAddEthereumChainParameter } from "../provider-bridge/utils"
 import { ProviderBridgeDatabase } from "../provider-bridge/db"
+import { chainMismatchError } from "../provider-bridge/authorization"
 
 export type SwitchEthereumChainParameter = {
   chainId: string
+}
+
+// Accepts decimal or hex chain IDs. Pelagus only switches between its
+// built-in networks; it never adds a chain.
+export function findSupportedNetwork(
+  chainId: unknown
+): NetworkInterface | undefined {
+  if (typeof chainId !== "string" && typeof chainId !== "number")
+    return undefined
+  return PELAGUS_NETWORKS.find(
+    (network) => Number(network.chainID) === Number(chainId)
+  )
 }
 
 // https://eips.ethereum.org/EIPS/eip-747
@@ -196,41 +209,30 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         return this.signTypedData({
           account: {
             address: params[0] as string,
-            network: await this.getCurrentOrDefaultNetworkForOrigin(
-              PELAGUS_INTERNAL_ORIGIN
-            ),
+            network: await this.getCurrentInternalNetwork(),
           },
           typedData: JSON.parse(params[1] as string),
         })
 
       case "quai_sign":
       case "eth_sign":
-        return this.signData(
-          {
-            input: params[1] as string,
-            account: params[0] as string,
-          },
-          PELAGUS_INTERNAL_ORIGIN
-        )
+        return this.signData({
+          input: params[1] as string,
+          account: params[0] as string,
+        })
 
       case "personal_sign":
-        return this.signData(
-          {
-            input: params[0] as string,
-            account: params[1] as string,
-          },
-          PELAGUS_INTERNAL_ORIGIN
-        )
+        return this.signData({
+          input: params[0] as string,
+          account: params[1] as string,
+        })
 
       case "qi_signAll":
-        return this.signData(
-          {
-            input: params[0] as string,
-            account: params[1] as string,
-            coin: "qi",
-          },
-          PELAGUS_INTERNAL_ORIGIN
-        )
+        return this.signData({
+          input: params[0] as string,
+          account: params[1] as string,
+          coin: "qi",
+        })
 
       case "quai_blockNumber":
       case "eth_blockNumber": {
@@ -426,26 +428,17 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
         })
         return true
       }
-      // will just switch to a chain if we already support it - but not add a new one
-      case "wallet_addEthereumChain": {
-        const chainInfo = params[0] as ValidatedAddEthereumChainParameter
-        const { chainId } = chainInfo
-        const supportedNetwork = PELAGUS_NETWORKS.find(
-          (network) => network.chainID === chainId
-        )
-        if (supportedNetwork) {
-          await this.switchToSupportedNetwork(origin, supportedNetwork)
-          this.emitter.emit("selectedNetwork", supportedNetwork)
-          return null
-        }
-        break
-      }
+      // Both only switch to a supported chain. The provider bridge asks the
+      // user before a dApp request reaches this point.
+      case "wallet_addEthereumChain":
       case "wallet_switchEthereumChain": {
-        const newChainId = (params[0] as SwitchEthereumChainParameter)?.chainId
-        const supportedNetwork = PELAGUS_NETWORKS.find(
-          (network) =>
-            typeof newChainId === "string" &&
-            Number(network.chainID) === Number(newChainId)
+        const supportedNetwork = findSupportedNetwork(
+          (
+            params[0] as
+              | SwitchEthereumChainParameter
+              | ValidatedAddEthereumChainParameter
+              | undefined
+          )?.chainId
         )
         if (supportedNetwork) {
           if (
@@ -489,7 +482,7 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       case "wallet_requestPermissions":
       case "wallet_getPermissions": {
         const { address } = await this.preferenceService.getSelectedAccount()
-        const network = await this.getCurrentOrDefaultNetworkForOrigin(origin)
+        const network = await this.getCurrentInternalNetwork()
 
         const permission = await this.providerBridgeDb.checkPermission(
           origin,
@@ -525,16 +518,8 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     )
   }
 
-  async getCurrentOrDefaultNetworkForOrigin(
-    origin: string
-  ): Promise<NetworkInterface> {
-    if (origin === PELAGUS_INTERNAL_ORIGIN)
-      return this.getCurrentInternalNetwork()
-    // Keep the connection chain for permission lookups.
-    const currentNetwork = await this.db.getCurrentNetworkForOrigin(origin)
-    return currentNetwork ?? this.getCurrentInternalNetwork()
-  }
-
+  // Removes the per-site chain saved by older versions. dApps now always
+  // follow the wallet's network.
   async deleteCurrentChainIdForOrigin(origin: string): Promise<void> {
     await this.db.deleteCurrentChainIdForOrigin(origin)
   }
@@ -567,16 +552,14 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
       : null
     const from = getAddress(String(transactionRequest.from))
 
-    const network = await this.getCurrentOrDefaultNetworkForOrigin(
-      PELAGUS_INTERNAL_ORIGIN
-    )
+    const network = await this.getCurrentInternalNetwork()
     const requestedChainID = transactionRequest.chainId
     if (
       requestedChainID !== undefined &&
       requestedChainID !== null &&
       toHexChainID(String(requestedChainID)) !== toHexChainID(network.chainID)
     ) {
-      throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
+      throw chainMismatchError(requestedChainID, network.chainID)
     }
 
     const payload: QuaiTransactionRequestWithAnnotation & {
@@ -719,32 +702,20 @@ export default class InternalQuaiProviderService extends BaseService<Events> {
     })
   }
 
-  async switchToSupportedNetwork(
-    origin: string,
-    supportedNetwork: NetworkInterface
-  ): Promise<void> {
-    await this.db.setCurrentChainIdForOrigin(origin, supportedNetwork)
-  }
-
-  private async signData(
-    {
-      input,
-      account,
-      coin,
-    }: {
-      input: string
-      account: string
-      coin?: "quai" | "qi"
-    },
-    origin: string
-  ) {
+  private async signData({
+    input,
+    account,
+    coin,
+  }: {
+    input: string
+    account: string
+    coin?: "quai" | "qi"
+  }) {
     const hexInput = input.match(/^0x[0-9A-Fa-f]*$/)
       ? input
       : hexlify(toUtf8Bytes(input))
     const typeAndData = parseSigningData(input)
-    const currentNetwork = await this.getCurrentOrDefaultNetworkForOrigin(
-      origin
-    )
+    const currentNetwork = await this.getCurrentInternalNetwork()
 
     return this.requestSigningApproval<string>((resolve, reject) => {
       this.emitter

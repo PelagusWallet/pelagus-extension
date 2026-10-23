@@ -32,6 +32,21 @@ export function checkPermissionSign(
   }
 }
 
+// EIP-1193 4901: the wallet is connected, but not to the requested chain.
+export function chainMismatchError(
+  requestedChainID: BigNumberish,
+  currentChainID: string
+): EIP1193Error {
+  return new EIP1193Error({
+    ...EIP1193_ERROR_CODES.chainDisconnected,
+    message: `The request is for chain ${toHexChainID(
+      String(requestedChainID)
+    )}, but Pelagus is on chain ${toHexChainID(
+      currentChainID
+    )}. Switch the network and try again.`,
+  })
+}
+
 export function checkPermissionSignTransaction(
   chainId: BigNumberish | undefined | null,
   from: string | undefined,
@@ -41,7 +56,7 @@ export function checkPermissionSignTransaction(
     chainId &&
     toHexChainID(Number(chainId)) !== toHexChainID(enablingPermission.chainID)
   ) {
-    throw new EIP1193Error(EIP1193_ERROR_CODES.unauthorized)
+    throw chainMismatchError(chainId, enablingPermission.chainID)
   }
 
   if (

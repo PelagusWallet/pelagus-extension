@@ -7,6 +7,7 @@ import SingleAsset from "../pages/SingleAsset"
 import Menu from "../pages/Settings"
 import Send from "../pages/Send"
 import DAppPermissionRequest from "../pages/DAppConnectRequest"
+import NetworkSwitchRequest from "../pages/NetworkSwitchRequest"
 import KeyringUnlock from "../components/Keyring/KeyringUnlock"
 import KeyringSetPassword from "../components/Keyring/KeyringSetPassword"
 import SettingsExportLogs from "../pages/Settings/SettingsExportLogs"
@@ -182,6 +183,11 @@ const pageList: PageList[] = [
   {
     path: "/dapp-permission",
     Component: DAppPermissionRequest,
+    hasTopBar: false,
+  },
+  {
+    path: "/add-evm-chain",
+    Component: NetworkSwitchRequest,
     hasTopBar: false,
   },
   {

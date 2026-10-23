@@ -1252,8 +1252,11 @@ export default class ChainService extends BaseService<Events> {
       globalThis.main.SetShard(addrShard)
     }
 
+    // Keep the shard switch, and the RPC error handling, to the RPC calls only.
+    let spendableBalance: bigint
+    let lockedBalance: bigint
     try {
-      const [spendableBalance, lockedBalance] = await Promise.all([
+      ;[spendableBalance, lockedBalance] = await Promise.all([
         provider.getBalance(address, "latest"),
         provider.getLockedBalance(address),
       ])
@@ -1261,30 +1264,6 @@ export default class ChainService extends BaseService<Events> {
         chainId: network.chainID,
         error: false,
       })
-      const asset = await this.db.getBaseAssetForNetwork(network.chainID)
-      const accountBalance: AccountBalance = {
-        address,
-        network,
-        assetAmount: {
-          asset,
-          amount: spendableBalance,
-        },
-        lockedAmount: {
-          asset,
-          amount: lockedBalance,
-        },
-        dataSource: "local",
-        retrievedAt: Date.now(),
-      }
-
-      // Don't emit or save if the account isn't tracked.
-      if (await this.publishTrackedAccountBalance(accountBalance)) {
-        await this.db.addBalance(accountBalance)
-      }
-      const key = `${network.chainID}:${address.toLowerCase()}`
-      clearTimeout(this.baseBalanceRetries?.get(key))
-      this.baseBalanceRetries?.delete(key)
-      return accountBalance
     } catch (error) {
       logger.error(`Error getting balance for ${address}`, error)
       if (
@@ -1301,6 +1280,31 @@ export default class ChainService extends BaseService<Events> {
     } finally {
       globalThis.main.SetShard(prevShard)
     }
+
+    const asset = await this.db.getBaseAssetForNetwork(network.chainID)
+    const accountBalance: AccountBalance = {
+      address,
+      network,
+      assetAmount: {
+        asset,
+        amount: spendableBalance,
+      },
+      lockedAmount: {
+        asset,
+        amount: lockedBalance,
+      },
+      dataSource: "local",
+      retrievedAt: Date.now(),
+    }
+
+    // Don't emit or save if the account isn't tracked.
+    if (await this.publishTrackedAccountBalance(accountBalance)) {
+      await this.db.addBalance(accountBalance)
+    }
+    const key = `${network.chainID}:${address.toLowerCase()}`
+    clearTimeout(this.baseBalanceRetries?.get(key))
+    this.baseBalanceRetries?.delete(key)
+    return accountBalance
   }
 
   async addAccountToTrack(addressNetwork: AddressOnNetwork): Promise<void> {

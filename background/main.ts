@@ -151,7 +151,7 @@ import {
   SmartContractAsset,
   SmartContractFungibleAsset,
 } from "./assets"
-import { AddChainRequestData } from "./services/provider-bridge"
+import { NetworkSwitchRequestData } from "./services/provider-bridge"
 import {
   AnalyticsEvent,
   isOneTimeAnalyticsEvent,
@@ -2140,7 +2140,9 @@ export default class Main extends BaseService<never> {
   //   return undefined
   // }
 
-  getAddNetworkRequestDetails(requestId: string): AddChainRequestData {
+  getAddNetworkRequestDetails(
+    requestId: string
+  ): NetworkSwitchRequestData | undefined {
     return this.providerBridgeService.getNewCustomRPCDetails(requestId)
   }
 

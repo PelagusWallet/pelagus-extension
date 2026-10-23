@@ -75,7 +75,13 @@
     "viewAddressPermission": "View address of connected account",
     "createTransactionPermission": "Create but not sign transactions for you",
     "rejectConnection": "Reject",
-    "acceptConnection": "Connect"
+    "acceptConnection": "Connect",
+    "switchNetworkTitle": "Switch network?",
+    "switchNetworkFrom": "From",
+    "switchNetworkTo": "To",
+    "switchNetworkWarning": "This site wants to change the Pelagus network. All connected sites will use the new network.",
+    "rejectSwitchNetwork": "Reject",
+    "acceptSwitchNetwork": "Switch"
   },
   "genericPages": {
     "pageDoesNotExist": "This page does not exist. That's all we know.",

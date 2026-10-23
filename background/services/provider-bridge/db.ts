@@ -56,7 +56,17 @@ export class ProviderBridgeDatabase extends Dexie {
     accountAddress: string,
     chainID: string
   ): Promise<PermissionRequest | undefined> {
-    return this.dAppPermissions.get({ origin, accountAddress, chainID })
+    // A connection is not tied to a chain: dApps follow the wallet's network.
+    // Rows are still keyed by the chain they were granted on, so fall back to
+    // any chain and report the permission on the requested one.
+    const permission =
+      (await this.dAppPermissions.get({ origin, accountAddress, chainID })) ??
+      (await this.dAppPermissions
+        .where("origin")
+        .equals(origin)
+        .filter((row) => row.accountAddress === accountAddress)
+        .first())
+    return permission && { ...permission, chainID }
   }
 }
 
